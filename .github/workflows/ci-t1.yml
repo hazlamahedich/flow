@@ -45,5 +45,28 @@ jobs:
 
       - run: pnpm test
 
-      - name: RLS integration tests (stub)
-        run: echo "RLS suite added in Story 1.2"
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase
+        run: |
+          supabase start
+          # Health check retry — wait for Postgres to be ready
+          for i in $(seq 1 30); do
+            if supabase db ping 2>/dev/null; then
+              echo "Supabase is ready"
+              break
+            fi
+            echo "Waiting for Supabase... ($i/30)"
+            sleep 2
+          done
+
+      - name: Run pgTAP RLS tests (P0 gate)
+        run: supabase test db
+
+      - name: Drizzle schema parity check
+        run: pnpm --filter @flow/db db:check
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres

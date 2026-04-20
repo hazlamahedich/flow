@@ -7,11 +7,11 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@flow/shared': path.resolve(__dirname, '../shared/src/index.ts'),
-      '@flow/tokens': path.resolve(__dirname, '../tokens/src/index.ts'),
-      '@flow/ui': path.resolve(__dirname, '../ui/src/index.ts'),
-      '@flow/types': path.resolve(__dirname, '../types/src/index.ts'),
-      '@flow/db': path.resolve(__dirname, '../db/src/index.ts'),
+      '@flow/shared': path.resolve(__dirname, 'packages/shared/src/index.ts'),
+      '@flow/tokens': path.resolve(__dirname, 'packages/tokens/src/index.ts'),
+      '@flow/ui': path.resolve(__dirname, 'packages/ui/src/index.ts'),
+      '@flow/types': path.resolve(__dirname, 'packages/types/src/index.ts'),
+      '@flow/db': path.resolve(__dirname, 'packages/db/src/index.ts'),
     },
   },
 });

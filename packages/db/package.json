@@ -7,21 +7,32 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./src/client.ts",
+      "default": "./dist/client.js"
     }
   },
   "scripts": {
     "build": "tsup",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:check": "drizzle-kit check"
   },
   "dependencies": {
     "@flow/types": "workspace:*",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.104.0",
     "drizzle-orm": "^0.44.0"
   },
   "devDependencies": {
     "@flow/config": "workspace:*",
+    "@types/node": "^25.6.0",
     "drizzle-kit": "^0.31.0",
+    "jsdom": "^26.1.0",
     "tsup": "^8.4.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
   }
 }

@@ -10,3 +10,15 @@
 - ~~Multiple ThemeProviders race on documentElement~~ — **Resolved 2026-04-20:** Provider sets `data-flow-theme-provider` attribute on mount and warns in console if a second instance is detected. Cleans up on unmount.
 - ~~No `:root` fallback without data-theme~~ — **Resolved 2026-04-20:** `generateRootFallback()` outputs a full `:root { … }` block with light theme defaults, included in `dist/tokens.css` before the themed selectors.
 - ~~CSS export points to source not dist~~ — **Resolved 2026-04-20:** `package.json` export `./css` now points to `./dist/tokens.css`. `generate-css.ts` assembles a combined file (primitives + shadcn bridge + portal brand + themes + reduced-motion).
+
+## Deferred from: code review of 1-2-database-foundation-tenant-isolation (2026-04-20)
+
+- Audit anomaly scan not implemented — explicitly deferred to Epic 10 per story spec "What This Story Does NOT Include"
+- audit_log has no FK constraints on workspace_id/user_id — intentional design choice (audit entries must survive workspace/user deletion for compliance)
+- No INSERT policy on workspaces for authenticated users — intentional (workspace creation via service_role only, per migration comments)
+- requireTenantContext has no memoization — performance optimization, each call hits Supabase Auth server (~50-100ms overhead per call)
+- expires_at not enforced by RLS or CHECK constraint — time-limited access feature not yet implemented, expires_at column exists but has no effect
+- createBrowserClient silently drops cookies — documented as expected behavior (actual singleton wiring deferred to apps/web per story spec)
+- Stale JWT after setActiveWorkspace — known JWT limitation; workspace_id in JWT only updates on token refresh
+- renderTheme ignores newTheme parameter — pre-existing from story 1.1b
+- No user profile auto-creation trigger — signup flow and user creation come in Story 1.3
