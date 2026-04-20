@@ -1,0 +1,24 @@
+:root,
+:root[data-theme="dark"],
+:root[data-theme="light"] {
+  --background: var(--flow-bg-canvas);
+  --foreground: var(--flow-text-primary);
+  --card: var(--flow-bg-surface);
+  --card-foreground: var(--flow-text-primary);
+  --popover: var(--flow-bg-surface-raised);
+  --popover-foreground: var(--flow-text-primary);
+  --primary: var(--flow-accent-primary);
+  --primary-foreground: var(--flow-accent-primary-text);
+  --secondary: var(--flow-bg-surface-raised);
+  --secondary-foreground: var(--flow-text-primary);
+  --muted: var(--flow-bg-surface);
+  --muted-foreground: var(--flow-text-secondary);
+  --accent: var(--flow-bg-surface-raised);
+  --accent-foreground: var(--flow-text-primary);
+  --destructive: var(--flow-status-error);
+  --destructive-foreground: #ffffff;
+  --border: var(--flow-border-default);
+  --input: var(--flow-border-default);
+  --ring: var(--flow-accent-primary);
+  --radius: var(--flow-radius-md);
+}

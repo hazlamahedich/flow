@@ -527,32 +527,251 @@ So that all subsequent stories build on a verified, consistently configured foun
 ### Story 1.1b: Design System Tokens & Consumption Proof
 
 As a developer,
-I want the design system token layer implemented with a verified consumption pattern,
-So that all subsequent UI stories use a consistent, accessible, and testable design foundation.
+I want a complete design system token layer with verified consumption, FOUC-free theme switching, and automated quality gates,
+So that all subsequent UI stories use a consistent, accessible, testable, and architecturally sound design foundation.
 
 **Dependencies:** Story 1.1a must be completed.
 
-**Acceptance Criteria:**
+**Revised:** This story was rewritten after a 4-agent adversarial review (56 findings across architect, UX designer, test architect, and developer). Key changes: light theme values specified (not hand-waved), emotional/trust-density tokens included, FOUC strategy defined, shadcn/ui bridge explicit, Tailwind v4 CSS-first approach, `next/font` architecturally separated from token package, token naming convention established, agent identity + status overlay composition defined, motion tokens included, test strategy explicit.
 
-**Given** the Turborepo scaffold exists with CI passing
-**When** the design system tokens are implemented
-**Then** `packages/tokens` exports typed JS objects and CSS custom properties for: color primitives, semantic colors (light + dark), typography, spacing, breakpoints, focus ring tokens
-**And** workspace dark theme values defined under `[data-theme="dark"]`: base #0A0A0B, panels #161618, elevated #1E1E21
-**And** light theme values defined under `[data-theme="light"]` with light-appropriate values
-**And** theme switching via `data-theme` attribute on `<html>`, `setTheme()`/`getTheme()` functions, localStorage persistence
-**And** 6 agent identity colors defined as permanent HSL tokens: Inbox (blue), Calendar (violet), AR Collection (amber), Weekly Report (green), Client Health (rose), Time Integrity (orange)
-**And** semantic status colors: green handled, yellow needs attention, red act now
-**And** typography via `next/font/google`: Inter body (13px), JetBrains Mono for code/agents (12px)
-**And** 4px base spacing grid mapped to Tailwind preset
-**And** layout grid constants: 240px/56px sidebar, 960px main, 360px detail pane, breakpoints 640/768/1024/1280
-**And** Tailwind plugin maps CSS vars to utility classes
-**And** proof `Button` component in `packages/ui` consumes tokens via Tailwind plugin (primary + secondary variants, ~30 lines)
-**And** `packages/test-utils` exports `renderWithTheme()` helper used by Button test
-**And** token validation script asserts valid CSS values, no orphans, no duplicates
-**And** WCAG AA contrast check passes for all semantic color pairs in both themes (4.5:1 text, 3:1 large text)
-**And** focus ring token produces visible indicator meeting 2px minimum + 3:1 contrast
-**And** consumption README documents import pattern, Tailwind usage, theme switching, adding new tokens
-**And** `turbo build && turbo test && turbo lint` all pass
+---
+
+#### A. Token Package (`packages/tokens`)
+
+**AC-1: Package structure and exports**
+- `packages/tokens` has zero runtime dependencies. React is optional peer dependency (for hooks/providers only)
+- `package.json` `"exports"` map: `"."` (typed JS objects), `"./css"` (CSS entry), `"./hooks"` (useTheme), `"./providers"` (ThemeProvider)
+- ESM-only output. All source files ≤200 lines. Named exports only. No `any`, no `@ts-ignore`
+- Public barrel export at package boundary only — no barrel files inside subdirectories
+
+**AC-2: Token naming convention**
+```
+--flow-{category}-{property}-{variant}
+Primitives:  --flow-color-primitive-slate-50, --flow-color-primitive-blue-200
+Semantic:    --flow-bg-canvas, --flow-text-primary, --flow-border-default
+Role+State:  --flow-state-hover-brightness, --flow-agent-inbox
+Motion:      --flow-duration-fast, --flow-ease-standard
+Spacing:     --flow-space-4, --flow-trust-gap-compact
+```
+
+**AC-3: Primitive color scales**
+- `src/colors/primitives.ts` exports typed `as const` objects for: slate (50–950), blue, red, green, amber, violet, rose, orange, white, black
+- All values in `oklch()` format for perceptual uniformity
+- CSS output in `src/css/primitives.css` using Tailwind v4 `@theme` directive
+
+**AC-4: Semantic color tokens — dark theme (exact values)**
+
+| Token | Value | Usage |
+|---|---|---|
+| `--flow-bg-canvas` | `#09090b` | Page background |
+| `--flow-bg-surface` | `#18181b` | Cards, panels |
+| `--flow-bg-surface-raised` | `#27272a` | Elevated cards, popovers |
+| `--flow-bg-surface-overlay` | `#3f3f46` | Modals, overlays |
+| `--flow-text-primary` | `#fafafa` | Body text |
+| `--flow-text-secondary` | `#a1a1aa` | Descriptions, secondary |
+| `--flow-text-muted` | `#71717a` | Placeholders, captions |
+| `--flow-text-disabled` | `#52525b` | Disabled text |
+| `--flow-text-inverse` | `#09090b` | Text on accent bg |
+| `--flow-border-default` | `#27272a` | Standard borders |
+| `--flow-border-subtle` | `#18181b` | Dividers |
+| `--flow-border-strong` | `#3f3f46` | Emphasis borders |
+| `--flow-accent-primary` | `#6366f1` | Primary accent (indigo) |
+| `--flow-accent-primary-text` | `#ffffff` | Text on primary |
+| `--flow-status-success` | `#22c55e` | Handled / confirmed |
+| `--flow-status-warning` | `#f59e0b` | Needs attention |
+| `--flow-status-error` | `#ef4444` | Act now / error |
+| `--flow-status-info` | `#3b82f6` | Informational |
+
+**AC-5: Semantic color tokens — light theme (exact values, warm neutral undertone)**
+
+| Token | Value | Usage |
+|---|---|---|
+| `--flow-bg-canvas` | `#fafaf8` | Warm off-white page background |
+| `--flow-bg-surface` | `#f3f2ef` | Recessed areas, table rows |
+| `--flow-bg-surface-raised` | `#ffffff` | Cards, popovers |
+| `--flow-bg-surface-overlay` | `rgba(250,250,248,0.85)` | Sidebar overlay, sheet backdrops |
+| `--flow-text-primary` | `#1a1917` | Near-black, warm |
+| `--flow-text-secondary` | `#6b6962` | Paragraphs, descriptions |
+| `--flow-text-muted` | `#9c9a92` | Placeholders, captions |
+| `--flow-text-disabled` | `#c4c2ba` | Disabled text |
+| `--flow-text-inverse` | `#fafaf8` | Text on dark bg |
+| `--flow-border-default` | `#e8e6e1` | Subtle warm gray borders |
+| `--flow-border-subtle` | `#f0eee9` | Dividers within cards |
+| `--flow-border-strong` | `#d1cfc8` | Active/emphasis borders |
+| `--flow-accent-primary` | `#4f46e5` | Primary accent (deeper for contrast) |
+| `--flow-accent-primary-text` | `#ffffff` | Text on primary |
+| `--flow-status-success` | `#16a34a` | Handled / confirmed |
+| `--flow-status-warning` | `#d97706` | Needs attention |
+| `--flow-status-error` | `#dc2626` | Act now / error |
+| `--flow-status-info` | `#2563eb` | Informational |
+
+Light theme uses warm neutral undertone (yellow-ochre, not blue-white). Reason: Flow serves VAs managing relationships — warmth says "human work."
+
+**AC-6: 6 agent identity colors (permanent, HSL)**
+
+| Agent | Token | Value |
+|---|---|---|
+| Inbox | `--flow-agent-inbox` | `hsl(217, 91%, 73%)` — sky blue |
+| Calendar | `--flow-agent-calendar` | `hsl(263, 85%, 75%)` — violet |
+| AR Collection | `--flow-agent-ar` | `hsl(33, 90%, 61%)` — amber |
+| Weekly Report | `--flow-agent-report` | `hsl(160, 65%, 51%)` — emerald |
+| Client Health | `--flow-agent-health` | `hsl(330, 85%, 72%)` — rose |
+| Time Integrity | `--flow-agent-time` | `hsl(217, 89%, 69%)` — cerulean |
+
+Agent colors NEVER use red (reserved for error status). Colors distinguishable for common color vision deficiencies.
+
+**AC-7: Agent identity + status overlay composition rules**
+- Active: full opacity (1.0)
+- Idle: half opacity (0.5)
+- Thinking: opacity pulse 0.5→0.8 over 1.5s, spring easing `cubic-bezier(0.34, 1.56, 0.64, 1)`
+- Error: dimmed (0.3) + red ring indicator
+- Offline: near-invisible (0.15) + grayscale filter
+
+**AC-8: Typography scale (complete system)**
+
+| Token | Value | Usage |
+|---|---|---|
+| `--flow-text-2xs` | `0.6875rem` (11px) | Timestamps, badges, legal |
+| `--flow-text-xs` | `0.75rem` (12px) | Captions, helper text |
+| `--flow-text-sm` | `0.8125rem` (13px) | Secondary text, tags |
+| `--flow-text-base` | `0.875rem` (14px) | **Default body text** |
+| `--flow-text-md` | `1rem` (16px) | Emphasized body |
+| `--flow-text-lg` | `1.125rem` (18px) | Section headings (H3) |
+| `--flow-text-xl` | `1.25rem` (20px) | Page headings (H2) |
+| `--flow-text-2xl` | `1.5rem` (24px) | Title headings (H1) |
+| `--flow-text-3xl` | `1.875rem` (30px) | Hero numbers, KPIs |
+
+Line heights: none (1), tight (1.25), snug (1.375), normal (1.5), relaxed (1.625). Base 14px for data-dense sustained-use productivity tool.
+Font weights: regular (400), medium (500), semibold (600), bold (700).
+Letter spacing: tight (-0.01em) for headings xl+, normal (0) for body, wide (0.02em) for 2xs/caps/labels.
+Font families: `--flow-font-sans` (Inter), `--flow-font-mono` (JetBrains Mono). Names only in tokens; loading in app layer.
+
+**AC-9: Spacing scale + trust-density gap system**
+Standard 4px-base spacing: `--flow-space-{0|0.5|1|1.5|2|...|24}` mapping to 0–96px.
+Trust-density semantic aliases:
+| Token | Value | Usage |
+|---|---|---|
+| `--flow-trust-gap-compact` | `16px` | Standard work, low-risk actions |
+| `--flow-trust-gap-standard` | `20px` | Normal operations, confirmed patterns |
+| `--flow-trust-gap-elevated` | `28px` | High-trust moments, confirmations |
+| `--flow-trust-gap-ceremony` | `48px` | Milestones, trust achievements |
+
+More space = more trust. Density scales UP as stakes rise.
+
+**AC-10: Border-radius scale**
+`--flow-radius-{none:0|xs:2px|sm:4px|md:8px|lg:12px|xl:16px|full:9999px}`
+
+**AC-11: Elevation / shadow tokens**
+Dark theme: luminance shadows + subtle white border highlights (0.05–0.1 opacity). Light theme: traditional shadows.
+`--flow-shadow-{none|xs|sm|md|lg|xl}` for both themes.
+Dark theme additionally: `--flow-elevation-{0|1|2|3|4}` with combined shadow + border luminance.
+
+**AC-12: Motion tokens**
+Durations: `--flow-duration-{instant:50ms|fast:100ms|normal:150ms|expressive:300ms|ceremony:500ms}`
+Easing: `--flow-ease-{standard|decelerate|accelerate|spring|gentle}` with explicit cubic-bezier values.
+`prefers-reduced-motion` sets all durations to 0ms except ceremony (100ms simplified).
+
+**AC-13: Focus ring tokens**
+Width: `--flow-focus-ring-width: 2px`. Offset: `--flow-focus-ring-offset: 2px`.
+Color: derives from `--flow-accent-primary`. Strategy: `:focus-visible` for keyboard only. Never on mouse click (`:focus:not(:focus-visible)` hides outline). Dark surfaces get additional glow: `box-shadow: 0 0 0 1px var(--flow-focus-ring-color)`.
+
+**AC-14: Interactive state tokens**
+`--flow-state-hover-brightness: 1.15` (dark) / `0.95` (light). `--flow-state-active-brightness: 0.9` / `1.05`.
+`--flow-state-disabled-opacity: 0.4`. `--flow-state-readonly-opacity: 0.7`.
+Overlay tokens: `--flow-state-overlay-hover` (rgba white 0.08 / black 0.04).
+
+**AC-15: Z-index scale**
+`--flow-z-{hide:-1|base:0|dropdown:100|sticky:200|overlay:300|modal:400|toast:500|tooltip:600}`
+
+**AC-16: Breakpoints**
+`--flow-breakpoint-{sm:640px|md:768px|lg:1024px|xl:1280px|2xl:1536px}`. Mobile-first `min-width`.
+
+**AC-17: Layout grid constants**
+Sidebar expanded: 240px. Sidebar collapsed: 56px. Main content: 960px. Detail pane: 360px. As CSS custom properties.
+
+**AC-18: Portal brand token mechanism**
+8 CSS vars under `[data-portal="{slug}"]` selector:
+`--portal-color-bg: #FFF9F0`, `--portal-color-surface: #FFFFFF`, `--portal-color-accent: #C4956A` (copper), `--portal-color-accent-soft: #E8D5C0`, `--portal-color-text: #2D2926`, `--portal-color-text-soft: #7A7168`, `--portal-color-border: #E8DFD3`, `--portal-color-highlight: #FFF3E6`.
+Actual tenant overrides deferred to portal customization epic.
+
+---
+
+#### B. Tailwind v4 Integration
+
+**AC-19: Tailwind v4 CSS-first configuration**
+`src/css/primitives.css` uses `@theme` directive (NOT `tailwind.config.ts`). All token scales registered as `--color-flow-*`, `--spacing-flow-*`, `--radius-flow-*`, etc.
+Apps consume via single import: `@import "@flow/tokens/css";`
+
+**AC-20: shadcn/ui CSS variable bridge**
+`src/css/shadcn-bridge.css` maps ALL shadcn/ui expected variables to Flow semantic tokens: `--background`, `--foreground`, `--card`, `--card-foreground`, `--popover`, `--popover-foreground`, `--primary`, `--primary-foreground`, `--secondary`, `--secondary-foreground`, `--muted`, `--muted-foreground`, `--accent`, `--accent-foreground`, `--destructive`, `--destructive-foreground`, `--border`, `--input`, `--ring`, `--radius`.
+Both `:root` and `:root[data-theme="dark"]` inherit the same bridge rules (Flow semantic vars resolve differently per theme).
+
+---
+
+#### C. Theme Infrastructure
+
+**AC-21: ThemeProvider component**
+`src/providers/theme-provider.tsx` — `"use client"` boundary. Provides `{ theme, resolvedTheme, setTheme }` via React context and `useTheme()` hook.
+Reads from localStorage key `flow-theme`, falls back to `prefers-color-scheme`. Sets `data-theme` on `<html>`.
+React is optional peer dependency of `packages/tokens`.
+
+**AC-22: FOUC prevention**
+Inline blocking `<script>` in `apps/web/app/layout.tsx` `<head>` runs synchronously before paint:
+```
+(function(){try{var t=localStorage.getItem('flow-theme');var d=t==='dark'||((!t||t==='system')&&matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light')}catch(e){}})()
+```
+`suppressHydrationWarning` on `<html>`. ThemeProvider hydrates on top for dynamic switching.
+
+**AC-23: Font loading (app layer, NOT tokens package)**
+`next/font/google` called in `apps/web/app/layout.tsx`: Inter → `--font-family-flow-sans`, JetBrains Mono → `--font-family-flow-mono`, both `display: "swap"`.
+`packages/tokens` defines font names/sizes only. Font loading is app-layer concern.
+
+---
+
+#### D. Consumption Proof
+
+**AC-24: Proof Button component**
+`packages/ui/src/components/button/button.tsx` — `cva` variants, consumes tokens via CSS custom properties (`bg-[var(--primary)]` etc.). Variants: default, destructive, outline, secondary, ghost, link. Sizes: default, sm, lg, icon. Radix `Slot` for `asChild`. ≤80 lines.
+
+**AC-25: Additional proof components**
+Badge (agent identity + status variants), Card (surface + elevation tokens), Input (border + ring tokens). Each ≤80 lines.
+
+**AC-26: renderWithTheme test helper**
+`packages/test-utils` exports `renderWithTheme(ui, { theme })` wrapping component in ThemeProvider with mocked localStorage. All component tests use this.
+
+---
+
+#### E. Quality Gates
+
+**AC-27: Token validation script**
+`packages/tokens/src/scripts/validate-tokens.ts` asserts: every semantic token exists in both themes (no orphans), all values parseable as CSS colors, no duplicates across themes, CSS tokens match TS exports, shadcn bridge maps all required vars. Exit 0/1. CI gate.
+
+**AC-28: WCAG 2.1 AA contrast validation**
+`packages/tokens/src/scripts/check-contrast.ts` using `culori` color math. Explicit pair matrix:
+
+Text-on-background (4.5:1): `{primary,secondary,muted,inverse}-text` on `bg-canvas` × 2 themes. `accent-primary-text` on `accent-primary` × 2 themes. `card-foreground` on `card`, `popover-foreground` on `popover`, `muted-foreground` on `muted` — all × 2 themes.
+
+Non-text (3:1): `accent-primary`, all 4 status colors, `ring-default` — each on `bg-canvas` × 2 themes.
+
+Agent identity (3:1): all 6 agent colors on `bg-surface` and `bg-canvas` × 2 themes (12 pairs).
+
+Focus ring (3:1): ring color on both theme backgrounds.
+
+Exit 0/1. CI gate.
+
+**AC-29: Focus ring accessibility**
+2px minimum width, 3:1 contrast (validated by AC-28), `:focus-visible` keyboard-only strategy, visible on both themes.
+
+**AC-30: Test coverage**
+`packages/tokens` — 100% on token exports, theme maps, CSS output. Files: `colors.test.ts`, `typography.test.ts`, `spacing.test.ts`, `theme-provider.test.tsx`, `use-theme.test.ts`, `token-completeness.test.ts`, `css-output.test.ts`, `motion.test.ts`.
+`packages/ui` — 100% on Button, Badge, Card, Input. All use `renderWithTheme`.
+
+**AC-31: Build pipeline**
+`turbo.json` includes `validate` task. CI order: `build → validate → typecheck → test → lint`.
+`pnpm build && pnpm test && pnpm lint && pnpm validate` all pass with zero errors.
+
+**AC-32: Consumption README**
+`packages/tokens/README.md`: import patterns, Tailwind v4 usage, theme switching, shadcn integration, adding new tokens, agent identity usage, trust-density gaps, motion tokens.
 
 ### Story 1.2: Database Foundation & Tenant Isolation
 

@@ -1,0 +1,10 @@
+[data-portal="default"] {
+  --portal-color-bg: #FFF9F0;
+  --portal-color-surface: #FFFFFF;
+  --portal-color-accent: #C4956A;
+  --portal-color-accent-soft: #E8D5C0;
+  --portal-color-text: #2D2926;
+  --portal-color-text-soft: #7A7168;
+  --portal-color-border: #E8DFD3;
+  --portal-color-highlight: #FFF3E6;
+}

@@ -1,0 +1,14 @@
+@import './primitives.css';
+@import './shadcn-bridge.css';
+@import './portal-brand.css';
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="dark"],
+  [data-theme="light"] {
+    --flow-duration-instant: 0ms;
+    --flow-duration-fast: 0ms;
+    --flow-duration-normal: 0ms;
+    --flow-duration-expressive: 0ms;
+    --flow-duration-ceremony: 100ms;
+  }
+}

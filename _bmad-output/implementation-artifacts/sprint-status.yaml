@@ -44,7 +44,7 @@ story_location: "{project-root}/_bmad-output/implementation-artifacts"
 development_status:
   epic-1: in-progress
   1-1a-turborepo-scaffold-ci-pipeline: review
-  1-1b-design-system-tokens-consumption-proof: backlog
+  1-1b-design-system-tokens-consumption-proof: review
   1-2-database-foundation-tenant-isolation: backlog
   1-3-magic-link-authentication: backlog
   1-4-workspace-team-management: backlog

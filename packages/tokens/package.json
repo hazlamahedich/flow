@@ -7,16 +7,53 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./dist/index.js"
+    },
+    "./css": {
+      "default": "./src/css/index.css"
+    },
+    "./hooks": {
+      "types": "./src/hooks/use-theme.ts",
+      "default": "./dist/hooks/use-theme.js"
+    },
+    "./providers": {
+      "types": "./src/providers/theme-provider.tsx",
+      "default": "./dist/providers/theme-provider.js"
     }
   },
   "scripts": {
     "build": "tsup",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "generate-css": "tsx src/css/generate-css.ts",
+    "validate-tokens": "tsx src/scripts/validate-tokens.ts",
+    "check-contrast": "tsx src/scripts/check-contrast.ts",
+    "validate": "pnpm validate-tokens && pnpm check-contrast"
+  },
+  "peerDependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@flow/config": "workspace:*",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "culori": "^4.0.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "tsup": "^8.4.0",
-    "typescript": "^5.8.0"
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0",
+    "jsdom": "^26.1.0",
+    "@testing-library/react": "^16.3.0"
   }
 }
