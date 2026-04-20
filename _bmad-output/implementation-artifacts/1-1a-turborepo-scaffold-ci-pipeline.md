@@ -1,6 +1,6 @@
 # Story 1.1a: Turborepo Scaffold & CI Pipeline
 
-Status: review
+Status: done
 
 ## Story
 
@@ -219,6 +219,45 @@ glm-5.1 (zai-coding-plan/glm-5.1)
 - `.github/workflows/ci-t1.yml` — T1 PR CI
 - `.github/workflows/ci-t2.yml` — T2 merge to main CI
 
+### Review Findings
+
+- [x] [Review][Patch] ESLint `max-lines` change to `max: 200` error (AC3: "200 soft limit, tests exempt"). Dual threshold not achievable in ESLint 9 flat config. 250 retained as code review guideline in project-context.md. [`packages/config/eslint.config.base.js:22`] — resolved via agent consensus (Winston/Murat)
+
+- [x] [Review][Patch] CI T0 now uses `branches-ignore: [main]` to prevent double-running with T2 on main. [`.github/workflows/ci-t0.yml:4`] — fixed
+
+- [x] [Review][Patch] CI T0/T1 duplication on PR push — T0 excludes main but still fires on PR head branch pushes. T1 remains authoritative PR gate. Accepted: T0 provides fast feedback on feature branches, T1 adds PR-specific checks. [`.github/workflows/ci-t0.yml`] — mitigated
+
+- [x] [Review][Patch] Removed dead-code guard in `renderSmoke`. `getByTestId` already throws on miss — manual null check was unreachable. [`packages/test-utils/src/render-smoke.tsx:7-11`] — fixed
+
+- [x] [Review][Patch] Replaced core `no-restricted-imports` with `@typescript-eslint/no-restricted-imports` for TypeScript-aware import restriction. [`packages/config/eslint.config.base.js:26`] — fixed
+
+- [x] [Review][Patch] Removed unused `eslint-plugin-import` dependency. Plugin was loaded but no plugin rules were used. [`packages/config/eslint.config.base.js:3`] — fixed
+
+- [x] [Review][Patch] Added `dialect: "postgresql"` to `drizzle.config.ts`. [`packages/db/drizzle.config.ts:3`] — fixed
+
+- [x] [Review][Patch] Changed `turbo.json` test `dependsOn` from `["build"]` to `["^build"]` (build deps only, not self). [`turbo.json:10`] — fixed
+
+- [x] [Review][Patch] Removed `dependsOn` from `turbo.json` lint task — ESLint doesn't need built artifacts. [`turbo.json:19`] — fixed
+
+- [x] [Review][Patch] Added `.env` to `.gitignore` to prevent accidental secret commits. [`.gitignore`] — fixed
+
+- [x] [Review][Patch] Removed `composite: true` from `tsconfig.base.json` — tsup is the build tool, not tsc. Removed `composite: false` override from test-utils. [`packages/config/tsconfig.base.json:17`, `packages/test-utils/tsconfig.json:7`] — fixed
+
+- [x] [Review][Defer] Package exports point `types` to raw `.ts` source — works in monorepo but breaks if packages are ever published. Deferred: not caused by this change, and publishing is not planned. [`packages/*/package.json`]
+
+- [x] [Review][Defer] `vitest.workspace.ts` uses `__dirname` with ESM — vitest's loader injects it, but `import.meta.dirname` would be explicit. Deferred: works today, non-blocking. [`vitest.workspace.ts:10`]
+
+- [x] [Review][Defer] ESM-only output (no CJS fallback) — planned stack is ESM-native. Deferred: intentional decision. [`packages/*/tsup.config.ts`]
+
+- [x] [Review][Defer] `@flow/config` has no scripts — turborepo silently skips packages without matching scripts. Deferred: intentional. [`packages/config/package.json`]
+
+- [x] [Review][Defer] `@flow/db` has no test script — no DB tests yet. Deferred: Story 1.2 adds schema and tests. [`packages/db/package.json`]
+
+- [x] [Review][Defer] `pnpm-workspace.yaml` doesn't include `apps/*` — intentional per this story. Deferred: Story 1.2 will add apps path. [`pnpm-workspace.yaml`]
+
+- [x] [Review][Defer] Shared vitest config self-references `@flow/shared` alias — works but path `../shared/` is fragile. Deferred: functional, non-blocking. [`packages/shared/vitest.config.ts:10`]
+
 ## Change Log
 
 - 2026-04-20: Story 1.1a implementation complete. Scaffolded Turborepo monorepo with 7 packages, shared config, smoke tests, and 3-tier CI pipeline.
+- 2026-04-20: Code review complete. 1 decision-needed, 10 patch, 7 defer, 3 dismissed (missing pnpm-workspace false positive, .env.example planning references nit, no-restricted-imports empty paths nit).

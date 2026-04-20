@@ -1,6 +1,5 @@
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import restrictedImports from 'eslint-plugin-import';
 
 export default tseslint.config(
   js.configs.recommended,
@@ -10,9 +9,6 @@ export default tseslint.config(
   },
   {
     files: ['**/*.ts', '**/*.tsx'],
-    plugins: {
-      import: restrictedImports,
-    },
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/ban-ts-comment': [
@@ -21,9 +17,9 @@ export default tseslint.config(
       ],
       'max-lines': [
         'error',
-        { max: 250, skipBlankLines: true, skipComments: true },
+        { max: 200, skipBlankLines: true, skipComments: true },
       ],
-      'no-restricted-imports': [
+      '@typescript-eslint/no-restricted-imports': [
         'error',
         {
           paths: [],

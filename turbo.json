@@ -12,12 +12,11 @@
       "outputs": ["dist/**"]
     },
     "test": {
-      "dependsOn": ["build"],
+      "dependsOn": ["^build"],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "package.json"],
       "outputs": []
     },
     "lint": {
-      "dependsOn": ["^build"],
       "inputs": [
         "src/**/*.ts",
         "src/**/*.tsx",

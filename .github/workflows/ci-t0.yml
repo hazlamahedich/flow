@@ -2,7 +2,7 @@ name: CI T0 (every push)
 
 on:
   push:
-    branches: ['**']
+    branches-ignore: [main]
 
 concurrency:
   group: ci-t0-${{ github.ref }}
