@@ -1,0 +1,132 @@
+# generated: 2026-04-20
+# last_updated: 2026-04-21
+# project: flow
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: {project-root}/_bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-04-20
+last_updated: 2026-04-21
+project: flow
+project_key: NOKEY
+tracking_system: file-system
+story_location: "{project-root}/_bmad-output/implementation-artifacts"
+
+development_status:
+  epic-1: in-progress
+  1-1a-turborepo-scaffold-ci-pipeline: review
+  1-1b-design-system-tokens-consumption-proof: backlog
+  1-2-database-foundation-tenant-isolation: backlog
+  1-3-magic-link-authentication: backlog
+  1-4-workspace-team-management: backlog
+  1-5-user-profile-management: backlog
+  1-6-persistent-layout-shell-navigation: backlog
+  1-7-home-dashboard: backlog
+  1-8-command-palette-keyboard-shortcuts: backlog
+  1-9-undo-conflict-resolution: backlog
+  1-10-day-1-micro-wizard-aha-glimpse: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-agent-orchestrator-core-signal-schema: backlog
+  2-2-agent-activation-configuration-scheduling: backlog
+  2-3-trust-matrix-graduation-system: backlog
+  2-4-pre-check-post-check-gates: backlog
+  2-5-agent-approval-queue-keyboard-triage: backlog
+  2-6-agent-badge-system-trust-progression-ui: backlog
+  2-7-agent-action-history-coordination-timeline: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-client-data-model-crud: backlog
+  3-2-retainer-agreements-scope-creep-detection: backlog
+  3-3-new-client-setup-wizard: backlog
+  epic-3-retrospective: optional
+
+  epic-4: backlog
+  4-1-gmail-oauth-inbox-connection: backlog
+  4-2-email-categorization-sanitization-pipeline: backlog
+  4-3-morning-brief-generation: backlog
+  4-4-action-item-extraction-draft-responses: backlog
+  4-5-unified-communication-timeline: backlog
+  epic-4-retrospective: optional
+
+  epic-5: backlog
+  5-1-time-entry-data-model-manual-logging: backlog
+  5-2-persistent-sidebar-timer: backlog
+  5-3-time-entry-editing-invoice-impact-warnings: backlog
+  5-4-time-integrity-agent: backlog
+  epic-5-retrospective: optional
+
+  epic-6: backlog
+  6-1-google-calendar-oauth-connection: backlog
+  6-2-real-time-conflict-detection: backlog
+  6-3-booking-proposals-event-creation: backlog
+  6-4-bypass-detection-cascade-rescheduling: backlog
+  epic-6-retrospective: optional
+
+  epic-7: backlog
+  7-1-invoice-data-model-creation: backlog
+  7-2-invoice-delivery-payment-link: backlog
+  7-3-partial-payments-balance-tracking: backlog
+  7-4-void-credit-note-time-reconciliation: backlog
+  7-5-stripe-payment-failure-handling: backlog
+  epic-7-retrospective: optional
+
+  epic-8: backlog
+  8-1-weekly-client-reports: backlog
+  8-2-weekly-report-agent-auto-drafts: backlog
+  8-3-client-health-agent-usage-analytics: backlog
+  8-4-friday-feeling-ritual: backlog
+  epic-8-retrospective: optional
+
+  epic-9: backlog
+  9-1-client-portal-foundation-light-theme: backlog
+  9-2-client-portal-invoice-payment-report-approval: backlog
+  9-3-stripe-payment-integration-webhook-processing: backlog
+  9-4-subscription-tiers-tier-limits: backlog
+  9-5-subscription-lifecycle-downgrade-handling: backlog
+  9-6-recurring-invoices: backlog
+  9-7-billing-accuracy-usage-visibility: backlog
+  epic-9-retrospective: optional
+
+  epic-10: backlog
+  10-1-setup-wizard-first-session-experience: backlog
+  10-2-agent-activation-management-post-setup: backlog
+  10-3-in-app-notifications-preferences: backlog
+  10-4-error-handling-agent-recovery: backlog
+  10-5-data-export-audit-trail-gdpr-compliance: backlog
+  10-6-concurrency-safety-idempotency: backlog
+  10-7-observability-health-monitoring: backlog
+  10-8-context-shift-detection-proactive-transparency: backlog
+  10-9-agency-owner-actions-layer: backlog
+  epic-10-retrospective: optional
