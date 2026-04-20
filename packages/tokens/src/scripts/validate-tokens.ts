@@ -56,7 +56,12 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const shadcnBridgePath = resolve(__dirname, '../css/shadcn-bridge.css');
-const shadcnBridgeCss = readFileSync(shadcnBridgePath, 'utf-8');
+let shadcnBridgeCss = '';
+try {
+  shadcnBridgeCss = readFileSync(shadcnBridgePath, 'utf-8');
+} catch {
+  errors.push(`shadcn-bridge.css not found at ${shadcnBridgePath}`);
+}
 
 for (const v of requiredShadcnVars) {
   if (!shadcnBridgeCss.includes(v + ':')) {

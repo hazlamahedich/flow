@@ -1,8 +1,10 @@
 @import './primitives.css';
 @import './shadcn-bridge.css';
 @import './portal-brand.css';
+@import './generated-themes.css';
 
 @media (prefers-reduced-motion: reduce) {
+  :root,
   [data-theme="dark"],
   [data-theme="light"] {
     --flow-duration-instant: 0ms;

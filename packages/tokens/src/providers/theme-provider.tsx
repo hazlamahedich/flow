@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
 export type ResolvedTheme = 'light' | 'dark';
@@ -14,9 +14,14 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const STORAGE_KEY = 'flow-theme';
+const PROVIDER_ATTR = 'data-flow-theme-provider';
+
+function hasMatchMedia(): boolean {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function';
+}
 
 function getSystemPreference(): ResolvedTheme {
-  if (typeof window === 'undefined') return 'dark';
+  if (!hasMatchMedia()) return 'dark';
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
@@ -24,11 +29,30 @@ function resolveTheme(theme: Theme): ResolvedTheme {
   return theme === 'system' ? getSystemPreference() : theme;
 }
 
+function safeGetStorage(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSetStorage(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+  }
+}
+
 function readStoredTheme(): Theme {
-  if (typeof window === 'undefined') return 'system';
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored = safeGetStorage(STORAGE_KEY);
   if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
   return 'system';
+}
+
+function applyThemeToRoot(resolved: ResolvedTheme): void {
+  const root = document.documentElement;
+  root.setAttribute('data-theme', resolved);
 }
 
 interface ThemeProviderProps {
@@ -37,33 +61,37 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
+  const mounted = useRef(false);
+
   const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = readStoredTheme();
-      if (stored !== 'system') return stored;
-    }
-    return defaultTheme ?? 'system';
+    if (typeof window === 'undefined') return defaultTheme ?? 'system';
+    const stored = readStoredTheme();
+    return stored !== 'system' ? stored : (defaultTheme ?? 'system');
   });
 
   useEffect(() => {
-    const stored = readStoredTheme();
-    if (stored !== 'system') {
-      setThemeState(stored);
+    if (document.documentElement.hasAttribute(PROVIDER_ATTR)) {
+      console.warn('[ThemeProvider] Multiple instances detected. Only one ThemeProvider should be mounted.');
     }
+    document.documentElement.setAttribute(PROVIDER_ATTR, '');
+    mounted.current = true;
+    return () => {
+      document.documentElement.removeAttribute(PROVIDER_ATTR);
+    };
   }, []);
 
   const resolvedTheme = useMemo(() => resolveTheme(theme), [theme]);
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.setAttribute('data-theme', resolvedTheme);
+    applyThemeToRoot(resolvedTheme);
   }, [resolvedTheme]);
 
   useEffect(() => {
-    if (theme !== 'system') return;
+    if (theme !== 'system' || !hasMatchMedia()) return;
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = () => {
-      document.documentElement.setAttribute('data-theme', getSystemPreference());
+      applyThemeToRoot(getSystemPreference());
+      setThemeState('system');
     };
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
@@ -71,7 +99,7 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
 
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem(STORAGE_KEY, newTheme);
+    safeSetStorage(STORAGE_KEY, newTheme);
   }, []);
 
   const value = useMemo(

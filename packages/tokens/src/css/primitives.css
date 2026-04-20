@@ -1,3 +1,4 @@
+/* Requires Tailwind v4 processing. Raw import without @tailwindcss/vite or PostCSS will ignore @theme. */
 @theme {
   --color-flow-primitive-slate-50: oklch(0.968 0.007 264.542);
   --color-flow-primitive-slate-100: oklch(0.945 0.013 264.366);

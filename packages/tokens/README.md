@@ -6,7 +6,11 @@ Design system token layer for Flow OS. Provides typed JS constants, CSS custom p
 
 ```ts
 // Typed JS objects (all token categories)
-import { darkSemanticColors, typography, spacing, radius, motion } from '@flow/tokens';
+import { darkSemanticColors, typography, spacing, radius, motion, mediaQueries } from '@flow/tokens';
+
+// Use media query strings in JS (CSS vars cannot be used in @media queries)
+if (window.matchMedia(mediaQueries.md).matches) { /* tablet+ */ }
+```
 
 // CSS entry (Tailwind v4 + shadcn bridge + themes)
 // In your app's main CSS:

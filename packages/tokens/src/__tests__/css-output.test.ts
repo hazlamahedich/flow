@@ -29,8 +29,8 @@ describe('CSS output', () => {
   });
 
   it('both themes contain typography tokens', () => {
-    expect(darkCss).toContain('--flow-text-base');
-    expect(lightCss).toContain('--flow-text-base');
+    expect(darkCss).toContain('--flow-type-base');
+    expect(lightCss).toContain('--flow-type-base');
   });
 
   it('both themes contain spacing tokens', () => {

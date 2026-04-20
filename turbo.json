@@ -29,7 +29,7 @@
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig.json", "package.json"]
     },
     "validate": {
-      "dependsOn": ["build"],
+      "dependsOn": ["^build", "build"],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css"]
     },
     "format": {

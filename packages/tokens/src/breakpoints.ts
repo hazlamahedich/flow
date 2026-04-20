@@ -7,3 +7,13 @@ export const breakpoints = {
 } as const;
 
 export type Breakpoints = typeof breakpoints;
+
+export const mediaQueries = {
+  sm: `(min-width: ${breakpoints.sm})`,
+  md: `(min-width: ${breakpoints.md})`,
+  lg: `(min-width: ${breakpoints.lg})`,
+  xl: `(min-width: ${breakpoints.xl})`,
+  '2xl': `(min-width: ${breakpoints['2xl']})`,
+} as const;
+
+export type MediaQueries = typeof mediaQueries;

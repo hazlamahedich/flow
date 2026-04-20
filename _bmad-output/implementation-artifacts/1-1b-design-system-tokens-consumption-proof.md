@@ -1,6 +1,6 @@
 # Story 1.1b: Design System Tokens & Consumption Proof
 
-Status: review
+Status: done
 
 ## Story
 
@@ -45,7 +45,7 @@ Spacing:     --flow-space-4, --flow-trust-gap-compact
 | `--flow-bg-surface-overlay` | `#3f3f46` | Modals, overlays |
 | `--flow-text-primary` | `#fafafa` | Body text |
 | `--flow-text-secondary` | `#a1a1aa` | Descriptions, secondary |
-| `--flow-text-muted` | `#71717a` | Placeholders, captions |
+| `--flow-text-muted` | `#8b8b94` | Placeholders, captions |
 | `--flow-text-disabled` | `#52525b` | Disabled text |
 | `--flow-text-inverse` | `#09090b` | Text on accent bg |
 | `--flow-border-default` | `#27272a` | Standard borders |
@@ -68,7 +68,7 @@ Spacing:     --flow-space-4, --flow-trust-gap-compact
 | `--flow-bg-surface-overlay` | `rgba(250,250,248,0.85)` | Sidebar overlay, sheet backdrops |
 | `--flow-text-primary` | `#1a1917` | Near-black, warm |
 | `--flow-text-secondary` | `#6b6962` | Paragraphs, descriptions |
-| `--flow-text-muted` | `#9c9a92` | Placeholders, captions |
+| `--flow-text-muted` | `#6e6c63` | Placeholders, captions |
 | `--flow-text-disabled` | `#c4c2ba` | Disabled text |
 | `--flow-text-inverse` | `#fafaf8` | Text on dark bg |
 | `--flow-border-default` | `#e8e6e1` | Subtle warm gray borders |
@@ -92,7 +92,7 @@ Light theme uses warm neutral undertone (yellow-ochre, not blue-white). VAs mana
 | AR Collection | `--flow-agent-ar` | `hsl(33, 90%, 61%)` — amber |
 | Weekly Report | `--flow-agent-report` | `hsl(160, 65%, 51%)` — emerald |
 | Client Health | `--flow-agent-health` | `hsl(330, 85%, 72%)` — rose |
-| Time Integrity | `--flow-agent-time` | `hsl(217, 89%, 69%)` — cerulean |
+| Time Integrity | `--flow-agent-time` | `hsl(192, 80%, 55%)` — teal/cyan |
 
 Agent colors NEVER use red (reserved for error status). Colors distinguishable for common color vision deficiencies.
 
@@ -107,15 +107,15 @@ Agent colors NEVER use red (reserved for error status). Colors distinguishable f
 
 | Token | Value | Usage |
 |---|---|---|
-| `--flow-text-2xs` | `0.6875rem` (11px) | Timestamps, badges, legal |
-| `--flow-text-xs` | `0.75rem` (12px) | Captions, helper text |
-| `--flow-text-sm` | `0.8125rem` (13px) | Secondary text, tags |
-| `--flow-text-base` | `0.875rem` (14px) | **Default body text** |
-| `--flow-text-md` | `1rem` (16px) | Emphasized body |
-| `--flow-text-lg` | `1.125rem` (18px) | Section headings (H3) |
-| `--flow-text-xl` | `1.25rem` (20px) | Page headings (H2) |
-| `--flow-text-2xl` | `1.5rem` (24px) | Title headings (H1) |
-| `--flow-text-3xl` | `1.875rem` (30px) | Hero numbers, KPIs |
+| `--flow-type-2xs` | `0.6875rem` (11px) | Timestamps, badges, legal |
+| `--flow-type-xs` | `0.75rem` (12px) | Captions, helper text |
+| `--flow-type-sm` | `0.8125rem` (13px) | Secondary text, tags |
+| `--flow-type-base` | `0.875rem` (14px) | **Default body text** |
+| `--flow-type-md` | `1rem` (16px) | Emphasized body |
+| `--flow-type-lg` | `1.125rem` (18px) | Section headings (H3) |
+| `--flow-type-xl` | `1.25rem` (20px) | Page headings (H2) |
+| `--flow-type-2xl` | `1.5rem` (24px) | Title headings (H1) |
+| `--flow-type-3xl` | `1.875rem` (30px) | Hero numbers, KPIs |
 
 Line heights: none (1), tight (1.25), snug (1.375), normal (1.5), relaxed (1.625). Base 14px for data-dense sustained-use productivity tool.
 Font weights: regular (400), medium (500), semibold (600), bold (700).
@@ -161,7 +161,7 @@ Overlay tokens: `--flow-state-overlay-hover` (rgba white 0.08 / black 0.04).
 `--flow-z-{hide:-1|base:0|dropdown:100|sticky:200|overlay:300|modal:400|toast:500|tooltip:600}`
 
 **AC-16: Breakpoints**
-`--flow-breakpoint-{sm:640px|md:768px|lg:1024px|xl:1280px|2xl:1536px}`. Mobile-first `min-width`.
+`--flow-breakpoint-{sm:640px|md:768px|lg:1024px|xl:1280px|2xl:1536px}` as CSS vars (documentation only — cannot be used in `@media` queries). JS `mediaQueries` object provides ready-to-use `(min-width: …)` strings for programmatic use. Mobile-first `min-width`.
 
 **AC-17: Layout grid constants**
 Sidebar expanded: 240px. Sidebar collapsed: 56px. Main content: 960px. Detail pane: 360px. As CSS custom properties.
@@ -216,7 +216,7 @@ Badge (agent identity + status variants), Card (surface + elevation tokens), Inp
 `packages/tokens/src/scripts/validate-tokens.ts` asserts: every semantic token exists in both themes (no orphans), all values parseable as CSS colors, no duplicates across themes, CSS tokens match TS exports, shadcn bridge maps all required vars. Exit 0/1. CI gate.
 
 **AC-28: WCAG 2.1 AA contrast validation**
-`packages/tokens/src/scripts/check-contrast.ts` using `culori` color math. Explicit pair matrix:
+`packages/tokens/src/scripts/check-contrast.ts` using manual hex→RGB→luminance math. Explicit pair matrix:
 - Text-on-background (4.5:1): `{primary,secondary,muted,inverse}-text` on `bg-canvas` × 2 themes. `accent-primary-text` on `accent-primary` × 2 themes. `card-foreground` on `card`, `popover-foreground` on `popover`, `muted-foreground` on `muted` — all × 2 themes.
 - Non-text (3:1): `accent-primary`, all 4 status colors, `ring-default` — each on `bg-canvas` × 2 themes.
 - Agent identity (3:1): all 6 agent colors on `bg-surface` and `bg-canvas` × 2 themes (12 pairs).
@@ -366,16 +366,15 @@ Trust tokens (`--flow-trust-*`) and mood tokens (`--flow-tension-*`, `--flow-cal
 
 ### Agent Identity Colors (Source of Truth)
 
-Use **exact values from AC-6** (post-adversarial-review):
+Use **exact values from AC-6** (post-adversarial-review, with Time agent updated per code review):
 ```
---flow-agent-inbox:     hsl(217, 91%, 73%)  — sky blue
---flow-agent-calendar:  hsl(263, 85%, 75%)  — violet
---flow-agent-ar:        hsl(33, 90%, 61%)   — amber
---flow-agent-report:    hsl(160, 65%, 51%)  — emerald
---flow-agent-health:    hsl(330, 85%, 72%)  — rose
---flow-agent-time:      hsl(217, 89%, 69%)  — cerulean
+--flow-agent-inbox:     hsl(217 91% 73%)   — sky blue
+--flow-agent-calendar:  hsl(263 85% 75%)   — violet
+--flow-agent-ar:        hsl(33 90% 61%)    — amber
+--flow-agent-report:    hsl(160 65% 51%)   — emerald
+--flow-agent-health:    hsl(330 85% 72%)   — rose
+--flow-agent-time:      hsl(192 80% 55%)   — teal/cyan (updated from hsl(217,89%,69%) — was indistinguishable from Inbox)
 ```
-NOT the older values from ux-design-specification.md (those were pre-review). Epics AC-6 is the source of truth.
 
 ### Status Colors (Theme-Specific)
 
@@ -454,6 +453,45 @@ N/A
 
 - 2026-04-20: Story created from epic-1 story 1.1b definition.
 - 2026-04-20: All 17 tasks implemented and verified. `pnpm build && pnpm test && pnpm lint && pnpm validate` all pass with zero errors. Status moved to review.
+- 2026-04-20: Code review completed. 20 patches applied, 8 deferred, 2 dismissed.
+- 2026-04-20: All 20 patches fixed. Adjusted text-muted values for WCAG compliance (dark: #8b8b94, light: #6e6c63). All 4 gates pass (build/test/lint/validate with 26 contrast pairs).
+- 2026-04-20: All 8 deferred items resolved. Added mediaQueries JS helper, :root CSS fallback, ThemeProvider SSR/multi-provider guards, CSS dist export, generate-css combined output. 107 tests pass, 0 warnings, 26 contrast pairs verified.
+
+### Review Findings
+
+#### Patches (must fix)
+
+- [x] [Review][Patch] Theme CSS not wired into import chain — `@import "@flow/tokens/css"` loads zero semantic tokens. Wire `generate-css` output into `index.css` so the CSS export includes generated theme blocks. `packages/tokens/src/css/index.css`
+- [x] [Review][Patch] Rename font-size tokens from `--flow-text-*` to `--flow-type-*` to eliminate namespace collision with semantic color tokens (`--flow-text-primary` etc). `packages/tokens/src/typography.ts`, `packages/tokens/src/css/themes/dark.ts`, `packages/tokens/src/css/themes/light.ts`
+- [x] [Review][Patch] `cn()` is naive string join — replace with `twMerge(clsx(...))` using existing deps. `packages/ui/src/lib/utils.ts`
+- [x] [Review][Patch] Contrast check pair matrix incomplete — add missing pairs: `text-muted` on bg-canvas, card/popover/muted shadcn pairs, all 6 agent colors × 2 bg × 2 themes, focus ring color. `packages/tokens/src/scripts/check-contrast.ts`
+- [x] [Review][Patch] `text-muted` (#71717a) on dark bg-canvas (#09090b) ≈ 4.3:1 — adjusted to #8b8b94 for WCAG 4.5:1. Light theme adjusted to #6e6c63. `packages/tokens/src/colors/semantic-dark.ts`, `packages/tokens/src/colors/semantic-light.ts`
+- [x] [Review][Patch] `rgba()` values silently treated as `#ffffff` in contrast checker — added proper rgba→hex conversion. `packages/tokens/src/scripts/check-contrast.ts`
+- [x] [Review][Patch] Component tests now use `renderWithTheme()` from `@flow/test-utils`. `packages/ui/src/__tests__/*.test.tsx`
+- [x] [Review][Patch] `renderWithTheme.rerenderTheme` accepts theme parameter. `packages/test-utils/src/render-with-theme.tsx`
+- [x] [Review][Patch] System theme change handler now updates React state via `setThemeState`. `packages/tokens/src/providers/theme-provider.tsx:66-68`
+- [x] [Review][Patch] localStorage calls in ThemeProvider guarded with try-catch (`safeGetStorage`/`safeSetStorage`). `packages/tokens/src/providers/theme-provider.tsx`
+- [x] [Review][Patch] Badge status variants now use `var(--flow-text-inverse)` instead of `text-white`. `packages/ui/src/components/badge/badge.tsx`
+- [x] [Review][Patch] `--destructive-foreground` now uses `var(--flow-accent-primary-text)` instead of `#ffffff`. `packages/tokens/src/css/shadcn-bridge.css`
+- [x] [Review][Patch] Removed `src/colors/index.ts` barrel file inside subdirectory. `packages/tokens/src/colors/index.ts`
+- [x] [Review][Patch] `generate-css.ts` now creates `dist/` dir and generates `generated-themes.css` imported by `index.css`. Wired into `build` script. `packages/tokens/src/css/generate-css.ts`, `packages/tokens/package.json`
+- [x] [Review][Patch] Removed unused `culori` dependency. `packages/tokens/package.json`
+- [x] [Review][Patch] `@flow/ui` tsup config now externalizes React. `packages/ui/tsup.config.ts`
+- [x] [Review][Patch] Dark shadow tokens now include white border highlights (`inset 0 0 0 1px rgba(255,255,255,0.05-0.1)`). `packages/tokens/src/elevation.ts`
+- [x] [Review][Patch] Focus ring now includes `darkGlow` property for dark-surface additional glow. `packages/tokens/src/focus-ring.ts`
+- [x] [Review][Patch] Agent colors converted to space-separated HSL (`hsl(217 91% 73%)`) for Tailwind opacity compatibility. `packages/tokens/src/colors/agents.ts`
+- [x] [Review][Patch] Badge now makes variant/agent mutually exclusive — agent overrides variant to `outline`. `packages/ui/src/components/badge/badge.tsx`
+
+#### Deferred (pre-existing or out of scope) — All Resolved
+
+- [x] [Review][Defer] Agent colors Inbox & Time nearly indistinguishable — **Resolved:** Time changed to `hsl(192 80% 55%)` (teal/cyan). `packages/tokens/src/colors/agents.ts`
+- [x] [Review][Defer] Breakpoints as CSS custom properties non-functional in `@media` queries — **Resolved:** Added `mediaQueries` JS helper object with ready-to-use `(min-width: …)` strings. CSS breakpoint vars documented as reference-only. `packages/tokens/src/breakpoints.ts`
+- [x] [Review][Defer] `@theme` directive in raw CSS needs Tailwind v4 processing — **Resolved:** Added processing-required comment to `primitives.css`. `packages/tokens/src/css/primitives.css`
+- [x] [Review][Defer] ThemeProvider double-reads localStorage on mount — **Resolved:** Removed redundant `useEffect` read; `useState` initializer is now the single source of truth. `packages/tokens/src/providers/theme-provider.tsx`
+- [x] [Review][Defer] `matchMedia` not guarded for SSR/old browsers — **Resolved:** Extracted `hasMatchMedia()` guard used in `getSystemPreference()` and system-theme listener. `packages/tokens/src/providers/theme-provider.tsx`
+- [x] [Review][Defer] Multiple ThemeProviders race on `document.documentElement` — **Resolved:** Provider sets `data-flow-theme-provider` attribute on mount, warns on duplicate, cleans up on unmount. `packages/tokens/src/providers/theme-provider.tsx`
+- [x] [Review][Defer] No `:root` fallback — FOUC if data-theme missing — **Resolved:** `generateRootFallback()` emits full `:root { … }` block with light theme defaults in `dist/tokens.css`. `packages/tokens/src/css/themes/light.ts`
+- [x] [Review][Defer] CSS export points to raw source not dist — **Resolved:** `package.json` export `./css` now points to `./dist/tokens.css`. `generate-css.ts` assembles combined file. `packages/tokens/package.json`, `packages/tokens/src/css/generate-css.ts`
 
 ### File List
 
@@ -470,7 +508,6 @@ N/A
 - `src/colors/agents.ts` — 6 agent identity tokens
 - `src/colors/agent-overlays.ts` — agent overlay composition rules
 - `src/colors/emotional.ts` — trust/emotion tokens
-- `src/colors/index.ts` — colors barrel
 - `src/typography.ts` — 9-step type scale
 - `src/spacing.ts` — spacing + trust-density
 - `src/radius.ts` — border-radius scale

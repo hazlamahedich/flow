@@ -10,9 +10,9 @@ const badgeVariants = cva(
         default: 'border-transparent bg-[var(--flow-accent-primary)] text-[var(--flow-accent-primary-text)]',
         secondary: 'border-transparent bg-[var(--flow-bg-surface-raised)] text-[var(--flow-text-secondary)]',
         outline: 'border-[var(--flow-border-default)] text-[var(--flow-text-primary)]',
-        success: 'border-transparent bg-[var(--flow-status-success)] text-white',
-        warning: 'border-transparent bg-[var(--flow-status-warning)] text-white',
-        error: 'border-transparent bg-[var(--flow-status-error)] text-white',
+        success: 'border-transparent bg-[var(--flow-status-success)] text-[var(--flow-text-inverse)]',
+        warning: 'border-transparent bg-[var(--flow-status-warning)] text-[var(--flow-text-inverse)]',
+        error: 'border-transparent bg-[var(--flow-status-error)] text-[var(--flow-text-inverse)]',
       },
       agent: {
         none: '',
@@ -24,6 +24,10 @@ const badgeVariants = cva(
         time: 'border-transparent bg-[var(--flow-agent-time)]/15 text-[var(--flow-agent-time)]',
       },
     },
+    compoundVariants: [
+      { agent: 'inbox', variant: 'default', class: '' },
+      { agent: 'inbox', variant: 'success', class: '' },
+    ],
     defaultVariants: {
       variant: 'default',
       agent: 'none',
@@ -37,7 +41,8 @@ export interface BadgeProps
 
 const Badge = forwardRef<HTMLDivElement, BadgeProps>(
   ({ className, variant, agent, ...props }, ref) => {
-    return <div ref={ref} className={cn(badgeVariants({ variant, agent, className }))} {...props} />;
+    const effectiveVariant = agent && agent !== 'none' ? 'outline' : variant;
+    return <div ref={ref} className={cn(badgeVariants({ variant: effectiveVariant, agent, className }))} {...props} />;
   },
 );
 Badge.displayName = 'Badge';

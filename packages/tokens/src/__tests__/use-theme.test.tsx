@@ -9,6 +9,8 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 beforeEach(() => {
+  document.documentElement.removeAttribute('data-flow-theme-provider');
+  document.documentElement.removeAttribute('data-theme');
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: (query: string) => ({

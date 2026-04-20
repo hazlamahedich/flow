@@ -5,7 +5,7 @@ export const darkSemanticColors = {
   '--flow-bg-surface-overlay': '#3f3f46',
   '--flow-text-primary': '#fafafa',
   '--flow-text-secondary': '#a1a1aa',
-  '--flow-text-muted': '#71717a',
+  '--flow-text-muted': '#8b8b94',
   '--flow-text-disabled': '#52525b',
   '--flow-text-inverse': '#09090b',
   '--flow-border-default': '#27272a',

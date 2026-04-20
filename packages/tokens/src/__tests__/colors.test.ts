@@ -142,17 +142,17 @@ describe('agent identity colors', () => {
   });
 
   it('has exact values from AC-6', () => {
-    expect(agentColors['--flow-agent-inbox']).toBe('hsl(217, 91%, 73%)');
-    expect(agentColors['--flow-agent-calendar']).toBe('hsl(263, 85%, 75%)');
-    expect(agentColors['--flow-agent-ar']).toBe('hsl(33, 90%, 61%)');
-    expect(agentColors['--flow-agent-report']).toBe('hsl(160, 65%, 51%)');
-    expect(agentColors['--flow-agent-health']).toBe('hsl(330, 85%, 72%)');
-    expect(agentColors['--flow-agent-time']).toBe('hsl(217, 89%, 69%)');
+    expect(agentColors['--flow-agent-inbox']).toBe('hsl(217 91% 73%)');
+    expect(agentColors['--flow-agent-calendar']).toBe('hsl(263 85% 75%)');
+    expect(agentColors['--flow-agent-ar']).toBe('hsl(33 90% 61%)');
+    expect(agentColors['--flow-agent-report']).toBe('hsl(160 65% 51%)');
+    expect(agentColors['--flow-agent-health']).toBe('hsl(330 85% 72%)');
+    expect(agentColors['--flow-agent-time']).toBe('hsl(192 80% 55%)');
   });
 
   it('no agent color uses red (reserved for error)', () => {
     for (const value of Object.values(agentColors)) {
-      expect(value).not.toMatch(/^hsl\(0,/);
+      expect(value).not.toMatch(/^hsl\(0[,\s]/);
     }
   });
 });

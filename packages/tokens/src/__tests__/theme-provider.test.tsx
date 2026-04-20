@@ -15,6 +15,8 @@ function ShowTheme() {
 }
 
 beforeEach(() => {
+  document.documentElement.removeAttribute('data-flow-theme-provider');
+  document.documentElement.removeAttribute('data-theme');
   const store: Record<string, string> = {};
   vi.stubGlobal('localStorage', {
     getItem: (key: string) => store[key] ?? null,

@@ -9,7 +9,7 @@
       "default": "./dist/index.js"
     },
     "./css": {
-      "default": "./src/css/index.css"
+      "default": "./dist/tokens.css"
     },
     "./hooks": {
       "types": "./src/hooks/use-theme.ts",
@@ -21,7 +21,7 @@
     }
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsx src/css/generate-css.ts && tsup",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -46,7 +46,6 @@
     "@flow/config": "workspace:*",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "culori": "^4.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tsup": "^8.4.0",

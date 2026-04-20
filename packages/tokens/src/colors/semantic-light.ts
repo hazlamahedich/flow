@@ -5,7 +5,7 @@ export const lightSemanticColors = {
   '--flow-bg-surface-overlay': 'rgba(250,250,248,0.85)',
   '--flow-text-primary': '#1a1917',
   '--flow-text-secondary': '#6b6962',
-  '--flow-text-muted': '#9c9a92',
+  '--flow-text-muted': '#6e6c63',
   '--flow-text-disabled': '#c4c2ba',
   '--flow-text-inverse': '#fafaf8',
   '--flow-border-default': '#e8e6e1',

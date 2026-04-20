@@ -16,7 +16,7 @@
   --accent: var(--flow-bg-surface-raised);
   --accent-foreground: var(--flow-text-primary);
   --destructive: var(--flow-status-error);
-  --destructive-foreground: #ffffff;
+  --destructive-foreground: var(--flow-accent-primary-text);
   --border: var(--flow-border-default);
   --input: var(--flow-border-default);
   --ring: var(--flow-accent-primary);

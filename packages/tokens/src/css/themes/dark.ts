@@ -12,12 +12,8 @@ import { zIndex } from '../../z-index';
 import { layout } from '../../layout';
 import { breakpoints } from '../../breakpoints';
 
-function toCustomProperty(name: string, value: string): string {
-  return `${name}: ${value};`;
-}
-
 function objectToCustomProperties(obj: Readonly<Record<string, string>>): string {
-  return Object.entries(obj).map(([key, value]) => toCustomProperty(key, value)).join('\n  ');
+  return Object.entries(obj).map(([key, value]) => `${key}: ${value};`).join('\n  ');
 }
 
 export function generateDarkTheme(): string {
@@ -44,7 +40,7 @@ export function generateDarkTheme(): string {
 
   lines.push('\n  /* Typography */');
   for (const [key, value] of Object.entries(typography.fontSize)) {
-    lines.push(`  --flow-text-${key}: ${value};`);
+    lines.push(`  --flow-type-${key}: ${value};`);
   }
   for (const [key, value] of Object.entries(typography.lineHeight)) {
     lines.push(`  --flow-leading-${key}: ${value};`);
@@ -86,6 +82,7 @@ export function generateDarkTheme(): string {
   lines.push(`  --flow-focus-ring-width: ${focusRing.width};`);
   lines.push(`  --flow-focus-ring-offset: ${focusRing.offset};`);
   lines.push(`  --flow-focus-ring-color: ${focusRing.color};`);
+  lines.push(`  --flow-focus-ring-dark-glow: ${focusRing.darkGlow};`);
 
   lines.push('\n  /* Interactive States */');
   lines.push(`  --flow-state-hover-brightness: ${states.dark.hoverBrightness};`);
@@ -105,7 +102,7 @@ export function generateDarkTheme(): string {
   lines.push(`  --flow-main-content: ${layout.mainContent};`);
   lines.push(`  --flow-detail-pane: ${layout.detailPane};`);
 
-  lines.push('\n  /* Breakpoints */');
+  lines.push('\n  /* Breakpoints (CSS vars are for documentation only — use JS mediaQueries for @media) */');
   for (const [key, value] of Object.entries(breakpoints)) {
     lines.push(`  --flow-breakpoint-${key}: ${value};`);
   }
