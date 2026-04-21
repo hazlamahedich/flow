@@ -14,3 +14,9 @@ export {
 export type { CacheEntity, CacheMutation } from './cache-policy';
 export { getConfig } from './config';
 export * from './schema';
+export {
+  ensureUserProfile,
+  getUserProfile,
+  updateUserProfile,
+  updateAvatarUrl,
+} from './queries/users';

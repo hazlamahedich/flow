@@ -8,7 +8,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'app'),
+      '@': path.resolve(__dirname, '.'),
       '@flow/db': path.resolve(__dirname, '../../packages/db/src/index.ts'),
       '@flow/db/client': path.resolve(__dirname, '../../packages/db/src/client.ts'),
       '@flow/types': path.resolve(__dirname, '../../packages/types/src/index.ts'),

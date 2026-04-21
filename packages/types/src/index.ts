@@ -36,3 +36,13 @@ export type {
   WorkspaceAuditEvent,
   WorkspaceAuditEventType,
 } from './workspace-audit';
+export {
+  updateProfileSchema,
+  uploadAvatarSchema,
+  getTimezones,
+} from './profile';
+export type {
+  UpdateProfileInput,
+  UploadAvatarInput,
+  UserProfile,
+} from './profile';
