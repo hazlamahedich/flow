@@ -136,6 +136,10 @@ RETURNS trigger AS $$
 DECLARE
   caller_role text;
 BEGIN
+  IF auth.uid() IS NULL THEN
+    RETURN NEW;
+  END IF;
+
   IF NEW.role = 'owner' THEN
     SELECT wm.role INTO caller_role
     FROM workspace_members wm
@@ -150,7 +154,7 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
-SET search_path = extensions, pg_catalog;
+SET search_path = public, extensions, pg_catalog;
 
 CREATE TRIGGER trigger_prevent_owner_escalation
   BEFORE INSERT ON workspace_members
@@ -161,6 +165,10 @@ CREATE TRIGGER trigger_prevent_owner_escalation
 CREATE OR REPLACE FUNCTION prevent_unsafe_role_change()
 RETURNS trigger AS $$
 BEGIN
+  IF auth.uid() IS NULL THEN
+    RETURN NEW;
+  END IF;
+
   IF NEW.user_id = auth.uid() AND NEW.role != OLD.role THEN
     RAISE EXCEPTION 'Cannot change your own role';
   END IF;
@@ -180,7 +188,7 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
-SET search_path = extensions, pg_catalog;
+SET search_path = public, extensions, pg_catalog;
 
 CREATE TRIGGER trigger_prevent_unsafe_role_change
   BEFORE UPDATE ON workspace_members

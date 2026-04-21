@@ -44,7 +44,7 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
-SET search_path = extensions, pg_catalog;
+SET search_path = public, extensions, pg_catalog;
 
 CREATE TRIGGER trigger_compute_audit_hash
   BEFORE INSERT ON audit_log
@@ -56,20 +56,23 @@ CREATE OR REPLACE FUNCTION extensions.jsonb_sorted(val jsonb)
 RETURNS jsonb AS $$
 BEGIN
   RETURN (
-    SELECT COALESCE(
-      (SELECT jsonb_object_agg(key, CASE
+    SELECT jsonb_object_agg(
+      key,
+      CASE
         WHEN jsonb_typeof(value) = 'object' THEN extensions.jsonb_sorted(value)
         WHEN jsonb_typeof(value) = 'array' THEN (
-          SELECT jsonb_agg(CASE
-            WHEN jsonb_typeof(elem) = 'object' THEN extensions.jsonb_sorted(elem)
-            ELSE elem
-          END)
+          SELECT jsonb_agg(
+            CASE
+              WHEN jsonb_typeof(elem) = 'object' THEN extensions.jsonb_sorted(elem)
+              ELSE elem
+            END
+          )
           FROM jsonb_array_elements(value) AS elem
         )
         ELSE value
-      END))
-      FROM jsonb_each(val) AS x(key, value)
+      END
     )
+    FROM jsonb_each(val)
   );
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;

@@ -41,6 +41,7 @@ function safeSetStorage(key: string, value: string): void {
   try {
     localStorage.setItem(key, value);
   } catch {
+    // localStorage may be unavailable in SSR or sandboxed contexts
   }
 }
 

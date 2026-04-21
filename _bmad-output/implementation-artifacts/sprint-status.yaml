@@ -1,5 +1,5 @@
 # generated: 2026-04-20
-# last_updated: 2026-04-21
+# last_updated: 2026-04-21T18:00:00Z
 # project: flow
 # project_key: NOKEY
 # tracking_system: file-system
@@ -46,7 +46,8 @@ development_status:
   1-1a-turborepo-scaffold-ci-pipeline: review
   1-1b-design-system-tokens-consumption-proof: done
   1-2-database-foundation-tenant-isolation: done
-  1-3-magic-link-authentication: backlog
+  1-3-magic-link-authentication: review
+  1-3a-device-trust-session-persistence: backlog
   1-4-workspace-team-management: backlog
   1-5-user-profile-management: backlog
   1-6-persistent-layout-shell-navigation: backlog
