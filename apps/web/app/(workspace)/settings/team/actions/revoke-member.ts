@@ -134,21 +134,30 @@ export async function revokeMember(
   revalidateTag(cacheTag('workspace_member', ctx.workspaceId));
   revalidateTag(cacheTag('workspace_client', ctx.workspaceId));
 
-  await logWorkspaceEvent({
-    type: 'member_revoked',
-    workspaceId: ctx.workspaceId,
-    memberId,
-    revokedBy: ctx.userId,
-    timestamp: new Date().toISOString(),
-  });
+  try {
+    await logWorkspaceEvent({
+      type: 'member_revoked',
+      workspaceId: ctx.workspaceId,
+      memberId,
+      revokedBy: ctx.userId,
+      timestamp: new Date().toISOString(),
+    });
+  } catch {
+    // Audit logging best-effort — do not fail the action
+  }
 
-  await logWorkspaceEvent({
-    type: 'session_revoked_by_owner',
-    workspaceId: ctx.workspaceId,
-    userId: targetMember.user_id,
-    revokedBy: ctx.userId,
-    timestamp: new Date().toISOString(),
-  });
+  try {
+    await logWorkspaceEvent({
+      type: 'member_sessions_invalidated',
+      workspaceId: ctx.workspaceId,
+      userId: targetMember.user_id,
+      reason: 'member_revoked',
+      triggeredBy: ctx.userId,
+      timestamp: new Date().toISOString(),
+    });
+  } catch {
+    // Audit logging best-effort — do not fail the action
+  }
 
   return { success: true, data: undefined };
 }

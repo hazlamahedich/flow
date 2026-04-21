@@ -40,18 +40,6 @@ export async function updateRole(
     };
   }
 
-  if (memberId === ctx.userId) {
-    return {
-      success: false,
-      error: createFlowError(
-        400,
-        'VALIDATION_ERROR',
-        'You cannot change your own role.',
-        'validation',
-      ),
-    };
-  }
-
   if (role === 'owner') {
     return {
       success: false,
@@ -79,6 +67,18 @@ export async function updateRole(
         404,
         'NOT_FOUND',
         'Active membership not found.',
+        'validation',
+      ),
+    };
+  }
+
+  if (targetMember.user_id === ctx.userId) {
+    return {
+      success: false,
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'You cannot change your own role.',
         'validation',
       ),
     };

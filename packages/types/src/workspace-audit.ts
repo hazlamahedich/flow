@@ -8,7 +8,10 @@ export type WorkspaceAuditEvent =
   | { type: 'ownership_transferred'; workspaceId: string; fromUserId: string; toUserId: string; timestamp: string }
   | { type: 'client_access_granted'; workspaceId: string; userId: string; clientId: string; grantedBy: string; timestamp: string }
   | { type: 'client_access_revoked'; workspaceId: string; userId: string; clientId: string; revokedBy: string; timestamp: string }
-  | { type: 'session_revoked_by_owner'; workspaceId: string; userId: string; revokedBy: string; timestamp: string }
-  | { type: 'transfer_initiated'; workspaceId: string; fromUserId: string; toUserId: string; transferId: string; timestamp: string };
+  | { type: 'session_revoked_by_owner'; workspaceId: string; userId: string; deviceId: string; invalidated: boolean; revokedBy: string; timestamp: string }
+  | { type: 'member_sessions_invalidated'; workspaceId: string; userId: string; reason: string; triggeredBy: string; timestamp: string }
+  | { type: 'transfer_initiated'; workspaceId: string; fromUserId: string; toUserId: string; transferId: string; timestamp: string }
+  | { type: 'invitation_resent'; workspaceId: string; invitationId: string; email: string; resentBy: string; timestamp: string }
+  | { type: 'invitation_revoked'; workspaceId: string; invitationId: string; email: string; revokedBy: string; timestamp: string };
 
 export type WorkspaceAuditEventType = WorkspaceAuditEvent['type'];

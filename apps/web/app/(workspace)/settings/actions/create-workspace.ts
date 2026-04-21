@@ -6,6 +6,7 @@ import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, createFlowError, cacheTag } from '@flow/db';
 import { revalidateTag } from 'next/cache';
 import { generateSlug, mapWorkspaceRow, type WorkspaceRow } from '@/lib/workspace-utils';
+import { logWorkspaceEvent } from '@/lib/workspace-audit';
 
 const MAX_SLUG_RETRIES = 3;
 
@@ -50,6 +51,18 @@ export async function createWorkspace(
 
     revalidateTag(cacheTag('workspace_member', (row as WorkspaceRow).id));
     revalidateTag(cacheTag('workspace', (row as WorkspaceRow).id));
+
+    try {
+      await logWorkspaceEvent({
+        type: 'workspace_created',
+        workspaceId: (row as WorkspaceRow).id,
+        slug,
+        timestamp: new Date().toISOString(),
+      });
+    } catch {
+      // Audit logging best-effort — do not fail the action
+    }
+
     return { success: true, data: mapWorkspaceRow(row as unknown as WorkspaceRow) };
   }
 

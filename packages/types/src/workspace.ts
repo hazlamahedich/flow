@@ -58,9 +58,13 @@ export type ConfirmTransferInput = z.infer<typeof confirmTransferSchema>;
 export const scopeClientAccessSchema = z.object({
   userId: z.string().uuid(),
   clientId: z.string().uuid(),
-  workspaceId: z.string().uuid(),
 });
 export type ScopeClientAccessInput = z.infer<typeof scopeClientAccessSchema>;
+
+export const revokeSessionSchema = z.object({
+  deviceId: z.string().uuid(),
+});
+export type RevokeSessionInput = z.infer<typeof revokeSessionSchema>;
 
 export const workspaceSchema = z.object({
   id: z.string().uuid(),
