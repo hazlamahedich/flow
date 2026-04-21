@@ -6,6 +6,7 @@ export interface TestJWTCustomClaims {
   email?: string;
   workspace_id?: string;
   role?: string;
+  expiresAt?: string | Date;
   [key: string]: unknown;
 }
 
@@ -20,7 +21,7 @@ export async function createTestJWT(
   const userEmail =
     claims.email ?? `test-${userId.slice(0, 8)}@test.flow.local`;
 
-  return new SignJWT({
+  const builder = new SignJWT({
     email: userEmail,
     role: 'authenticated',
     workspace_id: claims.workspace_id,
@@ -33,7 +34,30 @@ export async function createTestJWT(
     .setIssuer(url)
     .setSubject(userId)
     .setAudience('authenticated')
-    .setIssuedAt()
-    .setExpirationTime('1h')
-    .sign(secretBytes);
+    .setIssuedAt();
+
+  if (claims.expiresAt) {
+    builder.setExpirationTime(claims.expiresAt);
+  } else {
+    builder.setExpirationTime('1h');
+  }
+
+  return builder.sign(secretBytes);
+}
+
+export async function buildTestJWT(opts: {
+  role: string;
+  workspaceId: string;
+  userId: string;
+  expiresAt?: string | Date;
+}): Promise<string> {
+  const claims: TestJWTCustomClaims = {
+    sub: opts.userId,
+    workspace_id: opts.workspaceId,
+    role: opts.role,
+  };
+  if (opts.expiresAt !== undefined) {
+    claims.expiresAt = opts.expiresAt;
+  }
+  return createTestJWT(claims);
 }

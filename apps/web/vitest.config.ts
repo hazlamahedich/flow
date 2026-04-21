@@ -20,6 +20,7 @@ export default defineConfig({
       '@flow/auth/device-types': path.resolve(__dirname, '../../packages/auth/src/device-types.ts'),
       '@flow/auth/server-admin': path.resolve(__dirname, '../../packages/auth/src/server-admin.ts'),
       '@flow/auth/env': path.resolve(__dirname, '../../packages/auth/src/env.ts'),
+      '@flow/test-utils': path.resolve(__dirname, '../../packages/test-utils/src/index.ts'),
     },
   },
 });

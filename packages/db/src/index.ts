@@ -9,6 +9,7 @@ export { setActiveWorkspace } from './workspace-jwt';
 export {
   getRevalidationTags,
   invalidateAfterMutation,
+  cacheTag,
 } from './cache-policy';
 export type { CacheEntity, CacheMutation } from './cache-policy';
 export { getConfig } from './config';

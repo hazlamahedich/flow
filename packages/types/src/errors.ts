@@ -27,7 +27,15 @@ export type FlowErrorCode =
   | 'NOT_FOUND'
   | 'FORBIDDEN'
   | 'CONFLICT'
-  | 'INTERNAL_ERROR';
+  | 'INTERNAL_ERROR'
+  | 'WORKSPACE_SLUG_COLLISION'
+  | 'INVITATION_NOT_FOUND'
+  | 'INVITATION_EXPIRED'
+  | 'INVITATION_ALREADY_ACCEPTED'
+  | 'MEMBER_ALREADY_EXISTS'
+  | 'TRANSFER_NOT_FOUND'
+  | 'TRANSFER_EXPIRED'
+  | 'TRANSFER_ALREADY_PENDING';
 
 export type FlowErrorCategory = 'auth' | 'validation' | 'agent' | 'financial' | 'system';
 
