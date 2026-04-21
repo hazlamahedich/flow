@@ -20,32 +20,38 @@ export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;
 export const inviteMemberSchema = z.object({
   email: z.string().email(),
   role: InvitationRoleEnum,
-  workspaceId: z.string().uuid(),
-});
+  expiresAt: z.string().datetime().optional(),
+}).refine(
+  (data) => {
+    if (data.expiresAt) {
+      const expiry = new Date(data.expiresAt);
+      const maxExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      return expiry > new Date() && expiry <= maxExpiry;
+    }
+    return true;
+  },
+  { message: 'Expiry must be in the future and no more than 1 year from now' },
+);
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
 
 export const updateRoleSchema = z.object({
   memberId: z.string().uuid(),
   role: RoleEnum,
-  workspaceId: z.string().uuid(),
 });
 export type UpdateRoleInput = z.infer<typeof updateRoleSchema>;
 
 export const revokeMemberSchema = z.object({
   memberId: z.string().uuid(),
-  workspaceId: z.string().uuid(),
 });
 export type RevokeMemberInput = z.infer<typeof revokeMemberSchema>;
 
 export const initiateTransferSchema = z.object({
   toUserId: z.string().uuid(),
-  workspaceId: z.string().uuid(),
 });
 export type InitiateTransferInput = z.infer<typeof initiateTransferSchema>;
 
 export const confirmTransferSchema = z.object({
   transferId: z.string().uuid(),
-  workspaceId: z.string().uuid(),
 });
 export type ConfirmTransferInput = z.infer<typeof confirmTransferSchema>;
 

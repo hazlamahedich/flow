@@ -1,6 +1,7 @@
 export type WorkspaceAuditEvent =
   | { type: 'workspace_created'; workspaceId: string; slug: string; timestamp: string }
   | { type: 'member_invited'; workspaceId: string; email: string; role: string; invitedBy: string; timestamp: string }
+  | { type: 'member_joined'; workspaceId: string; email: string; role: string; invitedBy: string; timestamp: string }
   | { type: 'member_role_changed'; workspaceId: string; memberId: string; oldRole: string; newRole: string; changedBy: string; timestamp: string }
   | { type: 'member_revoked'; workspaceId: string; memberId: string; revokedBy: string; timestamp: string }
   | { type: 'member_expired'; workspaceId: string; memberId: string; timestamp: string }

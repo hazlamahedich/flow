@@ -1,1 +1,1 @@
-export {};
+export { getActiveMembership } from './members';

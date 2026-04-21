@@ -50,7 +50,7 @@ development_status:
   1-3a-device-trust-session-persistence: done
   1-4-workspace-team-management: in-progress
   1-4a-workspace-schema-creation: done
-  1-4b-team-invitations-ownership: ready-for-dev
+  1-4b-team-invitations-ownership: done
   1-4c-client-scoping-sessions-ui-audit: ready-for-dev
   1-5-user-profile-management: backlog
   1-6-persistent-layout-shell-navigation: backlog

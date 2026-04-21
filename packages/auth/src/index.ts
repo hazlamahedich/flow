@@ -1,4 +1,5 @@
 export { invalidateUserSessions } from './server-admin';
+export { executeOwnershipTransfer } from './transfer-executor';
 export { validateAuthEnv } from './env';
 export type { AuthEnv } from './env';
 export {
