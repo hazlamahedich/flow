@@ -13,6 +13,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@flow/auth": "workspace:*",
     "@flow/db": "workspace:*",
     "@flow/tokens": "workspace:*",
     "@flow/types": "workspace:*",

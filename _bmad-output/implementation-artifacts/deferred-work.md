@@ -28,3 +28,10 @@
 - `invalidateUserSessions` may not invalidate all sessions — Missing scope parameter, SDK version-dependent behavior. Should pass `{ scope: 'global' }` to `admin.signOut()`.
 - `console.error` in callback leaks error details to server logs — Sanitize before logging to prevent leaking Supabase internals.
 - Rate limit fail-open allows unlimited requests on DB failure — Design choice (fail-open is safer than locking out all users), but needs monitoring/alerting when rate limit DB is unreachable.
+
+## Deferred from: code review of 1-3a-device-trust-session-persistence (2026-04-21)
+
+- Middleware DB call per request — `verifyDeviceTrust()` creates a fresh Supabase service client on every middleware invocation. MVP design choice; revisit with performance profiling.
+- renameDevice allows renaming revoked devices — cosmetic, not blocking.
+- handleSignOutEverywhere React concurrent mode race — `window.location.href` redirect may cancel pending server action. Low-probability edge case.
+- device-trust.ts exceeds 200-line soft limit — 218 lines, 18 lines over soft limit. Can be split later.

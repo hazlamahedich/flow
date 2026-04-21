@@ -1,7 +1,10 @@
 import { createServerClient } from '@flow/db';
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyDeviceTrust } from '@flow/auth/device-trust';
+import { DEVICE_COOKIE_NAME } from '@flow/auth/device-types';
 
 const ABSOLUTE_SESSION_MS = 24 * 60 * 60 * 1000;
+const TRUSTED_ABSOLUTE_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const IDLE_SESSION_MS = 4 * 60 * 60 * 1000;
 
 function getSessionIssuedAt(session: { access_token: string }): number {
@@ -69,7 +72,24 @@ export async function middleware(request: NextRequest) {
     const issuedAt = getSessionIssuedAt(session);
     const now = Date.now();
 
-    if (issuedAt > 0 && now - issuedAt > ABSOLUTE_SESSION_MS) {
+    const deviceCookie = request.cookies.get(DEVICE_COOKIE_NAME)?.value;
+    let isTrustedDevice = false;
+
+    if (deviceCookie && session.user?.id) {
+      try {
+        const result = await verifyDeviceTrust({
+          userId: session.user.id,
+          deviceCookie,
+        });
+        isTrustedDevice = result.trusted;
+      } catch {
+        isTrustedDevice = false;
+      }
+    }
+
+    const absoluteTimeout = isTrustedDevice ? TRUSTED_ABSOLUTE_SESSION_MS : ABSOLUTE_SESSION_MS;
+
+    if (issuedAt > 0 && now - issuedAt > absoluteTimeout) {
       await supabase.auth.signOut();
       return buildRedirectWithCookies(
         request,
@@ -80,7 +100,8 @@ export async function middleware(request: NextRequest) {
 
     const lastActivity = request.cookies.get('flow-last-activity')?.value;
     if (lastActivity) {
-      const elapsed = now - parseInt(lastActivity, 10);
+      const parsed = parseInt(lastActivity, 10);
+      const elapsed = Number.isNaN(parsed) ? IDLE_SESSION_MS + 1 : now - parsed;
       if (elapsed > IDLE_SESSION_MS) {
         await supabase.auth.signOut();
         return buildRedirectWithCookies(

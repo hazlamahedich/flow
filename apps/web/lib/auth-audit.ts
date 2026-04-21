@@ -8,7 +8,11 @@ type AuthAction =
   | 'session_created'
   | 'session_revoked'
   | 'rate_limit_triggered'
-  | 'link_expired_attempt';
+  | 'link_expired_attempt'
+  | 'device_trusted'
+  | 'device_revoked'
+  | 'all_devices_revoked'
+  | 'device_trust_rejected';
 
 function hmacSha256(value: string): string {
   const secret = process.env.AUTH_HMAC_SECRET;

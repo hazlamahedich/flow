@@ -15,6 +15,7 @@ export function MagicLinkForm() {
   const [showSent, setShowSent] = useState(false);
   const [sentEmail, setSentEmail] = useState('');
   const [urlError, setUrlError] = useState<string | null>(null);
+  const [trustDevice, setTrustDevice] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -44,6 +45,7 @@ export function MagicLinkForm() {
         onResend={async () => {
           const formData = new FormData();
           formData.set('email', sentEmail);
+          if (trustDevice) formData.set('trustDevice', 'true');
           formAction(formData);
         }}
         onDifferentEmail={() => {
@@ -71,6 +73,7 @@ export function MagicLinkForm() {
           if (emailValue && typeof emailValue === 'string') {
             setEmail(emailValue);
           }
+          if (trustDevice) formData.set('trustDevice', 'true');
           formAction(formData);
         }}
         className="space-y-4"
@@ -101,6 +104,23 @@ export function MagicLinkForm() {
             {state.error.message}
           </p>
         )}
+
+        <div className="flex items-center gap-2">
+          <input
+            id="trustDevice"
+            name="trustDevice"
+            type="checkbox"
+            checked={trustDevice}
+            onChange={(e) => setTrustDevice(e.target.checked)}
+            className="h-4 w-4 rounded border-[var(--flow-color-border-default)] text-[var(--flow-color-accent-primary)] focus:ring-[var(--flow-color-accent-primary)]"
+          />
+          <label
+            htmlFor="trustDevice"
+            className="text-sm text-[var(--flow-color-text-secondary)]"
+          >
+            Trust this device
+          </label>
+        </div>
 
         <button
           type="submit"

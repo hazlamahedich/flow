@@ -3,3 +3,4 @@ export { users } from './users';
 export { workspaceMembers } from './workspace-members';
 export { appConfig } from './app-config';
 export { auditLog } from './audit-log';
+export { userDevices } from './user-devices';

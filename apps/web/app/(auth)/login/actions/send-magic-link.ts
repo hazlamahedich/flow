@@ -3,10 +3,13 @@
 import { z } from 'zod';
 import { createFlowError } from '@flow/db';
 import { headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import type { ActionResult } from '@flow/types';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { logAuthEvent } from '@/lib/auth-audit';
 import { getServerSupabase } from '@/lib/supabase-server';
+import { generateDeviceToken } from '@flow/auth/device-trust';
+import { DEVICE_PENDING_COOKIE_NAME, DEVICE_PENDING_COOKIE_MAX_AGE } from '@flow/auth/device-types';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 
@@ -81,6 +84,19 @@ export async function sendMagicLink(
           'system',
         ),
       };
+    }
+
+    const trustDeviceFlag = formData.get('trustDevice');
+    if (trustDeviceFlag === 'true') {
+      const token = generateDeviceToken();
+      const cookieStore = await cookies();
+      cookieStore.set(DEVICE_PENDING_COOKIE_NAME, token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: DEVICE_PENDING_COOKIE_MAX_AGE,
+      });
     }
 
     await logAuthEvent({ action: 'magic_link_sent', email, ip, outcome: 'success' });

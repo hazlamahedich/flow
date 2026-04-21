@@ -12,6 +12,9 @@ export default defineConfig({
       '@flow/ui': path.resolve(__dirname, 'packages/ui/src/index.ts'),
       '@flow/types': path.resolve(__dirname, 'packages/types/src/index.ts'),
       '@flow/db': path.resolve(__dirname, 'packages/db/src/index.ts'),
+      '@flow/auth': path.resolve(__dirname, 'packages/auth/src/index.ts'),
+      '@flow/auth/device-trust': path.resolve(__dirname, 'packages/auth/src/device-trust.ts'),
+      '@flow/auth/device-types': path.resolve(__dirname, 'packages/auth/src/device-types.ts'),
     },
   },
 });
