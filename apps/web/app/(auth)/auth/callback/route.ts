@@ -1,6 +1,7 @@
 import { getServerSupabase } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 import { logAuthEvent } from '@/lib/auth-audit';
+import { checkRateLimit, MAGIC_LINK_VERIFICATION_CONFIG } from '@/lib/rate-limit';
 import { headers } from 'next/headers';
 
 export async function GET(request: NextRequest) {
@@ -33,6 +34,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const supabase = await getServerSupabase();
+
+    const verificationRateResult = await checkRateLimit(ip, MAGIC_LINK_VERIFICATION_CONFIG);
+    if (!verificationRateResult.allowed) {
+      return NextResponse.redirect(
+        new URL(`/login?error=rate_limited&retry=${Math.ceil(verificationRateResult.retryAfterMs / 1000)}`, request.url),
+      );
+    }
 
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
@@ -69,6 +77,11 @@ export async function GET(request: NextRequest) {
       outcome: 'success',
     });
 
+    const isFirstLogin = data.user.user_metadata?.is_first_login !== false;
+    if (isFirstLogin) {
+      await supabase.auth.updateUser({ data: { is_first_login: false } });
+    }
+
     const { data: memberships } = await supabase
       .from('workspace_members')
       .select('workspace_id')
@@ -77,7 +90,7 @@ export async function GET(request: NextRequest) {
 
     const workspaceCount = memberships?.length ?? 0;
 
-    if (workspaceCount === 0) {
+    if (workspaceCount === 0 || isFirstLogin) {
       return NextResponse.redirect(new URL('/onboarding', request.url));
     }
 
@@ -86,14 +99,11 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.redirect(new URL('/workspace-picker', request.url));
-  } catch (err) {
-    console.error('Auth callback error:', err);
-
+  } catch {
     await logAuthEvent({
       action: 'magic_link_verified',
       ip,
       outcome: 'failure',
-      details: { error: err instanceof Error ? err.message : 'Unknown error' },
     });
 
     return NextResponse.redirect(new URL('/auth/callback/error', request.url));

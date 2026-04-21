@@ -22,3 +22,9 @@
 - Stale JWT after setActiveWorkspace — known JWT limitation; workspace_id in JWT only updates on token refresh
 - renderTheme ignores newTheme parameter — pre-existing from story 1.1b
 - No user profile auto-creation trigger — signup flow and user creation come in Story 1.3
+
+## Deferred from: code review of 1-3-magic-link-authentication (2026-04-21)
+
+- `invalidateUserSessions` may not invalidate all sessions — Missing scope parameter, SDK version-dependent behavior. Should pass `{ scope: 'global' }` to `admin.signOut()`.
+- `console.error` in callback leaks error details to server logs — Sanitize before logging to prevent leaking Supabase internals.
+- Rate limit fail-open allows unlimited requests on DB failure — Design choice (fail-open is safer than locking out all users), but needs monitoring/alerting when rate limit DB is unreachable.

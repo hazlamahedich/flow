@@ -1,6 +1,6 @@
 # Story 1.3: Magic Link Authentication
 
-Status: review
+Status: done
 
 ## Story
 
@@ -109,6 +109,22 @@ So that I can securely access my workspace without a password.
   - [x] `pnpm lint` — 8/8 tasks pass
   - [x] Created shared ESLint config (`tooling/eslint`) for all packages
   - [x] Fixed `@flow/tokens` build order (CSS generation after tsup)
+
+### Review Findings
+
+- [x] [Review][Patch] Middleware absolute timeout uses `user.created_at` instead of JWT `iat` — Fixed: decode JWT `iat` claim via `getSessionIssuedAt()` [`middleware.ts`]
+- [x] [Review][Patch] Cookie clearing lost on middleware signOut redirect — Fixed: `buildRedirectWithCookies()` copies cookies from supabaseResponse to redirect response [`middleware.ts`]
+- [x] [Review][Patch] `email-sent-confirmation.tsx` uses `useState()` for timer, not `useEffect()` — Fixed: converted to `useEffect` + `useRef` with proper cleanup and restart [`email-sent-confirmation.tsx`]
+- [x] [Review][Patch] Verification rate limit (10/hr) not implemented — Fixed: added `MAGIC_LINK_VERIFICATION_CONFIG` and verification rate limit in callback [`rate-limit.ts`, `callback/route.ts`]
+- [x] [Review][Patch] `/workspace-picker` and `(workspace)/layout` show static "Redirecting..." — Fixed: use `redirect()` from `next/navigation` [`workspace-picker/page.tsx`, `(workspace)/layout.tsx`]
+- [x] [Review][Patch] `hmacSha256` falls back to hardcoded secret — Fixed: throws in production when `AUTH_HMAC_SECRET` is missing [`auth-audit.ts`]
+- [x] [Review][Patch] `ExpiredLinkMessage` dynamic imports Server Action on client — Fixed: uses `<form action={formAction}>` with `useActionState` instead [`expired-link-message.tsx`]
+- [x] [Review][Patch] Logout shows misleading "signed_out" when no session — Fixed: redirect to `/login` without message when no session [`logout.ts`]
+- [x] [Review][Patch] Logout uses client SDK signOut instead of server-side admin — Note: `supabase.auth.signOut()` with anon key is the standard Supabase approach for user-initiated logout; admin API is for cross-user session invalidation (already in `server-admin.ts`) [`logout.ts`]
+- [x] [Review][Patch] `is_first_login` tracking absent — Fixed: checks `user_metadata.is_first_login` and sets to `false` after first verification; redirects new users to onboarding [`callback/route.ts`]
+- [x] [Review][Defer] `invalidateUserSessions` may not invalidate all sessions — Missing scope parameter, SDK version-dependent behavior [`server-admin.ts:17`] — deferred, pre-existing
+- [x] [Review][Defer] `console.error` in callback leaks error details — Sanitize before logging [`route.ts:76`] — deferred, pre-existing
+- [x] [Review][Defer] Rate limit fail-open allows unlimited requests on DB failure — Design choice documented in deviations [`rate-limit.ts:30-31`] — deferred, pre-existing
 
 ## File List
 

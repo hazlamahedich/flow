@@ -4,6 +4,36 @@ import { NextRequest, NextResponse } from 'next/server';
 const ABSOLUTE_SESSION_MS = 24 * 60 * 60 * 1000;
 const IDLE_SESSION_MS = 4 * 60 * 60 * 1000;
 
+function getSessionIssuedAt(session: { access_token: string }): number {
+  try {
+    const payload = session.access_token.split('.')[1];
+    if (!payload) return 0;
+    const decoded = JSON.parse(atob(payload));
+    return typeof decoded.iat === 'number' ? decoded.iat * 1000 : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function buildRedirectWithCookies(
+  request: NextRequest,
+  path: string,
+  supabaseResponse: NextResponse,
+): NextResponse {
+  const redirectUrl = new URL(path, request.url);
+  const response = NextResponse.redirect(redirectUrl);
+  for (const c of supabaseResponse.cookies.getAll()) {
+    response.cookies.set(c.name, c.value, {
+      path: c.path ?? '/',
+      httpOnly: c.httpOnly,
+      secure: c.secure,
+      sameSite: c.sameSite as 'lax' | 'strict' | 'none' | undefined,
+      maxAge: c.maxAge,
+    });
+  }
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -36,16 +66,16 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = ['/onboarding', '/workspace-picker'].some((r) => pathname.startsWith(r));
 
   if (session) {
-    const issuedAt = session.user?.created_at
-      ? new Date(session.user.created_at).getTime()
-      : 0;
+    const issuedAt = getSessionIssuedAt(session);
     const now = Date.now();
 
-    if (now - issuedAt > ABSOLUTE_SESSION_MS) {
+    if (issuedAt > 0 && now - issuedAt > ABSOLUTE_SESSION_MS) {
       await supabase.auth.signOut();
-      const redirectUrl = new URL('/login', request.url);
-      redirectUrl.searchParams.set('message', 'session_expired');
-      return NextResponse.redirect(redirectUrl);
+      return buildRedirectWithCookies(
+        request,
+        '/login?message=session_expired',
+        supabaseResponse,
+      );
     }
 
     const lastActivity = request.cookies.get('flow-last-activity')?.value;
@@ -53,9 +83,11 @@ export async function middleware(request: NextRequest) {
       const elapsed = now - parseInt(lastActivity, 10);
       if (elapsed > IDLE_SESSION_MS) {
         await supabase.auth.signOut();
-        const redirectUrl = new URL('/login', request.url);
-        redirectUrl.searchParams.set('message', 'session_expired');
-        return NextResponse.redirect(redirectUrl);
+        return buildRedirectWithCookies(
+          request,
+          '/login?message=session_expired',
+          supabaseResponse,
+        );
       }
     }
 

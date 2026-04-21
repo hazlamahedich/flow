@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 interface EmailSentConfirmationProps {
   email: string;
@@ -16,32 +16,41 @@ export function EmailSentConfirmation({
   const [cooldown, setCooldown] = useState(30);
   const [resending, setResending] = useState(false);
   const [cooldownActive, setCooldownActive] = useState(true);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useState(() => {
-    const timer = setInterval(() => {
+  const startCooldown = useCallback(() => {
+    setCooldown(30);
+    setCooldownActive(true);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
       setCooldown((prev) => {
         if (prev <= 1) {
-          clearInterval(timer);
+          if (timerRef.current) clearInterval(timerRef.current);
           setCooldownActive(false);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-    return () => clearInterval(timer);
-  });
+  }, []);
+
+  useEffect(() => {
+    startCooldown();
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [startCooldown]);
 
   const handleResend = useCallback(async () => {
     if (cooldownActive || resending) return;
     setResending(true);
     try {
       await onResend();
-      setCooldown(30);
-      setCooldownActive(true);
+      startCooldown();
     } finally {
       setResending(false);
     }
-  }, [cooldownActive, resending, onResend]);
+  }, [cooldownActive, resending, onResend, startCooldown]);
 
   return (
     <div className="w-full max-w-md space-y-4 text-center">

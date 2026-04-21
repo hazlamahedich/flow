@@ -1,28 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useActionState } from 'react';
+import { sendMagicLink } from '../actions/send-magic-link';
 
 interface ExpiredLinkMessageProps {
   email: string;
 }
 
 export function ExpiredLinkMessage({ email }: ExpiredLinkMessageProps) {
-  const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
+  const [state, formAction, isPending] = useActionState(sendMagicLink, null);
 
-  const handleResend = async () => {
-    if (!email || resending) return;
-    setResending(true);
-    try {
-      const formData = new FormData();
-      formData.set('email', email);
-      const { sendMagicLink } = await import('../actions/send-magic-link');
-      await sendMagicLink(null, formData);
-      setResent(true);
-    } finally {
-      setResending(false);
-    }
-  };
+  if (state?.success && !resent) {
+    setResent(true);
+  }
 
   return (
     <div className="w-full max-w-md text-center">
@@ -36,13 +27,16 @@ export function ExpiredLinkMessage({ email }: ExpiredLinkMessageProps) {
             : 'The magic link you used has expired. Please request a new one.'}
         </p>
         {!resent && (
-          <button
-            onClick={handleResend}
-            disabled={resending || !email}
-            className="rounded-md bg-[var(--flow-color-accent-primary)] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {resending ? 'Sending...' : 'Send new link'}
-          </button>
+          <form action={formAction}>
+            <input type="hidden" name="email" value={email} />
+            <button
+              type="submit"
+              disabled={isPending || !email}
+              className="rounded-md bg-[var(--flow-color-accent-primary)] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isPending ? 'Sending...' : 'Send new link'}
+            </button>
+          </form>
         )}
         {resent && (
           <a

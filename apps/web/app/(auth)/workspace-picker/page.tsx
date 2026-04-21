@@ -1,11 +1,12 @@
 import { getServerSupabase } from '@/lib/supabase-server';
+import { redirect } from 'next/navigation';
 
 export default async function WorkspacePickerPage() {
   const supabase = await getServerSupabase();
   const { data: { session } } = await supabase.auth.getSession();
 
   if (!session) {
-    return null;
+    redirect('/login');
   }
 
   const { data: memberships } = await supabase
@@ -14,12 +15,12 @@ export default async function WorkspacePickerPage() {
     .eq('user_id', session.user.id)
     .is('removed_at', null);
 
-  if (!memberships || memberships.length <= 1) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-[var(--flow-color-text-secondary)]">Redirecting...</p>
-      </div>
-    );
+  if (!memberships || memberships.length === 0) {
+    redirect('/onboarding');
+  }
+
+  if (memberships.length === 1) {
+    redirect('/');
   }
 
   return (

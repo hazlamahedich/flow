@@ -11,21 +11,23 @@ export async function logout(): Promise<void> {
 
   const { data: { session } } = await supabase.auth.getSession();
 
-  if (session) {
-    const ip = headerStore.get('x-forwarded-for') ?? headerStore.get('x-real-ip') ?? 'unknown';
-    const logParams: Parameters<typeof logAuthEvent>[0] = {
-      action: 'session_revoked',
-      userId: session.user.id,
-      ip,
-      outcome: 'success',
-    };
-    if (session.user.email) {
-      logParams.email = session.user.email;
-    }
-    await logAuthEvent(logParams);
-
-    await supabase.auth.signOut();
+  if (!session) {
+    redirect('/login');
   }
+
+  const ip = headerStore.get('x-forwarded-for') ?? headerStore.get('x-real-ip') ?? 'unknown';
+  const logParams: Parameters<typeof logAuthEvent>[0] = {
+    action: 'session_revoked',
+    userId: session.user.id,
+    ip,
+    outcome: 'success',
+  };
+  if (session.user.email) {
+    logParams.email = session.user.email;
+  }
+  await logAuthEvent(logParams);
+
+  await supabase.auth.signOut();
 
   redirect('/login?message=signed_out');
 }

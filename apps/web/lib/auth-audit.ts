@@ -11,8 +11,12 @@ type AuthAction =
   | 'link_expired_attempt';
 
 function hmacSha256(value: string): string {
-  const secret = process.env.AUTH_HMAC_SECRET ?? 'dev-secret-change-in-production';
-  return createHmac('sha256', secret).update(value).digest('hex');
+  const secret = process.env.AUTH_HMAC_SECRET;
+  if (!secret && process.env.NODE_ENV === 'production') {
+    throw new Error('AUTH_HMAC_SECRET must be set in production');
+  }
+  const resolvedSecret = secret ?? 'dev-secret-change-in-production';
+  return createHmac('sha256', resolvedSecret).update(value).digest('hex');
 }
 
 interface LogAuthEventParams {

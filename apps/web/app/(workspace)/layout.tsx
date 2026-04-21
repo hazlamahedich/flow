@@ -1,5 +1,6 @@
 import { LogoutButton } from './logout-button';
 import { getServerSupabase } from '@/lib/supabase-server';
+import { redirect } from 'next/navigation';
 
 export default async function WorkspaceLayout({
   children,
@@ -10,11 +11,7 @@ export default async function WorkspaceLayout({
   const { data: { session } } = await supabase.auth.getSession();
 
   if (!session) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-[var(--flow-color-text-secondary)]">Redirecting to login...</p>
-      </div>
-    );
+    redirect('/login');
   }
 
   return (
