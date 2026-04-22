@@ -66,3 +66,12 @@
 - `undoStacksAtom` initialized with module-level `new Map()` — SSR cross-request leak risk. Mitigated: all consumers are `'use client'` [`undo-stack.ts:20`]
 - Toast timer doesn't reset when new entry pushed while toast already visible — minor UX issue, new entry inherits remaining time from previous toast [`undo-toast.tsx:57-75`]
 - `isBlockNoteFocused` doesn't pierce Shadow DOM — `element.closest()` doesn't cross shadow boundaries. BlockNote doesn't currently use Shadow DOM [`blocknote-guard.ts:4`]
+
+## Deferred from: code review of 1-10-day-1-micro-wizard-aha-glimpse (2026-04-23)
+
+- No updated_at trigger on clients/time_entries — both tables have `updated_at` column but no moddatetime trigger. Acceptable for MVP. [migrations]
+- No DELETE RLS policies on clients/time_entries — intentional for MVP scope. No delete functionality in current stories. [migrations]
+- ON DELETE CASCADE on time_entries.client_id — deleting a client destroys all time entries silently. Acceptable for MVP, consider SET NULL before Epic 5. [migration:7]
+- No server action or layout redirect tests — server action testing requires infra setup. 70 client-side tests provide coverage. [actions + layout]
+- No unique constraint on (workspace_id, name) for clients — acceptable for MVP wizard with single client creation. [migration]
+- Unsafe type cast `as ClientRecord` in server actions — common Supabase pattern, input validated by Zod. [create-client.ts:81, log-time-entry.ts:89]

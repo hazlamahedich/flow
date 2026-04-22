@@ -1,7 +1,9 @@
 import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
 export default defineConfig({
+  plugins: [react()],
   test: {
     environment: 'jsdom',
     exclude: ['**/node_modules/**', '**/dist/**', '**/._*', 'e2e/**'],
@@ -11,6 +13,7 @@ export default defineConfig({
       { find: /^@flow\/db\/queries\/undo\/undo-helpers$/, replacement: path.resolve(__dirname, '../../packages/db/src/queries/undo/undo-helpers.ts') },
       { find: '@flow/db/client', replacement: path.resolve(__dirname, '../../packages/db/src/client.ts') },
       { find: /^@flow\/db$/, replacement: path.resolve(__dirname, '../../packages/db/src/index.ts') },
+      { find: /^@flow\/db\/(.+)$/, replacement: path.resolve(__dirname, '../../packages/db/src/$1') },
       { find: '@', replacement: path.resolve(__dirname, '.') },
       { find: '@flow/types', replacement: path.resolve(__dirname, '../../packages/types/src/index.ts') },
       { find: '@flow/tokens/providers', replacement: path.resolve(__dirname, '../../packages/tokens/src/providers/theme-provider.tsx') },
