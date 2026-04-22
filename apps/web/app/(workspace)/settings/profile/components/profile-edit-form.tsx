@@ -64,14 +64,6 @@ export function ProfileEditForm({ profile, updateAction, uploadAction, removeAct
           </p>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-[var(--flow-color-text-secondary)]">Email</label>
-          <p className="text-sm text-[var(--flow-color-text-primary)]">{currentProfile.email}</p>
-          <p className="text-xs text-[var(--flow-color-text-muted)]">
-            Email changes are handled separately.
-          </p>
-        </div>
-
         {errorMessage && (
           <p className="text-sm text-[var(--flow-status-error)]">{errorMessage}</p>
         )}

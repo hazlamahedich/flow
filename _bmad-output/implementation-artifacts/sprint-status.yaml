@@ -53,7 +53,7 @@ development_status:
   1-4b-team-invitations-ownership: done
   1-4c-client-scoping-sessions-ui-audit: done
   1-5-user-profile-management: done
-  1-5a-email-change-verification: backlog
+  1-5a-email-change-verification: review
   1-6-persistent-layout-shell-navigation: backlog
   1-7-home-dashboard: backlog
   1-8-command-palette-keyboard-shortcuts: backlog

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { updateProfileSchema, uploadAvatarSchema } from '@flow/types';
+import { updateProfileSchema, uploadAvatarSchema, requestEmailChangeSchema } from '@flow/types';
 
 describe('updateProfileSchema', () => {
   it('accepts valid name and timezone', () => {
@@ -100,6 +100,32 @@ describe('uploadAvatarSchema', () => {
     const result = uploadAvatarSchema.safeParse({
       contentType: 'image/svg+xml',
       fileSize: 1024,
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('requestEmailChangeSchema', () => {
+  it('accepts valid email', () => {
+    const result = requestEmailChangeSchema.safeParse({
+      newEmail: 'user@example.com',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects invalid email', () => {
+    const result = requestEmailChangeSchema.safeParse({
+      newEmail: 'not-an-email',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toContain('valid email');
+    }
+  });
+
+  it('rejects empty email', () => {
+    const result = requestEmailChangeSchema.safeParse({
+      newEmail: '',
     });
     expect(result.success).toBe(false);
   });

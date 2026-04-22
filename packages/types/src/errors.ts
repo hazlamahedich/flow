@@ -35,7 +35,11 @@ export type FlowErrorCode =
   | 'MEMBER_ALREADY_EXISTS'
   | 'TRANSFER_NOT_FOUND'
   | 'TRANSFER_EXPIRED'
-  | 'TRANSFER_ALREADY_PENDING';
+  | 'TRANSFER_ALREADY_PENDING'
+  | 'EMAIL_CHANGE_PENDING'
+  | 'EMAIL_UNAVAILABLE'
+  | 'EMAIL_CHANGE_RATE_LIMITED'
+  | 'EMAIL_CHANGE_ALREADY_APPLIED';
 
 export type FlowErrorCategory = 'auth' | 'validation' | 'agent' | 'financial' | 'system';
 

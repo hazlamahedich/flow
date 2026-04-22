@@ -9,6 +9,13 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function maskEmail(email: string): string {
+  const [local, domain] = email.split('@');
+  if (!local || !domain) return email;
+  const visible = local.slice(0, 2);
+  return `${visible}***@${domain}`;
+}
+
 export function MagicLinkForm() {
   const [state, formAction, isPending] = useActionState(sendMagicLink, null);
   const [email, setEmail] = useState('');
@@ -16,10 +23,20 @@ export function MagicLinkForm() {
   const [sentEmail, setSentEmail] = useState('');
   const [urlError, setUrlError] = useState<string | null>(null);
   const [trustDevice, setTrustDevice] = useState(false);
+  const [emailChangedMessage, setEmailChangedMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const errorParam = params.get('error');
+    const messageParam = params.get('message');
+
+    if (messageParam === 'email-changed') {
+      setEmailChangedMessage(
+        'Your email has been updated. Please sign in with your new email address.',
+      );
+      return;
+    }
+
     if ((errorParam === 'access_denied' || errorParam === 'expired') && !urlError) {
       setUrlError(errorParam);
       const emailParam = params.get('email');
@@ -66,6 +83,16 @@ export function MagicLinkForm() {
           Enter your email and we&apos;ll send you a magic link
         </p>
       </div>
+
+      {emailChangedMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800"
+        >
+          {emailChangedMessage}
+        </div>
+      )}
 
       <form
         action={(formData: FormData) => {

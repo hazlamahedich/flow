@@ -40,9 +40,12 @@ export {
   updateProfileSchema,
   uploadAvatarSchema,
   getTimezones,
+  requestEmailChangeSchema,
 } from './profile';
 export type {
   UpdateProfileInput,
   UploadAvatarInput,
   UserProfile,
+  RequestEmailChangeInput,
+  PendingEmailChange,
 } from './profile';

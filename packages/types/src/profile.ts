@@ -45,6 +45,18 @@ export const uploadAvatarSchema = z.object({
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type UploadAvatarInput = z.infer<typeof uploadAvatarSchema>;
 
+export const requestEmailChangeSchema = z.object({
+  newEmail: z.string().email('Please enter a valid email address.'),
+});
+
+export type RequestEmailChangeInput = z.infer<typeof requestEmailChangeSchema>;
+
+export interface PendingEmailChange {
+  pending: boolean;
+  newEmail: string | null;
+  expiresAt: string | null;
+}
+
 export interface UserProfile {
   id: string;
   name: string | null;

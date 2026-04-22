@@ -1,4 +1,4 @@
-export { createServerClient, createBrowserClient } from './client';
+export { createServerClient, createBrowserClient, createServiceClient } from './client';
 export {
   requireTenantContext,
   setTenantContext,
@@ -19,4 +19,6 @@ export {
   getUserProfile,
   updateUserProfile,
   updateAvatarUrl,
+  requestEmailChangeAtomic,
+  syncUserEmail,
 } from './queries/users';
