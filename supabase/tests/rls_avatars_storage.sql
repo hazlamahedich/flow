@@ -56,7 +56,7 @@ SELECT reset_role();
 
 -- User B cannot delete User A avatar (re-upload first)
 SELECT set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111"}', false);
-PERFORM set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111"}', false);
+SELECT set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111"}', false);
 INSERT INTO storage.objects (bucket_id, name, content_type) VALUES ('avatars', '11111111-1111-1111-1111-111111111111/test2.jpg', 'image/jpeg');
 SELECT reset_role();
 

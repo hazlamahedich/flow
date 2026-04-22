@@ -830,20 +830,41 @@ So that my team can collaborate with appropriate access levels.
 **And** team members can access only the clients and data their role permits per FR3
 **And** the workspace owner can view active sessions and revoke any session remotely per FR10
 
-### Story 1.5: User Profile Management
+### Story 1.5: User Profile Editing (Name, Timezone, Avatar)
 
 As a user,
-I want to update my profile information,
-So that my identity and preferences are accurate across the platform.
+I want to edit my display name, timezone, and avatar,
+So that my identity is accurate for teammates and clients, and all time displays use my correct timezone.
 
 **Acceptance Criteria:**
 
 **Given** a user is authenticated
 **When** they navigate to profile settings
-**Then** they can update their name, email, timezone, and avatar per FR9
-**And** email changes require re-verification via magic link
-**And** avatar uploads are stored securely with size constraints
-**And** timezone selection affects all time displays across the workspace
+**Then** they see their current name (1–100 chars, Unicode), timezone (IANA), and avatar
+**And** name, timezone, and avatar can be updated individually via Server Actions with `revalidateTag()` cache invalidation
+**And** avatar uploads validate magic bytes (JPEG/PNG/WebP only), enforce 2MB limit, delete old file, and store in private bucket at `avatars/{user_id}/{timestamp}-{random}.{ext}`
+**And** avatar can be removed (file deleted, `avatar_url` set to null, default avatar shown)
+**And** user profile row is created on first access via `INSERT ON CONFLICT DO NOTHING` (no auto-creation trigger)
+**And** concurrent updates use last-write-wins strategy
+**And** RLS enforces self-scope only (`auth.uid() = id`); unauthenticated requests return 401 ActionResult
+
+### Story 1.5a: Email Change with Session Invalidation
+
+**Prerequisite:** Story 1.4c patches resolved (session revocation must work).
+
+As a user,
+I want to change my email address with verification,
+So that I can keep my account up-to-date and my account remains secure during the transition.
+
+**Acceptance Criteria:**
+
+**Given** a user requests an email change
+**When** they submit a new valid email
+**Then** Supabase Auth sends a verification magic link to the new address and a pending banner is shown
+**And** rate limiting allows 5 email change requests per hour per user (DB-backed counter)
+**And** clicking the verification link updates `auth.users.email` AND `public.users.email`, revokes all sessions immediately, and redirects to `/login`
+**And** split-brain (auth email ≠ public email) is reconciled by a 5-minute pg-boss cron job
+**And** pending email changes can be cancelled from the profile page
 
 ### Story 1.6: Persistent Layout Shell & Navigation
 

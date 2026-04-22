@@ -30,17 +30,19 @@ export async function updateProfile(
   if (authError || !user) {
     return {
       success: false,
-      error: createFlowError(
-        401,
-        'UNAUTHORIZED',
-        'Your session has expired. Please sign in again.',
-        'auth',
-      ),
+      error: createFlowError(401, 'UNAUTHORIZED', 'Session expired', 'auth'),
+    };
+  }
+
+  if (!user.email) {
+    return {
+      success: false,
+      error: createFlowError(400, 'VALIDATION_ERROR', 'Email is required.', 'validation'),
     };
   }
 
   try {
-    await ensureUserProfile(supabase, user.id, user.email ?? '');
+    await ensureUserProfile(supabase, user.id, user.email);
     await updateUserProfile(supabase, user.id, { name, timezone });
 
     revalidateTag(cacheTag('user', user.id));

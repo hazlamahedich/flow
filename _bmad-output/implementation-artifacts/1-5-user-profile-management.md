@@ -1,6 +1,6 @@
 # Story 1.5: User Profile Editing (Name, Timezone, Avatar)
 
-Status: review
+Status: done
 
 ## Story
 
@@ -357,3 +357,23 @@ glm-5.1
 - `packages/db/src/index.ts` — Added users queries exports
 - `apps/web/vitest.config.ts` — Fixed `@` alias to point to web root
 - `_bmad-output/implementation-artifacts/sprint-status.yaml` — Status updates
+
+## Review Findings
+
+- [x] [Review][Patch] **Timezone selection non-functional** — Fixed: added `useState<string | null>(null)` for selected timezone, wired `onChange={setSelectedTimezone}`, hidden input now uses `displayTimezone`. [profile-edit-form.tsx]
+- [x] [Review][Patch] **Signed URL (1h expiry) stored permanently in DB** — Fixed: `upload-avatar.ts` now stores storage path (not signed URL). `getUserProfile` generates fresh signed URL on read. [upload-avatar.ts, get-user-profile.ts]
+- [x] [Review][Patch] **Old avatar never deleted — double user-id in path** — Fixed: replaced regex with `extractStoragePath()` helper that extracts `{userId}/filename.ext` from stored path. No more double prefix. [upload-avatar.ts, remove-avatar.ts]
+- [x] [Review][Patch] **Storage delete result unchecked** — Fixed: `remove()` result now checked, errors logged via `console.error`. [upload-avatar.ts, remove-avatar.ts]
+- [x] [Review][Patch] **Missing `TimezoneEntry` type** — FALSE POSITIVE: `TimezoneEntry` is defined at timezone-select.tsx:11-14. Dismissed. [timezone-select.tsx]
+- [x] [Review][Decision→Patch] **Timezone validation bypassed when `Intl.supportedValuesOf` unavailable** — Resolved: accept risk (Option 3). Node 20 is guaranteed runtime, server validates. Added clarifying comment. [profile.ts:12]
+- [x] [Review][Patch] **Unsafe `as string` casts on `FormData.get()`** — Fixed: changed to `String(formData.get('name') ?? '')`. [profile-edit-form.tsx]
+- [x] [Review][Patch] **Orphaned storage file if DB update fails after upload** — Fixed: added compensating storage delete in catch block when `storagePath` is set. [upload-avatar.ts]
+- [x] [Review][Patch] **Empty email passed to `ensureUserProfile`** — Fixed: all three actions now check `!user.email` and return validation error before calling `ensureUserProfile`. [update-profile.ts, upload-avatar.ts, remove-avatar.ts]
+- [x] [Review][Patch] **Object URL memory leak on rapid file selection** — Fixed: added `prevPreviewRef` to revoke previous URL before creating new one. [avatar-upload.tsx]
+- [x] [Review][Patch] **Unauthenticated error message differs from AC9** — Fixed: aligned to `'Session expired'` in all three actions. [update-profile.ts, upload-avatar.ts, remove-avatar.ts]
+- [x] [Review][Patch] **Static `aria-expanded="false"`** — Fixed: added `isExpanded` state, bound to `aria-expanded`, toggled on focus/blur. [timezone-select.tsx]
+- [x] [Review][Patch] **pgTAP `PERFORM` outside PL/pgSQL block** — Fixed: changed to `SELECT set_config(...)`. [rls_avatars_storage.sql:59]
+- [x] [Review][Patch] **Zero-byte file passes size check with wrong error** — Fixed: added explicit `file.size === 0` guard with clear error message. [upload-avatar.ts]
+- [x] [Review][Defer] **`getUserProfile` swallows all DB errors** — RLS violation indistinguishable from "not found". Deferred: pre-existing pattern, not introduced by this story. [get-user-profile.ts:15]
+- [x] [Review][Defer] **Concurrent avatar uploads can orphan files** — No locking on read-then-write cycle. Deferred: last-write-wins strategy is documented (AC8), orphan cleanup is post-MVP. [upload-avatar.ts:56-94]
+- [x] [Review][Defer] **No row-affected check on profile/URL update** — Silent no-op on missing user. Deferred: `ensureUserProfile` is called first, making this extremely unlikely. [update-user-profile.ts:8-11, update-avatar-url.ts:8-11]

@@ -29,6 +29,7 @@ function getTimezoneOffset(tz: string): string {
 
 export function TimezoneSelect({ value, onChange }: TimezoneSelectProps) {
   const [search, setSearch] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
   const listId = useId();
 
   const timezones = useMemo<TimezoneEntry[]>(() => {
@@ -57,8 +58,10 @@ export function TimezoneSelect({ value, onChange }: TimezoneSelectProps) {
         placeholder="Search timezones..."
         className="flex h-10 w-full rounded-[var(--flow-radius-md)] border border-[var(--flow-color-border-default)] bg-transparent px-3 py-2 text-sm text-[var(--flow-color-text-primary)] placeholder:text-[var(--flow-color-text-muted)] focus-visible:outline-none focus-visible:ring-[var(--flow-focus-ring-width)] focus-visible:ring-offset-[var(--flow-focus-ring-offset)] focus-visible:ring-[var(--flow-focus-ring-color)]"
         role="combobox"
-        aria-expanded="false"
+        aria-expanded={isExpanded}
         aria-controls={listId}
+        onFocus={() => setIsExpanded(true)}
+        onBlur={() => setIsExpanded(false)}
       />
       <select
         id={listId}

@@ -6,6 +6,11 @@ import { ensureUserProfile, updateAvatarUrl } from '@flow/db';
 import { revalidateTag } from 'next/cache';
 import { getServerSupabase } from '@/lib/supabase-server';
 
+function extractStoragePath(avatarUrl: string, userId: string): string | null {
+  const match = avatarUrl.match(new RegExp(`${userId}/[^/]+\\.\\w+`));
+  return match ? match[0] : null;
+}
+
 export async function removeAvatar(): Promise<ActionResult<void>> {
   const supabase = await getServerSupabase();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -13,17 +18,19 @@ export async function removeAvatar(): Promise<ActionResult<void>> {
   if (authError || !user) {
     return {
       success: false,
-      error: createFlowError(
-        401,
-        'UNAUTHORIZED',
-        'Your session has expired. Please sign in again.',
-        'auth',
-      ),
+      error: createFlowError(401, 'UNAUTHORIZED', 'Session expired', 'auth'),
+    };
+  }
+
+  if (!user.email) {
+    return {
+      success: false,
+      error: createFlowError(400, 'VALIDATION_ERROR', 'Email is required.', 'validation'),
     };
   }
 
   try {
-    await ensureUserProfile(supabase, user.id, user.email ?? '');
+    await ensureUserProfile(supabase, user.id, user.email);
 
     const { data: currentProfile } = await supabase
       .from('users')
@@ -32,10 +39,12 @@ export async function removeAvatar(): Promise<ActionResult<void>> {
       .single();
 
     if (currentProfile?.avatar_url) {
-      const oldPath = currentProfile.avatar_url;
-      const pathMatch = oldPath.match(/\/avatars\/(.+?\.\w+)/);
-      if (pathMatch) {
-        await supabase.storage.from('avatars').remove([`/${user.id}/${pathMatch[1]}`]);
+      const oldStoragePath = extractStoragePath(currentProfile.avatar_url, user.id);
+      if (oldStoragePath) {
+        const { error: removeError } = await supabase.storage.from('avatars').remove([oldStoragePath]);
+        if (removeError) {
+          console.error('Failed to delete avatar file:', removeError.message);
+        }
       }
     }
 

@@ -9,7 +9,9 @@ const EXTRA_VALID_TIMEZONES = new Set(['UTC']);
 
 function isValidTimezone(tz: string): boolean {
   if (EXTRA_VALID_TIMEZONES.has(tz)) return true;
-  if (IANA_TIMEZONES.length === 0) return tz.length > 0;
+  if (IANA_TIMEZONES.length === 0) {
+    return tz.length > 0;
+  }
   return IANA_TIMEZONES.includes(tz);
 }
 

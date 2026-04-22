@@ -13,6 +13,7 @@ export function AvatarUpload({ profile, uploadAction, removeAction }: AvatarUplo
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [removeState, setRemoveState] = useState<ActionResult<void> | null>(null);
+  const prevPreviewRef = useRef<string | null>(null);
 
   const [uploadState, uploadFormAction, isUploading] = useActionState(
     async (_prev: ActionResult<{ avatarUrl: string }> | null, formData: FormData) => {
@@ -25,7 +26,11 @@ export function AvatarUpload({ profile, uploadAction, removeAction }: AvatarUplo
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (prevPreviewRef.current) {
+      URL.revokeObjectURL(prevPreviewRef.current);
+    }
     const url = URL.createObjectURL(file);
+    prevPreviewRef.current = url;
     setPreviewUrl(url);
   }
 

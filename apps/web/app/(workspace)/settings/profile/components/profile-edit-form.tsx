@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import type { UserProfile, ActionResult } from '@flow/types';
 import { AvatarUpload } from './avatar-upload';
 import { TimezoneSelect } from './timezone-select';
@@ -12,16 +12,13 @@ interface ProfileEditFormProps {
   removeAction: () => Promise<ActionResult<void>>;
 }
 
-interface FormState {
-  name: string;
-  timezone: string;
-}
-
 export function ProfileEditForm({ profile, updateAction, uploadAction, removeAction }: ProfileEditFormProps) {
+  const [selectedTimezone, setSelectedTimezone] = useState<string | null>(null);
+
   const [state, submitAction, isPending] = useActionState(
     async (prev: ActionResult<UserProfile> | null, formData: FormData) => {
-      const name = formData.get('name') as string;
-      const timezone = formData.get('timezone') as string;
+      const name = String(formData.get('name') ?? '');
+      const timezone = String(formData.get('timezone') ?? '');
       return updateAction({ name, timezone });
     },
     null,
@@ -29,6 +26,7 @@ export function ProfileEditForm({ profile, updateAction, uploadAction, removeAct
 
   const currentProfile = state?.success ? state.data : profile;
   const errorMessage = state && !state.success ? state.error.message : null;
+  const displayTimezone = selectedTimezone ?? currentProfile.timezone;
 
   return (
     <div className="space-y-8">
@@ -54,11 +52,11 @@ export function ProfileEditForm({ profile, updateAction, uploadAction, removeAct
           <label htmlFor="profile-timezone" className="text-sm font-medium text-[var(--flow-color-text-primary)]">
             Timezone
           </label>
-          <input type="hidden" name="timezone" value={currentProfile.timezone} />
+          <input type="hidden" name="timezone" value={displayTimezone} />
           <div className="max-w-md">
             <TimezoneSelect
-              value={currentProfile.timezone}
-              onChange={() => {}}
+              value={displayTimezone}
+              onChange={setSelectedTimezone}
             />
           </div>
           <p className="text-xs text-[var(--flow-color-text-muted)]">

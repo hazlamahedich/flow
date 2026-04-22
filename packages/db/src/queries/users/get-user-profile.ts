@@ -14,12 +14,20 @@ export async function getUserProfile(
   if (error) return null;
   if (!data) return null;
 
+  let avatarUrl: string | null = data.avatar_url;
+  if (avatarUrl && !avatarUrl.startsWith('http')) {
+    const { data: signedData } = await client.storage
+      .from('avatars')
+      .createSignedUrl(avatarUrl, 3600);
+    avatarUrl = signedData?.signedUrl ?? null;
+  }
+
   return {
     id: data.id,
     name: data.name,
     email: data.email,
     timezone: data.timezone,
-    avatarUrl: data.avatar_url,
+    avatarUrl,
     updatedAt: data.updated_at,
   };
 }
