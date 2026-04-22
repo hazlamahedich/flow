@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Settings',
@@ -23,13 +24,13 @@ export default function SettingsLayout({
         className="mb-6 flex gap-1 border-b border-[var(--flow-color-border-default)]"
       >
         {settingsTabs.map((item) => (
-          <a
+          <Link
             key={item.href}
             href={item.href}
             className="border-b-2 border-transparent px-3 py-2 text-sm text-[var(--flow-color-text-secondary)] transition-colors hover:border-[var(--flow-color-border-default)] hover:text-[var(--flow-color-text-primary)]"
           >
             {item.label}
-          </a>
+          </Link>
         ))}
       </nav>
       <div>{children}</div>

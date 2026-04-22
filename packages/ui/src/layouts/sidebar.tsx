@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import {
   Inbox,
   Calendar,
@@ -29,9 +30,11 @@ const NAV_ITEMS = [
 interface SidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
+  toggleRef?: React.RefObject<HTMLButtonElement | null> | undefined;
+  firstNavItemRef?: React.RefObject<HTMLAnchorElement | null> | undefined;
 }
 
-export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRef }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -39,13 +42,14 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       className={cn(
         'flex h-full flex-col border-r border-[var(--flow-color-border-default)] bg-[var(--flow-color-bg-surface)] transition-[width] motion-reduce:transition-none',
         collapsed
-          ? 'w-[var(--flow-layout-sidebar-collapsed)]'
-          : 'w-[var(--flow-layout-sidebar-expanded)]',
+          ? 'w-[var(--flow-sidebar-collapsed)]'
+          : 'w-[var(--flow-sidebar-expanded)]',
       )}
       data-testid="sidebar"
     >
       <div className="flex shrink-0 items-center justify-end p-2">
         <button
+          ref={toggleRef}
           type="button"
           onClick={onToggleCollapse}
           className="rounded-[var(--flow-radius-sm)] p-1.5 text-[var(--flow-color-text-tertiary)] hover:bg-[var(--flow-state-overlay-hover)] hover:text-[var(--flow-color-text-primary)] focus-visible:outline focus-visible:outline-[var(--flow-focus-ring-width)_solid_var(--flow-focus-ring-color)] focus-visible:outline-offset-1"
@@ -62,12 +66,13 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
       <nav aria-label="Main navigation" className="flex-1 min-h-0 overflow-y-auto px-2">
         <ul className="space-y-1" role="list">
-          {NAV_ITEMS.map(({ href, label, Icon }) => {
+          {NAV_ITEMS.map(({ href, label, Icon }, index) => {
             const isActive = pathname === href || pathname.startsWith(href + '/');
             return (
               <li key={href}>
-                <a
+                <Link
                   href={href}
+                  ref={index === 0 ? firstNavItemRef : undefined}
                   className={cn(
                     'flex items-center gap-3 rounded-[var(--flow-radius-sm)] px-3 py-2 text-sm transition-colors motion-reduce:transition-none',
                     'hover:bg-[var(--flow-state-overlay-hover)] hover:text-[var(--flow-color-text-primary)]',
@@ -87,7 +92,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   >
                     {label}
                   </span>
-                </a>
+                </Link>
               </li>
             );
           })}
@@ -115,3 +120,5 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     </div>
   );
 }
+
+export { NAV_ITEMS };

@@ -37,3 +37,8 @@
 - Timing side-channel on email enumeration [`request-email-change.ts:95`] — `supabase.auth.updateUser` takes measurable latency for available emails (sends verification) vs instant rejection for taken emails. Constant-time padding deferred pending architectural decision.
 - App-server clock skew on `expires_at` comparisons [`verify/route.ts:23`, `get-pending-email-change.ts:25`, `page.tsx:81`] — all three pass `new Date().toISOString()` from app server while `expires_at` uses DB `now()`. Infrastructure-level concern.
 - `signOut` only revokes refresh tokens — access tokens valid until natural expiry (~1 hour) [`verify/route.ts:55`] — Supabase platform limitation, documented in project-context.md L455 (60s invalidation target).
+
+## Deferred from: code review of 1-6-persistent-layout-shell-navigation (2026-04-22)
+
+- Error boundary uses `window.location.reload()` losing all client state — could add `resetErrorBoundary` pattern via `this.setState({ hasError: false })` in a future hardening pass. [`sidebar-error-boundary.tsx:53`] — deferred, pre-existing pattern
+- `error.tsx` exposes raw `error.message` to users — may contain internal details. Sanitization deferred to dedicated error-handling hardening story. [`error.tsx:14`] — deferred, pre-existing

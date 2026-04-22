@@ -13,8 +13,13 @@ export interface WorkspaceShellProps {
   children: React.ReactNode;
 }
 
+function getReducedMotionInitial(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
+  const [reduced, setReduced] = useState(getReducedMotionInitial);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -29,11 +34,10 @@ function useReducedMotion(): boolean {
 }
 
 function useSidebarKeyboard(
-  collapsed: boolean,
   setCollapsed: (v: boolean) => void,
+  firstNavItemRef: React.RefObject<HTMLAnchorElement | null>,
+  toggleRef: React.RefObject<HTMLButtonElement | null>,
 ) {
-  const toggleRef = useRef<HTMLButtonElement | null>(null);
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== ']' && e.key !== '[') return;
@@ -50,6 +54,7 @@ function useSidebarKeyboard(
 
       if (e.key === ']') {
         setCollapsed(false);
+        firstNavItemRef.current?.focus();
       } else {
         setCollapsed(true);
         toggleRef.current?.focus();
@@ -58,10 +63,11 @@ function useSidebarKeyboard(
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [collapsed, setCollapsed]);
-
-  return toggleRef;
+  }, [setCollapsed, firstNavItemRef, toggleRef]);
 }
+
+const HOVER_EXPAND_DELAY = 300;
+const HOVER_COLLAPSE_DELAY = 200;
 
 export function WorkspaceShell({ agentCount, children }: WorkspaceShellProps) {
   const [collapsed, setCollapsed] = useAtom(sidebarCollapsedAtom);
@@ -70,29 +76,53 @@ export function WorkspaceShell({ agentCount, children }: WorkspaceShellProps) {
   const reducedMotion = useReducedMotion();
   const [ariaMessage, setAriaMessage] = useState('');
 
-  const toggleRef = useSidebarKeyboard(collapsed, (v) => {
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
+  const firstNavItemRef = useRef<HTMLAnchorElement | null>(null);
+  const hoverExpandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hoverCollapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const announceAndSet = useCallback((v: boolean) => {
     setCollapsed(v);
     setAriaMessage(v ? 'Sidebar collapsed' : 'Sidebar expanded');
-  });
+  }, [setCollapsed]);
+
+  useSidebarKeyboard(announceAndSet, firstNavItemRef, toggleRef);
 
   const handleToggle = useCallback(() => {
-    const next = !collapsed;
-    setCollapsed(next);
-    setAriaMessage(next ? 'Sidebar collapsed' : 'Sidebar expanded');
-  }, [collapsed, setCollapsed]);
+    announceAndSet(!collapsed);
+  }, [collapsed, announceAndSet]);
 
   const showSidebar = agentCount >= 2;
 
   const handleMouseEnter = useCallback(() => {
     if (!showSidebar || !collapsed) return;
-    setHoverActive(true);
-    setHoverExpanded(true);
+    if (hoverCollapseTimer.current) {
+      clearTimeout(hoverCollapseTimer.current);
+      hoverCollapseTimer.current = null;
+    }
+    hoverExpandTimer.current = setTimeout(() => {
+      setHoverActive(true);
+      setHoverExpanded(true);
+    }, HOVER_EXPAND_DELAY);
   }, [showSidebar, collapsed, setHoverExpanded]);
 
   const handleMouseLeave = useCallback(() => {
-    setHoverActive(false);
-    setHoverExpanded(false);
+    if (hoverExpandTimer.current) {
+      clearTimeout(hoverExpandTimer.current);
+      hoverExpandTimer.current = null;
+    }
+    hoverCollapseTimer.current = setTimeout(() => {
+      setHoverActive(false);
+      setHoverExpanded(false);
+    }, HOVER_COLLAPSE_DELAY);
   }, [setHoverExpanded]);
+
+  useEffect(() => {
+    return () => {
+      if (hoverExpandTimer.current) clearTimeout(hoverExpandTimer.current);
+      if (hoverCollapseTimer.current) clearTimeout(hoverCollapseTimer.current);
+    };
+  }, []);
 
   return (
     <>
@@ -114,7 +144,7 @@ export function WorkspaceShell({ agentCount, children }: WorkspaceShellProps) {
               <div
                 className={cn(
                   'relative h-full',
-                  collapsed && hoverActive && 'w-[var(--flow-layout-sidebar-expanded)] shadow-lg',
+                  collapsed && hoverActive && 'w-[var(--flow-sidebar-expanded)] shadow-lg',
                 )}
                 style={
                   collapsed && hoverActive
@@ -126,6 +156,8 @@ export function WorkspaceShell({ agentCount, children }: WorkspaceShellProps) {
                   agentCount={agentCount}
                   collapsed={collapsed && !hoverActive}
                   onToggleCollapse={handleToggle}
+                  toggleRef={toggleRef}
+                  firstNavItemRef={firstNavItemRef}
                 />
               </div>
             </SidebarErrorBoundary>

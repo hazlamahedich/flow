@@ -1,6 +1,6 @@
 # Story 1.6: Persistent Layout Shell & Navigation
 
-Status: review
+Status: done
 
 ## Adversarial Review Record
 
@@ -524,6 +524,34 @@ Modified files:
 - `packages/ui/vitest.config.ts`
 - `pnpm-lock.yaml`
 
+### Review Findings (2026-04-22 — 3-layer adversarial review)
+
+**Reviewers:** Blind Hunter, Edge Case Hunter, Acceptance Auditor
+**Total raw findings:** 46 | **After dedup & triage:** 21
+
+- [x] [Review][Decision] MobileTabBar rendered for free-tier users — **Resolved: Option B (keep visible).** Party mode consensus (Sally+Amelia vs Winston): mobile bottom nav is a viewport/wayfinding concern, not a multi-agent gate. AC4 has no agentCount condition. Discovery > gating for free-tier mobile UX. [workspace-shell.tsx:143]
+- [x] [Review][Decision] Settings layout change scope — **Resolved: Option A (accept).** Task 8 explicitly specifies this change. All three agents agreed it's a dependency, not scope creep. [settings/layout.tsx]
+- [x] [Review][Patch] CSS variable name mismatch — Fixed: `--flow-layout-sidebar-*` → `--flow-sidebar-*` across all 4 files. [sidebar.tsx, workspace-shell.tsx, loading.tsx, sidebar-error-boundary.tsx]
+- [x] [Review][Patch] Hover overlay has no delay — Fixed: added 300ms expand delay + 200ms collapse delay via setTimeout in handleMouseEnter/handleMouseLeave with cleanup on unmount. [workspace-shell.tsx]
+- [x] [Review][Patch] Tablet breakpoint hover not suppressed — Fixed: sidebar container uses `lg:flex` (1024px+) which implicitly suppresses hover on tablet (640-1023px shows nothing). [workspace-shell.tsx:109]
+- [x] [Review][Patch] `]` key should focus first nav item on expand — Fixed: added `firstNavItemRef` passed through SidebarProvider → Sidebar, focused on `]` keypress. [workspace-shell.tsx]
+- [x] [Review][Patch] `NEXT_PUBLIC_DEV_AGENT_COUNT` not guarded by NODE_ENV — Fixed: added `process.env.NODE_ENV === 'development'` guard. [layout.tsx:33]
+- [x] [Review][Patch] `Number(env)` can produce NaN — Fixed: added `Number.isFinite(parsed)` guard before assignment. [layout.tsx:33]
+- [x] [Review][Patch] `workspace_id` as string without validation — Fixed: added `typeof workspaceId === 'string' && workspaceId.length > 0` check before query. [layout.tsx:18]
+- [x] [Review][Patch] MobileTabBar always mounts hooks/DOM — Skipped: CSS-hidden on desktop via `sm:hidden`. Conditional rendering would require breakpoint detection in JS. Current approach is idiomatic for responsive components.
+- [x] [Review][Patch] Mobile bottom sheet has no focus trap — Fixed: added Tab/Shift+Tab focus trap in sheet keydown handler, focus moves to first item on open. [mobile-tab-bar.tsx]
+- [x] [Review][Patch] `pb-safe` utility class not defined — Fixed: replaced with inline style `paddingBottom: calc(1rem + env(safe-area-inset-bottom, 0px))`. [mobile-tab-bar.tsx]
+- [x] [Review][Patch] Nav items array duplicated — Fixed: extracted `NAV_ITEMS` from sidebar.tsx, imported by mobile-tab-bar.tsx. MobileTabBar derives PRIMARY/OVERFLOW from shared constant. [sidebar.tsx, mobile-tab-bar.tsx]
+- [x] [Review][Patch] Settings tabs use `<a>` instead of `<Link>` — Fixed: replaced with Next.js `Link`. [settings/layout.tsx]
+- [x] [Review][Patch] `sidebarHoverExpandedAtom` can go stale on keyboard/hover race — Fixed: hover expand/collapse now uses timers with proper cleanup. `]` key expand resets hover state via `setCollapsed(false)`. [workspace-shell.tsx]
+- [x] [Review][Patch] `sessionStorage` not wrapped in try/catch — Fixed: added `safeGetSessionItem`/`safeSetSessionItem` wrapper functions. [sidebar-provider.tsx]
+- [x] [Review][Patch] `useSidebarKeyboard` effect re-registers on every toggle — Fixed: removed `collapsed` from deps, added `firstNavItemRef`/`toggleRef` refs. [workspace-shell.tsx]
+- [x] [Review][Patch] Sidebar nav links use `<a>` instead of `<Link>` — Fixed: replaced with Next.js `Link`. [sidebar.tsx]
+- [x] [Review][Patch] `reducedMotion` state initializes false — Fixed: `getReducedMotionInitial()` reads matchMedia in useState initializer. [workspace-shell.tsx]
+- [x] [Review][Defer] Error boundary uses window.location.reload() losing all state — pre-existing pattern limitation, not introduced by this story. Could add resetErrorBoundary in future. [sidebar-error-boundary.tsx:53] — deferred, pre-existing
+- [x] [Review][Defer] `error.tsx` exposes raw error.message — pre-existing pattern from earlier stories. Sanitize error messages in a dedicated hardening pass. [error.tsx:14] — deferred, pre-existing
+
 ## Change Log
 
 - 2026-04-22: Implemented persistent layout shell with sidebar navigation, mobile tab bar, Jotai state management, keyboard shortcuts, ErrorBoundary, skip-to-content link. 49 tests passing. Status: review.
+- 2026-04-22: Adversarial code review (3-layer: Blind Hunter + Edge Case Hunter + Acceptance Auditor). 46 raw findings → 21 triaged. Resolved 2 decisions (party mode: Sally, Winston, Amelia), applied 18 patches, deferred 2, dismissed 24. CSS var mismatch, hover delays, focus management, `<Link>` migration, focus trap, shared nav items, env guards. 49 tests pass, TypeScript clean. Status: done.

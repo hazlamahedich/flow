@@ -54,7 +54,7 @@ development_status:
   1-4c-client-scoping-sessions-ui-audit: done
   1-5-user-profile-management: done
   1-5a-email-change-verification: done
-  1-6-persistent-layout-shell-navigation: review
+  1-6-persistent-layout-shell-navigation: done
   1-7-home-dashboard: backlog
   1-8-command-palette-keyboard-shortcuts: backlog
   1-9-undo-conflict-resolution: backlog

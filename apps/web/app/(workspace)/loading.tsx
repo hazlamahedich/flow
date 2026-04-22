@@ -2,7 +2,7 @@ export default function WorkspaceLoading() {
   return (
     <div className="flex h-screen bg-[var(--flow-color-bg-primary)]">
       <div
-        className="hidden w-[var(--flow-layout-sidebar-expanded)] shrink-0 animate-pulse border-r border-[var(--flow-color-border-default)] bg-[var(--flow-color-bg-surface)] lg:block"
+        className="hidden w-[var(--flow-sidebar-expanded)] shrink-0 animate-pulse border-r border-[var(--flow-color-border-default)] bg-[var(--flow-color-bg-surface)] lg:block"
         aria-hidden="true"
       >
         <div className="p-4">
