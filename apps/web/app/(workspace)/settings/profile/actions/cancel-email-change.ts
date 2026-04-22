@@ -5,8 +5,12 @@ import { createFlowError, cacheTag } from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { revalidateTag } from 'next/cache';
 
+interface CancelEmailChangeInput {
+  requestId: string;
+}
+
 export async function cancelEmailChange(
-  _input: unknown,
+  input: unknown,
 ): Promise<ActionResult<void>> {
   const supabase = await getServerSupabase();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -18,9 +22,18 @@ export async function cancelEmailChange(
     };
   }
 
+  const parsed = input as CancelEmailChangeInput;
+  if (!parsed?.requestId || typeof parsed.requestId !== 'string') {
+    return {
+      success: false,
+      error: createFlowError(400, 'VALIDATION_ERROR', 'Invalid request.', 'validation'),
+    };
+  }
+
   const { data, error } = await supabase
     .from('email_change_requests')
     .update({ status: 'cancelled' })
+    .eq('id', parsed.requestId)
     .eq('user_id', user.id)
     .eq('status', 'pending')
     .select('id')

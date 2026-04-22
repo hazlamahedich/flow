@@ -1,7 +1,6 @@
 import { createServiceClient, syncUserEmail, cacheTag } from '@flow/db';
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
-import { getServerSupabase } from '@/lib/supabase-server';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -13,9 +12,12 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const supabase = await getServerSupabase();
+  // Token-authorized (not session-authorized): verification links are clicked
+  // from email clients with no guaranteed session. service_role is permitted
+  // by spec for this Route Handler (AC#4).
+  const adminClient = createServiceClient();
 
-  const { data: claimed, error: claimError } = await supabase
+  const { data: claimed, error: claimError } = await adminClient
     .from('email_change_requests')
     .update({ status: 'verified' })
     .eq('token', token)
@@ -26,12 +28,12 @@ export async function GET(request: NextRequest) {
 
   if (claimError) {
     return NextResponse.redirect(
-      new URL('/login?message=email-changed', request.url),
+      new URL('/settings/profile?email_error=sync-failed', request.url),
     );
   }
 
   if (!claimed) {
-    const { data: existing } = await supabase
+    const { data: existing } = await adminClient
       .from('email_change_requests')
       .select('status, expires_at')
       .eq('token', token)
@@ -49,19 +51,18 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    await syncUserEmail(supabase, claimed.user_id, claimed.new_email);
+    await syncUserEmail(adminClient, claimed.user_id, claimed.new_email);
 
-    const adminClient = createServiceClient();
     await adminClient.auth.admin.signOut(claimed.user_id);
 
     revalidateTag(cacheTag('user', claimed.user_id));
   } catch {
     return NextResponse.redirect(
-      new URL('/login?message=email-changed', request.url),
+      new URL('/settings/profile?email_error=sync-failed', request.url),
     );
   }
 
   return NextResponse.redirect(
-    new URL('/login?message=email-changed', request.url),
+    new URL(`/login?message=email-changed&email=${encodeURIComponent(claimed.new_email)}`, request.url),
   );
 }

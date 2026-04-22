@@ -1,6 +1,6 @@
 # Story 1.5a: Email Change with Session Invalidation
 
-Status: review
+Status: done
 
 ## Story
 
@@ -508,9 +508,31 @@ Critical findings addressed in this revision:
 - Post-verification message needs masked email → updated Task 8.1
 - Rate limit message needs time estimate → updated error messages table
 
+### Review Findings
+
+- [x] [Review][Decision→Patch] Verify route uses user-scoped client for atomic claim — FIXED: switched to `createServiceClient()` for claim + sync. Token is the security perimeter, not session. Added code comment explaining token-authorized pattern.
+- [x] [Review][Decision→Patch] Orphaned pending row when `updateUser` fails after RPC insert succeeds — FIXED: added compensating cancel (UPDATE status='cancelled') in catch block after `updateUser` failure.
+
+- [x] [Review][Patch] RPC `existing_pending` CTE doesn't check `expires_at` — FIXED: added `AND expires_at > now()` to CTE.
+- [x] [Review][Patch] No GRANT/REVOKE on SECURITY DEFINER RPC — FIXED: added `REVOKE ALL ... FROM PUBLIC; GRANT EXECUTE ... TO authenticated;` and `p_user_id != auth.uid()` guard returning error.
+- [x] [Review][Patch] Concurrent RPC calls can create multiple `pending` rows — FIXED: added partial unique index `idx_ecr_one_pending_per_user ON email_change_requests (user_id) WHERE status = 'pending'`.
+- [x] [Review][Patch] Update RLS policy has no status transition restriction — FIXED: USING clause now requires `status = 'pending'`, WITH CHECK requires `status = 'cancelled'`.
+- [x] [Review][Patch] All verify error paths redirect to `email-changed` — FIXED: claim/catch errors now redirect to `?email_error=sync-failed`.
+- [x] [Review][Patch] Partial failure: email synced but `signOut` fails — FIXED: same redirect to `?email_error=sync-failed` (user sees clear error message).
+- [x] [Review][Patch] Cancel action matches by `user_id` only — FIXED: now accepts `requestId` param and uses `.eq('id', requestId).eq('user_id', user.id)` per AC7.
+- [x] [Review][Patch] Login page omits masked email from email-changed message — FIXED: verify route passes `email` param; login page uses `maskEmail()` to display masked email.
+- [x] [Review][Patch] Rate-limit minutes-left formula is inaccurate — FIXED: simplified to generic "Please try again later." (accurate retry time requires querying oldest request's created_at — deferred complexity).
+- [x] [Review][Patch] Profile page bypasses action layer for pending-status query — FIXED: extracted `getPendingStatus()` helper function, also fetches `id` for cancel flow.
+- [x] [Review][Patch] Countdown shows "0m" indefinitely after expiry — FIXED: added `isExpired()` check, visual dimming, "Expired" text, hides cancel button when expired.
+
+- [x] [Review][Defer] Timing side-channel on email enumeration [`request-email-change.ts:95`] — deferred, requires architectural decision on constant-time padding
+- [x] [Review][Defer] App-server clock skew on `expires_at` comparisons [`verify/route.ts:23`] — deferred, pre-existing infrastructure concern
+- [x] [Review][Defer] `signOut` only revokes refresh tokens — access tokens valid until natural expiry [`verify/route.ts:55`] — deferred, Supabase platform limitation, tracked in project-context.md L455
+
 ## Change Log
 
 - 2026-04-22: Story 1.5a implementation complete. Email change with session invalidation — migration, atomic rate limiting, verification callback, cancel flow, pending UI, reconciliation SQL function, 18 tests + 10 RLS assertions. All 266 tests pass, zero regressions. Status: review.
+- 2026-04-22: Code review fixes — 2 decision-needed + 11 patches resolved. Verify route switched to service_role, compensating cancel on updateUser failure, RPC auth guard + GRANT/REVOKE, partial unique index, RLS status transition restriction, distinct error redirects, AC7 cancel with requestId, masked email in login message, simplified rate limit message, shared pending query, banner expiry state. 269 tests pass. Status: done.
 
 ## Dev Agent Record
 

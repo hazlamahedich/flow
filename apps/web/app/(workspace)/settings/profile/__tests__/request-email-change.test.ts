@@ -37,9 +37,13 @@ function mockSupabaseWithUser(user: { id: string; email: string } | null) {
       updateUser: vi.fn().mockResolvedValue({ data: {}, error: null }),
     },
     from: vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
+      update: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+            }),
+          }),
         }),
       }),
     }),

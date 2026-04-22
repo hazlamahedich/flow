@@ -49,18 +49,18 @@ export async function requestEmailChange(
   }
 
   const token = randomUUID();
+  let insertedRowId: string | null = null;
 
   try {
     const result = await requestEmailChangeAtomic(supabase, user.id, newEmail, token);
 
     if (!result.allowed) {
-      const minutesLeft = Math.max(1, Math.ceil(60 - (result.requestCount * 12)));
       return {
         success: false,
         error: createFlowError(
           429,
           'EMAIL_CHANGE_RATE_LIMITED',
-          `You've made too many email change requests. Please try again in about ${minutesLeft} minutes.`,
+          `You've made too many email change requests. Please try again later.`,
           'validation',
         ),
       };
@@ -95,6 +95,14 @@ export async function requestEmailChange(
   const { error: updateError } = await supabase.auth.updateUser({ email: newEmail });
 
   if (updateError) {
+    await supabase
+      .from('email_change_requests')
+      .update({ status: 'cancelled' })
+      .eq('user_id', user.id)
+      .eq('status', 'pending')
+      .eq('token', token)
+      .maybeSingle();
+
     if (
       updateError.message?.toLowerCase().includes('email') &&
       (updateError.message?.toLowerCase().includes('registered') ||

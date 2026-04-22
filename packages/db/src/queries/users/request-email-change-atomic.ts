@@ -25,18 +25,24 @@ export async function requestEmailChangeAtomic(
   }
 
   const result = data as {
-    request_count: number;
-    was_inserted: number;
-    pending_new_email: string | null;
+    request_count?: number;
+    was_inserted?: number;
+    pending_new_email?: string | null;
+    error?: string;
   };
 
-  const wasInserted = result.was_inserted > 0;
+  if (result.error === 'unauthorized') {
+    throw new Error('Atomic email change request failed: unauthorized');
+  }
+
+  const wasInserted = (result.was_inserted ?? 0) > 0;
+  const requestCount = result.request_count ?? 0;
 
   return {
-    allowed: result.request_count < 5,
+    allowed: requestCount < 5,
     wasInserted,
-    pendingExists: !wasInserted && result.pending_new_email !== null,
-    pendingNewEmail: result.pending_new_email,
-    requestCount: result.request_count,
+    pendingExists: !wasInserted && (result.pending_new_email ?? null) !== null,
+    pendingNewEmail: result.pending_new_email ?? null,
+    requestCount,
   };
 }

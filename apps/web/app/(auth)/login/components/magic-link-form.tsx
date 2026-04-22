@@ -31,8 +31,12 @@ export function MagicLinkForm() {
     const messageParam = params.get('message');
 
     if (messageParam === 'email-changed') {
+      const emailParam = params.get('email');
+      const masked = emailParam ? maskEmail(emailParam) : '';
       setEmailChangedMessage(
-        'Your email has been updated. Please sign in with your new email address.',
+        masked
+          ? `Your email has been updated to ${masked}. Please sign in with your new email address.`
+          : 'Your email has been updated. Please sign in with your new email address.',
       );
       return;
     }

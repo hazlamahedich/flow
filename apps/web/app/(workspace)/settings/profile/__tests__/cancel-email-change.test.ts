@@ -40,15 +40,26 @@ describe('cancelEmailChange', () => {
     }
   });
 
+  it('returns validation error when no requestId', async () => {
+    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser({ id: 'user-1' }) as never);
+    const result = await cancelEmailChange(null);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.code).toBe('VALIDATION_ERROR');
+    }
+  });
+
   it('cancels pending request successfully', async () => {
     const mockFrom = vi.fn().mockReturnValue({
       update: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
-            select: vi.fn().mockReturnValue({
-              maybeSingle: vi.fn().mockResolvedValue({
-                data: { id: 'request-1' },
-                error: null,
+            eq: vi.fn().mockReturnValue({
+              select: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: { id: 'request-1' },
+                  error: null,
+                }),
               }),
             }),
           }),
@@ -61,7 +72,7 @@ describe('cancelEmailChange', () => {
       from: mockFrom,
     } as never);
 
-    const result = await cancelEmailChange(null);
+    const result = await cancelEmailChange({ requestId: 'request-1' });
     expect(result.success).toBe(true);
     expect(revalidateTag).toHaveBeenCalledWith('users:user-1');
   });
@@ -71,10 +82,12 @@ describe('cancelEmailChange', () => {
       update: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
-            select: vi.fn().mockReturnValue({
-              maybeSingle: vi.fn().mockResolvedValue({
-                data: null,
-                error: null,
+            eq: vi.fn().mockReturnValue({
+              select: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: null,
+                  error: null,
+                }),
               }),
             }),
           }),
@@ -87,7 +100,7 @@ describe('cancelEmailChange', () => {
       from: mockFrom,
     } as never);
 
-    const result = await cancelEmailChange(null);
+    const result = await cancelEmailChange({ requestId: 'request-1' });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('EMAIL_CHANGE_ALREADY_APPLIED');
@@ -100,10 +113,12 @@ describe('cancelEmailChange', () => {
       update: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
-            select: vi.fn().mockReturnValue({
-              maybeSingle: vi.fn().mockResolvedValue({
-                data: null,
-                error: { message: 'DB error' },
+            eq: vi.fn().mockReturnValue({
+              select: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: null,
+                  error: { message: 'DB error' },
+                }),
               }),
             }),
           }),
@@ -116,7 +131,7 @@ describe('cancelEmailChange', () => {
       from: mockFrom,
     } as never);
 
-    const result = await cancelEmailChange(null);
+    const result = await cancelEmailChange({ requestId: 'request-1' });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('INTERNAL_ERROR');

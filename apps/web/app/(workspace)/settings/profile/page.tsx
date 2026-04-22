@@ -42,10 +42,15 @@ async function handleCancelEmailChange(input: unknown): Promise<ActionResult<voi
   return cancelEmailChange(input);
 }
 
-async function handleGetPendingEmailChange(input: unknown): Promise<ActionResult<PendingEmailChange>> {
-  'use server';
-  const { getPendingEmailChange } = await import('./actions/get-pending-email-change');
-  return getPendingEmailChange(input);
+async function getPendingStatus(supabase: Awaited<ReturnType<typeof getServerSupabase>>, userId: string) {
+  const { data } = await supabase
+    .from('email_change_requests')
+    .select('id, new_email, expires_at')
+    .eq('user_id', userId)
+    .eq('status', 'pending')
+    .gt('expires_at', new Date().toISOString())
+    .maybeSingle();
+  return data;
 }
 
 export default async function ProfilePage({
@@ -73,15 +78,7 @@ export default async function ProfilePage({
     );
   }
 
-  const { data: pendingRow } = await supabase
-    .from('email_change_requests')
-    .select('new_email, expires_at')
-    .eq('user_id', user.id)
-    .eq('status', 'pending')
-    .gt('expires_at', new Date().toISOString())
-    .maybeSingle();
-
-  const hasPending = !!pendingRow;
+  const pendingRow = await getPendingStatus(supabase, user.id);
 
   return (
     <div className="space-y-6">
@@ -92,6 +89,12 @@ export default async function ProfilePage({
       {params.email_error === 'expired' && (
         <p className="text-sm text-[var(--flow-status-error)]" role="alert">
           This verification link has expired. Please request a new email change.
+        </p>
+      )}
+
+      {params.email_error === 'sync-failed' && (
+        <p className="text-sm text-[var(--flow-status-error)]" role="alert">
+          Something went wrong while updating your email. Please try again or contact support.
         </p>
       )}
 
@@ -107,8 +110,9 @@ export default async function ProfilePage({
           Email
         </h2>
 
-        {hasPending && pendingRow ? (
+        {pendingRow ? (
           <EmailChangePendingBanner
+            requestId={pendingRow.id}
             newEmail={pendingRow.new_email}
             expiresAt={pendingRow.expires_at}
             cancelAction={handleCancelEmailChange}

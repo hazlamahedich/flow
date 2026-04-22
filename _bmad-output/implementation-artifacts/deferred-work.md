@@ -31,3 +31,9 @@
 - `getUserProfile` swallows all DB errors — RLS violation indistinguishable from "not found" [`get-user-profile.ts:15`] — pre-existing error handling pattern
 - Concurrent avatar uploads can orphan files — no locking on read-then-write cycle [`upload-avatar.ts:56-94`] — last-write-wins documented (AC8), orphan cleanup post-MVP
 - No row-affected check on profile/URL update — silent no-op on missing user [`update-user-profile.ts:8-11`] — `ensureUserProfile` called first, extremely unlikely
+
+## Deferred from: code review of 1-5a-email-change-verification (2026-04-22)
+
+- Timing side-channel on email enumeration [`request-email-change.ts:95`] — `supabase.auth.updateUser` takes measurable latency for available emails (sends verification) vs instant rejection for taken emails. Constant-time padding deferred pending architectural decision.
+- App-server clock skew on `expires_at` comparisons [`verify/route.ts:23`, `get-pending-email-change.ts:25`, `page.tsx:81`] — all three pass `new Date().toISOString()` from app server while `expires_at` uses DB `now()`. Infrastructure-level concern.
+- `signOut` only revokes refresh tokens — access tokens valid until natural expiry (~1 hour) [`verify/route.ts:55`] — Supabase platform limitation, documented in project-context.md L455 (60s invalidation target).
