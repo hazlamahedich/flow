@@ -15,6 +15,7 @@ import {
   ChevronsRight,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { WorkspaceSwitcher } from './workspace-switcher';
 
 const NAV_ITEMS = [
   { href: '/inbox', label: 'Inbox', Icon: Inbox },
@@ -32,9 +33,12 @@ interface SidebarProps {
   onToggleCollapse: () => void;
   toggleRef?: React.RefObject<HTMLButtonElement | null> | undefined;
   firstNavItemRef?: React.RefObject<HTMLAnchorElement | null> | undefined;
+  workspaces?: Array<{ id: string; name: string; role: string }> | undefined;
+  activeWorkspaceId?: string | undefined;
+  onSwitchWorkspace?: ((workspaceId: string) => Promise<void>) | undefined;
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRef }: SidebarProps) {
+export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRef, workspaces, activeWorkspaceId, onSwitchWorkspace }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -47,7 +51,14 @@ export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRe
       )}
       data-testid="sidebar"
     >
-      <div className="flex shrink-0 items-center justify-end p-2">
+      <div className="flex shrink-0 items-center justify-between p-2">
+        {!collapsed && workspaces && workspaces.length > 0 && activeWorkspaceId && onSwitchWorkspace && (
+          <WorkspaceSwitcher
+            workspaces={workspaces}
+            activeWorkspaceId={activeWorkspaceId}
+            onSwitch={onSwitchWorkspace}
+          />
+        )}
         <button
           ref={toggleRef}
           type="button"

@@ -1,7 +1,25 @@
-export default function WorkspacePage() {
+import { Suspense } from 'react';
+import { getServerSupabase } from '@/lib/supabase-server';
+import { requireTenantContext, getUserProfile, getDashboardSummary } from '@flow/db';
+import { DashboardContent } from '@flow/ui';
+import { DashboardSkeleton } from './dashboard-skeleton';
+
+export default async function WorkspacePage() {
   return (
-    <div className="flex items-center justify-center p-8">
-      <p className="text-[var(--flow-color-text-secondary)]">Dashboard loading...</p>
-    </div>
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardPageContent />
+    </Suspense>
   );
+}
+
+async function DashboardPageContent() {
+  const supabase = await getServerSupabase();
+  const { workspaceId, userId } = await requireTenantContext(supabase);
+
+  const [summary, profile] = await Promise.all([
+    getDashboardSummary(supabase, workspaceId),
+    getUserProfile(supabase, userId),
+  ]);
+
+  return <DashboardContent summary={summary} profile={profile} />;
 }

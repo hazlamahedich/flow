@@ -1,4 +1,5 @@
 export { createServerClient, createBrowserClient, createServiceClient } from './client';
+export { createAdminSupabase } from './admin-client';
 export {
   requireTenantContext,
   setTenantContext,
@@ -22,3 +23,7 @@ export {
   requestEmailChangeAtomic,
   syncUserEmail,
 } from './queries/users';
+export { getDashboardSummary } from './queries/dashboard';
+export type { DashboardSummary } from './queries/dashboard';
+export { listUserWorkspaces } from './queries/workspaces';
+export type { UserWorkspace } from './queries/workspaces';

@@ -1,5 +1,7 @@
 import { WorkspaceShell } from '@flow/ui';
 import { getServerSupabase } from '@/lib/supabase-server';
+import { listUserWorkspaces } from '@flow/db';
+import { switchWorkspace } from './actions/switch-workspace';
 import { redirect } from 'next/navigation';
 
 export default async function WorkspaceLayout({
@@ -17,8 +19,9 @@ export default async function WorkspaceLayout({
   }
 
   let agentCount = 1;
+  const workspaceId = session.user.app_metadata.workspace_id as string | undefined;
+
   try {
-    const workspaceId = session.user.app_metadata.workspace_id;
     if (typeof workspaceId === 'string' && workspaceId.length > 0) {
       const { count } = await supabase
         .from('agent_configurations')
@@ -38,5 +41,23 @@ export default async function WorkspaceLayout({
     }
   }
 
-  return <WorkspaceShell agentCount={agentCount}>{children}</WorkspaceShell>;
+  let workspaces: Array<{ id: string; name: string; role: string }> = [];
+  try {
+    if (session.user.id) {
+      workspaces = await listUserWorkspaces(supabase, session.user.id);
+    }
+  } catch {
+    workspaces = [];
+  }
+
+  return (
+    <WorkspaceShell
+      agentCount={agentCount}
+      workspaces={workspaces}
+      activeWorkspaceId={workspaceId ?? ''}
+      onSwitchWorkspace={switchWorkspace}
+    >
+      {children}
+    </WorkspaceShell>
+  );
 }

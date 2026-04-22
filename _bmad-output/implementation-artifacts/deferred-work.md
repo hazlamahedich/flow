@@ -42,3 +42,11 @@
 
 - Error boundary uses `window.location.reload()` losing all client state — could add `resetErrorBoundary` pattern via `this.setState({ hasError: false })` in a future hardening pass. [`sidebar-error-boundary.tsx:53`] — deferred, pre-existing pattern
 - `error.tsx` exposes raw `error.message` to users — may contain internal details. Sanitization deferred to dedicated error-handling hardening story. [`error.tsx:14`] — deferred, pre-existing
+
+## Deferred from: code review of 1-7-home-dashboard (2026-04-22)
+
+- **F12 — Urgency tier badges on client health cards** — deferred to Epic 2 (agent trust/badge system). Current cards show raw `status` text; urgency tiers (attention-needed → at-risk → critical) require agent signal data that doesn't exist yet.
+- **Active/all-clear greeting paths still use time-of-day** — hydration mismatch risk when server and client are in different timezones. `first-run` and `no-workspace` paths are spec-compliant (no time-of-day), but `active` and `all-clear` paths call `getGreeting()` which uses `new Date()` server-side. Deferred to dedicated hydration hardening pass.
+- **Cache tag wrapping on `getDashboardSummary`** — tag format fixed (`dashboard` not `dashboards`), but `unstable_cache` + `cacheTag` wrapping not added because: (a) `SupabaseClient` can't be captured in cached closure, (b) no mutations exist yet that would invalidate the tag. Revisit when agent writes invalidate dashboard data.
+- **Workspace switcher error toast on `revalidatePath` failure** — `revalidatePath('/')` could throw in edge middleware contexts; current `try/catch` with `sonner` toast is sufficient for App Router server actions. Edge hardening deferred.
+- **DTS build errors for `@flow/db` and `@flow/types` imports in `@flow/ui`** — pre-existing cross-package type resolution issues. Not caused by this story. Resolve when Turborepo build pipeline is stabilized (Story 1-1a still in `review`).

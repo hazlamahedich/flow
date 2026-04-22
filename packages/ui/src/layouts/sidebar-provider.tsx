@@ -10,6 +10,9 @@ interface SidebarProviderProps {
   onToggleCollapse: () => void;
   toggleRef?: React.RefObject<HTMLButtonElement | null>;
   firstNavItemRef?: React.RefObject<HTMLAnchorElement | null>;
+  workspaces?: Array<{ id: string; name: string; role: string }> | undefined;
+  activeWorkspaceId?: string | undefined;
+  onSwitchWorkspace?: ((workspaceId: string) => Promise<void>) | undefined;
 }
 
 const REVEAL_KEY = 'flow-sidebar-revealed';
@@ -36,6 +39,9 @@ export function SidebarProvider({
   onToggleCollapse,
   toggleRef,
   firstNavItemRef,
+  workspaces,
+  activeWorkspaceId,
+  onSwitchWorkspace,
 }: SidebarProviderProps) {
   const prevCountRef = useRef(agentCount);
 
@@ -64,6 +70,9 @@ export function SidebarProvider({
       onToggleCollapse={onToggleCollapse}
       toggleRef={toggleRef}
       firstNavItemRef={firstNavItemRef}
+      workspaces={workspaces}
+      activeWorkspaceId={activeWorkspaceId}
+      onSwitchWorkspace={onSwitchWorkspace}
     />
   );
 }

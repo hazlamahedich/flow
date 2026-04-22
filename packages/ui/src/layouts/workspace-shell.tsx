@@ -11,6 +11,9 @@ import { MobileTabBar } from './mobile-tab-bar';
 export interface WorkspaceShellProps {
   agentCount: number;
   children: React.ReactNode;
+  workspaces?: Array<{ id: string; name: string; role: string }> | undefined;
+  activeWorkspaceId?: string | undefined;
+  onSwitchWorkspace?: ((workspaceId: string) => Promise<void>) | undefined;
 }
 
 function getReducedMotionInitial(): boolean {
@@ -69,7 +72,7 @@ function useSidebarKeyboard(
 const HOVER_EXPAND_DELAY = 300;
 const HOVER_COLLAPSE_DELAY = 200;
 
-export function WorkspaceShell({ agentCount, children }: WorkspaceShellProps) {
+export function WorkspaceShell({ agentCount, children, workspaces, activeWorkspaceId, onSwitchWorkspace }: WorkspaceShellProps) {
   const [collapsed, setCollapsed] = useAtom(sidebarCollapsedAtom);
   const setHoverExpanded = useSetAtom(sidebarHoverExpandedAtom);
   const [hoverActive, setHoverActive] = useState(false);
@@ -158,6 +161,9 @@ export function WorkspaceShell({ agentCount, children }: WorkspaceShellProps) {
                   onToggleCollapse={handleToggle}
                   toggleRef={toggleRef}
                   firstNavItemRef={firstNavItemRef}
+                  workspaces={workspaces}
+                  activeWorkspaceId={activeWorkspaceId}
+                  onSwitchWorkspace={onSwitchWorkspace}
                 />
               </div>
             </SidebarErrorBoundary>
