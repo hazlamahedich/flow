@@ -35,3 +35,21 @@ export { SidebarErrorBoundary } from './layouts/sidebar-error-boundary';
 export { MobileTabBar } from './layouts/mobile-tab-bar';
 export { WorkspaceSwitcher } from './layouts/workspace-switcher';
 export type { WorkspaceSwitcherProps, WorkspaceItem } from './layouts/workspace-switcher';
+
+export { CommandPalette } from './components/command-palette/command-palette';
+export { KeyboardListener, getShortcutRegistry } from './components/command-palette/keyboard-listener';
+export { ShortcutOverlay } from './components/command-palette/shortcut-overlay';
+export { UndoToast } from './components/command-palette/undo-toast';
+export { useFocusTrap } from './hooks/use-focus-trap';
+export { useDebouncedCallback } from './hooks/use-debounced-callback';
+export { useReducedMotion } from './hooks/use-reduced-motion';
+export { useShortcut } from './hooks/use-shortcut';
+
+export {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from './components/ui/command';

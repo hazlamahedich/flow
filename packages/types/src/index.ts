@@ -37,6 +37,16 @@ export type {
   WorkspaceAuditEventType,
 } from './workspace-audit';
 export {
+  SearchInputSchema,
+  SearchResultSchema,
+  SearchResultsSchema,
+} from './search/search-schema';
+export type {
+  SearchInput,
+  SearchResult,
+  SearchResults,
+} from './search/search-schema';
+export {
   updateProfileSchema,
   uploadAvatarSchema,
   getTimezones,

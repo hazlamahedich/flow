@@ -27,3 +27,5 @@ export { getDashboardSummary } from './queries/dashboard';
 export type { DashboardSummary } from './queries/dashboard';
 export { listUserWorkspaces } from './queries/workspaces';
 export type { UserWorkspace } from './queries/workspaces';
+export { searchEntities } from './queries/search/search-entities';
+export type { SearchEntitiesOptions } from './queries/search/search-entities';

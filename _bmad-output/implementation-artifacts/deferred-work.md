@@ -50,3 +50,11 @@
 - **Cache tag wrapping on `getDashboardSummary`** — tag format fixed (`dashboard` not `dashboards`), but `unstable_cache` + `cacheTag` wrapping not added because: (a) `SupabaseClient` can't be captured in cached closure, (b) no mutations exist yet that would invalidate the tag. Revisit when agent writes invalidate dashboard data.
 - **Workspace switcher error toast on `revalidatePath` failure** — `revalidatePath('/')` could throw in edge middleware contexts; current `try/catch` with `sonner` toast is sufficient for App Router server actions. Edge hardening deferred.
 - **DTS build errors for `@flow/db` and `@flow/types` imports in `@flow/ui`** — pre-existing cross-package type resolution issues. Not caused by this story. Resolve when Turborepo build pipeline is stabilized (Story 1-1a still in `review`).
+
+## Deferred from: code review of 1-8-command-palette-keyboard-shortcuts (2026-04-22)
+
+- OverlayPriority/MAX_ACTIVE_OVERLAY never enforced — overlay stacking management deferred to Story 2.5 when inbox context exists [`overlay-priority.ts`]
+- Context-based shortcut dimming in overlay — requires inbox context from Story 2.5. Platform dimming already works. [`shortcut-overlay.tsx`]
+- Focus ring styling (AC-5) — pre-existing design system concern. focus-visible styles already in codebase via --flow-focus-ring-* variables.
+- navigator.platform deprecated — pre-existing, works on all current browsers [`defaults.ts:4`]
+- forwardRef unnecessary in React 19 — pre-existing pattern from shadcn generation [`command.tsx`]

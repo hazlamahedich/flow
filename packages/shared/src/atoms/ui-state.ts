@@ -27,3 +27,7 @@ export const sidebarCollapsedAtom = atomWithStorage<boolean>(
 );
 
 export const sidebarHoverExpandedAtom = atom<boolean>(false);
+
+export const commandPaletteOpenAtom = atom<boolean>(false);
+
+export const shortcutOverlayOpenAtom = atom<boolean>(false);

@@ -1,4 +1,4 @@
-import { WorkspaceShell } from '@flow/ui';
+import { WorkspaceShellClient } from './workspace-shell-client';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { listUserWorkspaces } from '@flow/db';
 import { switchWorkspace } from './actions/switch-workspace';
@@ -51,13 +51,13 @@ export default async function WorkspaceLayout({
   }
 
   return (
-    <WorkspaceShell
+    <WorkspaceShellClient
       agentCount={agentCount}
       workspaces={workspaces}
       activeWorkspaceId={workspaceId ?? ''}
       onSwitchWorkspace={switchWorkspace}
     >
       {children}
-    </WorkspaceShell>
+    </WorkspaceShellClient>
   );
 }

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, waitFor, act } from '@testing-library/react';
 import { Provider } from 'jotai';
 import { WorkspaceShell } from './workspace-shell';
+import { resetShortcutRegistry } from '../components/command-palette/keyboard-listener';
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/inbox',
@@ -31,10 +32,11 @@ function renderShell(agentCount = 2) {
 
 describe('WorkspaceShell', () => {
   beforeEach(() => {
+    resetShortcutRegistry();
     const ls = mockLocalStorage();
     vi.stubGlobal('localStorage', ls);
     vi.stubGlobal('matchMedia', (query: string) => ({
-      matches: false,
+      matches: query === '(pointer: fine)',
       media: query,
       onchange: null,
       addEventListener: () => {},
@@ -82,16 +84,20 @@ describe('WorkspaceShell', () => {
     expect(container.querySelector('[aria-live="polite"]')).not.toBeNull();
   });
 
-  it('keyboard shortcut ] announces sidebar expanded', () => {
+  it('keyboard shortcut ] announces sidebar expanded', async () => {
     const { container } = renderShell(2);
-    fireEvent.keyDown(document, { key: ']' });
+    await act(async () => {
+      fireEvent.keyDown(document, { key: ']' });
+    });
     const liveRegion = container.querySelector('[aria-live="polite"]');
     expect(liveRegion?.textContent).toBe('Sidebar expanded');
   });
 
-  it('keyboard shortcut [ announces sidebar collapsed', () => {
+  it('keyboard shortcut [ announces sidebar collapsed', async () => {
     const { container } = renderShell(2);
-    fireEvent.keyDown(document, { key: '[' });
+    await act(async () => {
+      fireEvent.keyDown(document, { key: '[' });
+    });
     const liveRegion = container.querySelector('[aria-live="polite"]');
     expect(liveRegion?.textContent).toBe('Sidebar collapsed');
   });
