@@ -1,3 +1,4 @@
+import { WorkspaceShell } from '@flow/ui';
 import { LogoutButton } from './logout-button';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
@@ -8,21 +9,29 @@ export default async function WorkspaceLayout({
   children: React.ReactNode;
 }) {
   const supabase = await getServerSupabase();
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   if (!session) {
     redirect('/login');
   }
 
-  return (
-    <div className="min-h-screen bg-[var(--flow-color-bg-primary)]">
-      <div className="flex items-center justify-end border-b border-[var(--flow-color-border-default)] px-4 py-2 gap-3">
-        <span className="text-sm text-[var(--flow-color-text-secondary)]">
-          {session.user.email}
-        </span>
-        <LogoutButton />
-      </div>
-      {children}
-    </div>
-  );
+  let agentCount = 1;
+  try {
+    const { count } = await supabase
+      .from('agent_configurations')
+      .select('*', { count: 'exact', head: true })
+      .eq('workspace_id', session.user.app_metadata.workspace_id as string)
+      .eq('is_active', true);
+    agentCount = count ?? 0;
+  } catch {
+    agentCount = 1;
+  }
+
+  if (process.env.NEXT_PUBLIC_DEV_AGENT_COUNT) {
+    agentCount = Number(process.env.NEXT_PUBLIC_DEV_AGENT_COUNT);
+  }
+
+  return <WorkspaceShell agentCount={agentCount}>{children}</WorkspaceShell>;
 }

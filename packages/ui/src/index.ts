@@ -17,3 +17,10 @@ export {
   DialogDescription,
 } from './components/dialog/dialog';
 export { cn } from './lib/utils';
+
+export { WorkspaceShell } from './layouts/workspace-shell';
+export type { WorkspaceShellProps } from './layouts/workspace-shell';
+export { Sidebar } from './layouts/sidebar';
+export { SidebarProvider } from './layouts/sidebar-provider';
+export { SidebarErrorBoundary } from './layouts/sidebar-error-boundary';
+export { MobileTabBar } from './layouts/mobile-tab-bar';

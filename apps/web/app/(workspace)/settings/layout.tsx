@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: 'Settings',
 };
 
-const settingsNav = [
+const settingsTabs = [
   { href: '/settings/profile', label: 'Profile' },
   { href: '/settings/team', label: 'Team' },
   { href: '/settings/devices', label: 'Devices' },
@@ -17,19 +17,22 @@ export default function SettingsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex gap-8 p-6">
-      <nav className="w-48 shrink-0 space-y-1">
-        {settingsNav.map((item) => (
+    <div className="p-6">
+      <nav
+        aria-label="Settings navigation"
+        className="mb-6 flex gap-1 border-b border-[var(--flow-color-border-default)]"
+      >
+        {settingsTabs.map((item) => (
           <a
             key={item.href}
             href={item.href}
-            className="block rounded-[var(--flow-radius-sm)] px-3 py-2 text-sm text-[var(--flow-color-text-secondary)] hover:bg-[var(--flow-state-overlay-hover)] hover:text-[var(--flow-color-text-primary)]"
+            className="border-b-2 border-transparent px-3 py-2 text-sm text-[var(--flow-color-text-secondary)] transition-colors hover:border-[var(--flow-color-border-default)] hover:text-[var(--flow-color-text-primary)]"
           >
             {item.label}
           </a>
         ))}
       </nav>
-      <main className="flex-1 min-w-0">{children}</main>
+      <div>{children}</div>
     </div>
   );
 }
