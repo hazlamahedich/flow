@@ -1,5 +1,5 @@
 # generated: 2026-04-20
-# last_updated: 2026-04-22
+# last_updated: 2026-04-22 (story 1-9 done, code review complete)
 # project: flow
 # project_key: NOKEY
 # tracking_system: file-system
@@ -57,7 +57,7 @@ development_status:
   1-6-persistent-layout-shell-navigation: done
   1-7-home-dashboard: done
   1-8-command-palette-keyboard-shortcuts: done
-  1-9-undo-conflict-resolution: backlog
+  1-9-undo-conflict-resolution: done
   1-10-day-1-micro-wizard-aha-glimpse: backlog
   epic-1-retrospective: optional
 

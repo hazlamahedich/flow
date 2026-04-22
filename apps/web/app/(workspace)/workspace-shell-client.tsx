@@ -3,8 +3,9 @@
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { WorkspaceShellProps } from '@flow/ui';
-import { WorkspaceShell } from '@flow/ui';
+import { WorkspaceShell, UndoWorkspaceProvider, UndoProvider, UndoFab } from '@flow/ui';
 import { searchEntitiesAction } from './actions/search-entities';
+import { undoAction } from '../lib/actions/undo';
 
 export function WorkspaceShellClient({
   agentCount,
@@ -31,16 +32,36 @@ export function WorkspaceShellClient({
     router.push(href);
   }, [router]);
 
+  if (!activeWorkspaceId) {
+    return (
+      <WorkspaceShell
+        agentCount={agentCount}
+        workspaces={workspaces}
+        activeWorkspaceId={activeWorkspaceId}
+        onSwitchWorkspace={onSwitchWorkspace}
+        searchAction={searchAction}
+        onNavigate={handleNavigate}
+      >
+        {children}
+      </WorkspaceShell>
+    );
+  }
+
   return (
-    <WorkspaceShell
-      agentCount={agentCount}
-      workspaces={workspaces}
-      activeWorkspaceId={activeWorkspaceId}
-      onSwitchWorkspace={onSwitchWorkspace}
-      searchAction={searchAction}
-      onNavigate={handleNavigate}
-    >
-      {children}
-    </WorkspaceShell>
+    <UndoWorkspaceProvider workspaceId={activeWorkspaceId}>
+      <UndoProvider undoAction={undoAction}>
+        <WorkspaceShell
+          agentCount={agentCount}
+          workspaces={workspaces}
+          activeWorkspaceId={activeWorkspaceId}
+          onSwitchWorkspace={onSwitchWorkspace}
+          searchAction={searchAction}
+          onNavigate={handleNavigate}
+        >
+          {children}
+        </WorkspaceShell>
+        <UndoFab />
+      </UndoProvider>
+    </UndoWorkspaceProvider>
   );
 }

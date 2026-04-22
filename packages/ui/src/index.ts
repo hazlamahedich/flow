@@ -45,6 +45,17 @@ export { useDebouncedCallback } from './hooks/use-debounced-callback';
 export { useReducedMotion } from './hooks/use-reduced-motion';
 export { useShortcut } from './hooks/use-shortcut';
 
+export { UndoWorkspaceContext, useUndoWorkspaceId } from './components/undo/undo-workspace-context';
+export { UndoWorkspaceProvider } from './components/undo/undo-workspace-provider';
+export { StickyUndoToast } from './components/undo/undo-toast';
+export { UndoProvider } from './components/undo/undo-provider';
+export type { UndoActionFn } from './components/undo/undo-provider';
+export { UndoFab } from './components/undo/undo-fab';
+export { useUndoMutation } from './components/undo/use-undo-mutation';
+
+export { ConflictDialog } from './components/conflict-resolution/conflict-dialog';
+export { FieldDiff } from './components/conflict-resolution/field-diff';
+
 export {
   Command,
   CommandInput,

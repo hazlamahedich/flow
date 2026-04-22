@@ -1,4 +1,6 @@
 import type { ShortcutDefinition } from './types';
+import { isInputFocused } from './input-guard';
+import { isBlockNoteFocused } from './blocknote-guard';
 
 export function isMac(): boolean {
   if (typeof navigator === 'undefined') return false;
@@ -15,6 +17,7 @@ export function getDefaultShortcuts(handlers: {
   toggleShortcutOverlay: () => void;
   expandSidebar: () => void;
   collapseSidebar: () => void;
+  undo?: () => void;
 }): ShortcutDefinition[] {
   const shortcuts: ShortcutDefinition[] = [
     {
@@ -70,6 +73,21 @@ export function getDefaultShortcuts(handlers: {
         return !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey;
       },
       platform: ['mac', 'linux'],
+    });
+  }
+
+  if (handlers.undo) {
+    shortcuts.push({
+      key: 'z',
+      context: 'global',
+      action: handlers.undo,
+      description: 'Undo last action',
+      remappable: false,
+      guard: (e) => {
+        if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return false;
+        if (isInputFocused(e.target) || isBlockNoteFocused(e.target)) return false;
+        return true;
+      },
     });
   }
 

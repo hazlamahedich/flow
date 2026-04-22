@@ -58,3 +58,11 @@
 - Focus ring styling (AC-5) — pre-existing design system concern. focus-visible styles already in codebase via --flow-focus-ring-* variables.
 - navigator.platform deprecated — pre-existing, works on all current browsers [`defaults.ts:4`]
 - forwardRef unnecessary in React 19 — pre-existing pattern from shadcn generation [`command.tsx`]
+
+## Deferred from: code review of 1-9-undo-conflict-resolution (2026-04-22)
+
+- UndoFab uses `md:hidden` instead of `pointer:coarse` media query — spec says "touch devices" but viewport-width pattern is used throughout codebase [`undo-fab.tsx:28`]
+- `entityType: string` is too permissive — no compile-time safety. Will tighten to union type when client/invoice entities are defined in Epic 3/7 [`types.ts:15`]
+- `undoStacksAtom` initialized with module-level `new Map()` — SSR cross-request leak risk. Mitigated: all consumers are `'use client'` [`undo-stack.ts:20`]
+- Toast timer doesn't reset when new entry pushed while toast already visible — minor UX issue, new entry inherits remaining time from previous toast [`undo-toast.tsx:57-75`]
+- `isBlockNoteFocused` doesn't pierce Shadow DOM — `element.closest()` doesn't cross shadow boundaries. BlockNote doesn't currently use Shadow DOM [`blocknote-guard.ts:4`]

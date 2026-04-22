@@ -11,6 +11,10 @@
     "./client": {
       "types": "./src/client.ts",
       "default": "./dist/client.js"
+    },
+    "./queries/undo/undo-helpers": {
+      "types": "./src/queries/undo/undo-helpers.ts",
+      "default": "./dist/queries/undo/undo-helpers.js"
     }
   },
   "scripts": {
