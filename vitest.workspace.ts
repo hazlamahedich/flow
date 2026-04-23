@@ -15,6 +15,7 @@ export default defineConfig({
       '@flow/auth': path.resolve(__dirname, 'packages/auth/src/index.ts'),
       '@flow/auth/device-trust': path.resolve(__dirname, 'packages/auth/src/device-trust.ts'),
       '@flow/auth/device-types': path.resolve(__dirname, 'packages/auth/src/device-types.ts'),
+      '@flow/agents': path.resolve(__dirname, 'packages/agents/index.ts'),
     },
   },
 });

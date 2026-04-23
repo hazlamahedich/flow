@@ -29,3 +29,12 @@ export { listUserWorkspaces } from './queries/workspaces';
 export type { UserWorkspace } from './queries/workspaces';
 export { searchEntities } from './queries/search/search-entities';
 export type { SearchEntitiesOptions } from './queries/search/search-entities';
+export {
+  insertSignal,
+  getSignalsByCorrelationId,
+  getSignalsByWorkspace,
+  insertRun,
+  updateRunStatus,
+  getRunsByWorkspace,
+  getRunByJobId,
+} from './queries/agents';

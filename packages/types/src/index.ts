@@ -1,5 +1,25 @@
-export type { FlowError, FlowErrorCategory, FlowErrorCode } from './errors';
+export type { FlowError, FlowErrorBase, FlowErrorCategory, FlowErrorCode, AgentErrorCode, AgentId } from './errors';
 export type { ActionResult } from './action-result';
+export {
+  agentIdSchema,
+  agentRunStatusSchema,
+  agentRunSchema,
+  agentSignalSchema,
+  agentProposalSchema,
+  VALID_RUN_TRANSITIONS,
+  signalTypePattern,
+} from './agents';
+export type {
+  AgentRunStatus,
+  AgentRun,
+  AgentSignal,
+  AgentProposal,
+  AgentRunRequest,
+  AgentRunHandle,
+  AgentRunResult,
+  RunListFilter,
+  AgentRunSummary,
+} from './agents';
 export {
   RoleEnum,
   MemberStatusEnum,

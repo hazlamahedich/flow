@@ -1,3 +1,7 @@
+import type { AgentId } from './agents';
+
+export type { AgentId };
+
 export type FlowErrorCode =
   | 'AUTH_REQUIRED'
   | 'AUTH_EXPIRED'
@@ -15,9 +19,6 @@ export type FlowErrorCode =
   | 'VALIDATION_SCHEMA_MISMATCH'
   | 'AGENT_NOT_FOUND'
   | 'AGENT_DISABLED'
-  | 'AGENT_TIMEOUT'
-  | 'AGENT_PRECHECK_FAILED'
-  | 'AGENT_OUTPUT_REJECTED'
   | 'FINANCIAL_AMOUNT_MISMATCH'
   | 'FINANCIAL_INVALID_STATE'
   | 'FINANCIAL_CURRENCY_MISMATCH'
@@ -41,9 +42,15 @@ export type FlowErrorCode =
   | 'EMAIL_CHANGE_RATE_LIMITED'
   | 'EMAIL_CHANGE_ALREADY_APPLIED';
 
+export type AgentErrorCode =
+  | 'AGENT_ERROR'
+  | 'AGENT_TIMEOUT'
+  | 'AGENT_PRECHECK_FAILED'
+  | 'AGENT_OUTPUT_REJECTED';
+
 export type FlowErrorCategory = 'auth' | 'validation' | 'agent' | 'financial' | 'system';
 
-interface FlowErrorBase {
+export interface FlowErrorBase {
   status: number;
   code: FlowErrorCode;
   message: string;
@@ -51,4 +58,9 @@ interface FlowErrorBase {
   details?: Record<string, unknown>;
 }
 
-export type FlowError = FlowErrorBase;
+export type FlowError =
+  | FlowErrorBase
+  | { status: number; code: 'AGENT_ERROR'; message: string; category: 'agent'; agentType: AgentId; retryable: boolean; details?: Record<string, unknown> }
+  | { status: number; code: 'AGENT_TIMEOUT'; message: string; category: 'agent'; agentType: AgentId; details?: Record<string, unknown> }
+  | { status: number; code: 'AGENT_PRECHECK_FAILED'; message: string; category: 'agent'; agentType: AgentId; details?: Record<string, unknown> }
+  | { status: number; code: 'AGENT_OUTPUT_REJECTED'; message: string; category: 'agent'; agentType: AgentId; details?: Record<string, unknown> };

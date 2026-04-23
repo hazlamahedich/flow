@@ -74,4 +74,17 @@
 - ON DELETE CASCADE on time_entries.client_id — deleting a client destroys all time entries silently. Acceptable for MVP, consider SET NULL before Epic 5. [migration:7]
 - No server action or layout redirect tests — server action testing requires infra setup. 70 client-side tests provide coverage. [actions + layout]
 - No unique constraint on (workspace_id, name) for clients — acceptable for MVP wizard with single client creation. [migration]
-- Unsafe type cast `as ClientRecord` in server actions — common Supabase pattern, input validated by Zod. [create-client.ts:81, log-time-entry.ts:89]
+ - Unsafe type cast `as ClientRecord` in server actions — common Supabase pattern, input validated by Zod. [create-client.ts:81, log-time-entry.ts:89]
+
+## Deferred from: code review of 2-1a-agent-orchestrator-interface-schema-foundation (2026-04-23)
+
+- Shared stubs silently succeed with hardcoded values — intentional per AC#9. Will throw or log when implemented in 2.1b+. [`packages/agents/shared/`]
+- `CircuitBreaker` has no half-open state and accumulates stale failure counts — deferred to 2.1b when real failure semantics land. [`packages/agents/shared/circuit-breaker.ts:34-37`]
+- RLS pgTAP tests don't `SET ROLE` — may not actually test from workspace-member/anonymous perspective. Full RLS test matrix deferred to 2.1b. [`supabase/tests/rls_agent_runs_critical.sql:56-70`]
+- Agent Input interfaces and Zod schemas defined independently — can drift silently. Acceptable for stub phase. [`packages/agents/*/schemas.ts`]
+- Test vitest.config.ts deep-path aliases bypass barrel — tests use relative imports per ESLint. Test-only convenience. [`packages/agents/vitest.config.ts:14-15`]
+- `propose()` atomicity is interface-only promise — runtime enforcement deferred to 2.1b implementation. [`packages/agents/orchestrator/types.ts`]
+- TOCTOU race in `updateRunStatus` — SELECT then UPDATE not atomic. pg-boss in 2.1b will handle claim with optimistic locking. [`packages/db/src/queries/agents/runs.ts:27-51`]
+- `getRunsByWorkspace` filters use `string` instead of `AgentId`/`AgentRunStatus` — deferred to 2.1b query layer refactor. [`packages/db/src/queries/agents/runs.ts:53-56`]
+- Per-call `createServiceClient()` in query functions — connection overhead under load, acceptable for stub phase. [`packages/db/src/queries/agents/`]
+- Partial unique index on `idempotency_key` in migration not replicated in Drizzle schema — Drizzle limitation, deferred to 2.1b. [`supabase/migrations/20260426090003_agent_runs.sql:31`]

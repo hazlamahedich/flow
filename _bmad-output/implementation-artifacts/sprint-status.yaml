@@ -1,5 +1,7 @@
 # generated: 2026-04-20
 # last_updated: 2026-04-23 (epic 1 complete, all stories done)
+# last_updated: 2026-04-23 (story 2-1 created, epic 2 started)
+# last_updated: 2026-04-23 (story 2-1a complete, moved to review)
 # project: flow
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,9 +37,8 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-20
-last_updated: 2026-04-23
+last_updated: 2026-04-23T12:00:00Z
 project: flow
-project_key: NOKEY
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
 
@@ -61,8 +62,10 @@ development_status:
   1-10-day-1-micro-wizard-aha-glimpse: done
   epic-1-retrospective: done
 
-  epic-2: backlog
+  epic-2: in-progress
   2-1-agent-orchestrator-core-signal-schema: backlog
+  2-1a-agent-orchestrator-interface-schema-foundation: done
+  2-1b-pg-boss-implementation-recovery-idempotency: backlog
   2-2-agent-activation-configuration-scheduling: backlog
   2-3-trust-matrix-graduation-system: backlog
   2-4-pre-check-post-check-gates: backlog

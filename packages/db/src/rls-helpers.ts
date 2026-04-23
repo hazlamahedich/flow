@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { FlowError } from '@flow/types';
+import type { FlowErrorBase } from '@flow/types';
 
 export interface TenantContext {
   workspaceId: string;
@@ -9,12 +9,12 @@ export interface TenantContext {
 
 export function createFlowError(
   status: number,
-  code: FlowError['code'],
+  code: FlowErrorBase['code'],
   message: string,
-  category: FlowError['category'],
+  category: FlowErrorBase['category'],
   details?: Record<string, unknown>,
-): FlowError {
-  const result: FlowError = { status, code, message, category };
+): FlowErrorBase {
+  const result: FlowErrorBase = { status, code, message, category };
   if (details !== undefined) {
     result.details = details;
   }

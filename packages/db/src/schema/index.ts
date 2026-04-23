@@ -7,3 +7,5 @@ export { transferRequests } from './transfer-requests';
 export { appConfig } from './app-config';
 export { auditLog } from './audit-log';
 export { userDevices } from './user-devices';
+export { agentIdTypeEnum, agentSignals } from './agent-signals';
+export { agentRunStatusEnum, agentRuns } from './agent-runs';
