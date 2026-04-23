@@ -9,10 +9,16 @@
     "typecheck": "turbo typecheck",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:rls": "supabase test db"
+    "test:rls": "supabase test db",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
+    "@faker-js/faker": "^10.4.0",
+    "@playwright/test": "^1.59.1",
+    "@seontechnologies/playwright-utils": "^4.3.0",
     "eslint": "^9.28.0",
     "eslint-plugin-import": "^2.31.0",
     "prettier": "^3.5.3",

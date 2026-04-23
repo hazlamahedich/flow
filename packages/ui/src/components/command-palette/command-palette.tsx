@@ -56,7 +56,7 @@ export function CommandPalette({ searchAction, onNavigate }: CommandPaletteProps
   const { ref: trapRef } = useFocusTrap<HTMLDivElement>({ enabled: open });
 
   const debouncedSearch = useDebouncedCallback(
-    async (args: unknown[]) => {
+    async (...args: unknown[]) => {
       const q = args[0] as string;
       if (!q.trim()) {
         setResults([]);

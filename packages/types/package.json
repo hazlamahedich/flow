@@ -18,7 +18,8 @@
     "@flow/config": "workspace:*",
     "@flow/eslint-config": "workspace:*",
     "tsup": "^8.4.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "zod": "^3.25.76"

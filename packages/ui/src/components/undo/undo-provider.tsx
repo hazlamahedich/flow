@@ -34,8 +34,9 @@ export function UndoProvider({ children, undoAction }: UndoProviderProps) {
   const [latestEntry, setLatestEntry] = useState<UndoEntry | null>(null);
 
   useEffect(() => {
-    if (stack.entries.length > 0) {
-      setLatestEntry(stack.entries[0]);
+    const first = stack.entries[0];
+    if (first) {
+      setLatestEntry(first);
     } else {
       setLatestEntry(null);
     }
@@ -106,7 +107,7 @@ export function UndoProvider({ children, undoAction }: UndoProviderProps) {
           onDismiss={handleDismiss}
           severity={latestEntry.severity}
           irreversible={latestEntry.irreversible}
-          stackedCount={stack.entries.length > 1 ? stack.entries.length : undefined}
+          {...(stack.entries.length > 1 ? { stackedCount: stack.entries.length } : {})}
         />
       )}
     </>

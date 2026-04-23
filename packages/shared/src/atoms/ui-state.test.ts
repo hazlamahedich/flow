@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createStore } from 'jotai/vanilla';
 import { sidebarCollapsedAtom, sidebarHoverExpandedAtom } from './ui-state';
 
@@ -24,9 +24,18 @@ function createLocalStorage() {
 
 describe('sidebarCollapsedAtom', () => {
   let store: ReturnType<typeof createStore>;
+  let ls: ReturnType<typeof createLocalStorage>;
 
   beforeEach(() => {
     store = createStore();
+    ls = createLocalStorage();
+    (globalThis as Record<string, unknown>).window = { localStorage: ls };
+    (globalThis as Record<string, unknown>).localStorage = ls;
+  });
+
+  afterEach(() => {
+    (globalThis as Record<string, unknown>).window = undefined;
+    (globalThis as Record<string, unknown>).localStorage = undefined;
   });
 
   it('defaults to false', () => {

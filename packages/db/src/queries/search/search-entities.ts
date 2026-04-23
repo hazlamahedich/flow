@@ -40,11 +40,14 @@ async function searchTable(
 
   if (!data) return [];
 
-  return data.map((row: Record<string, unknown>) => ({
-    id: row.id as string,
+  type SearchRow = { id: string; [key: string]: unknown };
+  const rows = data as unknown as SearchRow[];
+
+  return rows.map((row) => ({
+    id: row.id,
     type,
-    label: row[labelColumn] as string,
-    description: descriptionColumn ? (row[descriptionColumn] as string | undefined) : undefined,
+    label: String(row[labelColumn]),
+    description: descriptionColumn ? (row[descriptionColumn] != null ? String(row[descriptionColumn]) : undefined) : undefined,
     href: `${hrefPrefix}/${row.id}`,
   }));
 }

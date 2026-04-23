@@ -15,6 +15,14 @@
     "./queries/undo/undo-helpers": {
       "types": "./src/queries/undo/undo-helpers.ts",
       "default": "./dist/queries/undo/undo-helpers.js"
+    },
+    "./queries/undo/conflict-detection": {
+      "types": "./src/queries/undo/conflict-detection.ts",
+      "default": "./dist/queries/undo/conflict-detection.js"
+    },
+    "./queries/undo/conflict-types": {
+      "types": "./src/queries/undo/conflict-types.ts",
+      "default": "./dist/queries/undo/conflict-types.js"
     }
   },
   "scripts": {

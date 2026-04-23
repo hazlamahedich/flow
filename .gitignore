@@ -10,3 +10,6 @@ coverage/
 .vercel/
 ._*
 ~$*
+test-results/
+playwright-report/
+playwright/.auth/

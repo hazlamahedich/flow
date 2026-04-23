@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useAtom, useSetAtom } from 'jotai';
 import { sidebarCollapsedAtom, sidebarHoverExpandedAtom, commandPaletteOpenAtom } from '@flow/shared';
 import { cn } from '../lib/utils';
+import type { SearchResult } from '@flow/types';
 import { SidebarErrorBoundary } from './sidebar-error-boundary';
 import { SidebarProvider } from './sidebar-provider';
 import { MobileTabBar } from './mobile-tab-bar';
@@ -18,7 +19,7 @@ export interface WorkspaceShellProps {
   workspaces?: Array<{ id: string; name: string; role: string }> | undefined;
   activeWorkspaceId?: string | undefined;
   onSwitchWorkspace?: ((workspaceId: string) => Promise<void>) | undefined;
-  searchAction?: (query: string) => Promise<{ success: boolean; data?: Array<{ id: string; type: string; label: string; description?: string; href: string }>; error?: { message: string } }>;
+  searchAction?: (query: string) => Promise<{ success: boolean; data?: SearchResult[]; error?: { message: string } }>;
   onNavigate?: (href: string) => void;
 }
 
