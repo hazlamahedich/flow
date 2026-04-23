@@ -63,7 +63,7 @@ describe('getUserProfile', () => {
 
   it('[P1] generates signed URL for storage-path avatar', async () => {
     const client = mockClient();
-    const single = client.from('users').select().eq().single;
+    const single = client.from('users').select('id, name, email, timezone, avatar_url, updated_at').eq('id', 'user-1').single;
     vi.mocked(single).mockResolvedValue({
       data: {
         id: 'user-1',
@@ -74,7 +74,7 @@ describe('getUserProfile', () => {
         updated_at: '2024-01-01T00:00:00Z',
       },
       error: null,
-    });
+    } as Awaited<ReturnType<typeof single>>);
 
     const result = await getUserProfile(client, 'user-1');
     expect(result?.avatarUrl).toBe('https://storage.example.com/signed-avatar.jpg');
@@ -83,7 +83,7 @@ describe('getUserProfile', () => {
 
   it('[P1] keeps HTTP avatar URL as-is', async () => {
     const client = mockClient();
-    const single = client.from('users').select().eq().single;
+    const single = client.from('users').select('id, name, email, timezone, avatar_url, updated_at').eq('id', 'user-1').single;
     vi.mocked(single).mockResolvedValue({
       data: {
         id: 'user-1',
@@ -94,7 +94,7 @@ describe('getUserProfile', () => {
         updated_at: '2024-01-01T00:00:00Z',
       },
       error: null,
-    });
+    } as Awaited<ReturnType<typeof single>>);
 
     const result = await getUserProfile(client, 'user-1');
     expect(result?.avatarUrl).toBe('https://gravatar.com/avatar/abc');

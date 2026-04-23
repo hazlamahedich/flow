@@ -18,7 +18,7 @@ export function PendingInvitationsList({ invitations }: PendingInvitationsListPr
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleResend(invitationId: string, email: string, role: string) {
+  async function handleResend(invitationId: string) {
     setLoading(invitationId);
     setError(null);
     try {
@@ -80,7 +80,7 @@ export function PendingInvitationsList({ invitations }: PendingInvitationsListPr
                 <td className="py-3 text-right space-x-2">
                   <button
                     type="button"
-                    onClick={() => handleResend(inv.id, inv.email, inv.role)}
+                    onClick={() => handleResend(inv.id)}
                     disabled={loading === inv.id}
                     className="rounded-md border border-[var(--flow-color-border-default)] px-3 py-1 text-xs font-medium text-[var(--flow-color-text-primary)] hover:bg-[var(--flow-color-bg-secondary)] disabled:opacity-50"
                   >
@@ -101,7 +101,6 @@ export function PendingInvitationsList({ invitations }: PendingInvitationsListPr
         </table>
       </div>
 
-      {/* Mobile cards */}
       <div className="space-y-3 md:hidden">
         {invitations.map((inv) => (
           <div
@@ -118,7 +117,7 @@ export function PendingInvitationsList({ invitations }: PendingInvitationsListPr
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => handleResend(inv.id, inv.email, inv.role)}
+                onClick={() => handleResend(inv.id)}
                 disabled={loading === inv.id}
                 className="rounded-md border border-[var(--flow-color-border-default)] px-3 py-1 text-xs font-medium text-[var(--flow-color-text-primary)] hover:bg-[var(--flow-color-bg-secondary)] disabled:opacity-50"
               >

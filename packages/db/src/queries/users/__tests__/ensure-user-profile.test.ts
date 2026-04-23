@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { ensureUserProfile } from '../ensure-user-profile';
 
 function createMockClient(upsertResult: Promise<{ error: unknown }>) {
@@ -6,7 +6,7 @@ function createMockClient(upsertResult: Promise<{ error: unknown }>) {
     from: vi.fn().mockReturnValue({
       upsert: vi.fn().mockReturnValue(upsertResult),
     }),
-  } as never;
+  } as unknown as import('@supabase/supabase-js').SupabaseClient;
 }
 
 describe('ensureUserProfile', () => {
@@ -14,7 +14,7 @@ describe('ensureUserProfile', () => {
     const mockUpsert = vi.fn().mockResolvedValue({ error: null });
     const client = {
       from: vi.fn().mockReturnValue({ upsert: mockUpsert }),
-    } as never;
+    } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
     await ensureUserProfile(client, 'user-1', 'test@example.com');
 

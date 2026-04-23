@@ -27,18 +27,6 @@ export function UndoToast({
   const undoButtonRef = useRef<HTMLButtonElement>(null);
   const reducedMotion = useReducedMotion();
 
-  const confirm = useCallback(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    setVisible(false);
-    onConfirm();
-    if (previousFocusRef.current?.isConnected) {
-      previousFocusRef.current.focus();
-    }
-  }, [onConfirm]);
-
   const undo = useCallback(() => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);

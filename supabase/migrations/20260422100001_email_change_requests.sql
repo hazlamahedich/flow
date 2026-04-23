@@ -11,7 +11,7 @@ CREATE TABLE email_change_requests (
   status text NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'verified', 'cancelled', 'expired')),
   created_at timestamptz NOT NULL DEFAULT now(),
-  expires_at timestamptz GENERATED ALWAYS AS (created_at + interval '1 hour') STORED
+  expires_at timestamptz NOT NULL DEFAULT (now() + interval '1 hour')
 );
 
 CREATE INDEX idx_email_change_requests_user_created
@@ -50,33 +50,38 @@ CREATE OR REPLACE FUNCTION request_email_change_atomic(
   p_token text
 )
 RETURNS jsonb
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
-SELECT CASE WHEN p_user_id != auth.uid() THEN
-  jsonb_build_object('error', 'unauthorized')
-ELSE
-  (WITH current_count AS (
-    SELECT COUNT(*) AS cnt FROM email_change_requests
-    WHERE user_id = p_user_id AND created_at > now() - interval '1 hour'
-  ),
-  existing_pending AS (
-    SELECT new_email FROM email_change_requests
+DECLARE
+  v_count int;
+  v_pending text;
+  v_inserted int := 0;
+BEGIN
+  IF p_user_id != auth.uid() THEN
+    RETURN jsonb_build_object('error', 'unauthorized');
+  END IF;
+
+  SELECT COUNT(*)::int INTO v_count
+    FROM email_change_requests
+    WHERE user_id = p_user_id AND created_at > now() - interval '1 hour';
+
+  SELECT new_email INTO v_pending
+    FROM email_change_requests
     WHERE user_id = p_user_id AND status = 'pending' AND expires_at > now()
-    LIMIT 1
-  ),
-  inserted AS (
+    LIMIT 1;
+
+  IF v_count < 5 AND v_pending IS NULL THEN
     INSERT INTO email_change_requests (user_id, new_email, token)
-    SELECT p_user_id, p_new_email, p_token
-    WHERE (SELECT cnt FROM current_count) < 5
-      AND NOT EXISTS (SELECT 1 FROM existing_pending)
-    RETURNING id
-  )
-  SELECT jsonb_build_object(
-    'request_count', (SELECT cnt::int FROM current_count),
-    'was_inserted', (SELECT COUNT(*)::int FROM inserted),
-    'pending_new_email', (SELECT new_email FROM existing_pending)
-  ))
+    VALUES (p_user_id, p_new_email, p_token);
+    v_inserted := 1;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'request_count', v_count,
+    'was_inserted', v_inserted,
+    'pending_new_email', v_pending
+  );
 END;
 $$;
 

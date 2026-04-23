@@ -23,7 +23,7 @@ export {
   requestEmailChangeAtomic,
   syncUserEmail,
 } from './queries/users';
-export { getDashboardSummary } from './queries/dashboard';
+export { getDashboardSummary, getDashboardCacheTag } from './queries/dashboard';
 export type { DashboardSummary } from './queries/dashboard';
 export { listUserWorkspaces } from './queries/workspaces';
 export type { UserWorkspace } from './queries/workspaces';

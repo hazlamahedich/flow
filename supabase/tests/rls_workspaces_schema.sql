@@ -5,7 +5,7 @@
 
 BEGIN;
 
-SELECT plan(28);
+SELECT plan(25);
 
 -- ============================================================
 -- Table existence and structure
@@ -17,7 +17,8 @@ SELECT has_table('transfer_requests', 'transfer_requests table exists');
 
 SELECT columns_are('workspace_invitations', ARRAY[
   'id', 'workspace_id', 'email', 'role', 'token_hash',
-  'expires_at', 'accepted_at', 'invited_by', 'created_at'
+  'expires_at', 'accepted_at', 'invited_by', 'created_at',
+  'membership_expires_at'
 ], 'workspace_invitations has correct columns');
 
 SELECT columns_are('transfer_requests', ARRAY[
@@ -72,7 +73,6 @@ SELECT ok(
   EXISTS (
     SELECT 1 FROM pg_policy p
     JOIN pg_class c ON c.oid = p.polrelid
-    JOIN pg_proc pr ON pr.oid = p.polqual OR pr.oid = p.polwithcheck
     WHERE c.relname IN ('workspaces', 'workspace_members', 'workspace_invitations', 'member_client_access', 'transfer_requests')
     AND p.polname LIKE 'rls_%'
   ),

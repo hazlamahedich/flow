@@ -1,20 +1,10 @@
-import { Suspense } from 'react';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, getUserProfile, getDashboardSummary } from '@flow/db';
 import { DashboardContent } from '@flow/ui';
-import { DashboardSkeleton } from './dashboard-skeleton';
 import { WelcomeCard } from './_components/welcome-card';
 import { DayTwoInput } from './_components/day-two-input';
 
 export default async function WorkspacePage() {
-  return (
-    <Suspense fallback={<DashboardSkeleton />}>
-      <DashboardPageContent />
-    </Suspense>
-  );
-}
-
-async function DashboardPageContent() {
   const supabase = await getServerSupabase();
   const { workspaceId, userId } = await requireTenantContext(supabase);
 

@@ -84,7 +84,7 @@ export const test = base.extend({
   },
 
   authenticatedPage: async ({ browser, authenticatedUser }, use) => {
-    const storageState = await getStorageStateForUser(authenticatedUser.accessToken);
+    const storageState = await getStorageStateForUser(authenticatedUser);
     const context = await browser.newContext({ storageState });
     const page = await context.newPage();
 
@@ -110,7 +110,7 @@ export const test = base.extend({
     const email = process.env.E2E_ADMIN_EMAIL ?? 'admin@test.com';
     const password = process.env.E2E_ADMIN_PASSWORD ?? 'password123';
     const user = await signInAs(email, password);
-    const storageState = await getStorageStateForUser(user.accessToken);
+    const storageState = await getStorageStateForUser(user);
     const context = await browser.newContext({ storageState });
     const page = await context.newPage();
 
@@ -123,7 +123,7 @@ export const test = base.extend({
     const email = process.env.E2E_MEMBER_EMAIL ?? 'member@test.com';
     const password = process.env.E2E_MEMBER_PASSWORD ?? 'password123';
     const user = await signInAs(email, password);
-    const storageState = await getStorageStateForUser(user.accessToken);
+    const storageState = await getStorageStateForUser(user);
     const context = await browser.newContext({ storageState });
     const page = await context.newPage();
 

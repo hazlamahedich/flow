@@ -50,12 +50,38 @@ INSERT INTO users (id, email, name, timezone) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
+-- E2E Test Users (owner/admin/member@test.com)
+-- ============================================================
+
+INSERT INTO auth.users (id, email, raw_app_meta_data, raw_user_meta_data, encrypted_password, email_confirmed_at)
+VALUES
+  ('c0000000-0000-0000-0000-000000000001', 'owner@test.com', '{"workspace_id": "c0000000-0000-0000-0000-000000000001", "role": "owner"}', '{"full_name": "E2E Owner"}', crypt('password123', gen_salt('bf')), now())
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO auth.users (id, email, raw_app_meta_data, raw_user_meta_data, encrypted_password, email_confirmed_at)
+VALUES
+  ('c0000000-0000-0000-0000-000000000002', 'admin@test.com', '{"workspace_id": "c0000000-0000-0000-0000-000000000001", "role": "admin"}', '{"full_name": "E2E Admin"}', crypt('password123', gen_salt('bf')), now())
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO auth.users (id, email, raw_app_meta_data, raw_user_meta_data, encrypted_password, email_confirmed_at)
+VALUES
+  ('c0000000-0000-0000-0000-000000000003', 'member@test.com', '{"workspace_id": "c0000000-0000-0000-0000-000000000001", "role": "member"}', '{"full_name": "E2E Member"}', crypt('password123', gen_salt('bf')), now())
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO users (id, email, name, timezone) VALUES
+  ('c0000000-0000-0000-0000-000000000001', 'owner@test.com', 'E2E Owner', 'UTC'),
+  ('c0000000-0000-0000-0000-000000000002', 'admin@test.com', 'E2E Admin', 'UTC'),
+  ('c0000000-0000-0000-0000-000000000003', 'member@test.com', 'E2E Member', 'UTC')
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================
 -- Workspaces
 -- ============================================================
 
-INSERT INTO workspaces (id, name, settings) VALUES
-  ('a0000000-0000-0000-0000-000000000001', 'Flow Agency A', '{"plan": "agency"}'),
-  ('b0000000-0000-0000-0000-000000000001', 'Flow Agency B', '{"plan": "professional"}')
+INSERT INTO workspaces (id, name, slug, settings) VALUES
+  ('a0000000-0000-0000-0000-000000000001', 'Flow Agency A', 'flow-agency-a', '{"plan": "agency"}'),
+  ('b0000000-0000-0000-0000-000000000001', 'Flow Agency B', 'flow-agency-b', '{"plan": "professional"}'),
+  ('c0000000-0000-0000-0000-000000000001', 'E2E Test Workspace', 'e2e-test-workspace', '{"plan": "agency"}')
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
@@ -68,5 +94,8 @@ INSERT INTO workspace_members (workspace_id, user_id, role) VALUES
   ('a0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000003', 'member'),
   ('a0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000004', 'client_user'),
   ('b0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'owner'),
-  ('b0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000002', 'member')
+  ('b0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000002', 'member'),
+  ('c0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'owner'),
+  ('c0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000002', 'admin'),
+  ('c0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000003', 'member')
 ON CONFLICT DO NOTHING;

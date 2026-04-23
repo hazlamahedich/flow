@@ -119,22 +119,20 @@ export async function revokeSession(
 
   revalidateTag(cacheTag('workspace_session', ctx.workspaceId));
 
-  try {
-    await logWorkspaceEvent({
-      type: 'session_revoked_by_owner',
-      workspaceId: ctx.workspaceId,
-      userId: device.user_id,
-      deviceId,
-      invalidated: invalidationSucceeded,
-      revokedBy: ctx.userId,
-      timestamp: new Date().toISOString(),
-    });
-  } catch {
-    // Audit logging best-effort — do not fail the action
-  }
-
-  if (!invalidationSucceeded) {
-    return { success: true, data: undefined };
+  if (invalidationSucceeded) {
+    try {
+      await logWorkspaceEvent({
+        type: 'session_revoked_by_owner',
+        workspaceId: ctx.workspaceId,
+        userId: device.user_id,
+        deviceId,
+        invalidated: true,
+        revokedBy: ctx.userId,
+        timestamp: new Date().toISOString(),
+      });
+    } catch {
+      // Audit logging best-effort — do not fail the action
+    }
   }
 
   return { success: true, data: undefined };

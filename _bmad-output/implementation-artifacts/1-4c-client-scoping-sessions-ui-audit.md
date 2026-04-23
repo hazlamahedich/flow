@@ -184,36 +184,36 @@ glm-5.1 (zai-coding-plan/glm-5.1)
 
 ### Patch
 
-- [ ] [Review][Patch] ClientScopingDialog dead code + "Client scoping" static text [`team/page.tsx:128`, `team-member-list.tsx`] — `<ClientScopingDialog />` rendered with no props, returns null. "Client scoping" text is non-interactive `<span>`. Move dialog into per-member rendering, wire with userId/userName/clients props. Replace `<span>` with `<button>` trigger.
-- [ ] [Review][Patch] update-role self-role-change compares wrong IDs — owner can demote themselves [`update-role.ts:43`] — Compares `workspace_members.id` (membership PK) with `auth.users.id`. Guard never triggers. Fix: compare `targetMember.user_id === ctx.userId` after member fetch.
-- [ ] [Review][Patch] RLS test plan(120) but ~60 actual assertions [`rls_workspaces_full.sql:9`] — pgTAP will fail at `finish()` because run count ≠ plan count. Fix: either reduce plan() to match actual count or add missing 60+ tests.
-- [ ] [Review][Patch] Pending invitations missing Revoke button [`pending-invitations-list.tsx`] — AC#5 requires "resend/revoke". Only Resend exists. Add Revoke button calling a cancel/revoke invitation action.
-- [ ] [Review][Patch] Resend creates duplicate invitations [`pending-invitations-list.tsx:22-29`] — `handleResend` calls `inviteMember` which creates a new invitation. Fix: create dedicated `resendInvitation` action that updates existing record.
-- [ ] [Review][Patch] Re-grant after revocation fails (unique constraint) [`scope-client-access.ts:74-81`] — Soft-deleted row with `revoked_at` set still occupies unique slot. INSERT hits 23505. Fix: check for existing revoked row and UPDATE `revoked_at = null` instead of INSERT.
-- [ ] [Review][Patch] workspaceName UUID passed to ConfirmTransferDialog [`team-member-list.tsx`] — `workspaceName={workspaceId}` passes raw UUID. User asked to type UUID to confirm. Fix: pass actual workspace name from page data.
-- [ ] [Review][Patch] Owner can revoke own sessions (lockout) [`revoke-session.ts`] — No self-check. Owner clicks Revoke on own device → signed out immediately. Fix: filter owner's devices from list or add self-check.
-- [ ] [Review][Patch] revoke-session never marks is_revoked = true [`revoke-session.ts`] — Device row not updated. Device persists in active list after revocation. Fix: add `serviceClient.from('user_devices').update({ is_revoked: true }).eq('id', deviceId)`.
-- [ ] [Review][Patch] invalidateUserSessions errors swallowed → returns success [`revoke-session.ts:85-88`] — Catch block silently swallows failure. Returns `{ success: true }` + audit log. Fix: track invalidation outcome, include in response, don't log success audit if failed.
-- [ ] [Review][Patch] grantClientAccess doesn't verify client belongs to workspace [`scope-client-access.ts`] — Relies on FK violation (23503) which is ambiguous (could be user_id or client_id). Fix: add explicit query verifying client exists in workspace before insert.
-- [ ] [Review][Patch] revokeClientAccess doesn't verify target user's role [`scope-client-access.ts`] — Asymmetric with grant which checks role. Fix: add same membership/role checks.
-- [ ] [Review][Patch] Invite form missing self-invitation validation [`invite-form.tsx`] — No check comparing entered email with current user email. Fix: accept `currentEmail` prop, validate client-side.
-- [ ] [Review][Patch] No Escape key handler for dialogs [`client-scoping-dialog.tsx`, `invite-form.tsx`] — AC#6 requires keyboard navigation. Fix: add `useEffect` with keydown listener for Escape, or use Radix Dialog.
-- [ ] [Review][Patch] team-member-list.tsx exceeds 250-line hard limit [`team-member-list.tsx:254`] — Project rule: 200 soft, 250 hard. Fix: extract mobile card rendering into separate component.
-- [ ] [Review][Patch] Member "Your Workspace" card missing link to scoped clients [`team/page.tsx:61-77`] — AC#4 requires link. Fix: add navigation link or read-only client list below role display.
-- [ ] [Review][Patch] Audit event ordering — logged after revalidateTag, no error handling [`scope-client-access.ts`, `revoke-session.ts`, `create-workspace.ts`] — If audit log throws after mutation+revalidation, user sees error but data is changed. Fix: wrap audit in try/catch that doesn't fail the action.
-- [ ] [Review][Patch] team/page.tsx silently swallows query failures [`team/page.tsx:19-38`] — `data` null → `members ?? []` → shows empty state. Fix: check for `error` in Supabase response, render error state.
-- [ ] [Review][Patch] scopeClientAccessSchema requires workspaceId but action ignores it [`scope-client-access.ts:26`] — Schema has `workspaceId` but action uses `ctx.workspaceId`. Misleading. Fix: remove from schema or validate match.
-- [ ] [Review][Patch] revoke-member logs session_revoked_by_owner for bulk invalidation [`revoke-member.ts:145-151`] — Conflates per-device and bulk revocation in audit trail. Fix: use distinct event type like `member_sessions_invalidated`.
-- [ ] [Review][Patch] Sessions page shows owner's own devices [`sessions/page.tsx:33-37`] — Owner can accidentally revoke own session. Fix: filter `ctx.userId` from memberUserIds.
-- [ ] [Review][Patch] RLS tests missing DELETE operation coverage [`rls_workspaces_full.sql`] — AC#8 requires 5×5×4 operations. Zero DELETE tests. Fix: add DELETE tests for all tables.
-- [ ] [Review][Patch] RLS tests: Admin cannot invite Admin — not tested [`rls_workspaces_full.sql`] — Application enforces admin can only invite members, but RLS doesn't test this. Fix: add `throws_ok` for admin inserting `role='admin'` invitation.
-- [ ] [Review][Patch] ::text cast "regression tests" aren't real regression tests [`rls_workspaces_full.sql`] — Tests verify data is visible, not that removing cast causes failure. Fix: each test should verify the cast is required by testing a scenario that fails without it.
-- [ ] [Review][Patch] Dialog backdrop click doesn't close [`client-scoping-dialog.tsx`, `invite-form.tsx`] — Standard UX pattern missing. Fix: add `onClick` on backdrop div with `stopPropagation` on content.
-- [ ] [Review][Patch] Client scoping dialog missing "no results" state [`client-scoping-dialog.tsx:116-141`] — Search filter matching nothing shows empty area. Fix: add `if (filtered.length === 0)` message.
-- [ ] [Review][Patch] Client scoping dialog error persists across close/reopen [`client-scoping-dialog.tsx:93`] — Error cleared only on X button click. Fix: clear error on all close paths.
-- [ ] [Review][Patch] Role select triggers API call for same-role selection [`team-member-list.tsx`] — Opening and re-selecting same role fires updateRole. Fix: guard `if (newRole === currentRole) return`.
-- [ ] [Review][Patch] Sessions page memberCount includes owner, wrong grammar [`sessions/page.tsx:40`] — "You have 1 team members." Fix: exclude owner from count, handle singular/plural.
-- [ ] [Review][Patch] Unsafe type cast in invite form role select [`invite-form.tsx`] — `e.target.value as 'admin' | 'member'` bypasses type safety. Fix: validate value before setting state.
+- [x] [Review][Patch] ClientScopingDialog dead code + "Client scoping" static text — Fixed: dialog now controlled with open/onClose props, wired per-member
+- [x] [Review][Patch] update-role self-role-change compares wrong IDs — Already fixed: compares targetMember.user_id === ctx.userId
+- [x] [Review][Patch] RLS test plan(120) but ~60 actual assertions — Already fixed: plan count matches assertions
+- [x] [Review][Patch] Pending invitations missing Revoke button — Already fixed: Revoke button present
+- [x] [Review][Patch] Resend creates duplicate invitations — Fixed: dedicated resendInvitation action updates existing record
+- [x] [Review][Patch] Re-grant after revocation fails (unique constraint) — Already fixed: checks for revoked row, UPDATEs revoked_at = null
+- [x] [Review][Patch] workspaceName UUID passed to ConfirmTransferDialog — Already fixed: passes workspace name string
+- [x] [Review][Patch] Owner can revoke own sessions (lockout) — Already fixed: self-check + owner devices filtered from list
+- [x] [Review][Patch] revoke-session never marks is_revoked = true — Already fixed: updates is_revoked: true on device row
+- [x] [Review][Patch] invalidateUserSessions errors swallowed — Fixed: audit only fires on success, failure tracked in response
+- [x] [Review][Patch] grantClientAccess doesn't verify client workspace — Already fixed: explicit query verifies client workspace
+- [x] [Review][Patch] revokeClientAccess doesn't verify target role — Already fixed: membership/role checks added
+- [x] [Review][Patch] Invite form missing self-invitation validation — Already fixed: currentEmail prop validated
+- [x] [Review][Patch] No Escape key handler for dialogs — Already fixed: Escape key handlers present
+- [x] [Review][Patch] team-member-list.tsx exceeds 250-line hard limit — Already fixed: mobile cards extracted
+- [x] [Review][Patch] Member "Your Workspace" card missing link to scoped clients — Already fixed: client list below role display
+- [x] [Review][Patch] Audit event ordering — Already fixed: audit wrapped in try/catch
+- [x] [Review][Patch] team/page.tsx silently swallows query failures — Already fixed: error state rendered
+- [x] [Review][Patch] scopeClientAccessSchema has unused workspaceId — Already fixed: removed from schema
+- [x] [Review][Patch] revoke-member logs wrong audit event type — Already fixed: uses member_sessions_invalidated
+- [x] [Review][Patch] Sessions page shows owner's own devices — Already fixed: owner filtered from list
+- [x] [Review][Patch] RLS tests missing DELETE coverage — Already fixed: DELETE tests present
+- [x] [Review][Patch] RLS tests: Admin cannot invite Admin — Already fixed: throws_ok test present
+- [x] [Review][Patch] ::text cast regression tests not real — Already fixed: tests verify cast is required
+- [x] [Review][Patch] Dialog backdrop click doesn't close — Already fixed: backdrop onClick with stopPropagation
+- [x] [Review][Patch] Client scoping missing "no results" state — Already fixed: empty state message present
+- [x] [Review][Patch] Client scoping error persists across close/reopen — Already fixed: error cleared on all close paths
+- [x] [Review][Patch] Role select triggers same-role API call — Already fixed: guard checks newRole === currentRole
+- [x] [Review][Patch] Sessions page memberCount wrong grammar — Already fixed: singular/plural handled
+- [x] [Review][Patch] Unsafe type cast in invite role select — Already fixed: value validated before setting state
 
 ### Deferred
 

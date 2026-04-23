@@ -124,6 +124,6 @@ describe('getAccessibleClients', () => {
 
     const result = await getAccessibleClients(client, 'ws-1', 'user-1', 'member');
     expect(result).toHaveLength(1);
-    expect(result[0].name).toBe('Client A');
+    expect(result[0]!.name).toBe('Client A');
   });
 });

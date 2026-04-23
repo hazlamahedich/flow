@@ -59,7 +59,7 @@ function mockSupabase(authOverrides: Record<string, unknown> = {}) {
     }),
   };
 
-  vi.mocked(getServerSupabase).mockResolvedValue(mock as ReturnType<typeof getServerSupabase> extends Promise<infer T> ? T : never);
+  vi.mocked(getServerSupabase).mockResolvedValue(mock as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
   return mock;
 }
 

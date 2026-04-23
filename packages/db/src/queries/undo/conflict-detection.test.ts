@@ -38,10 +38,10 @@ describe('conflict-detection', () => {
       );
       expect(result.hasConflict).toBe(true);
       expect(result.conflictingFields).toHaveLength(1);
-      expect(result.conflictingFields[0].fieldName).toBe('name');
-      expect(result.conflictingFields[0].fieldLabel).toBe('Client Name');
-      expect(result.conflictingFields[0].clientValue).toBe('Alice');
-      expect(result.conflictingFields[0].serverValue).toBe('Bob');
+      expect(result.conflictingFields[0]!.fieldName).toBe('name');
+      expect(result.conflictingFields[0]!.fieldLabel).toBe('Client Name');
+      expect(result.conflictingFields[0]!.clientValue).toBe('Alice');
+      expect(result.conflictingFields[0]!.serverValue).toBe('Bob');
     });
 
     it('detects multiple field conflicts', () => {
@@ -62,7 +62,7 @@ describe('conflict-detection', () => {
       );
       expect(result.hasConflict).toBe(false);
       expect(result.autoMergedFields).toHaveLength(1);
-      expect(result.autoMergedFields[0].fieldName).toBe('email');
+      expect(result.autoMergedFields[0]!.fieldName).toBe('email');
     });
 
     it('skips system fields', () => {
@@ -81,7 +81,7 @@ describe('conflict-detection', () => {
         FIELD_LABELS,
       );
       expect(result.conflictingFields).toHaveLength(1);
-      expect(result.conflictingFields[0].fieldName).toBe('phone');
+      expect(result.conflictingFields[0]!.fieldName).toBe('phone');
     });
 
     it('uses field key as fallback label', () => {
@@ -90,7 +90,7 @@ describe('conflict-detection', () => {
         { custom_field: 'val2' },
         FIELD_LABELS,
       );
-      expect(result.conflictingFields[0].fieldLabel).toBe('custom_field');
+      expect(result.conflictingFields[0]!.fieldLabel).toBe('custom_field');
     });
   });
 

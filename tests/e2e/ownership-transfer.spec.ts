@@ -3,12 +3,7 @@ import { test, expect } from '../support/merged-fixtures';
 test.describe('[P0] Ownership Transfer Flow', () => {
   test('team page loads and shows transfer-related UI for owner', async ({ ownerPage }) => {
     await ownerPage.goto('/settings/team');
-    const url = ownerPage.url();
-
-    if (url.includes('/login')) {
-      test.skip();
-      return;
-    }
+    await expect(ownerPage).not.toHaveURL(/\/login/);
 
     await expect(
       ownerPage.getByRole('heading', { name: /team|your workspace/i }),
@@ -28,13 +23,10 @@ test.describe('[P0] Ownership Transfer Flow', () => {
 
   test('transfer dialog requires typing workspace name to confirm', async ({ ownerPage }) => {
     await ownerPage.goto('/settings/team');
-    if (ownerPage.url().includes('/login')) { test.skip(); return; }
+    await expect(ownerPage).not.toHaveURL(/\/login/);
 
     const transferButton = ownerPage.locator('button[aria-label^="Transfer ownership to"]').first();
-    if (!(await transferButton.isVisible())) {
-      test.skip();
-      return;
-    }
+    await expect(transferButton).toBeVisible();
 
     await transferButton.click();
 
@@ -60,13 +52,10 @@ test.describe('[P0] Ownership Transfer Flow', () => {
 
   test('cancel button closes dialog without transferring', async ({ ownerPage }) => {
     await ownerPage.goto('/settings/team');
-    if (ownerPage.url().includes('/login')) { test.skip(); return; }
+    await expect(ownerPage).not.toHaveURL(/\/login/);
 
     const transferButton = ownerPage.locator('button[aria-label^="Transfer ownership to"]').first();
-    if (!(await transferButton.isVisible())) {
-      test.skip();
-      return;
-    }
+    await expect(transferButton).toBeVisible();
 
     await transferButton.click();
 
@@ -80,9 +69,8 @@ test.describe('[P0] Ownership Transfer Flow', () => {
   });
 
   test('non-owner cannot see transfer option', async ({ memberPage }) => {
-    test.skip(true, 'TODO: requires Supabase seeding with owner + member');
-
     await memberPage.goto('/settings/team');
+    await expect(memberPage).not.toHaveURL(/\/login/);
 
     const transferButton = memberPage.locator('button[aria-label^="Transfer ownership to"]');
     await expect(transferButton).not.toBeVisible();

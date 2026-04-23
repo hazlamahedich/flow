@@ -5,18 +5,18 @@ import { DashboardGreeting } from './dashboard-greeting';
 const REAL_DATE = Date;
 
 function mockDateAtHour(hour: number) {
-  const MockDate = class extends REAL_DATE {
+  const FixedDate = class extends REAL_DATE {
     constructor(...args: unknown[]) {
       if (args.length === 0) {
-        const d = new REAL_DATE('2026-04-22T00:00:00Z');
-        d.setUTCHours(hour, 0, 0, 0);
-        return d as Date;
+        super('2026-04-22T00:00:00Z');
+        this.setUTCHours(hour, 0, 0, 0);
+        return;
       }
-      return new REAL_DATE(...(args as ConstructorParameters<typeof Date>)) as Date;
+      super(...(args as ConstructorParameters<typeof Date>));
     }
-    static now() { return new MockDate().getTime(); }
+    static now(): number { return new FixedDate().getTime(); }
   };
-  vi.setSystemTime(new MockDate());
+  vi.setSystemTime(new FixedDate());
 }
 
 beforeEach(() => {

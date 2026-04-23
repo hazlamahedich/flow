@@ -105,7 +105,7 @@ describe('RBAC integration: critical server action business rules', () => {
 
     it('revoke checks member exists and is member role', () => {
       // scope-client-access.ts:211: if (!targetMember || targetMember.role !== 'member') → reject
-      const adminRole = 'admin';
+      const adminRole: string = 'admin';
       const isMember = adminRole === 'member';
       expect(isMember).toBe(false);
     });
@@ -122,8 +122,8 @@ describe('RBAC integration: critical server action business rules', () => {
 
   describe('6. Role change triggers session invalidation (update-role.ts:107-113)', () => {
     it('when role actually changes, sessions are invalidated', () => {
-      const previousRole = 'member';
-      const newRole = 'admin';
+      const previousRole: string = 'member';
+      const newRole: string = 'admin';
       const roleChanged = previousRole !== newRole;
       expect(roleChanged).toBe(true);
 

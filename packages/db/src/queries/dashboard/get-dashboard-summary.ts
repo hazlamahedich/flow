@@ -1,10 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { cacheTag } from '../../cache-policy';
 
 export interface DashboardSummary {
   pendingApprovals: number;
   agentActivityCount: number;
   outstandingInvoices: number;
   clientHealthAlerts: number;
+  clientCount: number;
 }
 
 type CountKey = keyof DashboardSummary;
@@ -14,6 +16,7 @@ const TABLE_MAP: Record<CountKey, string> = {
   agentActivityCount: 'agent_runs',
   outstandingInvoices: 'invoices',
   clientHealthAlerts: 'client_health_alerts',
+  clientCount: 'clients',
 };
 
 class DashboardQueryError extends Error {
@@ -59,6 +62,7 @@ export async function getDashboardSummary(
     agentActivityCount: 0,
     outstandingInvoices: 0,
     clientHealthAlerts: 0,
+    clientCount: 0,
   };
 
   const nonGracefulErrors: DashboardQueryError[] = [];
@@ -72,6 +76,8 @@ export async function getDashboardSummary(
         nonGracefulErrors.push(err);
       } else if (err instanceof Error) {
         nonGracefulErrors.push(new DashboardQueryError('UNKNOWN', err.message));
+      } else {
+        nonGracefulErrors.push(new DashboardQueryError('UNKNOWN', String(err)));
       }
     }
   }
@@ -81,4 +87,8 @@ export async function getDashboardSummary(
   }
 
   return summary;
+}
+
+export function getDashboardCacheTag(workspaceId: string): string {
+  return cacheTag('dashboard', workspaceId);
 }

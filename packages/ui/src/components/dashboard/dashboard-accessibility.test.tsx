@@ -8,6 +8,7 @@ const zeroSummary: DashboardSummary = {
   agentActivityCount: 0,
   outstandingInvoices: 0,
   clientHealthAlerts: 0,
+  clientCount: 0,
 };
 
 beforeEach(() => {

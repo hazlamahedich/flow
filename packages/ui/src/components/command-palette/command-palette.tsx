@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAtom } from 'jotai';
 import { commandPaletteOpenAtom } from '@flow/shared';
-import { OverlayPriority } from '@flow/shared';
 import type { SearchResult } from '@flow/types';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { cn } from '../../lib/utils';
@@ -31,7 +30,6 @@ const NAVIGATION_ITEMS = [
   { id: 'nav-settings', label: 'Settings', href: '/settings', group: 'Navigation' },
   { id: 'nav-agents', label: 'Agents', href: '/agents', group: 'Navigation' },
 ];
-
 const ACTION_ITEMS = [
   { id: 'action-new-client', label: 'New Client', href: '/clients/new', group: 'Actions' },
   { id: 'action-new-invoice', label: 'New Invoice', href: '/invoices/new', group: 'Actions' },
@@ -50,7 +48,7 @@ export function CommandPalette({ searchAction, onNavigate }: CommandPaletteProps
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [pendingQuery, setPendingQuery] = useState<string | null>(null);
+  const [, setPendingQuery] = useState<string | null>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
   const reducedMotion = useReducedMotion();
   const { ref: trapRef } = useFocusTrap<HTMLDivElement>({ enabled: open });
@@ -93,15 +91,6 @@ export function CommandPalette({ searchAction, onNavigate }: CommandPaletteProps
     },
     300,
   );
-
-  const handleOpen = useCallback(() => {
-    triggerRef.current = document.activeElement as HTMLElement;
-    setOpen(true);
-    setQuery('');
-    setResults([]);
-    setError(false);
-    setLoading(false);
-  }, [setOpen]);
 
   const handleClose = useCallback(() => {
     setOpen(false);
@@ -158,31 +147,10 @@ export function CommandPalette({ searchAction, onNavigate }: CommandPaletteProps
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[var(--flow-z-overlay)]"
-      role="dialog"
-      aria-label="Command palette"
-      aria-modal="true"
-    >
-      <div
-        className="fixed inset-0 bg-black/50"
-        data-testid="command-palette-backdrop"
-        onClick={handleClose}
-        aria-hidden="true"
-      />
+    <div className="fixed inset-0 z-[var(--flow-z-overlay)]" role="dialog" aria-label="Command palette" aria-modal="true">
+      <div className="fixed inset-0 bg-black/50" data-testid="command-palette-backdrop" onClick={handleClose} aria-hidden="true" />
       <div className="fixed left-1/2 top-[20%] w-full max-w-lg -translate-x-1/2">
-        <div
-          ref={trapRef}
-          className={cn(
-            'rounded-lg border border-[var(--flow-color-border-primary)] bg-[var(--flow-color-bg-surface-raised)] shadow-xl',
-            reducedMotion
-              ? ''
-              : 'animate-in fade-in-0 zoom-in-95',
-          )}
-          style={{
-            animationDuration: reducedMotion ? '0ms' : '150ms',
-          }}
-        >
+        <div ref={trapRef} className={cn('rounded-lg border border-[var(--flow-color-border-primary)] bg-[var(--flow-color-bg-surface-raised)] shadow-xl', reducedMotion ? '' : 'animate-in fade-in-0 zoom-in-95')} style={{ animationDuration: reducedMotion ? '0ms' : '150ms' }}>
           <Command shouldFilter={false}>
             <CommandInput
               placeholder="Type a command or search..."
@@ -191,36 +159,18 @@ export function CommandPalette({ searchAction, onNavigate }: CommandPaletteProps
               data-testid="command-palette-input"
             />
             <CommandList>
-              <CommandEmpty>
-                {error ? 'Search failed. Try again.' : loading ? 'Searching...' : 'No results found. Try a different search.'}
-              </CommandEmpty>
+              <CommandEmpty>{error ? 'Search failed. Try again.' : loading ? 'Searching...' : 'No results found. Try a different search.'}</CommandEmpty>
               {localItems.length > 0 && (
                 <CommandGroup heading="Commands">
-                  {localItems.map((item) => (
-                    <CommandItem
-                      key={item.id}
-                      value={item.label}
-                      onSelect={() => handleSelect(item.href)}
-                    >
-                      {item.label}
-                    </CommandItem>
-                  ))}
+                  {localItems.map((item) => (<CommandItem key={item.id} value={item.label} onSelect={() => handleSelect(item.href)}>{item.label}</CommandItem>))}
                 </CommandGroup>
               )}
               {results.length > 0 && (
                 <CommandGroup heading="Search Results">
                   {results.map((result) => (
-                    <CommandItem
-                      key={result.id}
-                      value={result.label}
-                      onSelect={() => handleSelect(result.href)}
-                    >
+                    <CommandItem key={result.id} value={result.label} onSelect={() => handleSelect(result.href)}>
                       <span>{result.label}</span>
-                      {result.description && (
-                        <span className="ml-2 text-xs text-[var(--flow-color-text-tertiary)]">
-                          {result.description}
-                        </span>
-                      )}
+                      {result.description && (<span className="ml-2 text-xs text-[var(--flow-color-text-tertiary)]">{result.description}</span>)}
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -228,9 +178,7 @@ export function CommandPalette({ searchAction, onNavigate }: CommandPaletteProps
             </CommandList>
           </Command>
           <div className="border-t border-[var(--flow-color-border-primary)] px-3 py-2 text-xs text-[var(--flow-color-text-tertiary)]">
-            <span aria-live="polite">
-              {loading ? 'Searching...' : results.length > 0 ? `${results.length} result${results.length !== 1 ? 's' : ''} found` : ''}
-            </span>
+            <span aria-live="polite">{loading ? 'Searching...' : results.length > 0 ? `${results.length} result${results.length !== 1 ? 's' : ''} found` : ''}</span>
           </div>
         </div>
       </div>

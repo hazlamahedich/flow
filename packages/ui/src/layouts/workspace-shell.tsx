@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAtom, useSetAtom } from 'jotai';
 import { sidebarCollapsedAtom, sidebarHoverExpandedAtom, commandPaletteOpenAtom } from '@flow/shared';
 import { cn } from '../lib/utils';
@@ -36,7 +36,7 @@ export function WorkspaceShell({
   const setHoverExpanded = useSetAtom(sidebarHoverExpandedAtom);
   const setPaletteOpen = useSetAtom(commandPaletteOpenAtom);
   const [hoverActive, setHoverActive] = useState(false);
-  const reducedMotion = useReducedMotion();
+  useReducedMotion();
   const [ariaMessage, setAriaMessage] = useState('');
 
   const toggleRef = useRef<HTMLButtonElement | null>(null);
@@ -97,7 +97,7 @@ export function WorkspaceShell({
     }
   }, [onNavigate]);
 
-  const defaultSearchAction = useCallback(async (query: string) => {
+  const defaultSearchAction = useCallback(async () => {
     return { success: false, error: { message: 'Search not configured' } } as const;
   }, []);
 

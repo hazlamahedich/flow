@@ -47,8 +47,8 @@ describe('Story 1.5a: Email Change with Session Invalidation', () => {
 
   describe('AC: split-brain reconciliation', () => {
     it('detects auth email !== public email', () => {
-      const authEmail = 'old@example.com';
-      const publicEmail = 'new@example.com';
+      const authEmail: string = 'old@example.com';
+      const publicEmail: string = 'new@example.com';
       const needsReconciliation = authEmail !== publicEmail;
       expect(needsReconciliation).toBe(true);
     });

@@ -19,7 +19,8 @@ vi.mock('@flow/db', async (importOriginal) => {
 
 import { removeAvatar } from '../actions/remove-avatar';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { updateAvatarUrl, revalidateTag } from '@flow/db';
+import { updateAvatarUrl } from '@flow/db';
+import { revalidateTag } from 'next/cache';
 
 const mockGetServerSupabase = vi.mocked(getServerSupabase);
 const mockUpdateAvatarUrl = vi.mocked(updateAvatarUrl);

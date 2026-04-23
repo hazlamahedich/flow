@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, fireEvent, act } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { UndoToast } from './undo-toast';
 
 function mockLocalStorage() {
@@ -10,7 +10,7 @@ function mockLocalStorage() {
     removeItem: (key: string) => { delete store[key]; },
     clear: () => { Object.keys(store).forEach((k) => delete store[k]); },
     get length() { return Object.keys(store).length; },
-    key: (_index: number) => null,
+    key: () => null,
   };
 }
 

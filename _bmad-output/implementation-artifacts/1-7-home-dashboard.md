@@ -626,21 +626,21 @@ No blocking issues encountered. All 12 tasks completed sequentially with all tes
 
 ## Code Review Findings (2026-04-22)
 
-- [ ] [Review][Patch] Workspace switch cookie persistence broken — `set() {}` no-op in switch-workspace.ts [apps/web/app/(workspace)/actions/switch-workspace.ts:10-12]
-- [ ] [Review][Patch] `clientCount` derived from `clientHealthAlerts` instead of actual client count — wrong first-run detection [packages/ui/src/components/dashboard/dashboard-content.tsx:33]
-- [ ] [Review][Patch] Non-DashboardQueryError rejections silently swallowed in Promise.allSettled loop [packages/db/src/queries/dashboard/get-dashboard-summary.ts:66-74]
-- [ ] [Review][Patch] WorkspaceSwitcher missing error handling — unhandled errors crash the page instead of showing toast [packages/ui/src/layouts/workspace-switcher.tsx:33-36]
-- [ ] [Review][Patch] Clicking already-active workspace triggers redundant server action [packages/ui/src/layouts/workspace-switcher.tsx:76-77]
-- [ ] [Review][Patch] `switch-workspace.ts` missing null check on `existingUser.user` [apps/web/app/(workspace)/actions/switch-workspace.ts:32-33]
-- [ ] [Review][Patch] Invalid timezone string crashes DashboardGreeting client component [packages/ui/src/components/dashboard/dashboard-greeting.tsx:43-49]
-- [ ] [Review][Patch] `parseInt` on Intl output can produce NaN — getTimeBucket unguarded [packages/ui/src/components/dashboard/dashboard-greeting.tsx:48-49]
-- [ ] [Review][Patch] "Handled quietly" section uses wrong empty states (agent activity copy instead of handled copy) [packages/ui/src/components/dashboard/dashboard-content.tsx:64-86]
-- [ ] [Review][Patch] `listUserWorkspaces` silently returns empty on any DB error, not just 42P01 [packages/db/src/queries/workspaces/list-user-workspaces.ts:19]
-- [ ] [Review][Patch] Dead Suspense boundary — data already awaited before JSX return [apps/web/app/(workspace)/page.tsx:11-14]
-- [x] [Review][Patch] Missing urgency tier visual treatment (P1/P2/P3) in Needs Attention section — deferred to Epic 2, no data tables exist yet (consensus: all 4 agents)
-- [ ] [Review][Patch] First-run greeting deviates from spec: missing left accent bar, drop time-of-day from first-run path only [dashboard-greeting.tsx:72-85] (consensus: match spec for first-run, active/all-clear paths unchanged, flagged as follow-up)
-- [ ] [Review][Patch] Cache tag not registered on dashboard query + tag format mismatch (dashboards→dashboard) [packages/db/src/queries/dashboard/get-dashboard-summary.ts]
-- [ ] [x] [Review][Defer] layout.tsx agent count query swallows all errors — pre-existing from Story 1.6 [apps/web/app/(workspace)/layout.tsx:24-35] — deferred, pre-existing
-- [ ] [x] [Review][Defer] sidebar.tsx 'use client' not in spec-allowed list — pre-existing from Story 1.6 [packages/ui/src/layouts/sidebar.tsx:1] — deferred, pre-existing
-- [ ] [x] [Review][Defer] Return type `Promise<{ success: true } | never>` misleading — cosmetic, no runtime impact [apps/web/app/(workspace)/actions/switch-workspace.ts:7] — deferred, pre-existing
+- [x] [Review][Patch] Workspace switch cookie persistence broken — Fixed: cookies().set() now persists workspace context
+- [x] [Review][Patch] `clientCount` derived from wrong field — Fixed: added clientCount to DashboardSummary, maps to clients table
+- [x] [Review][Patch] Non-DashboardQueryError rejections swallowed — Fixed: catch-all wraps unknown errors as DashboardQueryError
+- [x] [Review][Patch] WorkspaceSwitcher missing error handling — Already fixed: try/catch with toast.error
+- [x] [Review][Patch] Clicking already-active workspace triggers redundant action — Already fixed: guard checks activeWorkspaceId
+- [x] [Review][Patch] `switch-workspace.ts` missing null check — Already fixed: null guard on existingUser.user
+- [x] [Review][Patch] Invalid timezone crashes greeting — Already fixed: getValidTimezone() validates, falls back to UTC
+- [x] [Review][Patch] `parseInt` NaN guard — Already fixed: Number.isFinite(hour) guard present
+- [x] [Review][Patch] "Handled quietly" wrong empty states — Fixed: replaced agent activity copy with proper handled copy
+- [x] [Review][Patch] `listUserWorkspaces` silently returns empty — Already fixed: only suppresses 42P01, throws others
+- [x] [Review][Patch] Dead Suspense boundary — Fixed: removed dead Suspense, inlined content
+- [x] [Review][Patch] Missing urgency tier visual treatment (P1/P2/P3) — deferred to Epic 2, no data tables exist yet
+- [x] [Review][Patch] First-run greeting deviates from spec — Already fixed: accent bar present, no time-of-day in first-run
+- [x] [Review][Patch] Cache tag not registered + format mismatch — Fixed: cacheTag imported, getDashboardCacheTag uses 'dashboard' entity
+- [x] [Review][Defer] layout.tsx agent count query swallows all errors — pre-existing from Story 1.6 — deferred
+- [x] [Review][Defer] sidebar.tsx 'use client' not in spec-allowed list — pre-existing from Story 1.6 — deferred
+- [x] [Review][Defer] Return type `Promise<{ success: true } | never>` misleading — cosmetic, no runtime impact — deferred
 

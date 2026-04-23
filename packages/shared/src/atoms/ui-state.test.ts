@@ -18,7 +18,7 @@ function createLocalStorage() {
     get length() {
       return Object.keys(store).length;
     },
-    key: vi.fn((_index: number) => null),
+    key: vi.fn(() => null),
   } as unknown as Storage;
 }
 

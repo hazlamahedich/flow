@@ -24,7 +24,7 @@ describe('getServerSupabase', () => {
       getAll: vi.fn(),
       set: vi.fn(),
     };
-    vi.mocked(nextCookies).mockResolvedValue(mockCookieStore);
+    vi.mocked(nextCookies).mockResolvedValue(mockCookieStore as unknown as Awaited<ReturnType<typeof nextCookies>>);
     vi.mocked(createServerClient).mockReturnValue({ fake: 'client' } as unknown as ReturnType<typeof createServerClient>);
   });
 
@@ -39,7 +39,7 @@ describe('getServerSupabase', () => {
       { name: 'other', value: 'xyz', domain: '.flow.app' },
     ]);
     await getServerSupabase();
-    const adapter = vi.mocked(createServerClient).mock.calls[0][0] as {
+    const adapter = vi.mocked(createServerClient).mock.calls[0]![0] as {
       getAll: () => Array<{ name: string; value: string }>;
       set: (name: string, value: string, options?: Record<string, unknown>) => void;
     };
@@ -52,7 +52,7 @@ describe('getServerSupabase', () => {
 
   it('set delegates to cookieStore.set with path: /', async () => {
     await getServerSupabase();
-    const adapter = vi.mocked(createServerClient).mock.calls[0][0] as {
+    const adapter = vi.mocked(createServerClient).mock.calls[0]![0] as {
       getAll: () => Array<{ name: string; value: string }>;
       set: (name: string, value: string, options?: Record<string, unknown>) => void;
     };
@@ -68,7 +68,7 @@ describe('getServerSupabase', () => {
       throw new Error('read-only context');
     });
     await getServerSupabase();
-    const adapter = vi.mocked(createServerClient).mock.calls[0][0] as {
+    const adapter = vi.mocked(createServerClient).mock.calls[0]![0] as {
       getAll: () => Array<{ name: string; value: string }>;
       set: (name: string, value: string, options?: Record<string, unknown>) => void;
     };
@@ -79,7 +79,7 @@ describe('getServerSupabase', () => {
     let resolved = false;
     vi.mocked(nextCookies).mockImplementation(async () => {
       resolved = true;
-      return mockCookieStore;
+      return mockCookieStore as unknown as Awaited<ReturnType<typeof nextCookies>>;
     });
     await getServerSupabase();
     expect(resolved).toBe(true);

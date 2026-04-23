@@ -240,6 +240,8 @@ export function TeamMemberList({
         <ClientScopingDialog
           userId={scopingMember.userId}
           userName={scopingMember.name}
+          open={!!scopingMember}
+          onClose={() => setScopingMember(null)}
         />
       )}
     </>

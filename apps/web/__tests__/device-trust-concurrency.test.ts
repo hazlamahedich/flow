@@ -158,7 +158,6 @@ describe('device trust concurrency safety', () => {
       }),
     });
 
-    let selectCallCount = 0;
     mockSupabase.from!.mockImplementation(() => ({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({

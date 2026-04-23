@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, type Mock } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { listUserWorkspaces } from './list-user-workspaces';
 
 function mockClient(data: unknown[] | null, error: object | null) {

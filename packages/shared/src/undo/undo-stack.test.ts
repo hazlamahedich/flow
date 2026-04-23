@@ -47,7 +47,7 @@ describe('undo-stack', () => {
       const result = actions.addEntry(stacks, entry);
       const stack = actions.getStack(result);
       expect(stack.entries).toHaveLength(1);
-      expect(stack.entries[0].id).toBe('entry-1');
+      expect(stack.entries[0]!.id).toBe('entry-1');
     });
 
     it('limits entries to max', () => {
@@ -57,7 +57,7 @@ describe('undo-stack', () => {
       }
       const stack = actions.getStack(stacks);
       expect(stack.entries).toHaveLength(UNDO_MAX_ENTRIES);
-      expect(stack.entries[0].id).toBe('entry-14');
+      expect(stack.entries[0]!.id).toBe('entry-14');
     });
 
     it('marks entries with oversized snapshots as irreversible', () => {
@@ -69,8 +69,8 @@ describe('undo-stack', () => {
       const entry = makeEntry({ snapshot: largeSnapshot });
       const result = actions.addEntry(stacks, entry);
       const stack = actions.getStack(result);
-      expect(stack.entries[0].irreversible).toBe(true);
-      expect(stack.entries[0].snapshot).toEqual({});
+      expect(stack.entries[0]!.irreversible).toBe(true);
+      expect(stack.entries[0]!.snapshot).toEqual({});
     });
   });
 
@@ -110,7 +110,7 @@ describe('undo-stack', () => {
       ];
       const pruned = pruneExpired(entries, now);
       expect(pruned).toHaveLength(1);
-      expect(pruned[0].id).toBe('recent');
+      expect(pruned[0]!.id).toBe('recent');
     });
 
     it('keeps entries within window', () => {

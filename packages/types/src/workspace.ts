@@ -10,7 +10,7 @@ export const TransferStatusEnum = z.enum(['pending', 'accepted', 'expired', 'can
 export type TransferStatus = z.infer<typeof TransferStatusEnum>;
 
 export const InvitationRoleEnum = z.enum(['admin', 'member']);
-export type InvitationRole = z.infer<typeof InvitationRoleEnum>;
+export type _InvitationRole = z.infer<typeof InvitationRoleEnum>;
 
 export const createWorkspaceSchema = z.object({
   name: z.string().min(1).max(100),

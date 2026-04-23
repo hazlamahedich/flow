@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, type Mock } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { getDashboardSummary } from './get-dashboard-summary';
 
 interface MockedResult {
@@ -7,7 +7,7 @@ interface MockedResult {
 }
 
 function mockClient(tables: Record<string, MockedResult>) {
-  const from: Mock = vi.fn((table: string) => {
+  const from = vi.fn((table: string) => {
     const entry = tables[table];
     const builder: Record<string, unknown> = {
       select: vi.fn(() => builder),
@@ -35,6 +35,7 @@ describe('getDashboardSummary', () => {
       agent_runs: { count: 12, error: null },
       invoices: { count: 5, error: null },
       client_health_alerts: { count: 1, error: null },
+      clients: { count: 8, error: null },
     });
 
     const result = await getDashboardSummary(client, workspaceId);
@@ -44,6 +45,7 @@ describe('getDashboardSummary', () => {
       agentActivityCount: 12,
       outstandingInvoices: 5,
       clientHealthAlerts: 1,
+      clientCount: 8,
     });
   });
 
@@ -54,6 +56,7 @@ describe('getDashboardSummary', () => {
       agent_runs: { count: null, error: pgError },
       invoices: { count: null, error: pgError },
       client_health_alerts: { count: null, error: pgError },
+      clients: { count: null, error: pgError },
     });
 
     const result = await getDashboardSummary(client, workspaceId);
@@ -63,6 +66,7 @@ describe('getDashboardSummary', () => {
       agentActivityCount: 0,
       outstandingInvoices: 0,
       clientHealthAlerts: 0,
+      clientCount: 0,
     });
   });
 
@@ -73,6 +77,7 @@ describe('getDashboardSummary', () => {
       agent_runs: { count: null, error: pgError },
       invoices: { count: 7, error: null },
       client_health_alerts: { count: null, error: pgError },
+      clients: { count: 3, error: null },
     });
 
     const result = await getDashboardSummary(client, workspaceId);
@@ -82,6 +87,7 @@ describe('getDashboardSummary', () => {
       agentActivityCount: 0,
       outstandingInvoices: 7,
       clientHealthAlerts: 0,
+      clientCount: 3,
     });
   });
 
@@ -91,6 +97,7 @@ describe('getDashboardSummary', () => {
       agent_runs: { count: 0, error: null },
       invoices: { count: 0, error: null },
       client_health_alerts: { count: 0, error: null },
+      clients: { count: 0, error: null },
     });
 
     await expect(getDashboardSummary(client, workspaceId)).rejects.toThrow('permission denied');
@@ -98,7 +105,7 @@ describe('getDashboardSummary', () => {
 
   it('queries with correct workspace_id', async () => {
     const eqArgs: Array<[string, string]> = [];
-    const from: Mock = vi.fn(() => {
+    const from = vi.fn(() => {
       const builder: Record<string, unknown> = {
         select: vi.fn(() => builder),
         eq: vi.fn((col: string, val: string) => {
@@ -121,7 +128,7 @@ describe('getDashboardSummary', () => {
     const client = { from } as unknown as Parameters<typeof getDashboardSummary>[0];
     await getDashboardSummary(client, workspaceId);
 
-    expect(eqArgs.length).toBe(4);
+    expect(eqArgs.length).toBe(5);
     for (const [col, val] of eqArgs) {
       expect(col).toBe('workspace_id');
       expect(val).toBe(workspaceId);

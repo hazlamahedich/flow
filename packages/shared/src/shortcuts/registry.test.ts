@@ -51,7 +51,7 @@ describe('createShortcutRegistry', () => {
       registry.register(makeShortcut({ description: 'Second' }));
 
       expect(warnSpy).toHaveBeenCalledTimes(1);
-      expect(warnSpy.mock.calls[0][0]).toContain('Duplicate key');
+      expect(warnSpy.mock.calls[0]![0]).toContain('Duplicate key');
 
       process.env.NODE_ENV = originalEnv;
       warnSpy.mockRestore();

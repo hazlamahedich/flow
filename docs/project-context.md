@@ -98,6 +98,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Prefer `interface` for object shapes, `type` for unions/intersections/utility types.
 - Use `satisfies` operator for type validation without widening.
 - Async functions must handle errors explicitly — no unhandled promise rejections. Wrap in try/catch or use Result type pattern.
+- **Never silently swallow errors.** Every `catch` block must do at least one of: log the error, re-throw it, return a typed error result, or explicitly comment why the error is intentionally ignored. Empty catch blocks are bugs. `catch {}` or `catch (_) {}` is a code review rejection.
 - Prefer `async/await` over `.then()` chains. No nested `.then()`.
 
 **Import/Export Patterns:**
@@ -506,4 +507,4 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Review quarterly for outdated rules.
 - Add new rules when an AI agent makes the same mistake twice — that's the signal threshold.
 
-Last Updated: 2026-04-19
+Last Updated: 2026-04-23

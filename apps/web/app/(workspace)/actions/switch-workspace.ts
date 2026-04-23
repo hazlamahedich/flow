@@ -3,6 +3,7 @@
 import { createAdminSupabase } from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 
 export async function switchWorkspace(workspaceId: string): Promise<void> {
   const supabase = await getServerSupabase();
@@ -42,6 +43,13 @@ export async function switchWorkspace(workspaceId: string): Promise<void> {
   }
 
   await supabase.auth.refreshSession();
+
+  const cookieStore = await cookies();
+  cookieStore.set('flow-active-workspace', workspaceId, {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+  });
 
   revalidatePath('/', 'layout');
 

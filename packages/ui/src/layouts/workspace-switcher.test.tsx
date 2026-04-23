@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fireEvent } from '@testing-library/react';
 import { renderWithTheme } from '@flow/test-utils';
 import { WorkspaceSwitcher } from './workspace-switcher';
 

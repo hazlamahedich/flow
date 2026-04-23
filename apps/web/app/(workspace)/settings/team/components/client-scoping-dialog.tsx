@@ -9,27 +9,30 @@ interface ClientOption {
 }
 
 interface ClientScopingDialogProps {
-  userId?: string;
-  userName?: string;
+  userId: string;
+  userName: string;
   clients?: ClientOption[];
+  open: boolean;
+  onClose: () => void;
 }
 
 export function ClientScopingDialog({
   userId,
   userName,
   clients: initialClients,
+  open,
+  onClose,
 }: ClientScopingDialogProps) {
-  const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [clients, setClients] = useState<ClientOption[]>(initialClients ?? []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleClose = useCallback(() => {
-    setOpen(false);
+    onClose();
     setError(null);
     setSearch('');
-  }, []);
+  }, [onClose]);
 
   const handleEscape = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') handleClose();
@@ -43,7 +46,7 @@ export function ClientScopingDialog({
     }
   }, [open, handleEscape]);
 
-  if (!userId) return null;
+  if (!open) return null;
 
   const filtered = clients.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()),
@@ -82,26 +85,13 @@ export function ClientScopingDialog({
     }
   }
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="text-sm text-[var(--flow-color-text-secondary)] hover:text-[var(--flow-color-text-primary)]"
-        aria-label={`Manage client access for ${userName ?? 'member'}`}
-      >
-        Client Scoping
-      </button>
-    );
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
          onClick={handleClose}>
       <div
         className="w-full max-w-lg rounded-lg bg-[var(--flow-color-bg-primary)] p-6 shadow-lg"
         role="dialog"
-        aria-label={`Client access for ${userName ?? 'member'}`}
+        aria-label={`Client access for ${userName}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">

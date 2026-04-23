@@ -5,7 +5,6 @@ function mockClient(tableResults: Record<string, { data?: unknown[]; error?: unk
   return {
     from: vi.fn().mockImplementation((table: string) => {
       const result = tableResults[table] ?? { data: [], error: null };
-      const error = result.error;
       return {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -31,9 +30,9 @@ describe('searchEntities', () => {
     });
 
     expect(results).toHaveLength(3);
-    expect(results[0].type).toBe('client');
-    expect(results[1].type).toBe('invoice');
-    expect(results[2].type).toBe('time_entry');
+    expect(results[0]!.type).toBe('client');
+    expect(results[1]!.type).toBe('invoice');
+    expect(results[2]!.type).toBe('time_entry');
   });
 
   it('[P0] returns empty when all tables fail', async () => {
@@ -87,6 +86,6 @@ describe('searchEntities', () => {
     });
 
     expect(results).toHaveLength(1);
-    expect(results[0].type).toBe('client');
+    expect(results[0]!.type).toBe('client');
   });
 });

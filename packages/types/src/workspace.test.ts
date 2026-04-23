@@ -18,6 +18,50 @@ import {
   InvitationRoleEnum,
 } from './workspace';
 
+describe('workspaceInvitationSchema', () => {
+  it('[P0] parses a valid invitation', () => {
+    const inv = {
+      id: crypto.randomUUID(),
+      workspaceId: crypto.randomUUID(),
+      email: 'test@example.com',
+      role: 'admin' as const,
+      tokenHash: 'abc123',
+      expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      acceptedAt: null,
+      invitedBy: crypto.randomUUID(),
+      createdAt: null,
+    };
+    expect(workspaceInvitationSchema.parse(inv)).toEqual(inv);
+  });
+});
+
+describe('transferRequestSchema', () => {
+  it('[P0] parses a valid transfer request', () => {
+    const tr = {
+      id: crypto.randomUUID(),
+      workspaceId: crypto.randomUUID(),
+      fromUserId: crypto.randomUUID(),
+      toUserId: crypto.randomUUID(),
+      status: 'pending' as const,
+      createdAt: null,
+      expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      acceptedAt: null,
+    };
+    expect(transferRequestSchema.parse(tr)).toEqual(tr);
+  });
+});
+
+describe('InvitationRoleEnum', () => {
+  it('[P0] accepts valid invitation roles', () => {
+    expect(InvitationRoleEnum.parse('admin')).toBe('admin');
+    expect(InvitationRoleEnum.parse('member')).toBe('member');
+  });
+
+  it('[P0] rejects invalid role', () => {
+    expect(() => InvitationRoleEnum.parse('owner')).toThrow();
+  });
+});
+
 describe('RoleEnum', () => {
   it('[P0] accepts valid roles', () => {
     expect(RoleEnum.parse('owner')).toBe('owner');

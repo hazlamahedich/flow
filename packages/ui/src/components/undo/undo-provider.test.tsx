@@ -8,7 +8,7 @@ function mockLocalStorage() {
     removeItem: (key: string) => { delete store[key]; },
     clear: () => { Object.keys(store).forEach((k) => delete store[k]); },
     get length() { return Object.keys(store).length; },
-    key: (_index: number) => null,
+    key: () => null,
   };
 }
 
@@ -33,7 +33,7 @@ describe('UndoProvider', () => {
   });
 
   it('accepts undoAction prop', async () => {
-    const mod = await import('./undo-provider');
+    await import('./undo-provider');
     expect(typeof mockUndoAction).toBe('function');
   });
 });

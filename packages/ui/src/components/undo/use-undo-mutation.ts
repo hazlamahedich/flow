@@ -23,7 +23,7 @@ interface UseUndoMutationOptions {
 
 export function useUndoMutation() {
   const workspaceId = useUndoWorkspaceId();
-  const [stacks, setStacks] = useAtom(undoStacksAtom);
+  const [, setStacks] = useAtom(undoStacksAtom);
   const actions = useMemo(() => createUndoStackActions(workspaceId), [workspaceId]);
 
   const recordUndo = useCallback(

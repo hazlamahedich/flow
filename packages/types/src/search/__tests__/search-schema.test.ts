@@ -37,7 +37,8 @@ describe('SearchResultSchema', () => {
   });
 
   it('accepts result without description', () => {
-    const { description, ...withoutDesc } = validResult;
+    const withoutDesc = { ...validResult };
+    delete (withoutDesc as Record<string, unknown>).description;
     const result = SearchResultSchema.safeParse(withoutDesc);
     expect(result.success).toBe(true);
   });

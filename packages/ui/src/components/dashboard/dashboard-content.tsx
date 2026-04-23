@@ -5,7 +5,6 @@ import { DashboardSection } from './dashboard-section';
 import { EmptyStateCard } from './empty-state-card';
 import {
   Sprout,
-  Zap,
   TrendingUp,
   FileText,
   Users,
@@ -18,7 +17,7 @@ export interface DashboardContentProps {
 }
 
 export function DashboardContent({ summary, profile }: DashboardContentProps) {
-  const hasClients = (summary.outstandingInvoices > 0 || summary.clientHealthAlerts > 0);
+  const hasClients = summary.clientCount > 0;
   const isFirstRun = !hasClients && summary.agentActivityCount === 0 && summary.pendingApprovals === 0;
   const variant = isFirstRun ? 'first-run' : 'all-clear';
 
@@ -30,7 +29,7 @@ export function DashboardContent({ summary, profile }: DashboardContentProps) {
       <DashboardGreeting
         firstName={firstName}
         timezone={timezone}
-        clientCount={hasClients ? 1 : 0}
+        clientCount={summary.clientCount}
         invoiceCount={summary.outstandingInvoices}
         summary={summary}
       />
@@ -70,15 +69,15 @@ export function DashboardContent({ summary, profile }: DashboardContentProps) {
             variant === 'first-run' ? (
               <EmptyStateCard
                 icon={TrendingUp}
-                title="Your productivity story starts here"
-                description="Handled items will appear here as your agents get to work."
+                title="Nothing handled yet"
+                description="Items your agents handle for you will appear here as you get started."
                 variant="first-run"
               />
             ) : (
               <EmptyStateCard
                 icon={TrendingUp}
-                title={`${summary.agentActivityCount} things handled`}
-                description="Keep it up!"
+                title="No items handled yet"
+                description="Handled items will appear here once your agents start working."
                 variant="all-clear"
               />
             )

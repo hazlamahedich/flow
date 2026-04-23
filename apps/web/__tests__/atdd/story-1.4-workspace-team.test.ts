@@ -59,7 +59,7 @@ describe('Story 1.4: Workspace & Team Management', () => {
   describe('AC: time-bound access for subcontractors', () => {
     it('invitation with expiry date is valid', () => {
       const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      const inv = buildInvitation({ expiresAt: futureDate });
+      const inv = buildInvitation({ expiresAt: futureDate.toISOString() });
       expect(inv.expiresAt).toBeTruthy();
       expect(new Date(inv.expiresAt!).getTime()).toBeGreaterThan(Date.now());
     });

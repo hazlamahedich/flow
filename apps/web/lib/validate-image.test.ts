@@ -5,7 +5,7 @@ function makeBuffer(bytes: number[]): ArrayBuffer {
   const buffer = new ArrayBuffer(bytes.length);
   const view = new Uint8Array(buffer);
   for (let i = 0; i < bytes.length; i++) {
-    view[i] = bytes[i];
+    view[i] = bytes[i]!;
   }
   return buffer;
 }

@@ -129,7 +129,7 @@ describe('inviteMember', () => {
     } as unknown as MockTenant);
 
     const supabase = await getServerSupabase();
-    supabase.auth.getUser.mockResolvedValue({ data: { user: { email: 'admin@test.com' } } });
+    (supabase.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { user: { email: 'admin@test.com' } } });
 
     const result = await inviteMember({ email: 'admin@test.com', role: 'member' });
     expect(result.success).toBe(false);
