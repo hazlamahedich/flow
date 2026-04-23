@@ -3,6 +3,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 describe('undoAction', () => {
   beforeEach(() => {
     vi.resetModules();
+    vi.doMock('next/cache', () => ({
+      revalidateTag: vi.fn(),
+    }));
   });
 
   it('returns auth error when no user', async () => {
@@ -155,6 +158,14 @@ describe('undoAction', () => {
           }),
         }),
       }),
+      update: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({
+            data: { id: 'e-1', version: 2, name: 'Old' },
+            error: null,
+          }),
+        }),
+      }),
     });
 
     vi.doMock('../supabase-server', () => ({
@@ -174,8 +185,7 @@ describe('undoAction', () => {
       previousSnapshot: { name: 'Old' },
     };
 
-    // First call would need the update mock but since we just want to test
-    // the idempotency check, we verify that the operationId is tracked
-    expect(input.operationId).toBe('op-dup-test');
+    const result = await undoAction(input);
+    expect(result.success).toBe(true);
   });
 });

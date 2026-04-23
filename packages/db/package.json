@@ -33,6 +33,7 @@
     "db:check": "drizzle-kit check"
   },
   "dependencies": {
+    "@flow/shared": "workspace:*",
     "@flow/types": "workspace:*",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.0",

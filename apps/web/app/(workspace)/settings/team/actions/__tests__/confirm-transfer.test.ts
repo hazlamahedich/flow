@@ -29,14 +29,17 @@ import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext } from '@flow/db';
 import { executeOwnershipTransfer, invalidateUserSessions } from '@flow/auth';
 
+type MockSupabase = Awaited<ReturnType<typeof getServerSupabase>>;
+type MockTenant = Awaited<ReturnType<typeof requireTenantContext>>;
+
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(getServerSupabase).mockResolvedValue({} as any);
+  vi.mocked(getServerSupabase).mockResolvedValue({} as unknown as MockSupabase);
   vi.mocked(requireTenantContext).mockResolvedValue({
     workspaceId: 'ws-1',
     userId: 'user-b',
     role: 'owner',
-  } as any);
+  } as unknown as MockTenant);
 });
 
 describe('confirmTransfer', () => {

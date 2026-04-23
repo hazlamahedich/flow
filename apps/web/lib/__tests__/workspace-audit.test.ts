@@ -7,6 +7,11 @@ vi.mock('@/lib/supabase-server', () => ({
 import { getServerSupabase } from '@/lib/supabase-server';
 import { logWorkspaceEvent } from '../workspace-audit';
 
+interface TestEvent {
+  type: string;
+  workspaceId?: string;
+}
+
 describe('logWorkspaceEvent', () => {
   let mockInsert: ReturnType<typeof vi.fn>;
   let mockFrom: ReturnType<typeof vi.fn>;
@@ -21,7 +26,7 @@ describe('logWorkspaceEvent', () => {
   });
 
   it('inserts correct fields into audit_log', async () => {
-    const event = { type: 'workspace.created', workspaceId: 'ws-1' } as any;
+    const event: TestEvent = { type: 'workspace.created', workspaceId: 'ws-1' };
     await logWorkspaceEvent(event);
     expect(mockFrom).toHaveBeenCalledWith('audit_log');
     expect(mockInsert).toHaveBeenCalledWith({
@@ -33,21 +38,21 @@ describe('logWorkspaceEvent', () => {
   });
 
   it('sets workspace_id from event when present', async () => {
-    const event = { type: 'workspace.updated', workspaceId: 'ws-42' } as any;
+    const event: TestEvent = { type: 'workspace.updated', workspaceId: 'ws-42' };
     await logWorkspaceEvent(event);
     const inserted = mockInsert.mock.calls[0][0];
     expect(inserted.workspace_id).toBe('ws-42');
   });
 
   it('sets workspace_id to null when not in event', async () => {
-    const event = { type: 'workspace.deleted' } as any;
+    const event: TestEvent = { type: 'workspace.deleted' };
     await logWorkspaceEvent(event);
     const inserted = mockInsert.mock.calls[0][0];
     expect(inserted.workspace_id).toBeNull();
   });
 
   it('sets entity_type to workspace', async () => {
-    const event = { type: 'workspace.created', workspaceId: 'ws-1' } as any;
+    const event: TestEvent = { type: 'workspace.created', workspaceId: 'ws-1' };
     await logWorkspaceEvent(event);
     const inserted = mockInsert.mock.calls[0][0];
     expect(inserted.entity_type).toBe('workspace');
@@ -56,7 +61,7 @@ describe('logWorkspaceEvent', () => {
   it('does not throw when supabase fails', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockInsert.mockRejectedValue(new Error('db down'));
-    const event = { type: 'workspace.created', workspaceId: 'ws-1' } as any;
+    const event: TestEvent = { type: 'workspace.created', workspaceId: 'ws-1' };
     await expect(logWorkspaceEvent(event)).resolves.toBeUndefined();
     expect(consoleSpy).toHaveBeenCalledWith(
       'Failed to log workspace event:',

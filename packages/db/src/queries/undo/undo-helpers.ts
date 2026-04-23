@@ -116,7 +116,7 @@ export async function checkOptimisticLock(
       success: false,
       error: {
         status: 500,
-        code: 'DATABASE_ERROR',
+        code: 'INTERNAL_ERROR',
         message: error.message ?? 'Database error',
         category: 'system',
       },

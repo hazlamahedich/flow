@@ -73,7 +73,8 @@ export async function undoAction(
   }
 
   const lockResult = await checkOptimisticLock(
-    supabase,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    supabase as any,
     table,
     input.entityId,
     input.expectedVersion,
@@ -108,7 +109,8 @@ export async function undoAction(
   }
 
   const undoResult = await performUndo(
-    supabase,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    supabase as any,
     table,
     input.entityId,
     input.previousSnapshot,

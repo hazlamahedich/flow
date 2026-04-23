@@ -39,10 +39,10 @@ export function getNextStep(current: StepSlug): StepSlug | null {
 }
 
 export function getPreviousStep(current: StepSlug): StepSlug | null {
-  if (current === COMPLETION_STEP) return STEPS[STEPS.length - 1];
+  if (current === COMPLETION_STEP) return STEPS[STEPS.length - 1] ?? null;
   const index = getStepIndex(current);
   if (index <= 0) return null;
-  return STEPS[index - 1];
+  return STEPS[index - 1] ?? null;
 }
 
 export function getStepLabel(slug: StepSlug): string {

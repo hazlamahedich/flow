@@ -6,6 +6,7 @@ export default defineConfig({
     'src/client.ts',
     'src/queries/undo/conflict-detection.ts',
     'src/queries/undo/conflict-types.ts',
+    'src/queries/undo/undo-helpers.ts',
   ],
   format: ['esm'],
   dts: true,

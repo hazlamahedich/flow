@@ -1,7 +1,7 @@
 import { test as base, expect } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.SUPABASE_URL ?? 'http://localhost:54321';
+const supabaseUrl = process.env.SUPABASE_URL ?? 'http://127.0.0.1:54321';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
 const appUrl = process.env.BASE_URL ?? 'http://localhost:3000';
 
@@ -11,7 +11,14 @@ interface AuthenticatedUser {
   userId: string;
   email: string;
   accessToken: string;
+  refreshToken: string;
   role: UserRole;
+}
+
+function getCookieName(): string {
+  const url = new URL(supabaseUrl);
+  const firstSegment = url.hostname.split('.')[0];
+  return `sb-${firstSegment}-auth-token`;
 }
 
 async function signInAs(email: string, password: string): Promise<AuthenticatedUser> {
@@ -26,22 +33,41 @@ async function signInAs(email: string, password: string): Promise<AuthenticatedU
     userId: data.user.id,
     email: data.user.email ?? email,
     accessToken: data.session.access_token,
+    refreshToken: data.session.refresh_token,
     role: 'owner',
   };
 }
 
-async function getStorageStateForUser(accessToken: string) {
+function base64urlEncode(str: string): string {
+  return Buffer.from(str).toString('base64url');
+}
+
+async function getStorageStateForUser(user: AuthenticatedUser) {
+  const cookieName = getCookieName();
+  const sessionJson = JSON.stringify({
+    access_token: user.accessToken,
+    refresh_token: user.refreshToken,
+    token_type: 'bearer',
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    user: {
+      id: user.userId,
+      email: user.email,
+      aud: 'authenticated',
+      role: 'authenticated',
+    },
+  });
   return {
     cookies: [
       {
-        name: 'sb-localhost-auth-token',
-        value: JSON.stringify({ access_token: accessToken, token_type: 'bearer' }),
+        name: cookieName,
+        value: 'base64-' + base64urlEncode(sessionJson),
         domain: new URL(appUrl).hostname,
         path: '/',
-        expires: -1,
+        expires: Math.floor(Date.now() / 1000) + 3600,
         httpOnly: false,
         secure: false,
-        sameSite: 'Lax',
+        sameSite: 'Lax' as const,
       },
     ],
     origins: [],
@@ -71,7 +97,7 @@ export const test = base.extend({
     const email = process.env.E2E_OWNER_EMAIL ?? 'owner@test.com';
     const password = process.env.E2E_OWNER_PASSWORD ?? 'password123';
     const user = await signInAs(email, password);
-    const storageState = await getStorageStateForUser(user.accessToken);
+    const storageState = await getStorageStateForUser(user);
     const context = await browser.newContext({ storageState });
     const page = await context.newPage();
 

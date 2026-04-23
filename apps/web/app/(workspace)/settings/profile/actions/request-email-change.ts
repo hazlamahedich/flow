@@ -49,7 +49,6 @@ export async function requestEmailChange(
   }
 
   const token = randomUUID();
-  let insertedRowId: string | null = null;
 
   try {
     const result = await requestEmailChangeAtomic(supabase, user.id, newEmail, token);

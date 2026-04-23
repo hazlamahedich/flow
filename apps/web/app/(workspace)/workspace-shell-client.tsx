@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { WorkspaceShellProps } from '@flow/ui';
 import { WorkspaceShell, UndoWorkspaceProvider, UndoProvider, UndoFab } from '@flow/ui';
 import { searchEntitiesAction } from './actions/search-entities';
-import { undoAction } from '../lib/actions/undo';
+import { undoAction } from '@/lib/actions/undo';
 
 export function WorkspaceShellClient({
   agentCount,

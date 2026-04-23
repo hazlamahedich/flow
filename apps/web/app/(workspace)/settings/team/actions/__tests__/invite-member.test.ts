@@ -38,6 +38,9 @@ import { inviteMember } from '../invite-member';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext } from '@flow/db';
 
+type MockSupabase = Awaited<ReturnType<typeof getServerSupabase>>;
+type MockTenant = Awaited<ReturnType<typeof requireTenantContext>>;
+
 function setupMocks(overrides: Record<string, unknown> = {}) {
   const supabase = {
     auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { email: 'admin@test.com' } } }) },
@@ -73,12 +76,12 @@ function setupMocks(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 
-  vi.mocked(getServerSupabase).mockResolvedValue(supabase as any);
+  vi.mocked(getServerSupabase).mockResolvedValue(supabase as unknown as MockSupabase);
   vi.mocked(requireTenantContext).mockResolvedValue({
     workspaceId: 'ws-1',
     userId: 'user-admin',
     role: 'owner',
-  } as any);
+  } as unknown as MockTenant);
 
   return supabase;
 }
@@ -99,7 +102,7 @@ describe('inviteMember', () => {
       workspaceId: 'ws-1',
       userId: 'user-member',
       role: 'member',
-    } as any);
+    } as unknown as MockTenant);
 
     const result = await inviteMember({ email: 'new@test.com', role: 'member' });
     expect(result.success).toBe(false);
@@ -111,7 +114,7 @@ describe('inviteMember', () => {
       workspaceId: 'ws-1',
       userId: 'user-admin',
       role: 'admin',
-    } as any);
+    } as unknown as MockTenant);
 
     const result = await inviteMember({ email: 'new@test.com', role: 'admin' });
     expect(result.success).toBe(false);
@@ -123,7 +126,7 @@ describe('inviteMember', () => {
       workspaceId: 'ws-1',
       userId: 'user-admin',
       role: 'owner',
-    } as any);
+    } as unknown as MockTenant);
 
     const supabase = await getServerSupabase();
     supabase.auth.getUser.mockResolvedValue({ data: { user: { email: 'admin@test.com' } } });

@@ -76,7 +76,7 @@ describe('switchWorkspace', () => {
 
     const result = await switchWorkspace(workspaceId);
 
-    expect(result).toEqual({ success: true });
+    expect(result).toBeUndefined();
     expect(mockAuthAdminUpdateUserById).toHaveBeenCalledWith(userId, {
       app_metadata: { workspace_id: workspaceId },
     });

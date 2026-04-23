@@ -4,7 +4,7 @@ import { createAdminSupabase } from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { revalidatePath } from 'next/cache';
 
-export async function switchWorkspace(workspaceId: string): Promise<{ success: true }> {
+export async function switchWorkspace(workspaceId: string): Promise<void> {
   const supabase = await getServerSupabase();
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -45,5 +45,5 @@ export async function switchWorkspace(workspaceId: string): Promise<{ success: t
 
   revalidatePath('/', 'layout');
 
-  return { success: true };
+  return;
 }

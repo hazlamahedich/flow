@@ -43,7 +43,7 @@ function LogTimeFormInner() {
   const clientId = (searchParams.get('clientId') ?? '').trim();
   const clientName = searchParams.get('clientName') ?? '';
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0] ?? '';
 
   const [state, dispatch] = useReducer(formReducer, {
     clientId,
@@ -56,21 +56,6 @@ function LogTimeFormInner() {
   });
 
   const hasRedirected = useRef(false);
-
-  useEffect(() => {
-    if (!clientId && !hasRedirected.current) {
-      hasRedirected.current = true;
-      router.push('/onboarding/create-client');
-    }
-  }, [clientId, router]);
-
-  if (!clientId) {
-    return (
-      <div className="text-center text-sm text-[var(--flow-color-muted-foreground)]">
-        Redirecting...
-      </div>
-    );
-  }
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -94,6 +79,21 @@ function LogTimeFormInner() {
     },
     [state.clientId, state.date, state.durationMinutes, state.description, router],
   );
+
+  useEffect(() => {
+    if (!clientId && !hasRedirected.current) {
+      hasRedirected.current = true;
+      router.push('/onboarding/create-client');
+    }
+  }, [clientId, router]);
+
+  if (!clientId) {
+    return (
+      <div className="text-center text-sm text-[var(--flow-color-muted-foreground)]">
+        Redirecting...
+      </div>
+    );
+  }
 
   return (
     <div>

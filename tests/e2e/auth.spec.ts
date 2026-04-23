@@ -16,29 +16,38 @@ test.describe('[P0] Login Flow', () => {
     await expect(page.getByRole('button', { name: /send magic link/i })).toBeVisible();
   });
 
-  test('shows validation error for invalid email', async ({ page }) => {
+  test('disables submit button for invalid email', async ({ page }) => {
     await page.goto('/login');
     await page.locator('#email').fill('not-an-email');
-    await page.getByRole('button', { name: /send magic link/i }).click();
 
-    await expect(page.locator('#email-error')).toBeVisible();
+    const button = page.getByRole('button', { name: /send magic link/i });
+    await expect(button).toBeDisabled();
   });
 
   test('accepts valid email and shows confirmation', async ({ page }) => {
     await page.goto('/login');
     await page.locator('#email').fill('test@example.com');
-    await page.getByRole('button', { name: /send magic link/i }).click();
+
+    const button = page.getByRole('button', { name: /send magic link/i });
+    await expect(button).toBeEnabled();
+    await button.click();
 
     await expect(page.getByText(/check your email/i)).toBeVisible({ timeout: 10000 });
   });
 });
 
 test.describe('[P0] Auth Callback Error Handling', () => {
-  test('shows error page for invalid auth callback', async ({ page }) => {
+  test('redirects to login with error for access_denied callback', async ({ page }) => {
     await page.goto('/auth/callback?error=access_denied');
 
-    await page.waitForURL('**/auth/callback/error**');
-    await expect(page.getByText(/error|expired|invalid/i)).toBeVisible();
+    await page.waitForURL('**/login**');
+    expect(page.url()).toContain('error=access_denied');
+  });
+
+  test('redirects to login with error for missing code', async ({ page }) => {
+    await page.goto('/auth/callback');
+
+    await page.waitForURL('**/login**error**');
   });
 });
 

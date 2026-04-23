@@ -28,6 +28,9 @@ import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext } from '@flow/db';
 import { invalidateUserSessions } from '@flow/auth/server-admin';
 
+type MockSupabase = Awaited<ReturnType<typeof getServerSupabase>>;
+type MockTenant = Awaited<ReturnType<typeof requireTenantContext>>;
+
 function setupMocks(targetMember: Record<string, unknown> = {}) {
   const supabase = {
     from: vi.fn().mockReturnValue({
@@ -58,12 +61,12 @@ function setupMocks(targetMember: Record<string, unknown> = {}) {
     }),
   };
 
-  vi.mocked(getServerSupabase).mockResolvedValue(supabase as any);
+  vi.mocked(getServerSupabase).mockResolvedValue(supabase as unknown as MockSupabase);
   vi.mocked(requireTenantContext).mockResolvedValue({
     workspaceId: 'ws-1',
     userId: 'user-owner',
     role: 'owner',
-  } as any);
+  } as unknown as MockTenant);
 
   return supabase;
 }
@@ -84,7 +87,7 @@ describe('revokeMember', () => {
       workspaceId: 'ws-1',
       userId: 'user-admin',
       role: 'admin',
-    } as any);
+    } as unknown as MockTenant);
 
     const result = await revokeMember({ memberId: '550e8400-e29b-41d4-a716-446655440000' });
     expect(result.success).toBe(false);
@@ -106,12 +109,12 @@ describe('revokeMember', () => {
       update: vi.fn(),
     };
 
-    vi.mocked(getServerSupabase).mockResolvedValue(supabase as any);
+    vi.mocked(getServerSupabase).mockResolvedValue(supabase as unknown as MockSupabase);
     vi.mocked(requireTenantContext).mockResolvedValue({
       workspaceId: 'ws-1',
       userId: 'user-owner',
       role: 'owner',
-    } as any);
+    } as unknown as MockTenant);
 
     const result = await revokeMember({ memberId: '550e8400-e29b-41d4-a716-446655440000' });
     expect(result.success).toBe(false);
