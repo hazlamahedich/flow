@@ -2,7 +2,7 @@
 
 ## What this repo is
 
-A **BMAD-driven planning and design workspace** for Flow OS (VA productivity SaaS with 6 AI agents). No application code exists yet — all 10 epics are in `backlog`. The repo contains specs, architecture decisions, and AI tool configuration only.
+A **BMAD-driven planning and design workspace** for Flow OS (VA productivity SaaS with 6 AI agents). Epic 1 (Foundation) is complete — 17 stories implemented across all packages. Epic 2 (Agent Infrastructure & Trust System) is next. The repo contains working application code, specs, architecture decisions, and AI tool configuration.
 
 ## Key paths
 
@@ -11,6 +11,12 @@ A **BMAD-driven planning and design workspace** for Flow OS (VA productivity Saa
 | `docs/project-context.md` | Canonical technical rules (180 rules, 7 sections). Read this before any implementation work. |
 | `_bmad-output/planning-artifacts/` | PRD, architecture, UX spec, epics, agent specs. Source of truth for requirements. |
 | `_bmad-output/implementation-artifacts/sprint-status.yaml` | Sprint tracking (file-based). Story status lives here. |
+| `apps/web/` | Next.js 15 application (App Router, Server Components, Server Actions). |
+| `packages/` | Shared packages: `db`, `types`, `ui`, `shared`, `auth`, `tokens`, `test-utils`. |
+| `supabase/migrations/` | Database migrations (22 files). `supabase db reset` to apply all. |
+| `supabase/tests/` | pgTAP RLS test suite (9 files, 137 tests). Run via `psql -f` (Docker mount issue with `supabase test db`). |
+| `tests/e2e/` | Playwright E2E tests. Global setup verifies seed users exist. |
+| `apps/web/__tests__/acceptance/` | ATDD red-phase test scaffolds. TDD red phase — `test.skip()` until feature implemented. |
 | `files/` | Reference documents (PRD v2.0 docx, engineering plan, user flows, agent mesh spec). |
 
 ## Workflow
@@ -18,7 +24,7 @@ A **BMAD-driven planning and design workspace** for Flow OS (VA productivity Saa
 This repo uses **BMAD v6.3.0** methodology. The workflow is sequential:
 
 1. Product Brief → PRD → UX Design → Architecture → Epics → Stories → Dev
-2. Steps 1–4 are complete. Epics are defined. Stories have not been created yet.
+2. Steps 1–4 are complete. Epics are defined. Epic 1 stories all done. Epic 2 ATDD scaffolds ready.
 3. Use BMAD skills (loaded via `.opencode/skills/`) to advance the workflow — don't freehand it.
 
 ### BMAD skill naming convention
@@ -67,6 +73,12 @@ When updating BMAD skills or project config, update all three skill directories 
 - **Named exports only** — default exports only for Next.js page components.
 - **No barrel files inside feature folders** — only at package boundaries.
 
-## No build/test/lint commands yet
+## Build/test/lint commands
 
-The application does not exist. Once scaffolding begins, the Turborepo pipeline will be: `build → test → lint`. Packages build before apps. Update this section when the monorepo is created.
+- `pnpm build` — Turborepo build (packages build before apps)
+- `pnpm test` — Vitest unit tests (418 passing across all packages)
+- `pnpm typecheck` — TypeScript strict mode check (0 errors)
+- `pnpm lint` — ESLint (0 errors)
+- pgTAP RLS tests: `PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -c "CREATE EXTENSION IF NOT EXISTS pgtap;" && PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -f supabase/tests/<file>.sql`
+- E2E tests: `pnpm exec playwright test` (requires `supabase start`)
+- Docker mount issue: `npx supabase test db` fails on external drive path with spaces — use `psql -f` instead
