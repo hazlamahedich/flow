@@ -90,3 +90,69 @@ export async function getRunByJobId(
   if (error) throw error;
   return data;
 }
+
+export async function getRunById(runId: string) {
+  const client = createServiceClient();
+  const { data, error } = await client
+    .from('agent_runs')
+    .select('*')
+    .eq('id', runId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function findByIdempotencyKey(
+  idempotencyKey: string,
+  workspaceId: string,
+) {
+  const client = createServiceClient();
+  const { data, error } = await client
+    .from('agent_runs')
+    .select('*')
+    .eq('idempotency_key', idempotencyKey)
+    .eq('workspace_id', workspaceId)
+    .in('status', ['queued', 'running', 'waiting_approval', 'completed'])
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function claimRunWithGuard(
+  runId: string,
+  jobId: string,
+  update: RunStatusUpdate,
+) {
+  const client = createServiceClient();
+  const { data, error } = await client
+    .from('agent_runs')
+    .update({ ...update, status: 'running' })
+    .eq('id', runId)
+    .eq('status', 'queued')
+    .eq('job_id', jobId)
+    .select()
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function findStaleRuns(staleThresholdMinutes: number) {
+  const client = createServiceClient();
+  const { data, error } = await client
+    .from('agent_runs')
+    .select('*')
+    .eq('status', 'running')
+    .lt('updated_at', new Date(Date.now() - staleThresholdMinutes * 60_000).toISOString());
+  if (error) throw error;
+  return data;
+}
+
+export async function releaseRun(runId: string) {
+  const client = createServiceClient();
+  const { error } = await client
+    .from('agent_runs')
+    .update({ status: 'queued' })
+    .eq('id', runId)
+    .in('status', ['running', 'queued']);
+  if (error) throw error;
+}

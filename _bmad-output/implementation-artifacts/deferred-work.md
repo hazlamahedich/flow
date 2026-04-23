@@ -87,4 +87,12 @@
 - TOCTOU race in `updateRunStatus` — SELECT then UPDATE not atomic. pg-boss in 2.1b will handle claim with optimistic locking. [`packages/db/src/queries/agents/runs.ts:27-51`]
 - `getRunsByWorkspace` filters use `string` instead of `AgentId`/`AgentRunStatus` — deferred to 2.1b query layer refactor. [`packages/db/src/queries/agents/runs.ts:53-56`]
 - Per-call `createServiceClient()` in query functions — connection overhead under load, acceptable for stub phase. [`packages/db/src/queries/agents/`]
-- Partial unique index on `idempotency_key` in migration not replicated in Drizzle schema — Drizzle limitation, deferred to 2.1b. [`supabase/migrations/20260426090003_agent_runs.sql:31`]
+ - Partial unique index on `idempotency_key` in migration not replicated in Drizzle schema — Drizzle limitation, deferred to 2.1b. [`supabase/migrations/20260426090003_agent_runs.sql:31`]
+
+## Deferred from: code review of 2-1b-pg-boss-implementation-recovery-idempotency (2026-04-24)
+
+- Retryable fail() doesn't call boss.fail() — retries delayed 5min instead of 30s. Calling boss.fail() creates untested claim-guard loop. Keep current behavior until integration test harness exists. `pg-boss-worker.ts:92-103`
+- propose() doesn't notify pg-boss — job expires after 5min if approval is slow. Defer to Epic 2 stories 5-6 when approval UI is designed. `pg-boss-worker.ts:121-134`
+- Per-call createServiceClient() — connection overhead under load. Tech debt ticket for Epic 3 when load data exists. `packages/db/src/queries/agents/`
+- findStaleRuns has no result limit — mass outage could return thousands of runs. `runs.ts:139-148`
+- isUniqueViolation relies on fragile string matching — driver update could break detection. `pg-boss-producer.ts:148-156`

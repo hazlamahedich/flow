@@ -37,4 +37,9 @@ export {
   updateRunStatus,
   getRunsByWorkspace,
   getRunByJobId,
+  getRunById,
+  findByIdempotencyKey,
+  claimRunWithGuard,
+  findStaleRuns,
+  releaseRun,
 } from './queries/agents';

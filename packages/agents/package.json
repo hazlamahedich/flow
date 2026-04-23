@@ -17,7 +17,8 @@
   },
   "dependencies": {
     "@flow/types": "workspace:*",
-    "@flow/db": "workspace:*"
+    "@flow/db": "workspace:*",
+    "pg-boss": "^12.16.0"
   },
   "devDependencies": {
     "@flow/config": "workspace:*",
