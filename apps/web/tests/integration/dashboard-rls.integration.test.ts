@@ -31,4 +31,13 @@ describe.skipIf(skip)('Dashboard RLS Integration', () => {
       expect(ws).toHaveProperty('role');
     }
   });
+
+  it('dashboard summary values are non-negative numbers', async () => {
+    const result = await getDashboardSummary(fixture.client, fixture.tenantId);
+
+    for (const [key, value] of Object.entries(result)) {
+      expect(typeof value).toBe('number');
+      expect(value).toBeGreaterThanOrEqual(0);
+    }
+  });
 });

@@ -52,4 +52,25 @@ describe.skipIf(skip)('Dashboard Integration — Happy Path', () => {
     expect(ownResult.pendingApprovals).toBe(0);
     expect(ownResult.agentActivityCount).toBe(0);
   });
+
+  it('dashboard summary shape matches DashboardSummary type contract', async () => {
+    const result = await getDashboardSummary(fixture.client, fixture.tenantId);
+
+    expect(Object.keys(result).sort()).toEqual(
+      ['pendingApprovals', 'agentActivityCount', 'outstandingInvoices', 'clientHealthAlerts'].sort(),
+    );
+    for (const value of Object.values(result)) {
+      expect(typeof value).toBe('number');
+      expect(value).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('all section counts are integers', async () => {
+    const result = await getDashboardSummary(fixture.client, fixture.tenantId);
+
+    expect(Number.isInteger(result.pendingApprovals)).toBe(true);
+    expect(Number.isInteger(result.agentActivityCount)).toBe(true);
+    expect(Number.isInteger(result.outstandingInvoices)).toBe(true);
+    expect(Number.isInteger(result.clientHealthAlerts)).toBe(true);
+  });
 });

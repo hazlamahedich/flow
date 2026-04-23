@@ -57,6 +57,7 @@ export function ShortcutOverlay() {
     >
       <div
         className="fixed inset-0 bg-black/50"
+        data-testid="shortcut-overlay-backdrop"
         onClick={handleClose}
         aria-hidden="true"
       />

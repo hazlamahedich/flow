@@ -1,17 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { z } from 'zod';
+import {
+  ABSOLUTE_SESSION_MS,
+  TRUSTED_ABSOLUTE_SESSION_MS,
+} from '@/lib/session-constants';
 
-const SendMagicLinkInputSchema = z.object({
-  email: z.string().email().min(1),
-});
+const emailSchema = z.string().email('Please enter a valid email address');
 
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+const MAGIC_LINK_TTL_MS = 15 * 60 * 1000;
 
 describe('Story 1.3: Magic Link Authentication', () => {
   describe('AC: magic link sent with 15-minute expiry', () => {
-    const MAGIC_LINK_TTL_MS = 15 * 60 * 1000;
-
     it('expires magic link after 15 minutes', () => {
       const createdAt = Date.now() - MAGIC_LINK_TTL_MS - 1;
       const isExpired = Date.now() - createdAt > MAGIC_LINK_TTL_MS;
@@ -62,30 +63,35 @@ describe('Story 1.3: Magic Link Authentication', () => {
 
   describe('AC: email validation', () => {
     it('accepts valid email', () => {
-      const result = SendMagicLinkInputSchema.safeParse({ email: 'user@example.com' });
+      const result = emailSchema.safeParse('user@example.com');
       expect(result.success).toBe(true);
     });
 
     it('rejects invalid email', () => {
-      const result = SendMagicLinkInputSchema.safeParse({ email: 'not-an-email' });
+      const result = emailSchema.safeParse('not-an-email');
       expect(result.success).toBe(false);
     });
 
     it('rejects empty email', () => {
-      const result = SendMagicLinkInputSchema.safeParse({ email: '' });
+      const result = emailSchema.safeParse('');
       expect(result.success).toBe(false);
     });
   });
 
   describe('AC: remember device toggle', () => {
-    it('trusted session extends to 7 days', () => {
-      const TRUSTED_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
-      expect(TRUSTED_SESSION_MS).toBe(604800000);
+    it('trusted session uses TRUSTED_ABSOLUTE_SESSION_MS constant from middleware', () => {
+      expect(TRUSTED_ABSOLUTE_SESSION_MS).toBe(7 * 24 * 60 * 60 * 1000);
+      expect(TRUSTED_ABSOLUTE_SESSION_MS).toBe(7 * ABSOLUTE_SESSION_MS);
     });
 
-    it('untrusted session is 24 hours', () => {
-      const UNTRUSTED_SESSION_MS = 24 * 60 * 60 * 1000;
-      expect(UNTRUSTED_SESSION_MS).toBe(86400000);
+    it('untrusted session uses ABSOLUTE_SESSION_MS constant from middleware', () => {
+      expect(ABSOLUTE_SESSION_MS).toBe(24 * 60 * 60 * 1000);
+    });
+
+    it('trusted session survives 25 hours but untrusted does not', () => {
+      const elapsed = 25 * 60 * 60 * 1000;
+      expect(elapsed < TRUSTED_ABSOLUTE_SESSION_MS).toBe(true);
+      expect(elapsed > ABSOLUTE_SESSION_MS).toBe(true);
     });
   });
 

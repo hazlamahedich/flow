@@ -166,6 +166,7 @@ export function CommandPalette({ searchAction, onNavigate }: CommandPaletteProps
     >
       <div
         className="fixed inset-0 bg-black/50"
+        data-testid="command-palette-backdrop"
         onClick={handleClose}
         aria-hidden="true"
       />

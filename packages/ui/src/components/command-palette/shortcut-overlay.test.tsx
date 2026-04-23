@@ -74,7 +74,7 @@ describe('ShortcutOverlay', () => {
     const store = createStore();
     store.set(shortcutOverlayOpenAtom, true);
     const { container } = renderOverlay(store);
-    const backdrop = container.querySelector('.bg-black\\/50');
+    const backdrop = container.querySelector('[data-testid="shortcut-overlay-backdrop"]');
     await act(async () => {
       fireEvent.click(backdrop!);
     });

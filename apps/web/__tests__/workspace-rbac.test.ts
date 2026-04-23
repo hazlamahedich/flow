@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { scopeClientAccessSchema, revokeSessionSchema } from '@flow/types';
+import { scopeClientAccessSchema, revokeSessionSchema, inviteMemberSchema } from '@flow/types';
 
-describe('workspace RBAC: role-based access control', () => {
-  describe('Owner permissions', () => {
-    it('can grant client access', () => {
+describe('workspace RBAC: schema validation via @flow/types', () => {
+  describe('scopeClientAccessSchema', () => {
+    it('accepts valid input', () => {
       const result = scopeClientAccessSchema.safeParse({
         userId: crypto.randomUUID(),
         clientId: crypto.randomUUID(),
@@ -11,181 +11,108 @@ describe('workspace RBAC: role-based access control', () => {
       expect(result.success).toBe(true);
     });
 
-    it('can revoke client access', () => {
+    it('rejects missing userId', () => {
       const result = scopeClientAccessSchema.safeParse({
-        userId: crypto.randomUUID(),
         clientId: crypto.randomUUID(),
       });
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
     });
 
-    it('can view active sessions', () => {
-      const role: string = 'owner';
-      const canViewSessions = role === 'owner';
-      expect(canViewSessions).toBe(true);
+    it('rejects invalid userId format', () => {
+      const result = scopeClientAccessSchema.safeParse({
+        userId: 'not-a-uuid',
+        clientId: crypto.randomUUID(),
+      });
+      expect(result.success).toBe(false);
     });
 
-    it('can revoke sessions', () => {
+    it('rejects missing clientId', () => {
+      const result = scopeClientAccessSchema.safeParse({
+        userId: crypto.randomUUID(),
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects invalid clientId format', () => {
+      const result = scopeClientAccessSchema.safeParse({
+        userId: crypto.randomUUID(),
+        clientId: 'not-a-uuid',
+      });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('revokeSessionSchema', () => {
+    it('accepts valid deviceId', () => {
       const result = revokeSessionSchema.safeParse({
         deviceId: crypto.randomUUID(),
       });
       expect(result.success).toBe(true);
     });
-  });
 
-  describe('Admin permissions', () => {
-    it('can grant client access for Members', () => {
-      const role: string = 'admin';
-      const canScopeClients = role === 'owner' || role === 'admin';
-      expect(canScopeClients).toBe(true);
+    it('rejects invalid deviceId', () => {
+      const result = revokeSessionSchema.safeParse({
+        deviceId: 'not-a-uuid',
+      });
+      expect(result.success).toBe(false);
     });
 
-    it('cannot view active sessions', () => {
-      const role: string = 'admin';
-      const canViewSessions = role === 'owner';
-      expect(canViewSessions).toBe(false);
-    });
-
-    it('can invite Members only', () => {
-      const role: string = 'admin';
-      const canInviteAdmin = role === 'owner';
-      const canInviteMember = role === 'owner' || role === 'admin';
-      expect(canInviteAdmin).toBe(false);
-      expect(canInviteMember).toBe(true);
-    });
-
-    it('cannot manage roles', () => {
-      const role: string = 'admin';
-      const canManageRoles = role === 'owner';
-      expect(canManageRoles).toBe(false);
-    });
-
-    it('cannot transfer ownership', () => {
-      const role: string = 'admin';
-      const canTransfer = role === 'owner';
-      expect(canTransfer).toBe(false);
+    it('rejects missing deviceId', () => {
+      const result = revokeSessionSchema.safeParse({});
+      expect(result.success).toBe(false);
     });
   });
 
-  describe('Member permissions', () => {
-    it('cannot manage team', () => {
-      const role: string = 'member';
-      const canManage = role === 'owner' || role === 'admin';
-      expect(canManage).toBe(false);
+  describe('inviteMemberSchema', () => {
+    it('accepts valid member invitation', () => {
+      const result = inviteMemberSchema.safeParse({
+        email: 'user@example.com',
+        role: 'member',
+      });
+      expect(result.success).toBe(true);
     });
 
-    it('cannot scope clients', () => {
-      const role: string = 'member';
-      const canScope = role === 'owner' || role === 'admin';
-      expect(canScope).toBe(false);
+    it('accepts valid admin invitation (owner-only role)', () => {
+      const result = inviteMemberSchema.safeParse({
+        email: 'admin@example.com',
+        role: 'admin',
+      });
+      expect(result.success).toBe(true);
     });
 
-    it('sees only scoped clients', () => {
-      const role: string = 'member';
-      const seesAllClients = role === 'owner' || role === 'admin';
-      expect(seesAllClients).toBe(false);
+    it('rejects invalid email', () => {
+      const result = inviteMemberSchema.safeParse({
+        email: 'not-an-email',
+        role: 'member',
+      });
+      expect(result.success).toBe(false);
     });
 
-    it('cannot view sessions', () => {
-      const role: string = 'member';
-      const canViewSessions = role === 'owner';
-      expect(canViewSessions).toBe(false);
-    });
-
-    it('sees "Your Workspace" card instead of member list', () => {
-      const role: string = 'member';
-      const seesMemberList = role === 'owner' || role === 'admin';
-      expect(seesMemberList).toBe(false);
-    });
-  });
-
-  describe('ClientUser permissions', () => {
-    it('cannot access workspace settings routes', () => {
-      const role: string = 'client_user';
-      const canAccessSettings = role === 'owner' || role === 'admin' || role === 'member';
-      expect(canAccessSettings).toBe(false);
-    });
-
-    it('cannot perform any team actions', () => {
-      const role: string = 'client_user';
-      const canDoAnything = role === 'owner' || role === 'admin';
-      expect(canDoAnything).toBe(false);
+    it('rejects invalid role', () => {
+      const result = inviteMemberSchema.safeParse({
+        email: 'user@example.com',
+        role: 'superadmin',
+      });
+      expect(result.success).toBe(false);
     });
   });
 
-  describe('cross-workspace leakage prevention', () => {
-    it('user in Workspace X cannot see Workspace Y members', () => {
+  describe('cross-workspace isolation', () => {
+    it('different workspaces generate different IDs', () => {
       const workspaceX = crypto.randomUUID();
       const workspaceY = crypto.randomUUID();
       expect(workspaceX).not.toBe(workspaceY);
     });
 
-    it('user in Workspace X cannot see Workspace Y clients', () => {
-      const workspaceX = crypto.randomUUID();
-      const workspaceY = crypto.randomUUID();
-      const canAccessCrossWorkspace = workspaceX === workspaceY;
-      expect(canAccessCrossWorkspace).toBe(false);
+    it('RLS policies enforce workspace_id scoping (documented expectation)', () => {
+      const membership = {
+        workspace_id: crypto.randomUUID(),
+        user_id: crypto.randomUUID(),
+        role: 'member',
+      };
+      const accessingWorkspace = crypto.randomUUID();
+      const isCrossWorkspace = membership.workspace_id !== accessingWorkspace;
+      expect(isCrossWorkspace).toBe(true);
     });
-  });
-});
-
-describe('scopeClientAccessSchema validation', () => {
-  it('accepts valid input', () => {
-    const result = scopeClientAccessSchema.safeParse({
-      userId: crypto.randomUUID(),
-      clientId: crypto.randomUUID(),
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects missing userId', () => {
-    const result = scopeClientAccessSchema.safeParse({
-      clientId: crypto.randomUUID(),
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects invalid userId format', () => {
-    const result = scopeClientAccessSchema.safeParse({
-      userId: 'not-a-uuid',
-      clientId: crypto.randomUUID(),
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects missing clientId', () => {
-    const result = scopeClientAccessSchema.safeParse({
-      userId: crypto.randomUUID(),
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects invalid clientId format', () => {
-    const result = scopeClientAccessSchema.safeParse({
-      userId: crypto.randomUUID(),
-      clientId: 'not-a-uuid',
-    });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe('revokeSessionSchema validation', () => {
-  it('accepts valid deviceId', () => {
-    const result = revokeSessionSchema.safeParse({
-      deviceId: crypto.randomUUID(),
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects invalid deviceId', () => {
-    const result = revokeSessionSchema.safeParse({
-      deviceId: 'not-a-uuid',
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects missing deviceId', () => {
-    const result = revokeSessionSchema.safeParse({});
-    expect(result.success).toBe(false);
   });
 });

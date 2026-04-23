@@ -2,10 +2,11 @@ import { createServerClient } from '@flow/db';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyDeviceTrust } from '@flow/auth/device-trust';
 import { DEVICE_COOKIE_NAME } from '@flow/auth/device-types';
-
-const ABSOLUTE_SESSION_MS = 24 * 60 * 60 * 1000;
-const TRUSTED_ABSOLUTE_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
-const IDLE_SESSION_MS = 4 * 60 * 60 * 1000;
+import {
+  ABSOLUTE_SESSION_MS,
+  TRUSTED_ABSOLUTE_SESSION_MS,
+  IDLE_SESSION_MS,
+} from '@/lib/session-constants';
 
 function getSessionIssuedAt(session: { access_token: string }): number {
   try {

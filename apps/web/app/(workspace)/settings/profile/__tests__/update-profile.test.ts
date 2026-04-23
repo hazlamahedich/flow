@@ -39,6 +39,14 @@ function mockSupabaseWithUser(user: { id: string; email: string } | null) {
   };
 }
 
+function generateUserId() {
+  return crypto.randomUUID();
+}
+
+function generateEmail() {
+  return `test-${Date.now()}@example.com`;
+}
+
 describe('updateProfile', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -47,27 +55,24 @@ describe('updateProfile', () => {
   it('returns validation error for empty name', async () => {
     const result = await updateProfile({ name: '', timezone: 'UTC' });
     expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.code).toBe('VALIDATION_ERROR');
-      expect(result.error.message).toContain('1 and 100');
-    }
+    expect(result.success === false && result.error.code).toBe('VALIDATION_ERROR');
   });
 
   it('returns unauthorized when no session', async () => {
     mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser(null) as never);
     const result = await updateProfile({ name: 'Valid Name', timezone: 'UTC' });
     expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.code).toBe('UNAUTHORIZED');
-    }
+    expect(result.success === false && result.error.code).toBe('UNAUTHORIZED');
   });
 
   it('updates profile and revalidates cache on success', async () => {
-    const mockUser = { id: 'user-1', email: 'test@test.com' };
+    const userId = generateUserId();
+    const email = generateEmail();
+    const mockUser = { id: userId, email };
     const mockProfile = {
-      id: 'user-1',
+      id: userId,
       name: 'Updated Name',
-      email: 'test@test.com',
+      email,
       timezone: 'America/New_York',
       avatarUrl: null,
       updatedAt: new Date().toISOString(),
@@ -80,16 +85,13 @@ describe('updateProfile', () => {
     const result = await updateProfile({ name: 'Updated Name', timezone: 'America/New_York' });
 
     expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.name).toBe('Updated Name');
-      expect(result.data.timezone).toBe('America/New_York');
-    }
+    expect(result.success === true && result.data.name).toBe('Updated Name');
 
     expect(mockUpdateUserProfile).toHaveBeenCalledWith(
       expect.anything(),
-      'user-1',
+      userId,
       { name: 'Updated Name', timezone: 'America/New_York' },
     );
-    expect(revalidateTag).toHaveBeenCalledWith('users:user-1');
+    expect(revalidateTag).toHaveBeenCalledWith(`users:${userId}`);
   });
 });

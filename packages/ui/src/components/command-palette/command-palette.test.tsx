@@ -100,7 +100,7 @@ describe('CommandPalette', () => {
     const store = createStore();
     store.set(commandPaletteOpenAtom, true);
     const { container } = renderPalette(store);
-    const backdrop = container.querySelector('.bg-black\\/50');
+    const backdrop = container.querySelector('[data-testid="command-palette-backdrop"]');
     await act(async () => {
       fireEvent.click(backdrop!);
     });

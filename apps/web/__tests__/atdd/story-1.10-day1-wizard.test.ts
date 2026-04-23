@@ -1,32 +1,38 @@
 import { describe, it, expect } from 'vitest';
-import { z } from 'zod';
-
-const ClientNameSchema = z.string().min(1).max(200);
-const TimeEntrySchema = z.object({
-  description: z.string().min(1).max(500),
-  durationMinutes: z.number().int().min(1).max(480),
-});
+import { STEPS, COMPLETION_STEP, isValidStep, getNextStep, getStepLabel, getTotalSteps } from '@/app/(onboarding)/onboarding/_lib/steps';
 
 describe('Story 1.10: Day 1 Micro-Wizard & Aha Glimpse', () => {
   describe('AC: wizard steps cover signup to agent proposal', () => {
-    const wizardSteps = [
-      'welcome',
-      'create-client',
-      'log-time',
-      'agent-demo',
-      'completion',
-    ] as const;
-
-    it('has 5 wizard steps', () => {
-      expect(wizardSteps).toHaveLength(5);
+    it('has correct number of wizard steps from production', () => {
+      expect(getTotalSteps()).toBe(4);
     });
 
-    it('steps are in correct order', () => {
-      expect(wizardSteps[0]).toBe('welcome');
-      expect(wizardSteps[1]).toBe('create-client');
-      expect(wizardSteps[2]).toBe('log-time');
-      expect(wizardSteps[3]).toBe('agent-demo');
-      expect(wizardSteps[4]).toBe('completion');
+    it('steps include all required phases', () => {
+      expect(STEPS).toContain('welcome');
+      expect(STEPS).toContain('create-client');
+      expect(STEPS).toContain('log-time');
+      expect(STEPS).toContain('agent-demo');
+    });
+
+    it('completion is a separate step after core steps', () => {
+      expect(COMPLETION_STEP).toBe('completion');
+      expect(isValidStep('completion')).toBe(true);
+    });
+
+    it('step navigation follows correct order', () => {
+      expect(getNextStep('welcome')).toBe('agent-demo');
+      expect(getNextStep('agent-demo')).toBe('create-client');
+      expect(getNextStep('create-client')).toBe('log-time');
+      expect(getNextStep('log-time')).toBe('completion');
+      expect(getNextStep('completion')).toBeNull();
+    });
+
+    it('step labels are human-readable', () => {
+      expect(getStepLabel('welcome')).toBe('Welcome');
+      expect(getStepLabel('agent-demo')).toBe('Agent Demo');
+      expect(getStepLabel('create-client')).toBe('Create Client');
+      expect(getStepLabel('log-time')).toBe('Log Time');
+      expect(getStepLabel('completion')).toBe('Complete');
     });
   });
 
@@ -44,34 +50,18 @@ describe('Story 1.10: Day 1 Micro-Wizard & Aha Glimpse', () => {
     });
   });
 
-  describe('AC: create-client form validation', () => {
-    it('accepts valid client name', () => {
-      expect(ClientNameSchema.safeParse('Acme Corp').success).toBe(true);
+  describe('AC: isValidStep rejects invalid slugs', () => {
+    it('accepts valid step slugs', () => {
+      for (const step of STEPS) {
+        expect(isValidStep(step)).toBe(true);
+      }
+      expect(isValidStep(COMPLETION_STEP)).toBe(true);
     });
 
-    it('rejects empty client name', () => {
-      expect(ClientNameSchema.safeParse('').success).toBe(false);
-    });
-
-    it('rejects client name over 200 chars', () => {
-      expect(ClientNameSchema.safeParse('A'.repeat(201)).success).toBe(false);
-    });
-  });
-
-  describe('AC: log-time form validation', () => {
-    it('accepts valid time entry', () => {
-      const result = TimeEntrySchema.safeParse({ description: 'Client call', durationMinutes: 30 });
-      expect(result.success).toBe(true);
-    });
-
-    it('rejects zero duration', () => {
-      const result = TimeEntrySchema.safeParse({ description: 'Client call', durationMinutes: 0 });
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects duration over 8 hours', () => {
-      const result = TimeEntrySchema.safeParse({ description: 'Client call', durationMinutes: 481 });
-      expect(result.success).toBe(false);
+    it('rejects invalid step slugs', () => {
+      expect(isValidStep('')).toBe(false);
+      expect(isValidStep('unknown')).toBe(false);
+      expect(isValidStep('welcome ')).toBe(false);
     });
   });
 

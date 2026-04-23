@@ -18,12 +18,14 @@ function mockClient(userResponse: {
 
 describe('requireTenantContext', () => {
   it('returns context from valid JWT with workspace_id', async () => {
+    const userId = crypto.randomUUID();
+    const workspaceId = crypto.randomUUID();
     const client = mockClient({
       data: {
         user: {
-          id: 'user-123',
+          id: userId,
           app_metadata: {
-            workspace_id: '550e8400-e29b-41d4-a716-446655440000',
+            workspace_id: workspaceId,
             role: 'owner',
           },
         },
@@ -32,8 +34,8 @@ describe('requireTenantContext', () => {
     });
 
     const ctx = await requireTenantContext(client);
-    expect(ctx.workspaceId).toBe('550e8400-e29b-41d4-a716-446655440000');
-    expect(ctx.userId).toBe('user-123');
+    expect(ctx.workspaceId).toBe(workspaceId);
+    expect(ctx.userId).toBe(userId);
     expect(ctx.role).toBe('owner');
   });
 
@@ -47,7 +49,7 @@ describe('requireTenantContext', () => {
 
   it('throws FlowError 403 when workspace_id missing', async () => {
     const client = mockClient({
-      data: { user: { id: 'user-123', app_metadata: {} } },
+      data: { user: { id: crypto.randomUUID(), app_metadata: {} } },
       error: null,
     });
     await expect(requireTenantContext(client)).rejects.toMatchObject({
@@ -59,7 +61,7 @@ describe('requireTenantContext', () => {
   it('throws FlowError 403 when workspace_id is malformed', async () => {
     const client = mockClient({
       data: {
-        user: { id: 'user-123', app_metadata: { workspace_id: 'not-a-uuid' } },
+        user: { id: crypto.randomUUID(), app_metadata: { workspace_id: 'not-a-uuid' } },
       },
       error: null,
     });
@@ -73,8 +75,8 @@ describe('requireTenantContext', () => {
     const client = mockClient({
       data: {
         user: {
-          id: 'user-123',
-          app_metadata: { workspace_id: '550e8400-e29b-41d4-a716-446655440000' },
+          id: crypto.randomUUID(),
+          app_metadata: { workspace_id: crypto.randomUUID() },
         },
       },
       error: null,

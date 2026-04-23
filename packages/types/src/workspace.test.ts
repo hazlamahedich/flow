@@ -91,7 +91,7 @@ describe('inviteMemberSchema', () => {
 
 describe('updateRoleSchema', () => {
   it('[P0] accepts valid input', () => {
-    const result = updateRoleSchema.parse({ memberId: '550e8400-e29b-41d4-a716-446655440000', role: 'admin' });
+    const result = updateRoleSchema.parse({ memberId: crypto.randomUUID(), role: 'admin' });
     expect(result.role).toBe('admin');
   });
 
@@ -102,15 +102,17 @@ describe('updateRoleSchema', () => {
 
 describe('revokeMemberSchema', () => {
   it('[P0] accepts valid UUID memberId', () => {
-    const result = revokeMemberSchema.parse({ memberId: '550e8400-e29b-41d4-a716-446655440000' });
-    expect(result.memberId).toBe('550e8400-e29b-41d4-a716-446655440000');
+    const memberId = crypto.randomUUID();
+    const result = revokeMemberSchema.parse({ memberId });
+    expect(result.memberId).toBe(memberId);
   });
 });
 
 describe('initiateTransferSchema', () => {
   it('[P0] accepts valid toUserId', () => {
-    const result = initiateTransferSchema.parse({ toUserId: '550e8400-e29b-41d4-a716-446655440000' });
-    expect(result.toUserId).toBe('550e8400-e29b-41d4-a716-446655440000');
+    const toUserId = crypto.randomUUID();
+    const result = initiateTransferSchema.parse({ toUserId });
+    expect(result.toUserId).toBe(toUserId);
   });
 
   it('[P0] rejects non-UUID toUserId', () => {
@@ -120,35 +122,36 @@ describe('initiateTransferSchema', () => {
 
 describe('confirmTransferSchema', () => {
   it('[P0] accepts valid transferId', () => {
-    const result = confirmTransferSchema.parse({ transferId: '550e8400-e29b-41d4-a716-446655440000' });
-    expect(result.transferId).toBe('550e8400-e29b-41d4-a716-446655440000');
+    const transferId = crypto.randomUUID();
+    const result = confirmTransferSchema.parse({ transferId });
+    expect(result.transferId).toBe(transferId);
   });
 });
 
 describe('scopeClientAccessSchema', () => {
   it('[P0] accepts valid UUIDs', () => {
-    const result = scopeClientAccessSchema.parse({
-      userId: '550e8400-e29b-41d4-a716-446655440000',
-      clientId: '660e8400-e29b-41d4-a716-446655440001',
-    });
-    expect(result.userId).toBe('550e8400-e29b-41d4-a716-446655440000');
+    const userId = crypto.randomUUID();
+    const clientId = crypto.randomUUID();
+    const result = scopeClientAccessSchema.parse({ userId, clientId });
+    expect(result.userId).toBe(userId);
   });
 });
 
 describe('revokeSessionSchema', () => {
   it('[P0] accepts valid device UUID', () => {
-    const result = revokeSessionSchema.parse({ deviceId: '550e8400-e29b-41d4-a716-446655440000' });
-    expect(result.deviceId).toBe('550e8400-e29b-41d4-a716-446655440000');
+    const deviceId = crypto.randomUUID();
+    const result = revokeSessionSchema.parse({ deviceId });
+    expect(result.deviceId).toBe(deviceId);
   });
 });
 
 describe('workspaceSchema', () => {
   it('[P0] parses a complete workspace object', () => {
     const ws = {
-      id: '550e8400-e29b-41d4-a716-446655440000',
+      id: crypto.randomUUID(),
       name: 'Test Workspace',
       slug: 'test-workspace',
-      createdBy: '550e8400-e29b-41d4-a716-446655440001',
+      createdBy: crypto.randomUUID(),
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',
       settings: { theme: 'dark' },
@@ -158,7 +161,7 @@ describe('workspaceSchema', () => {
 
   it('[P0] accepts null createdBy', () => {
     const ws = {
-      id: '550e8400-e29b-41d4-a716-446655440000',
+      id: crypto.randomUUID(),
       name: 'Test',
       slug: 'test',
       createdBy: null,
@@ -173,9 +176,9 @@ describe('workspaceSchema', () => {
 describe('workspaceMemberSchema', () => {
   it('[P0] parses a complete member object', () => {
     const member = {
-      id: '550e8400-e29b-41d4-a716-446655440000',
-      workspaceId: '550e8400-e29b-41d4-a716-446655440001',
-      userId: '550e8400-e29b-41d4-a716-446655440002',
+      id: crypto.randomUUID(),
+      workspaceId: crypto.randomUUID(),
+      userId: crypto.randomUUID(),
       role: 'admin',
       status: 'active',
       joinedAt: '2024-01-01T00:00:00Z',
