@@ -73,6 +73,36 @@ When updating BMAD skills or project config, update all three skill directories 
 - **Named exports only** — default exports only for Next.js page components.
 - **No barrel files inside feature folders** — only at package boundaries.
 
+## Graphify Knowledge Graph
+
+A unified knowledge graph of the project exists at `graphify-out/graph.json`. It covers planning artifacts (PRD, architecture, UX, epics), implementation artifacts (stories), code (`apps/web/`, `packages/`), migrations, and tests.
+
+**Before any implementation or planning task:**
+1. Check if `graphify-out/graph.json` exists
+2. If it does, query it for context relevant to your task:
+   - `/graphify query "<your question>"` — broad context
+   - `/graphify path "Concept A" "Concept B"` — trace dependencies
+   - `/graphify explain "Concept"` — understand a concept and its connections
+3. Use graph results alongside standard artifact reads. Do not rely on graph alone.
+
+**After completing any task that changes code or artifacts:**
+1. Run `graphify --update` on the changed directory to keep the graph in sync
+2. Or rely on the git post-commit hook for code-only changes (AST re-extraction, no LLM cost)
+
+**If the graph doesn't exist**, skip graph steps entirely — never block on it. To rebuild from scratch, run graphify on each key directory in order:
+```bash
+graphify _bmad-output/planning-artifacts/ --mode deep --wiki
+graphify _bmad-output/implementation-artifacts/ --update
+graphify apps/web/ --update && graphify packages/ --update
+graphify supabase/migrations/ --update && graphify supabase/tests/ --update && graphify tests/ --update
+```
+
+**Key queries for BMAD workflows:**
+- Requirement traceability: `/graphify path "FR28a" "<code_or_story_node>"`
+- Coverage gaps: query for PRD requirement nodes with no outgoing story/code edges
+- Impact analysis: `/graphify query "what code does story 2-3 touch?"`
+- Sprint quality: query for code nodes with no PRD backing (drift detection)
+
 ## Build/test/lint commands
 
 - `pnpm build` — Turborepo build (packages build before apps)

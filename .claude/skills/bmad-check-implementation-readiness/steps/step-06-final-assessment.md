@@ -58,6 +58,17 @@ Check the {outputFile} for sections added by previous steps:
 
 - File and FR Validation findings
 - UX Alignment issues
+
+### 2b. Graph Coverage Analysis (Optional)
+
+If `graphify-out/graph.json` exists at the project root, enrich the assessment with graph-based analysis:
+
+1. **Coverage Gaps**: Use the `bmad-graphify-query` skill in `coverage` mode to find PRD requirements with no story or code edges
+2. **Drift Detection**: Use the `bmad-graphify-query` skill in `drift` mode to find code with no PRD backing
+3. **Ambiguous Relationships**: Check the graph for edges tagged `AMBIGUOUS` between planning artifacts — these indicate uncertain relationships between specs that should be resolved before implementation
+4. Add findings to the report as a "Graph Coverage Analysis" section
+
+If no graph exists, proceed with text-based analysis only. Do not block.
 - Epic Quality violations
 
 ### 3. Add Final Assessment Section

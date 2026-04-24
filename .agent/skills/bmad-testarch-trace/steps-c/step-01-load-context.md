@@ -118,6 +118,18 @@ If available:
 
 Summarize what was found and explicitly state the resolved oracle, its confidence, and why that oracle was selected.
 
+### 3b. Graph Traceability Enrichment (Optional)
+
+If `graphify-out/graph.json` exists at the project root:
+
+1. Use the `bmad-graphify-query` skill in `path` mode to trace key FR IDs through stories to code to tests:
+   - Example: `/graphify path "FR28a" "gmail_oauth"` to verify the requirement chain
+2. Use the `bmad-graphify-query` skill in `coverage` mode to find FR IDs with no test edges
+3. Graph paths reveal actual traceability chains that may differ from documented ones
+4. Include graph-enriched paths in the traceability matrix as supplementary evidence
+
+If no graph exists, proceed with artifact-based tracing only. Do not block.
+
 ---
 
 ### 4. Save Progress

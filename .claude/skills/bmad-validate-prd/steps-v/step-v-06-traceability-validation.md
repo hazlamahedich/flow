@@ -117,6 +117,17 @@ If Task tool unavailable, perform analysis directly:
 - Note orphan FRs
 - Identify broken chains
 
+### 2b. Graph Coverage Analysis (Optional)
+
+If `graphify-out/graph.json` exists at the project root:
+
+1. Use the `bmad-graphify-query` skill in `coverage` mode to find PRD requirements with no story or code edges
+2. Cross-reference graph coverage findings with the text-based traceability matrix above
+3. Graph findings may reveal orphans not visible in text analysis (e.g., FRs mentioned across multiple documents but never traced to implementation)
+4. Include graph findings as supplementary evidence in the traceability report
+
+If no graph exists, skip this section entirely. Do not block.
+
 ### 3. Tally Traceability Issues
 
 **Broken chains:**

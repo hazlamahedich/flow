@@ -245,6 +245,18 @@ Load config from `{project-root}/_bmad/bmm/config.yaml` and resolve:
     </action>
     <action>Extract actionable insights for current story implementation</action>
   </check>
+
+  <!-- Graph context enrichment -->
+  <check if="graphify-out/graph.json exists at project root">
+    <action>Use the bmad-graphify-query skill in query mode: "what code and artifacts relate to story {{epic_num}}-{{story_num}}?"</action>
+    <action>Use the bmad-graphify-query skill in path mode: trace relevant FR IDs to existing code</action>
+    <action>If graph reveals dependencies, conflicts, or related work not visible in artifacts, include them in story context</action>
+    <action>If graph reveals existing code that this story will modify, note it for the developer</action>
+    <note>Graph results supplement — not replace — standard artifact reads. Use both.</note>
+  </check>
+  <check if="graphify-out/graph.json does NOT exist">
+    <action>Skip graph context entirely. Do not block the workflow.</action>
+  </check>
 </step>
 
 <step n="3" goal="Architecture analysis for developer guardrails">
@@ -359,6 +371,13 @@ Load config from `{project-root}/_bmad/bmm/config.yaml` and resolve:
   </check>
 
   <action>Report completion</action>
+
+  <!-- Graph update -->
+  <check if="graphify is available AND story file was created successfully">
+    <action>Run graphify --update on _bmad-output/implementation-artifacts/ to include the new story in the graph</action>
+    <note>Do not block if graph update fails. Story creation is the primary output.</note>
+  </check>
+
   <output>**🎯 ULTIMATE BMad Method STORY CONTEXT CREATED, {user_name}!**
 
     **Story Details:**

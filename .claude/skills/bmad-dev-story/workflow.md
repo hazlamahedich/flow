@@ -180,6 +180,19 @@ Load config from `{project-root}/_bmad/bmm/config.yaml` and resolve:
     <action>Load comprehensive context from story file's Dev Notes section</action>
     <action>Extract developer guidance from Dev Notes: architecture requirements, previous learnings, technical specifications</action>
     <action>Use enhanced story context to inform implementation decisions and approaches</action>
+
+    <!-- Graph impact analysis -->
+    <check if="graphify-out/graph.json exists at project root">
+      <action>Use the bmad-graphify-query skill in impact mode for {{story_key}}</action>
+      <action>Use the bmad-graphify-query skill in query mode: "what tests cover the area this story will change?"</action>
+      <action>If graph reveals existing code that will be affected, note it for careful modification</action>
+      <action>If graph reveals existing tests covering related code, reference them in implementation plan</action>
+      <note>Graph results supplement — not replace — story file context. Use both.</note>
+    </check>
+    <check if="graphify-out/graph.json does NOT exist">
+      <action>Skip graph context entirely. Do not block the workflow.</action>
+    </check>
+
     <output>✅ **Context Loaded**
       Story and project context available for implementation
     </output>
@@ -425,6 +438,13 @@ Load config from `{project-root}/_bmad/bmm/config.yaml` and resolve:
       - Any patterns, libraries, or approaches used
       - Anything else they'd like clarified
     </action>
+
+    <!-- Graph update after implementation -->
+    <check if="graphify is available AND story implementation completed">
+      <action>Run graphify --update on the code directories that were changed (apps/web/ and/or packages/)</action>
+      <note>Do not block if graph update fails. Story implementation is the primary output.</note>
+      <note>The git post-commit hook will also handle this for code-only changes.</note>
+    </check>
 
     <check if="user asks for explanations">
       <action>Provide clear, contextual explanations tailored to {user_skill_level}</action>
