@@ -3,6 +3,7 @@ import { requireTenantContext, getUserAgentConfiguration } from '@flow/db';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { AgentDetailClient } from './agent-detail-client';
+import { TrustSection } from './_components/trust-section';
 import type { AgentId } from '@flow/types';
 
 const AGENT_META: Record<string, { label: string; description: string; icon: string }> = {
@@ -37,16 +38,19 @@ export default async function AgentDetailPage({ params }: { params: Promise<{ ag
   const row = config as Record<string, unknown> | null;
 
   return (
-    <AgentDetailClient
-      agentId={agentId as AgentId}
-      label={meta.label}
-      description={meta.description}
-      icon={meta.icon}
-      status={(row?.status as string) ?? 'inactive'}
-      setupCompleted={(row?.setup_completed as boolean) ?? false}
-      lifecycleVersion={(row?.lifecycle_version as number) ?? 0}
-      schedule={row?.schedule as Record<string, unknown> | null}
-      triggerConfig={row?.trigger_config as Record<string, unknown> | null}
-    />
+    <div className="space-y-8">
+      <AgentDetailClient
+        agentId={agentId as AgentId}
+        label={meta.label}
+        description={meta.description}
+        icon={meta.icon}
+        status={(row?.status as string) ?? 'inactive'}
+        setupCompleted={(row?.setup_completed as boolean) ?? false}
+        lifecycleVersion={(row?.lifecycle_version as number) ?? 0}
+        schedule={row?.schedule as Record<string, unknown> | null}
+        triggerConfig={row?.trigger_config as Record<string, unknown> | null}
+      />
+      <TrustSection agentId={agentId} />
+    </div>
   );
 }

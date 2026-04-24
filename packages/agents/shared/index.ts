@@ -1,7 +1,7 @@
 export { writeAuditLog } from './audit-writer';
 export type { AuditLogParams } from './audit-writer';
-export { getTrustTier } from './trust-client';
-export type { TrustTier } from './trust-client';
+export { createTrustClient } from './trust-client';
+export type { TrustClient, TrustClientDeps, TrustLevel } from './trust-client';
 export { tokenizePII, detokenizePII } from './pii-tokenizer';
 export type { PIIToken } from './pii-tokenizer';
 export { createLLMRouter } from './llm-router';

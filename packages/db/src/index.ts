@@ -63,3 +63,18 @@ export {
   hasBudgetAlertThisPeriod,
 } from './queries/agents';
 export type { CostLogEntry, CostLogRow } from './queries/agents';
+export {
+  getTrustMatrix,
+  getTrustMatrixEntry,
+  upsertTrustMatrixEntry,
+  updateTrustMatrixEntry,
+  recordSuccess as recordTrustSuccess,
+  recordViolation as recordTrustViolation,
+  insertTransition,
+  getTransitions,
+  insertSnapshot,
+  getSnapshotByExecution,
+  getPreconditions,
+  upsertPrecondition,
+  deletePrecondition,
+} from './queries/trust';

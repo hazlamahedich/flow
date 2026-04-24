@@ -175,6 +175,9 @@ importers:
       '@flow/shared':
         specifier: workspace:*
         version: link:../shared
+      '@flow/trust':
+        specifier: workspace:*
+        version: link:../trust
       '@flow/types':
         specifier: workspace:*
         version: link:../types
@@ -242,6 +245,9 @@ importers:
       '@flow/shared':
         specifier: workspace:*
         version: link:../shared
+      '@flow/trust':
+        specifier: workspace:*
+        version: link:../trust
       '@flow/types':
         specifier: workspace:*
         version: link:../types
@@ -391,6 +397,31 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^3.2.0
+        version: 3.2.4(@types/node@25.6.0)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(tsx@4.21.0)
+
+  packages/trust:
+    dependencies:
+      '@flow/types':
+        specifier: workspace:*
+        version: link:../types
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@flow/config':
+        specifier: workspace:*
+        version: link:../config
+      '@flow/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      tsup:
+        specifier: ^8.4.0
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.10)(tsx@4.21.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
         version: 3.2.4(@types/node@25.6.0)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(tsx@4.21.0)
 
   packages/types:

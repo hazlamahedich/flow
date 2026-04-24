@@ -6,7 +6,7 @@ import { weeklyReportInputSchema, weeklyReportProposalSchema } from '../weekly-r
 import { clientHealthInputSchema, clientHealthProposalSchema } from '../client-health/schemas';
 import { timeIntegrityInputSchema, timeIntegrityProposalSchema } from '../time-integrity/schemas';
 import { writeAuditLog } from '../shared/audit-writer';
-import { getTrustTier } from '../shared/trust-client';
+import { createTrustClient } from '../shared/trust-client';
 import { tokenizePII, detokenizePII } from '../shared/pii-tokenizer';
 import { createLLMRouter } from '../shared/llm-router';
 import { CircuitBreaker } from '../shared/circuit-breaker';
@@ -34,8 +34,8 @@ describe('TC-19: Shared utility stubs exist with expected exports', () => {
     expect(typeof writeAuditLog).toBe('function');
   });
 
-  it('trust-client exports getTrustTier function', () => {
-    expect(typeof getTrustTier).toBe('function');
+  it('trust-client exports createTrustClient function', () => {
+    expect(typeof createTrustClient).toBe('function');
   });
 
   it('pii-tokenizer exports tokenizePII and detokenizePII functions', () => {

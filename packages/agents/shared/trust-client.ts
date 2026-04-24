@@ -1,8 +1,3 @@
-export type TrustTier = 'supervised' | 'assisted' | 'autonomous';
-
-export async function getTrustTier(
-  _agentId: string,
-  _workspaceId: string,
-): Promise<TrustTier> {
-  return 'supervised';
-}
+export { createTrustClient } from '@flow/trust';
+export type { TrustClient, TrustClientDeps } from '@flow/trust';
+export type { TrustLevel } from '@flow/trust';
