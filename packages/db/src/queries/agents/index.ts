@@ -10,3 +10,31 @@ export {
   findStaleRuns,
   releaseRun,
 } from './runs';
+export {
+  getAgentConfigurations,
+  getActiveAgentCount,
+  getAgentConfiguration,
+  transitionAgentStatus,
+  updateAgentConfig,
+  markSetupCompleted,
+  updateIntegrationHealth,
+  upsertAgentConfiguration,
+  AgentTransitionError,
+} from './configurations';
+export {
+  getUserAgentConfigurations,
+  getUserActiveAgentCount,
+  getUserAgentConfiguration,
+} from './configurations-user';
+export {
+  insertCostLog,
+  insertCostEstimate,
+  getWorkspaceSpend,
+  getDailySpend,
+  checkBudgetThreshold,
+} from './cost-logs';
+export type { CostLogEntry, CostLogRow } from './cost-logs';
+export {
+  writeBudgetAuditAlert,
+  hasBudgetAlertThisPeriod,
+} from './budget-audit';

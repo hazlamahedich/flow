@@ -46,10 +46,8 @@ describe('TC-19: Shared utility stubs exist with expected exports', () => {
   it('llm-router exports createLLMRouter function', () => {
     expect(typeof createLLMRouter).toBe('function');
     const router = createLLMRouter();
-    expect(typeof router.categorize).toBe('function');
-    expect(typeof router.extract).toBe('function');
-    expect(typeof router.draft).toBe('function');
-    expect(typeof router.report).toBe('function');
+    expect(typeof router.complete).toBe('function');
+    expect(typeof router.isHealthy).toBe('function');
   });
 
   it('circuit-breaker exports CircuitBreaker class', () => {

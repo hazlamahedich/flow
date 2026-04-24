@@ -13,8 +13,10 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@flow/agents": "workspace:*",
     "@flow/auth": "workspace:*",
     "@flow/db": "workspace:*",
+    "@flow/shared": "workspace:*",
     "@flow/tokens": "workspace:*",
     "@flow/types": "workspace:*",
     "@flow/ui": "workspace:*",

@@ -7,7 +7,8 @@ export type CacheEntity =
   | 'user'
   | 'audit_log'
   | 'app_config'
-  | 'dashboard';
+  | 'dashboard'
+  | 'agent_configuration';
 
 export type CacheMutation = 'create' | 'update' | 'delete';
 
@@ -21,6 +22,7 @@ const ENTITY_TAG_MAP: Record<CacheEntity, string> = {
   audit_log: 'audit_logs',
   app_config: 'app_config',
   dashboard: 'dashboard',
+  agent_configuration: 'agents',
 };
 
 export function cacheTag(

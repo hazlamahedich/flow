@@ -95,4 +95,13 @@
 - propose() doesn't notify pg-boss — job expires after 5min if approval is slow. Defer to Epic 2 stories 5-6 when approval UI is designed. `pg-boss-worker.ts:121-134`
 - Per-call createServiceClient() — connection overhead under load. Tech debt ticket for Epic 3 when load data exists. `packages/db/src/queries/agents/`
 - findStaleRuns has no result limit — mass outage could return thousands of runs. `runs.ts:139-148`
-- isUniqueViolation relies on fragile string matching — driver update could break detection. `pg-boss-producer.ts:148-156`
+ - isUniqueViolation relies on fragile string matching — driver update could break detection. `pg-boss-producer.ts:148-156`
+
+## Deferred from: code review of 2-2-agent-activation-configuration-scheduling (2026-04-24)
+
+- Budget monitor TOCTOU on concurrent requests — soft guard limitation; concurrent tasks can collectively exceed budget before check completes. Acceptable as soft guard, document limitation. `budget-monitor.ts`
+- Hardcoded LLM pricing will go stale — model prices change quarterly. Operational concern, not a code defect. `llm-router.ts:43-48`
+- Tasks 6, 7, 9.3, 10 not in diff — Server Actions, UI components, budget audit logging, pgTAP/integration/E2E tests absent. Track as remaining work items.
+- AC#14 guided empty state — no `recommended_order` or `prerequisites` fields in schema. Belongs to Task 7 (UI) implementation.
+- `getDailySpend` timezone sensitivity — `setHours` uses server local time. Requires workspace timezone context not yet available. `cost-logs.ts:79-87`
+- `suspended → inactive` only path — intentional per spec: "re-activation goes through `activating` again." By design. `agent-transitions.ts:8`

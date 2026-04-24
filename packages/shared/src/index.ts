@@ -33,3 +33,12 @@ export {
   pruneExpired,
   measureSnapshot,
 } from './undo/undo-stack';
+
+export {
+  ALLOWED_TRANSITIONS,
+  isValidTransition,
+  assertTransition,
+  AgentTransitionError as SharedAgentTransitionError,
+} from './agent-transitions';
+export { deriveUIStatus } from './derive-agent-ui-status';
+export { type CircuitBreakerPort, NOOP_CIRCUIT_BREAKER } from './resilience/types';

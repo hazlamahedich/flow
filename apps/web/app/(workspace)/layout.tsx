@@ -1,6 +1,6 @@
 import { WorkspaceShellClient } from './workspace-shell-client';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { listUserWorkspaces } from '@flow/db';
+import { listUserWorkspaces, getActiveAgentCount } from '@flow/db';
 import { switchWorkspace } from './actions/switch-workspace';
 import { redirect } from 'next/navigation';
 
@@ -18,20 +18,15 @@ export default async function WorkspaceLayout({
     redirect('/login');
   }
 
-  let agentCount = 1;
+  let agentCount = 0;
   const workspaceId = session.user.app_metadata.workspace_id as string | undefined;
 
-  try {
-    if (typeof workspaceId === 'string' && workspaceId.length > 0) {
-      const { count } = await supabase
-        .from('agent_configurations')
-        .select('*', { count: 'exact', head: true })
-        .eq('workspace_id', workspaceId)
-        .eq('is_active', true);
-      agentCount = count ?? 0;
+  if (typeof workspaceId === 'string' && workspaceId.length > 0) {
+    try {
+      agentCount = await getActiveAgentCount(workspaceId);
+    } catch {
+      agentCount = 0;
     }
-  } catch {
-    agentCount = 1;
   }
 
   if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEV_AGENT_COUNT) {

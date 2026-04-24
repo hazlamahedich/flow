@@ -5,3 +5,5 @@ export type { OrchestratorHandle } from './factory';
 export { OrchestratorError } from './errors';
 export { AgentJobPayloadSchema } from './schemas';
 export type { AgentJobPayload } from './schemas';
+export { beginDrain, completeDrain } from './agent-lifecycle';
+export type { AffectedRun, DeactivationResult } from './agent-lifecycle';

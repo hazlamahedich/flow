@@ -8,6 +8,9 @@ export {
   agentProposalSchema,
   VALID_RUN_TRANSITIONS,
   signalTypePattern,
+  agentScheduleSchema,
+  agentTriggerConfigSchema,
+  agentLLMPreferencesSchema,
 } from './agents';
 export type {
   AgentRunStatus,
@@ -19,7 +22,16 @@ export type {
   AgentRunResult,
   RunListFilter,
   AgentRunSummary,
+  AgentScheduleConfig,
+  AgentTriggerConfig,
+  AgentLLMPreferences,
 } from './agents';
+export type {
+  AgentBackendStatus,
+  IntegrationHealth,
+  AgentUIStatus,
+  AgentContext,
+} from './agent-status';
 export {
   RoleEnum,
   MemberStatusEnum,

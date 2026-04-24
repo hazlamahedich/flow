@@ -9,3 +9,5 @@ export { auditLog } from './audit-log';
 export { userDevices } from './user-devices';
 export { agentIdTypeEnum, agentSignals } from './agent-signals';
 export { agentRunStatusEnum, agentRuns } from './agent-runs';
+export { agentStatusEnum, integrationHealthEnum, agentConfigurations } from './agent-configurations';
+export { llmCostLogs } from './llm-cost-logs';

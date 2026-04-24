@@ -10,9 +10,11 @@ export default defineConfig({
     alias: {
       '@flow/types': path.resolve(__dirname, '../types/src/index.ts'),
       '@flow/db': path.resolve(__dirname, '../db/src/index.ts'),
+      '@flow/shared': path.resolve(__dirname, '../shared/src/index.ts'),
       '@flow/agents': path.resolve(__dirname, 'index.ts'),
       '@flow/agents/orchestrator/transition-map': path.resolve(__dirname, 'orchestrator/transition-map.ts'),
       '@flow/agents/orchestrator/types': path.resolve(__dirname, 'orchestrator/types.ts'),
+      '@flow/agents/orchestrator/agent-lifecycle': path.resolve(__dirname, 'orchestrator/agent-lifecycle.ts'),
       '@flow/db/schema/agent-runs': path.resolve(__dirname, '../db/src/schema/agent-runs.ts'),
       '@flow/db/schema/agent-signals': path.resolve(__dirname, '../db/src/schema/agent-signals.ts'),
     },

@@ -167,3 +167,46 @@ export const VALID_RUN_TRANSITIONS = {
 } as const satisfies Record<AgentRunStatus, readonly AgentRunStatus[]>;
 
 export const signalTypePattern = /^[a-z-]+\.[a-z]+\.[a-z]+$/;
+
+export type AgentScheduleConfig =
+  | { type: 'always'; timezone: string }
+  | { type: 'business_hours'; timezone: string; days: number[]; startHour: number; endHour: number }
+  | { type: 'custom'; cron: string; timezone: string }
+  | { type: 'manual' };
+
+export const agentScheduleSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('always'), timezone: z.string() }),
+  z.object({
+    type: z.literal('business_hours'),
+    timezone: z.string(),
+    days: z.array(z.number().int().min(0).max(6)),
+    startHour: z.number().int().min(0).max(23),
+    endHour: z.number().int().min(0).max(23),
+  }),
+  z.object({ type: z.literal('custom'), cron: z.string(), timezone: z.string() }),
+  z.object({ type: z.literal('manual') }),
+]);
+
+export interface AgentTriggerConfig {
+  onNewEmail?: boolean;
+  onScheduleConflict?: boolean;
+  onInvoiceOverdue?: { daysOverdue: number };
+  onRetainerThreshold?: { percentage: number };
+}
+
+export const agentTriggerConfigSchema = z.object({
+  onNewEmail: z.boolean().optional(),
+  onScheduleConflict: z.boolean().optional(),
+  onInvoiceOverdue: z.object({ daysOverdue: z.number().int().min(1) }).optional(),
+  onRetainerThreshold: z.object({ percentage: z.number().min(0).max(100) }).optional(),
+});
+
+export interface AgentLLMPreferences {
+  preferredProvider?: 'groq' | 'anthropic';
+  qualityMode?: 'fast' | 'quality';
+}
+
+export const agentLLMPreferencesSchema = z.object({
+  preferredProvider: z.enum(['groq', 'anthropic']).optional(),
+  qualityMode: z.enum(['fast', 'quality']).optional(),
+});
