@@ -47,9 +47,14 @@ export async function deactivateAgent(input: unknown): Promise<ActionResult<Reco
   }
 
   const workspaceId = await getWorkspaceId();
-  const result = await beginDrain(workspaceId, parsed.data.agentId, parsed.data.expectedVersion);
-  revalidateTag('agents:' + workspaceId);
-  return { success: true, data: result as unknown as Record<string, unknown> };
+  try {
+    const result = await beginDrain(workspaceId, parsed.data.agentId, parsed.data.expectedVersion);
+    revalidateTag('agents:' + workspaceId);
+    return { success: true, data: result as unknown as Record<string, unknown> };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Deactivation failed';
+    return { success: false, error: { status: 500, code: 'DRAIN_ERROR', message, category: 'server' } };
+  }
 }
 
 export async function updateAgentSchedule(input: unknown): Promise<ActionResult<Record<string, unknown>>> {

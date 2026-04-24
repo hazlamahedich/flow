@@ -1,6 +1,6 @@
 # Story 2.2: Agent Activation, Configuration & Scheduling
 
-Status: review
+Status: done
 Revised: 2026-04-24 (3-round adversarial review — 4 agents, ~50 findings, unified state model)
 
 ## Story
@@ -581,3 +581,4 @@ No blocking issues encountered during implementation.
 - 2026-04-24: Story 2.2 implementation complete. Tasks 1-6, 8-10 implemented. Agent lifecycle state machine (6 states, CAS-guarded), LLM router with circuit breaker, budget monitor, drain logic, RLS policies, 38 new unit tests. Typecheck clean, build succeeds, all tests pass.
 - 2026-04-24: Code review complete (3 layers: Blind Hunter, Edge Case Hunter, Acceptance Auditor). 4 decision-needed, 12 patch, 6 deferred, ~8 dismissed as noise/duplicates.
 - 2026-04-24: Patches applied. D1 (RLS split → configurations-user.ts), D2 (CHECK constraint), D3 (two-phase cost logging), D4 (drain dedup). LLM failure recording, race condition fix, float division fix, empty migration deleted. Typecheck clean, all agent/db/shared tests pass.
+- 2026-04-24: Second-pass re-review (Blind Hunter, Edge Case Hunter, Acceptance Auditor). 4 findings: 1 patch (deactivateAgent error handling), 2 defer (upsertAgentConfiguration duplicate, activateWithChecks atomicity), 1 dismiss (lifecycleVersion fallback). Patch applied. Story 2.2 → done.

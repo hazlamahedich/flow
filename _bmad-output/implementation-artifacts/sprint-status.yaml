@@ -4,7 +4,8 @@
 # last_updated: 2026-04-23 (story 2-1a complete, moved to review)
 # last_updated: 2026-04-24 (story 2-1b code review complete, all patches applied, status → done)
 # last_updated: 2026-04-24 (story 2-2 created, status → ready-for-dev)
-# last_updated: 2026-04-24 (story 2-2 revised after 3-round adversarial review, 4 agents, ~50 findings resolved)
+# last_updated: 2026-04-24 (story 2-2 code review complete, all patches applied, status → done)
+# last_updated: 2026-04-24 (story 2-3 created, status → ready-for-dev)
 # project: flow
 # project_key: NOKEY
 # tracking_system: file-system
@@ -40,7 +41,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-20
-last_updated: 2026-04-24T18:00:00Z
+last_updated: 2026-04-24T22:00:00Z
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -69,8 +70,8 @@ development_status:
   2-1-agent-orchestrator-core-signal-schema: backlog
   2-1a-agent-orchestrator-interface-schema-foundation: done
   2-1b-pg-boss-implementation-recovery-idempotency: done
-  2-2-agent-activation-configuration-scheduling: review
-  2-3-trust-matrix-graduation-system: backlog
+  2-2-agent-activation-configuration-scheduling: done
+  2-3-trust-matrix-graduation-system: ready-for-dev
   2-4-pre-check-post-check-gates: backlog
   2-5-agent-approval-queue-keyboard-triage: backlog
   2-6-agent-badge-system-trust-progression-ui: backlog
