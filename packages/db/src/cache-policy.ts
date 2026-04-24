@@ -9,7 +9,8 @@ export type CacheEntity =
   | 'app_config'
   | 'dashboard'
   | 'agent_configuration'
-  | 'trust_matrix';
+  | 'trust_matrix'
+  | 'trust_preconditions';
 
 export type CacheMutation = 'create' | 'update' | 'delete';
 
@@ -25,6 +26,7 @@ const ENTITY_TAG_MAP: Record<CacheEntity, string> = {
   dashboard: 'dashboard',
   agent_configuration: 'agents',
   trust_matrix: 'trust',
+  trust_preconditions: 'trust',
 };
 
 export function cacheTag(

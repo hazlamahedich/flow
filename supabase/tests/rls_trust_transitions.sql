@@ -4,7 +4,7 @@
 
 BEGIN;
 
-SELECT plan(10);
+SELECT plan(12);
 
 INSERT INTO workspaces (id, name, slug) VALUES
   ('a0000000-0000-0000-0000-000000000001', 'WS Alpha', 'pgtap-tt-alpha'),

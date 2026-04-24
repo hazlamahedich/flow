@@ -40,7 +40,7 @@ export function TrustLevelSelect({ value, onChange, disabled }: TrustLevelSelect
         <Badge variant={config.badge}>{config.label}</Badge>
       </div>
       <div className="flex gap-2">
-        {(Object.entries(LEVEL_CONFIG) as [TrustLevel, typeof config][]).map(([level, cfg]) => (
+        {(Object.entries(LEVEL_CONFIG) as [TrustLevel, (typeof LEVEL_CONFIG)[TrustLevel]][]).map(([level, cfg]) => (
           <button
             key={level}
             type="button"

@@ -18,6 +18,7 @@
     "@flow/db": "workspace:*",
     "@flow/shared": "workspace:*",
     "@flow/tokens": "workspace:*",
+    "@flow/trust": "workspace:*",
     "@flow/types": "workspace:*",
     "@flow/ui": "workspace:*",
     "@supabase/ssr": "^0.10.2",

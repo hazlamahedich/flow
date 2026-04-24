@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { canGraduate, COOLDOWN_DAYS, CONTEXT_SHIFT_COOLDOWN_DAYS } from '../src/graduation';
+import { evaluateContextShift } from '../src/graduation';
 
 describe('graduation cooldown', () => {
   it('blocks graduation during cooldown', () => {
@@ -138,5 +139,13 @@ describe('graduation cooldown', () => {
         lastViolationAt: old,
       }),
     ).toBe(true);
+  });
+
+  it('context-shift applies 3-day re-graduation cooldown', () => {
+    const thirtyOneDaysAgo = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000);
+    const result = evaluateContextShift('auto', thirtyOneDaysAgo);
+    expect(result.shouldShift).toBe(true);
+    expect(result.targetLevel).toBe('confirm');
+    expect(CONTEXT_SHIFT_COOLDOWN_DAYS).toBe(3);
   });
 });

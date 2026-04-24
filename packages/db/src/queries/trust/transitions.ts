@@ -51,10 +51,11 @@ export async function getTransitions(
       .eq('workspace_id', workspaceId)
       .eq('agent_id', agentId);
     if (error) throw error;
-    if (data.length > 0) {
-      const ids = data.map((r: { id: string }) => r.id);
-      query = query.in('matrix_entry_id', ids);
+    if (data.length === 0) {
+      return [];
     }
+    const ids = data.map((r: { id: string }) => r.id);
+    query = query.in('matrix_entry_id', ids);
   }
   if (limit) {
     query = query.limit(limit);

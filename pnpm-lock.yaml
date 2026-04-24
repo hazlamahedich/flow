@@ -75,6 +75,9 @@ importers:
       '@flow/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
+      '@flow/trust':
+        specifier: workspace:*
+        version: link:../../packages/trust
       '@flow/types':
         specifier: workspace:*
         version: link:../../packages/types

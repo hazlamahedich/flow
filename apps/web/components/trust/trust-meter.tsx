@@ -1,19 +1,21 @@
 'use client';
 
+import { CONFIRM_THRESHOLD_SCORE as CONFIRM_THRESHOLD, AUTO_THRESHOLD_SCORE as AUTO_THRESHOLD } from '@flow/trust';
+
 interface TrustMeterProps {
   score: number;
 }
 
+const MAX_SCORE = 200;
+
 export function TrustMeter({ score }: TrustMeterProps) {
-  const clamped = Math.max(0, Math.min(1000, score));
-  const pct = (clamped / 1000) * 100;
+  const clamped = Math.max(0, Math.min(MAX_SCORE, score));
+  const pct = (clamped / MAX_SCORE) * 100;
 
   let color: string;
-  if (clamped < 200) {
+  if (clamped < CONFIRM_THRESHOLD) {
     color = 'var(--flow-emotion-trust-betrayed)';
-  } else if (clamped < 500) {
-    color = 'var(--flow-emotion-tension)';
-  } else if (clamped < 700) {
+  } else if (clamped < AUTO_THRESHOLD) {
     color = 'var(--flow-emotion-trust-building)';
   } else {
     color = 'var(--flow-emotion-trust-auto)';
@@ -32,7 +34,7 @@ export function TrustMeter({ score }: TrustMeterProps) {
           role="progressbar"
           aria-valuenow={clamped}
           aria-valuemin={0}
-          aria-valuemax={1000}
+          aria-valuemax={MAX_SCORE}
           aria-label="Trust score"
         />
       </div>

@@ -4,7 +4,7 @@
 
 BEGIN;
 
-SELECT plan(8);
+SELECT plan(11);
 
 INSERT INTO workspaces (id, name, slug) VALUES
   ('a0000000-0000-0000-0000-000000000001', 'WS Alpha', 'pgtap-tp-alpha'),
@@ -57,7 +57,7 @@ SELECT results_eq(
 );
 RESET ROLE;
 
--- TC-03: Workspace isolation — cannot SELECT other workspace
+-- TC-03: Workspace isolation
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-000000000004", "workspace_id": "a0000000-0000-0000-0000-000000000002", "role": "owner"}', false);
 SELECT results_eq(
@@ -76,17 +76,12 @@ SELECT lives_ok(
 );
 RESET ROLE;
 
--- TC-05: Member cannot INSERT preconditions
+-- TC-05: Member cannot INSERT (WITH CHECK fails)
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-000000000003", "workspace_id": "a0000000-0000-0000-0000-000000000001", "role": "member"}', false);
 SELECT throws_ok(
   $$ INSERT INTO trust_preconditions (workspace_id, agent_id, action_type, condition_key, condition_expr) VALUES ('a0000000-0000-0000-0000-000000000001', 'inbox', 'general', 'unauthorized', 'true') $$,
   '42501'
-);
-SELECT is(
-  (SELECT count(*) FROM trust_preconditions WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' AND condition_key = 'unauthorized'),
-  0::bigint,
-  'TC-05: member insert was blocked'
 );
 RESET ROLE;
 
@@ -108,17 +103,31 @@ SELECT lives_ok(
 );
 RESET ROLE;
 
--- TC-08: Member cannot DELETE
+-- TC-08: Member cannot DELETE (rows filtered by RLS)
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-000000000003", "workspace_id": "a0000000-0000-0000-0000-000000000001", "role": "member"}', false);
-SELECT throws_ok(
+SELECT lives_ok(
   $$ DELETE FROM trust_preconditions WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' $$,
-  '42501'
+  'TC-08a: member delete does not throw'
 );
 SELECT is(
   (SELECT count(*) FROM trust_preconditions WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001'),
   2::bigint,
-  'TC-08: member delete was blocked'
+  'TC-08b: member delete had no effect'
+);
+RESET ROLE;
+
+-- TC-09: Owner can UPDATE preconditions
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-000000000001", "workspace_id": "a0000000-0000-0000-0000-000000000001", "role": "owner"}', false);
+SELECT lives_ok(
+  $$ UPDATE trust_preconditions SET is_active = false WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' AND condition_key = 'workday' $$,
+  'TC-09a: owner can update precondition'
+);
+SELECT is(
+  (SELECT is_active FROM trust_preconditions WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' AND condition_key = 'workday'),
+  false,
+  'TC-09b: precondition was updated'
 );
 RESET ROLE;
 

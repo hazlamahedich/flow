@@ -4,7 +4,7 @@
 
 BEGIN;
 
-SELECT plan(12);
+SELECT plan(19);
 
 INSERT INTO workspaces (id, name, slug) VALUES
   ('a0000000-0000-0000-0000-000000000001', 'WS Alpha', 'pgtap-tm-alpha'),
@@ -150,6 +150,42 @@ SELECT throws_ok(
   $$ INSERT INTO trust_matrix (workspace_id, agent_id, action_type, current_level, score, version) VALUES ('a0000000-0000-0000-0000-000000000001', 'time-integrity', 'general', 'supervised', 201, 1) $$,
   '23514'
 );
+
+-- TC-13: No DELETE policy for authenticated — owner cannot DELETE
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-000000000001", "workspace_id": "a0000000-0000-0000-0000-000000000001", "role": "owner"}', false);
+SELECT lives_ok(
+  $$ DELETE FROM trust_matrix WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' AND agent_id = 'weekly-report' $$,
+  'TC-13a: owner delete does not throw'
+);
+SELECT is(
+  (SELECT count(*) FROM trust_matrix WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001'),
+  4,
+  'TC-13b: owner delete had no effect (no DELETE policy)'
+);
+RESET ROLE;
+
+-- TC-14: Counter CHECK — successful_executions > total_executions rejected
+SELECT throws_ok(
+  $$ INSERT INTO trust_matrix (workspace_id, agent_id, action_type, current_level, score, version, total_executions, successful_executions) VALUES ('a0000000-0000-0000-0000-000000000001', 'time-integrity', 'general', 'supervised', 0, 1, 5, 10) $$,
+  '23514'
+);
+
+-- TC-15: Counter CHECK — negative total_executions rejected
+SELECT throws_ok(
+  $$ INSERT INTO trust_matrix (workspace_id, agent_id, action_type, current_level, score, version, total_executions) VALUES ('a0000000-0000-0000-0000-000000000001', 'time-integrity', 'general2', 'supervised', 0, 1, -1) $$,
+  '23514'
+);
+
+-- TC-16: updated_at auto-updates on row modification
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-000000000001", "workspace_id": "a0000000-0000-0000-0000-000000000001", "role": "owner"}', false);
+SELECT isnt(
+  (SELECT updated_at FROM trust_matrix WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' AND agent_id = 'inbox'),
+  NULL,
+  'TC-16: updated_at is set after update'
+);
+RESET ROLE;
 
 SELECT * FROM finish();
 ROLLBACK;

@@ -1,5 +1,6 @@
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, getTrustMatrixEntry, getTransitions, getPreconditions } from '@flow/db';
+import type { TrustTransitionDbRow, TrustPreconditionDbRow } from '@flow/db';
 import { TrustDetailPanel } from '@/components/trust/trust-detail-panel';
 import type { TrustLevel } from '@flow/trust';
 
@@ -23,18 +24,18 @@ export async function TrustSection({ agentId }: TrustSectionProps) {
     <TrustDetailPanel
       agentId={agentId}
       initialEntry={entry ? { ...entry, current_level: (entry.current_level as TrustLevel) ?? 'supervised' } : null}
-      initialTransitions={transitions.map((t: Record<string, unknown>) => ({
-        id: t.id as string,
-        from_level: t.from_level as string,
-        to_level: t.to_level as string,
-        trigger_type: t.trigger_type as string,
-        trigger_reason: t.trigger_reason as string,
-        created_at: t.created_at as string,
+      initialTransitions={transitions.map((t: TrustTransitionDbRow) => ({
+        id: t.id,
+        from_level: t.from_level,
+        to_level: t.to_level,
+        trigger_type: t.trigger_type,
+        trigger_reason: t.trigger_reason,
+        created_at: t.created_at,
       }))}
-      initialPreconditions={preconditions.map((p: Record<string, unknown>) => ({
-        id: p.id as string,
-        condition_key: p.condition_key as string,
-        condition_expr: p.condition_expr as string,
+      initialPreconditions={preconditions.map((p: TrustPreconditionDbRow) => ({
+        id: p.id,
+        condition_key: p.condition_key,
+        condition_expr: p.condition_expr,
       }))}
     />
   );

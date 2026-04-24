@@ -17,6 +17,10 @@ export function calculateScoreChange(
       return -5;
     case 'post_execution_violation':
       return -20;
+    default: {
+      const _exhaustive: never = event;
+      return _exhaustive;
+    }
   }
 }
 

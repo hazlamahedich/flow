@@ -56,8 +56,8 @@ export function TrustDetailPanel({
     startTransition(async () => {
       const result = await getTrustMatrixAction();
       if (result.success && result.data) {
-        const match = (result.data as MatrixEntry[]).find(
-          (e) => e.agent_id === agentId,
+        const match = (result.data as unknown as MatrixEntry[]).find(
+          (e) => e.agent_id === agentId && e.action_type === (entry?.action_type ?? 'general'),
         );
         if (match) setEntry(match);
       }
@@ -80,6 +80,7 @@ export function TrustDetailPanel({
       });
       if (!result.success) {
         setError(result.error?.message ?? 'Failed to update trust level');
+        refresh();
         return;
       }
       refresh();

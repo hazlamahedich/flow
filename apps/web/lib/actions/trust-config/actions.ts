@@ -16,8 +16,10 @@ import {
   insertTransition,
   upsertTrustMatrixEntry,
 } from '@flow/db';
+import { COOLDOWN_DAYS, MS_PER_DAY } from '@flow/trust';
 
-async function getTenantWorkspaceId(): Promise<string> {
+
+async function getTenantContext(): Promise<{ workspaceId: string; userId: string }> {
   const { createServerClient, requireTenantContext } = await import('@flow/db');
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
@@ -26,7 +28,7 @@ async function getTenantWorkspaceId(): Promise<string> {
     set: () => {},
   });
   const ctx = await requireTenantContext(client);
-  return ctx.workspaceId;
+  return { workspaceId: ctx.workspaceId, userId: ctx.userId };
 }
 
 export async function setTrustLevel(input: unknown): Promise<ActionResult<Record<string, unknown>>> {
@@ -36,9 +38,9 @@ export async function setTrustLevel(input: unknown): Promise<ActionResult<Record
   }
 
   const { agentId, actionType, level, expectedVersion } = parsed.data;
-  const workspaceId = await getTenantWorkspaceId();
+  const { workspaceId, userId } = await getTenantContext();
   const now = new Date();
-  const cooldownUntil = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const cooldownUntil = new Date(now.getTime() + COOLDOWN_DAYS * MS_PER_DAY).toISOString();
 
   try {
     let entry = await getTrustMatrixEntry(workspaceId, agentId, actionType);
@@ -46,14 +48,19 @@ export async function setTrustLevel(input: unknown): Promise<ActionResult<Record
       entry = await upsertTrustMatrixEntry(workspaceId, agentId, actionType);
     }
 
+    if (entry.current_level === level) {
+      return { success: true, data: entry as unknown as Record<string, unknown> };
+    }
+
+    const version = entry.version;
+
     const updated = await updateTrustMatrixEntry(
       entry.id,
       {
         current_level: level,
         cooldown_until: cooldownUntil,
-        last_transition_at: now.toISOString(),
       },
-      expectedVersion,
+      version,
     );
 
     await insertTransition({
@@ -64,8 +71,8 @@ export async function setTrustLevel(input: unknown): Promise<ActionResult<Record
       trigger_type: 'manual_override',
       trigger_reason: `Manual override to ${level}`,
       is_context_shift: false,
-      snapshot: { level, score: updated.score, version: expectedVersion },
-      actor: `va:${workspaceId}`,
+      snapshot: { level, score: updated.score, version },
+      actor: `va:${userId}`,
     });
 
     revalidateTag('trust:' + workspaceId);
@@ -81,7 +88,7 @@ export async function createPrecondition(input: unknown): Promise<ActionResult<R
     return { success: false, error: { status: 400, code: 'VALIDATION_ERROR', message: 'Invalid input', category: 'validation' } };
   }
 
-  const workspaceId = await getTenantWorkspaceId();
+  const { workspaceId } = await getTenantContext();
   const { agentId, actionType, conditionKey, conditionExpr } = parsed.data;
 
   try {
@@ -99,10 +106,10 @@ export async function deletePreconditionAction(input: unknown): Promise<ActionRe
     return { success: false, error: { status: 400, code: 'VALIDATION_ERROR', message: 'Invalid input', category: 'validation' } };
   }
 
-  const workspaceId = await getTenantWorkspaceId();
+  const { workspaceId } = await getTenantContext();
 
   try {
-    await deletePrecondition(parsed.data.id);
+    await deletePrecondition(parsed.data.id, workspaceId);
     revalidateTag('trust:' + workspaceId);
     return { success: true, data: { deleted: true } };
   } catch {
@@ -111,7 +118,7 @@ export async function deletePreconditionAction(input: unknown): Promise<ActionRe
 }
 
 export async function getTrustMatrixAction(): Promise<ActionResult<Record<string, unknown>[]>> {
-  const workspaceId = await getTenantWorkspaceId();
+  const { workspaceId } = await getTenantContext();
   const matrix = await getTrustMatrix(workspaceId);
   return { success: true, data: matrix as unknown as Record<string, unknown>[] };
 }

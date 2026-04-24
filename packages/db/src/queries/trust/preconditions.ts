@@ -56,11 +56,12 @@ export async function upsertPrecondition(
   return data;
 }
 
-export async function deletePrecondition(id: string): Promise<void> {
+export async function deletePrecondition(id: string, workspaceId: string): Promise<void> {
   const client = createServiceClient();
   const { error } = await client
     .from('trust_preconditions')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('workspace_id', workspaceId);
   if (error) throw error;
 }

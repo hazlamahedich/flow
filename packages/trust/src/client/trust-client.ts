@@ -2,8 +2,8 @@ import type { AgentId, TrustDecision, TrustLevel } from '../types';
 import { TrustTransitionError } from '../errors';
 import { evaluatePreconditions } from '../pre-check';
 import type { PreconditionEntry } from '../pre-check';
-import { getRiskWeight } from '../scoring';
-import { evaluateTransition } from '../graduation';
+import { getRiskWeight, calculateScoreChange } from '../scoring';
+import { evaluateTransition, applyViolation, COOLDOWN_DAYS, MS_PER_DAY } from '../graduation';
 
 export interface MatrixEntry {
   id: string;
@@ -27,18 +27,32 @@ export interface MatrixEntry {
 export interface TrustClientDeps {
   getTrustMatrixEntry: (workspaceId: string, agentId: string, actionType: string) => Promise<MatrixEntry | null>;
   upsertTrustMatrixEntry: (workspaceId: string, agentId: string, actionType: string) => Promise<MatrixEntry>;
+  updateTrustMatrixEntry: (id: string, updates: Partial<Pick<MatrixEntry, 'current_level' | 'score' | 'consecutive_successes' | 'total_executions' | 'successful_executions' | 'violation_count' | 'last_violation_at' | 'last_transition_at' | 'cooldown_until'>>, expectedVersion: number) => Promise<MatrixEntry>;
   insertSnapshot: (entry: Record<string, unknown>) => Promise<{ id: string; created_at: string }>;
   getPreconditions: (workspaceId: string, agentId: string, actionType: string) => Promise<PreconditionEntry[]>;
   recordSuccess: (workspaceId: string, agentId: string, actionType: string, expectedVersion: number) => Promise<MatrixEntry>;
-  recordViolation: (workspaceId: string, agentId: string, actionType: string, severity: 'soft' | 'hard', riskWeight: number, expectedVersion: number) => Promise<MatrixEntry>;
+  recordViolation: (workspaceId: string, agentId: string, actionType: string, severity: 'soft' | 'hard', riskWeight: number, expectedVersion: number, targetLevel?: 'supervised' | 'confirm' | 'auto') => Promise<MatrixEntry>;
+  recordPrecheckFailure: (workspaceId: string, agentId: string, actionType: string, expectedVersion: number) => Promise<MatrixEntry>;
   insertTransition: (entry: Record<string, unknown>) => Promise<unknown>;
-  generateId: () => string;
 }
+
+const MAX_CACHE_SIZE = 1000;
 
 export interface TrustClient {
   canAct(agentId: AgentId, actionType: string, workspaceId: string, executionId: string, context: Record<string, unknown>): Promise<TrustDecision>;
   recordSuccess(snapshotId: string): Promise<void>;
   recordViolation(snapshotId: string, severity: 'soft' | 'hard'): Promise<void>;
+  recordPrecheckFailure(snapshotId: string): Promise<void>;
+  manualOverride(agentId: AgentId, actionType: string, workspaceId: string, newLevel: TrustLevel, actor: string): Promise<void>;
+}
+
+function evictOldestEntry(cache: Map<string, { entry: MatrixEntry; snapshotId: string }>): void {
+  if (cache.size >= MAX_CACHE_SIZE) {
+    const firstKey = cache.keys().next().value;
+    if (firstKey !== undefined) {
+      cache.delete(firstKey);
+    }
+  }
 }
 
 export function createTrustClient(deps: TrustClientDeps): TrustClient {
@@ -51,8 +65,7 @@ export function createTrustClient(deps: TrustClientDeps): TrustClient {
         const preconditions = await deps.getPreconditions(workspaceId, agentId, actionType);
         const preCheck = evaluatePreconditions(preconditions, context);
 
-        const hashInput = `${entry.id}:${entry.version}:${executionId}`;
-        const snapshotHash = hashInput;
+        const snapshotHash = `${entry.id}:${entry.version}:${executionId}`;
 
         const snapshot = await deps.insertSnapshot({
           workspace_id: workspaceId,
@@ -65,10 +78,13 @@ export function createTrustClient(deps: TrustClientDeps): TrustClient {
           snapshot_hash: snapshotHash,
         });
 
+        evictOldestEntry(snapshotCache);
         snapshotCache.set(snapshot.id, { entry, snapshotId: snapshot.id });
 
+        const allowed = preCheck.passed;
+
         return {
-          allowed: entry.current_level !== 'supervised' || preCheck.passed,
+          allowed,
           level: entry.current_level,
           reason: preCheck.passed ? 'Trust check passed' : `Precondition failed: ${preCheck.failedKey ?? 'unknown'}`,
           snapshotId: snapshot.id,
@@ -81,7 +97,8 @@ export function createTrustClient(deps: TrustClientDeps): TrustClient {
           allowed: false,
           level: 'supervised' as TrustLevel,
           reason: `Trust query failed: ${message}`,
-          preconditionsPassed: true,
+          preconditionsPassed: false,
+          snapshotId: undefined,
         };
       }
     },
@@ -97,6 +114,8 @@ export function createTrustClient(deps: TrustClientDeps): TrustClient {
       }
 
       const { entry } = cached;
+      snapshotCache.delete(snapshotId);
+
       try {
         const updated = await deps.recordSuccess(
           entry.workspace_id,
@@ -109,7 +128,7 @@ export function createTrustClient(deps: TrustClientDeps): TrustClient {
           currentLevel: updated.current_level,
           score: updated.score,
           consecutiveSuccesses: updated.consecutive_successes,
-          totalAtCurrentLevel: updated.total_executions,
+          totalAtCurrentLevel: updated.successful_executions,
           cooldownUntil: updated.cooldown_until ? new Date(updated.cooldown_until) : null,
           lastViolationAt: updated.last_violation_at ? new Date(updated.last_violation_at) : null,
         });
@@ -146,7 +165,9 @@ export function createTrustClient(deps: TrustClientDeps): TrustClient {
       }
 
       const { entry } = cached;
+      snapshotCache.delete(snapshotId);
       const riskWeight = getRiskWeight(entry.agent_id as AgentId, entry.action_type);
+      const targetLevel = applyViolation(entry.current_level, severity, entry.violation_count);
 
       try {
         const updated = await deps.recordViolation(
@@ -156,25 +177,91 @@ export function createTrustClient(deps: TrustClientDeps): TrustClient {
           severity,
           riskWeight,
           entry.version,
+          targetLevel !== entry.current_level ? targetLevel : undefined,
         );
 
-        await deps.insertTransition({
-          matrix_entry_id: updated.id,
-          workspace_id: updated.workspace_id,
-          from_level: entry.current_level,
-          to_level: updated.current_level,
-          trigger_type: `${severity}_violation`,
-          trigger_reason: `${severity} violation recorded (risk=${riskWeight})`,
-          is_context_shift: false,
-          snapshot: { score: updated.score, violations: updated.violation_count },
-          actor: 'system:violation',
-        });
+        if (entry.current_level !== updated.current_level) {
+          await deps.insertTransition({
+            matrix_entry_id: updated.id,
+            workspace_id: updated.workspace_id,
+            from_level: entry.current_level,
+            to_level: updated.current_level,
+            trigger_type: `${severity}_violation`,
+            trigger_reason: `${severity} violation recorded (risk=${riskWeight})`,
+            is_context_shift: false,
+            snapshot: { score: updated.score, violations: updated.violation_count },
+            actor: 'system:violation',
+          });
+        }
       } catch (error) {
         if (error instanceof TrustTransitionError && error.code === 'CONCURRENT_MODIFICATION') {
           return;
         }
         throw error;
       }
+    },
+
+    async recordPrecheckFailure(snapshotId): Promise<void> {
+      const cached = snapshotCache.get(snapshotId);
+      if (!cached) {
+        throw new TrustTransitionError(
+          'QUERY_FAILED',
+          `Snapshot not found in cache: ${snapshotId}`,
+          { retryable: false },
+        );
+      }
+
+      const { entry } = cached;
+      snapshotCache.delete(snapshotId);
+
+      try {
+        await deps.recordPrecheckFailure(
+          entry.workspace_id,
+          entry.agent_id,
+          entry.action_type,
+          entry.version,
+        );
+      } catch (error) {
+        if (error instanceof TrustTransitionError && error.code === 'CONCURRENT_MODIFICATION') {
+          return;
+        }
+        throw error;
+      }
+    },
+
+    async manualOverride(agentId, actionType, workspaceId, newLevel, actor): Promise<void> {
+      const entry = await deps.getTrustMatrixEntry(workspaceId, agentId, actionType);
+      if (!entry) {
+        throw new TrustTransitionError(
+          'QUERY_FAILED',
+          `Matrix entry not found for ${agentId}:${actionType}`,
+          { retryable: false },
+        );
+      }
+
+      if (entry.current_level === newLevel) return;
+
+      const levelOrder: Record<TrustLevel, number> = { supervised: 0, confirm: 1, auto: 2 };
+      const isDemotion = levelOrder[newLevel] < levelOrder[entry.current_level];
+      const cooldownUntil = isDemotion ? new Date(Date.now() + COOLDOWN_DAYS * MS_PER_DAY).toISOString() : null;
+
+      const updated = await deps.updateTrustMatrixEntry(
+        entry.id,
+        { current_level: newLevel, last_transition_at: new Date().toISOString(), ...(cooldownUntil ? { cooldown_until: cooldownUntil } : {}) },
+        entry.version,
+      );
+
+      await deps.insertTransition({
+        matrix_entry_id: updated.id,
+        workspace_id: updated.workspace_id,
+        from_level: entry.current_level,
+        to_level: newLevel,
+        trigger_type: 'manual_override',
+        trigger_reason: `Manual override by ${actor}`,
+        is_context_shift: false,
+        snapshot: { previous_level: entry.current_level, previous_score: entry.score },
+        actor,
+      });
     },
   };
 }

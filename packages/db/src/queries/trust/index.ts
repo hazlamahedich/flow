@@ -5,6 +5,7 @@ export {
   updateTrustMatrixEntry,
   recordSuccess,
   recordViolation,
+  recordPrecheckFailure,
 } from './matrix';
 export type { TrustMatrixDbRow } from './matrix';
 

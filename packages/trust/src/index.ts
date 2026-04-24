@@ -42,9 +42,10 @@ export {
   NO_VIOLATION_DAYS_CONFIRM,
   NO_VIOLATION_DAYS_AUTO,
   CONTEXT_SHIFT_DAYS,
+  MS_PER_DAY,
 } from './graduation';
 export type { EvaluationResult } from './graduation';
 export { evaluatePreconditions } from './pre-check';
 export { applyViolationRollback } from './rollback';
 export { createTrustClient } from './client/trust-client';
-export type { TrustClient, TrustClientDeps } from './client/trust-client';
+export type { TrustClient, TrustClientDeps, MatrixEntry } from './client/trust-client';

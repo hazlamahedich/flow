@@ -54,7 +54,6 @@ export default async function AgentsPage() {
           const meta = AGENT_META[agentId];
           const row = config as Record<string, unknown> | undefined;
           const cardProps: {
-            key: string;
             agentId: string;
             label: string;
             description: string;
@@ -63,7 +62,6 @@ export default async function AgentsPage() {
             setupCompleted?: boolean;
             lifecycleVersion?: number;
           } = {
-            key: agentId,
             agentId,
             label: meta.label,
             description: meta.description,
@@ -72,7 +70,7 @@ export default async function AgentsPage() {
           if (row?.status !== undefined) cardProps.status = row.status as string;
           if (row?.setup_completed !== undefined) cardProps.setupCompleted = row.setup_completed as boolean;
           if (row?.lifecycle_version !== undefined) cardProps.lifecycleVersion = row.lifecycle_version as number;
-          return <AgentCard key={meta.id} {...cardProps} />;
+          return <AgentCard key={agentId} {...cardProps} />;
         })}
       </div>
     </div>

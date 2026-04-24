@@ -1,5 +1,7 @@
 import type { TrustLevel } from './types';
 
+export const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
 export const CONFIRM_THRESHOLD_SCORE = 70;
 export const AUTO_THRESHOLD_SCORE = 140;
 export const CONFIRM_MIN_CONSECUTIVE = 7;
@@ -37,8 +39,8 @@ export function canGraduate(request: GraduationRequest): boolean {
   const violationDays = currentLevel === 'supervised' ? NO_VIOLATION_DAYS_CONFIRM : NO_VIOLATION_DAYS_AUTO;
   if (lastViolationAt) {
     const violationDate = new Date(lastViolationAt);
-    const daysSinceViolation = (now.getTime() - violationDate.getTime()) / (1000 * 60 * 60 * 24);
-    if (daysSinceViolation < violationDays) return false;
+    const msSinceViolation = now.getTime() - violationDate.getTime();
+    if (msSinceViolation < violationDays * MS_PER_DAY) return false;
   }
 
   if (currentLevel === 'supervised') {
@@ -92,8 +94,8 @@ export function evaluateContextShift(
 ): { shouldShift: boolean; targetLevel: TrustLevel | null } {
   if (!lastActiveAt) return { shouldShift: false, targetLevel: null };
 
-  const daysInactive = (now.getTime() - new Date(lastActiveAt).getTime()) / (1000 * 60 * 60 * 24);
-  if (daysInactive < CONTEXT_SHIFT_DAYS) {
+  const msInactive = now.getTime() - new Date(lastActiveAt).getTime();
+  if (msInactive < CONTEXT_SHIFT_DAYS * MS_PER_DAY) {
     return { shouldShift: false, targetLevel: null };
   }
 

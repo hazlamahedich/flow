@@ -11,6 +11,7 @@ import {
   uniqueIndex,
   index,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { workspaces } from './workspaces';
 import { agentIdTypeEnum } from './agent-signals';
 import { agentRuns } from './agent-runs';
@@ -46,7 +47,7 @@ export const trustMatrix = pgTable(
   (table) => [
     uniqueIndex('idx_trust_matrix_cell').on(table.workspaceId, table.agentId, table.actionType),
     index('idx_trust_matrix_workspace').on(table.workspaceId, table.agentId),
-    index('idx_trust_matrix_workspace_text').on(table.workspaceId),
+    index('idx_trust_matrix_workspace_text').on(sql`(workspace_id::text)`),
     index('idx_trust_matrix_cooldown').on(table.cooldownUntil),
   ],
 );
@@ -73,6 +74,7 @@ export const trustTransitions = pgTable(
   (table) => [
     index('idx_trust_transitions_entry').on(table.matrixEntryId, table.createdAt),
     index('idx_trust_transitions_workspace').on(table.workspaceId, table.createdAt),
+    index('idx_trust_transitions_workspace_text').on(sql`(workspace_id::text)`),
   ],
 );
 
@@ -80,10 +82,12 @@ export const trustSnapshots = pgTable(
   'trust_snapshots',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    workspaceId: uuid('workspace_id').notNull(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
     executionId: uuid('execution_id')
       .notNull()
-      .references(() => agentRuns.id),
+      .references(() => agentRuns.id, { onDelete: 'cascade' }),
     agentId: agentIdTypeEnum('agent_id').notNull(),
     actionType: text('action_type').notNull(),
     matrixVersion: integer('matrix_version').notNull(),
@@ -95,6 +99,7 @@ export const trustSnapshots = pgTable(
   (table) => [
     index('idx_trust_snapshots_execution').on(table.executionId),
     index('idx_trust_snapshots_workspace').on(table.workspaceId, table.createdAt),
+    index('idx_trust_snapshots_workspace_text').on(sql`(workspace_id::text)`),
   ],
 );
 
@@ -114,6 +119,6 @@ export const trustPreconditions = pgTable(
   },
   (table) => [
     index('idx_trust_preconditions_workspace').on(table.workspaceId, table.agentId),
-    index('idx_trust_preconditions_workspace_text').on(table.workspaceId),
+    index('idx_trust_preconditions_workspace_text').on(sql`(workspace_id::text)`),
   ],
 );

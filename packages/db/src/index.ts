@@ -70,6 +70,7 @@ export {
   updateTrustMatrixEntry,
   recordSuccess as recordTrustSuccess,
   recordViolation as recordTrustViolation,
+  recordPrecheckFailure as recordTrustPrecheckFailure,
   insertTransition,
   getTransitions,
   insertSnapshot,
@@ -78,3 +79,4 @@ export {
   upsertPrecondition,
   deletePrecondition,
 } from './queries/trust';
+export type { TrustTransitionDbRow, TrustPreconditionDbRow } from './queries/trust';
