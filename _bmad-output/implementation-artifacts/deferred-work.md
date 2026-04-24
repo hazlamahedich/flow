@@ -105,3 +105,7 @@
 - AC#14 guided empty state — no `recommended_order` or `prerequisites` fields in schema. Belongs to Task 7 (UI) implementation.
 - `getDailySpend` timezone sensitivity — `setHours` uses server local time. Requires workspace timezone context not yet available. `cost-logs.ts:79-87`
 - `suspended → inactive` only path — intentional per spec: "re-activation goes through `activating` again." By design. `agent-transitions.ts:8`
+
+## Deferred from: code review of 2-4-pre-check-post-check-gates.md (2026-04-24)
+
+- MVP agent list duplicated in `registerMvpSchemas()` and `factory.ts` — maintenance risk, not a defect. `output-schemas.ts:55-61`, `factory.ts:86-89`

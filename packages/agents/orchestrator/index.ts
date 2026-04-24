@@ -1,4 +1,4 @@
-export type { AgentRunProducer, AgentRunWorker } from './types';
+export type { AgentRunProducer, AgentRunWorker, TrustGateConfig } from './types';
 export { isValidTransition, VALID_RUN_TRANSITIONS } from './transition-map';
 export { createOrchestrator } from './factory';
 export type { OrchestratorHandle } from './factory';
@@ -7,3 +7,11 @@ export { AgentJobPayloadSchema } from './schemas';
 export type { AgentJobPayload } from './schemas';
 export { beginDrain, completeDrain } from './agent-lifecycle';
 export type { AffectedRun, DeactivationResult } from './agent-lifecycle';
+export { runPreCheck, blockForApproval } from './gates';
+export type { PreCheckResult } from './gates';
+export { runPostCheck } from './post-check';
+export type { PostCheckResult } from './post-check';
+export { createOutputSchemaRegistry, registerMvpSchemas } from './output-schemas';
+export type { OutputSchemaRegistry } from './output-schemas';
+export { writeGateSignal } from './gate-events';
+export type { GateEvent, PreCheckFailedEvent, PostCheckViolationEvent } from './gate-events';

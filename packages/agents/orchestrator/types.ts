@@ -9,6 +9,13 @@ import type {
   AgentProposal,
   FlowError,
 } from '@flow/types';
+import type { TrustClient } from '@flow/trust';
+import type { OutputSchemaRegistry } from './output-schemas';
+
+export interface TrustGateConfig {
+  trustClient: TrustClient;
+  outputSchemaRegistry: OutputSchemaRegistry;
+}
 
 export interface AgentRunProducer {
   submit(request: AgentRunRequest): Promise<AgentRunHandle>;

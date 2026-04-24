@@ -1,5 +1,5 @@
 import { PgBoss } from 'pg-boss';
-import type { AgentRunProducer, AgentRunWorker } from './types';
+import type { AgentRunProducer, AgentRunWorker, TrustGateConfig } from './types';
 import type { AgentId } from '@flow/types';
 import { PgBossProducer } from './pg-boss-producer';
 import { PgBossWorker } from './pg-boss-worker';
@@ -16,7 +16,7 @@ export interface OrchestratorHandle {
 
 // Connection budget: pg-boss pool (PG_BOSS_MAX_CONNECTIONS) + 1 service client = N+1 connections per worker instance
 
-export function createOrchestrator(): OrchestratorHandle {
+export function createOrchestrator(trustGateConfig?: TrustGateConfig): OrchestratorHandle {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error('DATABASE_URL is not set');
 
@@ -46,7 +46,12 @@ export function createOrchestrator(): OrchestratorHandle {
   };
 
   const producer = new PgBossProducer(boss);
-  const worker = new PgBossWorker(boss, (agentId) => getCircuitBreaker(agentId));
+  const worker = new PgBossWorker(
+    boss,
+    (agentId) => getCircuitBreaker(agentId),
+    trustGateConfig?.trustClient,
+    trustGateConfig?.outputSchemaRegistry,
+  );
 
   let recoveryInterval: ReturnType<typeof setInterval> | undefined;
   let started = false;
@@ -76,6 +81,14 @@ export function createOrchestrator(): OrchestratorHandle {
 
     await boss.start();
     started = true;
+
+    if (trustGateConfig?.outputSchemaRegistry) {
+      const mvpIds: AgentId[] = [
+        'inbox', 'calendar', 'ar-collection',
+        'weekly-report', 'client-health', 'time-integrity',
+      ];
+      trustGateConfig.outputSchemaRegistry.validateActiveAgents(mvpIds);
+    }
 
     recoveryInterval = setInterval(async () => {
       try {

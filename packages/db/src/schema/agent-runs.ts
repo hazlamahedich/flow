@@ -30,6 +30,7 @@ export const agentRuns = pgTable(
     output: jsonb('output'),
     error: jsonb('error'),
     trustTierAtExecution: text('trust_tier_at_execution'),
+    trustSnapshotId: uuid('trust_snapshot_id'),
     correlationId: uuid('correlation_id').notNull(),
     startedAt: timestamp('started_at', { withTimezone: true }),
     completedAt: timestamp('completed_at', { withTimezone: true }),

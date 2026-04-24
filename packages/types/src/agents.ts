@@ -50,6 +50,7 @@ export interface AgentRun {
   output: Record<string, unknown> | null;
   error: Record<string, unknown> | null;
   trustTierAtExecution: string | null;
+  trustSnapshotId: string | null;
   correlationId: string;
   startedAt: string | null;
   completedAt: string | null;
@@ -71,6 +72,7 @@ export const agentRunSchema = z.object({
   output: z.record(z.unknown()).nullable(),
   error: z.record(z.unknown()).nullable(),
   trustTierAtExecution: z.string().nullable(),
+  trustSnapshotId: z.string().uuid().nullable(),
   correlationId: z.string().uuid(),
   startedAt: z.string().datetime({ offset: true }).nullable(),
   completedAt: z.string().datetime({ offset: true }).nullable(),
