@@ -1,0 +1,58 @@
+{
+  "epic": "epic-1",
+  "date": "2026-04-24",
+  "gate_decision": "CONCERNS",
+  "gate_type": "epic",
+  "coverage": {
+    "overall_pct": 69,
+    "p0_pct": 82,
+    "p1_pct": 64,
+    "p2_pct": 63,
+    "p3_pct": 33
+  },
+  "tests": {
+    "total": 997,
+    "active": 773,
+    "passed": 770,
+    "failed": 3,
+    "skipped": 139,
+    "pass_rate_pct": 99.6
+  },
+  "gaps": {
+    "critical": 0,
+    "high": 5,
+    "medium": 4,
+    "low": 2
+  },
+  "quality_issues": {
+    "blocker": 0,
+    "warning": 3,
+    "info": 1
+  },
+  "nfr": {
+    "security": "PASS",
+    "performance": "NOT_ASSESSED",
+    "reliability": "PASS",
+    "maintainability": "PASS"
+  },
+  "stories": {
+    "total": 17,
+    "done": 17,
+    "in_progress": 0,
+    "backlog": 0
+  },
+  "test_levels": {
+    "unit": 770,
+    "rls_pgTAP": 158,
+    "e2e": 15,
+    "integration": 12,
+    "atdd_active": 50,
+    "atdd_scaffold": 139
+  },
+  "residual_risk": "LOW",
+  "next_steps": [
+    "Fix 3 test failures (undo-provider, auth trustDevice, macOS ._ files)",
+    "Create remediation backlog for 5 high-priority gaps",
+    "Continue Epic 2 Story 2-3 development"
+  ]
+}

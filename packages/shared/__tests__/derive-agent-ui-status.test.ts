@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { deriveUIStatus } from '../src/derive-agent-ui-status';
-import type { AgentBackendStatus, AgentContext } from '@flow/types';
+import type { AgentContext } from '@flow/types';
 
 function makeContext(overrides: Partial<AgentContext> = {}): AgentContext {
   return {

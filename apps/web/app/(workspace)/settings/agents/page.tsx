@@ -72,7 +72,7 @@ export default async function AgentsPage() {
           if (row?.status !== undefined) cardProps.status = row.status as string;
           if (row?.setup_completed !== undefined) cardProps.setupCompleted = row.setup_completed as boolean;
           if (row?.lifecycle_version !== undefined) cardProps.lifecycleVersion = row.lifecycle_version as number;
-          return <AgentCard {...cardProps} />;
+          return <AgentCard key={meta.id} {...cardProps} />;
         })}
       </div>
     </div>

@@ -8,6 +8,12 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));
 
+vi.mock('next/headers', () => ({
+  cookies: vi.fn().mockResolvedValue({
+    set: vi.fn(),
+  }),
+}));
+
 vi.mock('@flow/db', () => ({
   createAdminSupabase: vi.fn(),
 }));

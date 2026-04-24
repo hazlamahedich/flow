@@ -103,4 +103,44 @@ describe('uploadAvatar', () => {
       expect(result.error.message).toContain('JPEG');
     }
   });
+
+  it('returns error for empty file (0 bytes)', async () => {
+    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never);
+    const formData = new FormData();
+    const emptyFile = new File([], 'empty.jpg', { type: 'image/jpeg' });
+    formData.append('avatar', emptyFile);
+    const result = await uploadAvatar(formData);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.message).toContain('empty');
+    }
+  });
+
+  it('rejects file at exactly 2MB + 1 byte boundary', async () => {
+    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never);
+    const formData = new FormData();
+    const boundaryFile = new File([new ArrayBuffer(2 * 1024 * 1024 + 1)], 'boundary.jpg', { type: 'image/jpeg' });
+    formData.append('avatar', boundaryFile);
+    const result = await uploadAvatar(formData);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.message).toContain('2MB');
+    }
+  });
+
+  it('rejects executable disguised as image (wrong magic bytes)', async () => {
+    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never);
+    const formData = new FormData();
+    const exeHeader = new Uint8Array([0x4d, 0x5a, 0x90, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00]);
+    const exeFile = new File([exeHeader], 'malware.jpg', { type: 'image/jpeg' });
+    Object.defineProperty(exeFile, 'arrayBuffer', {
+      value: () => Promise.resolve(exeHeader.buffer),
+    });
+    formData.append('avatar', exeFile);
+    const result = await uploadAvatar(formData);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.message).toContain('JPEG');
+    }
+  });
 });

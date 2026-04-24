@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { AgentRunProducer } from '../orchestrator/types';
-import type { AgentRunRequest } from '@flow/types';
 
 const ACTIVE_STATUSES = ['queued', 'running', 'waiting_approval', 'completed'];
 

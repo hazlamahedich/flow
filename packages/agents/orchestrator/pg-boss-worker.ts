@@ -2,7 +2,7 @@ import type { PgBoss, Job } from 'pg-boss';
 import type { AgentRunWorker } from './types';
 import type { AgentId, AgentRunHandle, AgentRunResult, AgentProposal, FlowError } from '@flow/types';
 import { AgentJobPayloadSchema } from './schemas';
-import { claimRunWithGuard, updateRunStatus, releaseRun, getRunById } from '@flow/db';
+import { claimRunWithGuard, updateRunStatus, getRunById } from '@flow/db';
 import { writeAuditLog } from '../shared/audit-writer';
 import { CircuitBreaker } from '../shared/circuit-breaker';
 

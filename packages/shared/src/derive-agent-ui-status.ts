@@ -1,4 +1,4 @@
-import type { AgentBackendStatus, IntegrationHealth, AgentUIStatus, AgentContext } from '@flow/types';
+import type { AgentBackendStatus, AgentUIStatus, AgentContext } from '@flow/types';
 
 export function deriveUIStatus(
   backend: AgentBackendStatus,
