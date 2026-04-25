@@ -80,3 +80,8 @@ export {
   deletePrecondition,
 } from './queries/trust';
 export type { TrustTransitionDbRow, TrustPreconditionDbRow } from './queries/trust';
+export {
+  getPendingApprovals,
+  getPendingApprovalCount,
+  getAgentBreakdown,
+} from './queries/agents/approval-queries';

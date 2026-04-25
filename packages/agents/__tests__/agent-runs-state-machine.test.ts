@@ -80,8 +80,8 @@ describe('TC-05: Invalid backward transitions rejected', () => {
     expect(isValidTransition('running', 'queued')).toBe(false);
   });
 
-  it('rejects waiting_approval → running', () => {
-    expect(isValidTransition('waiting_approval', 'running')).toBe(false);
+  it('allows waiting_approval → running (trust-gated block re-dispatch)', () => {
+    expect(isValidTransition('waiting_approval', 'running')).toBe(true);
   });
 
   it('rejects failed → running', () => {

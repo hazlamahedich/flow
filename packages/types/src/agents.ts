@@ -161,7 +161,7 @@ export interface AgentRunSummary {
 export const VALID_RUN_TRANSITIONS = {
   queued: ['running', 'failed', 'cancelled'] as const,
   running: ['completed', 'waiting_approval', 'failed', 'timed_out', 'cancelled'] as const,
-  waiting_approval: ['completed', 'failed', 'timed_out', 'cancelled'] as const,
+  waiting_approval: ['completed', 'running', 'failed', 'timed_out', 'cancelled'] as const,
   completed: [] as const,
   failed: [] as const,
   timed_out: [] as const,
@@ -204,11 +204,14 @@ export const agentTriggerConfigSchema = z.object({
 });
 
 export interface AgentLLMPreferences {
-  preferredProvider?: 'groq' | 'anthropic';
+  preferredProvider?: 'groq' | 'anthropic' | 'gemini';
   qualityMode?: 'fast' | 'quality';
 }
 
 export const agentLLMPreferencesSchema = z.object({
-  preferredProvider: z.enum(['groq', 'anthropic']).optional(),
+  preferredProvider: z.enum(['groq', 'anthropic', 'gemini']).optional(),
   qualityMode: z.enum(['fast', 'quality']).optional(),
 });
+
+export type { TrustBlockOutput, ApprovalQueueItem, ApprovalResult, BatchActionResult } from './approval-types';
+export { parseApprovalOutput, parseApprovalOutputWithRun } from './approval-types';

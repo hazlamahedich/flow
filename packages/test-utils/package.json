@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@flow/tokens": "workspace:*",
+    "@flow/types": "workspace:*",
     "@supabase/supabase-js": "^2.104.0",
     "jose": "^6.0.11",
     "react": "^19.1.0",

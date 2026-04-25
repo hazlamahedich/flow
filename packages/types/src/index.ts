@@ -25,6 +25,14 @@ export type {
   AgentScheduleConfig,
   AgentTriggerConfig,
   AgentLLMPreferences,
+  TrustBlockOutput,
+  ApprovalQueueItem,
+  ApprovalResult,
+  BatchActionResult,
+} from './agents';
+export {
+  parseApprovalOutput,
+  parseApprovalOutputWithRun,
 } from './agents';
 export type {
   AgentBackendStatus,

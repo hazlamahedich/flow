@@ -322,6 +322,9 @@ importers:
       '@flow/tokens':
         specifier: workspace:*
         version: link:../tokens
+      '@flow/types':
+        specifier: workspace:*
+        version: link:../types
       '@supabase/supabase-js':
         specifier: ^2.104.0
         version: 2.104.0
