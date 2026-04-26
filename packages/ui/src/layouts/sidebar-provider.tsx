@@ -15,6 +15,7 @@ interface SidebarProviderProps {
   activeWorkspaceId?: string | undefined;
   onSwitchWorkspace?: ((workspaceId: string) => Promise<void>) | undefined;
   agentStatusEntries?: AgentStatusBarEntry[] | undefined;
+  scopeAlertCount?: number | undefined;
 }
 
 const REVEAL_KEY = 'flow-sidebar-revealed';
@@ -45,6 +46,7 @@ export function SidebarProvider({
   activeWorkspaceId,
   onSwitchWorkspace,
   agentStatusEntries,
+  scopeAlertCount,
 }: SidebarProviderProps) {
   const prevCountRef = useRef(agentCount);
 
@@ -77,6 +79,7 @@ export function SidebarProvider({
       activeWorkspaceId={activeWorkspaceId}
       onSwitchWorkspace={onSwitchWorkspace}
       agentStatusEntries={agentStatusEntries}
+      scopeAlertCount={scopeAlertCount}
     />
   );
 }

@@ -3,6 +3,8 @@ export { renderWithTheme } from './render-with-theme';
 export { render, screen } from '@testing-library/react';
 export { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 export { buildWorkspace, buildMember, buildInvitation, buildTransferRequest } from './fixtures/workspace';
+export { buildClient, buildClientAccess } from './fixtures/client';
+export { buildRetainer } from './fixtures/retainer';
 export {
   buildAgentRun,
   buildAgentProposal,

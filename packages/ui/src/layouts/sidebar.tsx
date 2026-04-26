@@ -39,9 +39,10 @@ interface SidebarProps {
   activeWorkspaceId?: string | undefined;
   onSwitchWorkspace?: ((workspaceId: string) => Promise<void>) | undefined;
   agentStatusEntries?: AgentStatusBarEntry[] | undefined;
+  scopeAlertCount?: number | undefined;
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRef, workspaces, activeWorkspaceId, onSwitchWorkspace, agentStatusEntries }: SidebarProps) {
+export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRef, workspaces, activeWorkspaceId, onSwitchWorkspace, agentStatusEntries, scopeAlertCount }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -106,6 +107,11 @@ export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRe
                   >
                     {label}
                   </span>
+                  {href === '/clients' && scopeAlertCount && scopeAlertCount > 0 && (
+                    <span className="ml-auto inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--flow-status-error)] px-1 text-[10px] font-medium text-white">
+                      {scopeAlertCount}
+                    </span>
+                  )}
                 </Link>
               </li>
             );

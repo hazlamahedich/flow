@@ -24,6 +24,7 @@ export interface WorkspaceShellProps {
   searchAction?: (query: string) => Promise<{ success: boolean; data?: SearchResult[]; error?: { message: string } }>;
   onNavigate?: (href: string) => void;
   agentStatusEntries?: AgentStatusBarEntry[] | undefined;
+  scopeAlertCount?: number | undefined;
   overlaySlot?: ReactNode;
 }
 
@@ -36,6 +37,7 @@ export function WorkspaceShell({
   searchAction,
   onNavigate,
   agentStatusEntries,
+  scopeAlertCount,
   overlaySlot,
 }: WorkspaceShellProps) {
   const [collapsed, setCollapsed] = useAtom(sidebarCollapsedAtom);
@@ -145,6 +147,7 @@ export function WorkspaceShell({
                   activeWorkspaceId={activeWorkspaceId}
                   onSwitchWorkspace={onSwitchWorkspace}
                   agentStatusEntries={agentStatusEntries}
+                  scopeAlertCount={scopeAlertCount}
                 />
               </div>
             </SidebarErrorBoundary>

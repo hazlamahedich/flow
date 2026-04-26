@@ -33,6 +33,10 @@
 # last_updated: 2026-04-26 (story 3-1 implementation complete, 56 new tests, status → review)
 # last_updated: 2026-04-26 (story 3-1 code review round 1 complete, 20 patches applied)
 # last_updated: 2026-04-26 (story 3-1 code review round 2 complete, 6 patches applied, status → done)
+# last_updated: 2026-04-27 (story 3-2 created, status → ready-for-dev)
+# last_updated: 2026-04-27 (story 3-2 revised after 4-agent party mode adversarial review: 9 CRITICAL + 12 HIGH + 16 MEDIUM/LOW findings applied, 10 ACs, 9 task groups, 13 test files)
+# last_updated: 2026-04-26 (story 3-2 implementation complete, 9 task groups done, ~80 tests, status → review)
+# last_updated: 2026-04-27 (story 3-2 adversarial code review complete, 5 decisions resolved, 22/28 patches applied, 6 deferred, status → done)
 # project: flow
 # project_key: NOKEY
 # tracking_system: file-system
@@ -68,7 +72,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-20
-last_updated: 2026-04-26T23:55:00Z
+last_updated: 2026-04-27T02:00:00Z
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -110,7 +114,7 @@ development_status:
 
   epic-3: in-progress
   3-1-client-data-model-crud: done
-  3-2-retainer-agreements-scope-creep-detection: backlog
+  3-2-retainer-agreements-scope-creep-detection: done
   3-3-new-client-setup-wizard: backlog
   epic-3-retrospective: optional
 

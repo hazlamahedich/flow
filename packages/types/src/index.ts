@@ -115,4 +115,22 @@ export type {
   ClientListFilters,
   Client,
 } from './client';
+export {
+  retainerTypeEnum,
+  createRetainerSchema,
+  updateRetainerSchema,
+  cancelRetainerSchema,
+  retainerSchema,
+  scopeCreepAlertSchema,
+  utilizationStateSchema,
+} from './retainer';
+export type {
+  RetainerType,
+  CreateRetainerInput,
+  UpdateRetainerInput,
+  CancelRetainerInput,
+  Retainer,
+  ScopeCreepAlert,
+  UtilizationState,
+} from './retainer';
 export type { PaginatedResult, PaginationInput } from './pagination';

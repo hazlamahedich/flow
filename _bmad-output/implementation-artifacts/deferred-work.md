@@ -30,6 +30,15 @@ Deferred items are reviewed at every sprint boundary (epic completion):
 | 2-4 boundary audit | — | resolved (A3 audit) | 2026-04-26 |
 | DW-3.1-1 | Medium | open | 2026-04-26 |
 | DW-3.1-2 | Medium | open | 2026-04-26 |
+| DW-3.2-1 | Medium | open | 2026-04-27 |
+| DW-3.2-2 | Medium | open | 2026-04-27 |
+| DW-3.2-3 | Low | open | 2026-04-27 |
+| DW-3.2-4 | Low | open | 2026-04-27 |
+| DW-3.2-5 | Medium | open | 2026-04-27 |
+| DW-3.2-6 | Medium | open | 2026-04-27 |
+| DW-3.2-7 | Low | open | 2026-04-27 |
+| DW-3.2-8 | Low | open | 2026-04-27 |
+| DW-3.2-9 | Low | open | 2026-04-27 |
 
 ## Deferred from: code review of 2-6b-trust-ceremonies-regression-milestones (2026-04-26)
 
@@ -101,3 +110,59 @@ Deferred items are reviewed at every sprint boundary (epic completion):
 - **Files:** `apps/web/app/(workspace)/clients/[clientId]/page.tsx`, `team-access-panel.tsx`
 - **Reason:** TeamAccessPanel exists as a stub but is not imported or rendered on the client detail page. Owner/admin has no UI to assign/revoke team members. Deferred as D2 decision — wiring deferred to a dedicated integration story.
 - **Action:** Wire TeamAccessPanel into detail page when team scoping UX is implemented (likely Story 3.3 or a follow-up).
+
+## Deferred from: code review of 3-2-retainer-agreements-scope-creep-detection (2026-04-27)
+
+### DW-3.2-1: SQL CTE RPC for scope creep alerts
+- **Severity:** Medium
+- **Files:** `packages/db/src/queries/retainers/utilization.ts`
+- **Reason:** Spec requires single SQL CTE query for scope creep detection. JS fallback runs N+1 queries with float arithmetic. Guard added against division-by-zero. RPC deferred to avoid blocking ship.
+- **Action:** Create `get_scope_creep_alerts` SQL RPC as tech debt before Epic 7. Replace JS fallback. SQL is already written in story Dev Notes.
+
+### DW-3.2-2: Historical retainer timeline UI
+- **Severity:** Medium
+- **Files:** `apps/web/app/(workspace)/clients/[clientId]/components/retainer-panel.tsx`
+- **Reason:** AC2 requires historical retainers visible in a timeline. Query `listRetainersForClient` exists. UI component not built. Deferred to follow-up story "3.2.1 Historical Retainer Timeline" — pure UI, no architectural implications.
+- **Action:** Create `retainer-timeline.tsx` component (~60 lines). Track test debt: component tests required.
+
+### DW-3.2-3: Mobile 2-step wizard for retainer form
+- **Severity:** Low
+- **Files:** `apps/web/app/(workspace)/clients/[clientId]/components/retainer-form.tsx`
+- **Reason:** Task 5.2 requires responsive 2-step wizard for mobile (<768px). Current form is functional but overwhelming on small screens. Deferred to polish pass — do consistently across all forms.
+- **Action:** Implement viewport-based step logic in a polish sprint. Include responsive test AC in the story.
+
+### DW-3.2-4: TOCTOU race in cancelRetainer
+- **Severity:** Low
+- **Files:** `packages/db/src/queries/retainers/crud.ts:177-200`
+- **Reason:** Concurrent cancel requests can both succeed. Benign per spec (idempotent, sets same values). Optimistic locking via `updated_at` already noted as TODO in Dev Notes.
+- **Action:** Consider `updated_at` optimistic locking check in a future hardening pass.
+
+### DW-3.2-5: cancelRetainer idempotency behavior
+- **Severity:** Low (spec-compliant)
+- **Files:** `apps/web/app/(workspace)/clients/[clientId]/actions/retainer/cancel-retainer.ts:36-43`
+- **Reason:** Already-cancelled retainer returns success with cache revalidation. Spec says idempotent. Wasteful revalidation is the only concern.
+- **Action:** Consider early return without revalidation if `status === 'cancelled'` in a hardening pass.
+
+### DW-3.2-6: Success toast on retainer creation
+- **Severity:** Medium
+- **Files:** `apps/web/app/(workspace)/clients/[clientId]/components/retainer-form.tsx`
+- **Reason:** AC8 requires toast "Retainer created — scope tracking is now active." No generic toast system exists in the codebase yet. Building one is out of scope for this story.
+- **Action:** Implement generic toast system (sonner or custom) in a dedicated story, then wire success/error toasts across all server action flows.
+
+### DW-3.2-7: First-time tooltip on utilization bar
+- **Severity:** Low
+- **Files:** `apps/web/app/(workspace)/clients/[clientId]/components/retainer-utilization-bar.tsx`
+- **Reason:** AC8 requires dismissible tooltip tracked via localStorage explaining utilization bar. No tooltip component infrastructure exists.
+- **Action:** Add when tooltip component system is built (likely in UI polish sprint).
+
+### DW-3.2-8: Unused getCurrentBillingPeriod refactoring
+- **Severity:** Low
+- **Files:** `packages/db/src/queries/retainers/billing-periods.ts`, `utilization.ts`
+- **Reason:** Billing period calculation duplicated in 3 places. `getCurrentBillingPeriod` exists but is unused. Refactoring is non-blocking.
+- **Action:** Consolidate billing period logic to use shared function in a code quality pass.
+
+### DW-3.2-9: File size limit violations
+- **Severity:** Low
+- **Files:** `retainer-form.tsx` (237 lines), `crud.ts` (211 lines)
+- **Reason:** Exceeds 200-line soft limit (250 hard). Functional, no correctness impact.
+- **Action:** Split in a code quality pass. retainer-form.tsx: extract type cards and field sections. crud.ts: extract field map and update logic.

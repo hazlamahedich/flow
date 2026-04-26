@@ -42,6 +42,12 @@ export {
 } from './agent-transitions';
 export { deriveUIStatus } from './derive-agent-ui-status';
 export { type CircuitBreakerPort, NOOP_CIRCUIT_BREAKER } from './resilience/types';
+export {
+  numericToMinutes,
+  minutesToNumericStr,
+  calculateThresholdMinutes,
+  isScopeCreep,
+} from './numeric-helpers';
 
 export {
   AGENT_IDENTITY,

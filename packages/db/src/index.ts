@@ -136,3 +136,15 @@ export {
   getMembersForClient,
   getClientsForMember,
 } from './queries/clients/scoping';
+export {
+  getActiveRetainerForClient,
+  getRetainerById,
+  listRetainersForClient,
+  createRetainer,
+  updateRetainer,
+  cancelRetainer,
+  getRetainerUtilization,
+  getScopeCreepAlerts,
+  getCurrentBillingPeriod,
+} from './queries/retainers';
+export type { UtilizationResult, BillingPeriod } from './queries/retainers';
