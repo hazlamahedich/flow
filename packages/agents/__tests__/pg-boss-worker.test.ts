@@ -176,12 +176,13 @@ describe('PgBossWorker', () => {
     expect(cb.state.failures).toBe(1);
   });
 
-  it.skip('should handle pg-boss re-offering a retryable job without claim-guard loop', async () => {
-    // TODO(deferred): When boss.fail() is called for retryable errors, pg-boss
-    // re-offers the same job. The worker re-claims it but the claim guard
-    // rejects (status already 'running'). Expected: worker should not
-    // release the run back to 'queued', creating an infinite loop.
-    // This test documents the expected behavior for when we implement
-    // explicit retry via boss.fail() (deferred until integration test harness exists).
+  it('re-claim of already-running job returns null without release (prevents claim-guard loop)', async () => {
+    fakeBoss.fetch.mockResolvedValue([{ id: 'job-1', data: { ...VALID_PAYLOAD, runId: VALID_PAYLOAD.runId } }]);
+    const db = await import('@flow/db');
+    (db.claimRunWithGuard as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+    const handle = await worker.claim('inbox');
+    expect(handle).toBeNull();
+    expect(db.releaseRun).not.toHaveBeenCalled();
   });
 });
