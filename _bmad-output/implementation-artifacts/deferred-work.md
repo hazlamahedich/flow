@@ -28,6 +28,8 @@ Deferred items are reviewed at every sprint boundary (epic completion):
 | DW-2.6a-8 | Low | resolved (A5 NaN guard) | 2026-04-26 |
 | 2-6b focus traps | — | open | 2026-04-26 |
 | 2-4 boundary audit | — | resolved (A3 audit) | 2026-04-26 |
+| DW-3.1-1 | Medium | open | 2026-04-26 |
+| DW-3.1-2 | Medium | open | 2026-04-26 |
 
 ## Deferred from: code review of 2-6b-trust-ceremonies-regression-milestones (2026-04-26)
 
@@ -85,3 +87,17 @@ Deferred items are reviewed at every sprint boundary (epic completion):
 - **Reason:** If `lastTransitionAt` is an invalid date string, `new Date(invalid).getTime()` returns `NaN`, and `daysAtLevel` becomes `NaN`. The `>= 30` check fails (NaN comparisons are false), so `auto` returns `auto` — not a crash but semantically wrong.
 - **Reason for deferral:** DB schema enforces `NOT NULL timestamptz` so invalid values shouldn't occur. The grid display is already guarded by `daysBetween` with `Math.max(0, ...)`.
 - **Action:** Add `Number.isFinite` guard in `deriveBadgeState` if data sources beyond the DB are introduced.
+
+## Deferred from: code review of 3-1-client-data-model-crud (2026-04-26)
+
+### DW-3.1-1: create-client-form.test.tsx tests wrong component
+- **Severity:** Medium
+- **Files:** `apps/web/app/(workspace)/clients/components/__tests__/create-client-form.test.tsx`
+- **Reason:** Test file named `create-client-form.test.tsx` renders `<ClientEmptyState>` and `<TierLimitBanner>` but never `<CreateClientForm>`. Zero CreateClientForm validation/submission tests exist. Pre-existing from initial implementation.
+- **Action:** Add proper CreateClientForm tests (validation, submission, error display) in a test coverage pass.
+
+### DW-3.1-2: TeamAccessPanel not rendered on detail page
+- **Severity:** Medium
+- **Files:** `apps/web/app/(workspace)/clients/[clientId]/page.tsx`, `team-access-panel.tsx`
+- **Reason:** TeamAccessPanel exists as a stub but is not imported or rendered on the client detail page. Owner/admin has no UI to assign/revoke team members. Deferred as D2 decision — wiring deferred to a dedicated integration story.
+- **Action:** Wire TeamAccessPanel into detail page when team scoping UX is implemented (likely Story 3.3 or a follow-up).

@@ -6,3 +6,4 @@ export {
   buildBatchApprovalItems,
   buildTimedOutItem,
 } from './agents';
+export { buildClient, buildClientAccess } from './client';

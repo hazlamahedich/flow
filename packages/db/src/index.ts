@@ -119,3 +119,20 @@ export {
   getAgentBreakdown,
   mapRun,
 } from './queries/agents/approval-queries';
+export {
+  getClientById,
+  listClients,
+  insertClient,
+  updateClient,
+  archiveClient,
+  restoreClient,
+  countActiveClients,
+  checkDuplicateEmail,
+  hasActiveAgentRuns,
+} from './queries/clients';
+export {
+  assignMemberToClient,
+  revokeMemberAccess,
+  getMembersForClient,
+  getClientsForMember,
+} from './queries/clients/scoping';

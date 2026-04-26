@@ -24,6 +24,47 @@ export type { TrustMatrixDbRow };
 
 type TrustMatrixUpdates = Partial<Pick<TrustMatrixDbRow, 'current_level' | 'score' | 'consecutive_successes' | 'total_executions' | 'successful_executions' | 'violation_count' | 'last_violation_at' | 'last_transition_at' | 'cooldown_until'>>;
 
+async function casUpdate(
+  entryId: string,
+  updates: Record<string, unknown>,
+  expectedVersion: number,
+  label: string,
+): Promise<TrustMatrixDbRow> {
+  const client = createServiceClient();
+  const { data, error } = await client
+    .from('trust_matrix')
+    .update({ ...updates, version: expectedVersion + 1, updated_at: new Date().toISOString() })
+    .eq('id', entryId)
+    .eq('version', expectedVersion)
+    .select()
+    .single();
+
+  if (error || !data) {
+    throw new TrustTransitionError(
+      'CONCURRENT_MODIFICATION',
+      `CAS ${label} failed (expected v${expectedVersion})`,
+      { retryable: false, details: { entryId, expectedVersion } },
+    );
+  }
+  return data;
+}
+
+async function getOrThrow(
+  workspaceId: string,
+  agentId: string,
+  actionType: string,
+): Promise<TrustMatrixDbRow> {
+  const entry = await getTrustMatrixEntry(workspaceId, agentId, actionType);
+  if (!entry) {
+    throw new TrustTransitionError(
+      'CONCURRENT_MODIFICATION',
+      `Trust matrix entry not found for ${agentId}:${actionType}`,
+      { retryable: false },
+    );
+  }
+  return entry;
+}
+
 export async function getTrustMatrix(
   workspaceId: string,
 ): Promise<TrustMatrixDbRow[]> {
@@ -63,13 +104,7 @@ export async function upsertTrustMatrixEntry(
   const { data, error } = await client
     .from('trust_matrix')
     .upsert(
-      {
-        workspace_id: workspaceId,
-        agent_id: agentId,
-        action_type: actionType,
-        current_level: 'supervised',
-        score: 0,
-      },
+      { workspace_id: workspaceId, agent_id: agentId, action_type: actionType, current_level: 'supervised', score: 0 },
       { onConflict: 'workspace_id,agent_id,action_type', ignoreDuplicates: true },
     )
     .select()
@@ -83,23 +118,7 @@ export async function updateTrustMatrixEntry(
   updates: TrustMatrixUpdates,
   expectedVersion: number,
 ): Promise<TrustMatrixDbRow> {
-  const client = createServiceClient();
-  const { data, error } = await client
-    .from('trust_matrix')
-    .update({ ...updates, version: expectedVersion + 1, updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('version', expectedVersion)
-    .select()
-    .single();
-
-  if (error || !data) {
-    throw new TrustTransitionError(
-      'CONCURRENT_MODIFICATION',
-      `CAS update failed for trust_matrix ${id} (expected v${expectedVersion})`,
-      { retryable: false, details: { id, expectedVersion } },
-    );
-  }
-  return data;
+  return casUpdate(id, updates as Record<string, unknown>, expectedVersion, 'updateTrustMatrixEntry');
 }
 
 export async function recordSuccess(
@@ -108,40 +127,14 @@ export async function recordSuccess(
   actionType: string,
   expectedVersion: number,
 ): Promise<TrustMatrixDbRow> {
-  const entry = await getTrustMatrixEntry(workspaceId, agentId, actionType);
-  if (!entry) {
-    throw new TrustTransitionError(
-      'CONCURRENT_MODIFICATION',
-      `Trust matrix entry not found for ${agentId}:${actionType}`,
-      { retryable: false },
-    );
-  }
-
+  const entry = await getOrThrow(workspaceId, agentId, actionType);
   const scoreDelta = entry.current_level === 'auto' ? 0 : 1;
-  const updates = {
+  return casUpdate(entry.id, {
     score: Math.min(200, entry.score + scoreDelta),
     consecutive_successes: entry.consecutive_successes + 1,
     total_executions: entry.total_executions + 1,
     successful_executions: entry.successful_executions + 1,
-  };
-
-  const client = createServiceClient();
-  const { data, error } = await client
-    .from('trust_matrix')
-    .update({ ...updates, version: expectedVersion + 1, updated_at: new Date().toISOString() })
-    .eq('id', entry.id)
-    .eq('version', expectedVersion)
-    .select()
-    .single();
-
-  if (error || !data) {
-    throw new TrustTransitionError(
-      'CONCURRENT_MODIFICATION',
-      `CAS recordSuccess failed for ${agentId}:${actionType} (expected v${expectedVersion})`,
-      { retryable: false, details: { agentId, actionType, expectedVersion } },
-    );
-  }
-  return data;
+  }, expectedVersion, `recordSuccess ${agentId}:${actionType}`);
 }
 
 export async function recordViolation(
@@ -154,15 +147,7 @@ export async function recordViolation(
   cooldownDays: number = 7,
   targetLevel?: 'supervised' | 'confirm' | 'auto',
 ): Promise<TrustMatrixDbRow> {
-  const entry = await getTrustMatrixEntry(workspaceId, agentId, actionType);
-  if (!entry) {
-    throw new TrustTransitionError(
-      'CONCURRENT_MODIFICATION',
-      `Trust matrix entry not found for ${agentId}:${actionType}`,
-      { retryable: false },
-    );
-  }
-
+  const entry = await getOrThrow(workspaceId, agentId, actionType);
   const penalty = severity === 'hard' ? 20 : 10 * riskWeight;
   const now = new Date();
   const cooldown = new Date(now.getTime() + cooldownDays * 24 * 60 * 60 * 1000);
@@ -174,28 +159,9 @@ export async function recordViolation(
     last_violation_at: now.toISOString(),
     cooldown_until: cooldown.toISOString(),
   };
+  if (targetLevel !== undefined) updates.current_level = targetLevel;
 
-  if (targetLevel !== undefined) {
-    updates.current_level = targetLevel;
-  }
-
-  const client = createServiceClient();
-  const { data, error } = await client
-    .from('trust_matrix')
-    .update({ ...updates, version: expectedVersion + 1, updated_at: now.toISOString() })
-    .eq('id', entry.id)
-    .eq('version', expectedVersion)
-    .select()
-    .single();
-
-  if (error || !data) {
-    throw new TrustTransitionError(
-      'CONCURRENT_MODIFICATION',
-      `CAS recordViolation failed for ${agentId}:${actionType} (expected v${expectedVersion})`,
-      { retryable: false, details: { agentId, actionType, expectedVersion } },
-    );
-  }
-  return data;
+  return casUpdate(entry.id, updates, expectedVersion, `recordViolation ${agentId}:${actionType}`);
 }
 
 export async function recordPrecheckFailure(
@@ -204,35 +170,9 @@ export async function recordPrecheckFailure(
   actionType: string,
   expectedVersion: number,
 ): Promise<TrustMatrixDbRow> {
-  const entry = await getTrustMatrixEntry(workspaceId, agentId, actionType);
-  if (!entry) {
-    throw new TrustTransitionError(
-      'CONCURRENT_MODIFICATION',
-      `Trust matrix entry not found for ${agentId}:${actionType}`,
-      { retryable: false },
-    );
-  }
-
-  const updates = {
+  const entry = await getOrThrow(workspaceId, agentId, actionType);
+  return casUpdate(entry.id, {
     score: Math.max(0, entry.score - 5),
     total_executions: entry.total_executions + 1,
-  };
-
-  const client = createServiceClient();
-  const { data, error } = await client
-    .from('trust_matrix')
-    .update({ ...updates, version: expectedVersion + 1, updated_at: new Date().toISOString() })
-    .eq('id', entry.id)
-    .eq('version', expectedVersion)
-    .select()
-    .single();
-
-  if (error || !data) {
-    throw new TrustTransitionError(
-      'CONCURRENT_MODIFICATION',
-      `CAS recordPrecheckFailure failed for ${agentId}:${actionType} (expected v${expectedVersion})`,
-      { retryable: false, details: { agentId, actionType, expectedVersion } },
-    );
-  }
-  return data;
+  }, expectedVersion, `recordPrecheckFailure ${agentId}:${actionType}`);
 }

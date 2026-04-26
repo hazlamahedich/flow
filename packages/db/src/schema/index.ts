@@ -1,4 +1,5 @@
 export { workspaces } from './workspaces';
+export { clients } from './clients';
 export { users } from './users';
 export { workspaceMembers } from './workspace-members';
 export { workspaceInvitations } from './workspace-invitations';

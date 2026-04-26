@@ -99,3 +99,20 @@ export type {
   RequestEmailChangeInput,
   PendingEmailChange,
 } from './profile';
+export {
+  clientStatusEnum,
+  createClientSchema,
+  updateClientSchema,
+  archiveClientSchema,
+  clientListFiltersSchema,
+  clientSchema,
+} from './client';
+export type {
+  ClientStatus,
+  CreateClientInput,
+  UpdateClientInput,
+  ArchiveClientInput,
+  ClientListFilters,
+  Client,
+} from './client';
+export type { PaginatedResult, PaginationInput } from './pagination';
