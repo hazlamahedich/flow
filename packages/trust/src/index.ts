@@ -23,6 +23,15 @@ export type {
 export { TrustTransitionError } from './errors';
 export type { TrustTransitionErrorCode } from './errors';
 
+export {
+  TRUST_BADGE_DISPLAY,
+  VALID_BADGE_TRANSITIONS,
+  InvalidTransitionError,
+  deriveBadgeState,
+  assertValidBadgeTransition,
+} from './badge-state';
+export type { TrustBadgeState, BadgeDisplayProps } from './badge-state';
+
 export { RISK_WEIGHTS, RISK_WEIGHT_ENTRIES } from './risk-weights';
 export type { RiskWeightEntry } from './risk-weights';
 export { calculateScoreChange, applyScoreChange, getRiskWeight } from './scoring';

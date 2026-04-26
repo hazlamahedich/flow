@@ -56,6 +56,12 @@ export { useUndoMutation } from './components/undo/use-undo-mutation';
 export { ConflictDialog } from './components/conflict-resolution/conflict-dialog';
 export { FieldDiff } from './components/conflict-resolution/field-diff';
 
+export { TrustBadge } from './components/trust-badge/trust-badge';
+export type { TrustBadgeProps } from './components/trust-badge/trust-badge';
+
+export { AgentStatusBar } from './components/agent-status-bar/agent-status-bar';
+export type { AgentStatusBarProps, AgentStatusBarEntry } from './components/agent-status-bar/agent-status-bar';
+
 export {
   Command,
   CommandInput,

@@ -42,3 +42,15 @@ export {
 } from './agent-transitions';
 export { deriveUIStatus } from './derive-agent-ui-status';
 export { type CircuitBreakerPort, NOOP_CIRCUIT_BREAKER } from './resilience/types';
+
+export {
+  AGENT_IDENTITY,
+  AGENT_IDS,
+  AGENT_CADENCE,
+  TRUST_LEVEL_COLORS,
+} from './constants/agent-identity';
+export type {
+  AgentIdentity,
+  CadenceTier,
+  TrustLevelColorSet,
+} from './constants/agent-identity';

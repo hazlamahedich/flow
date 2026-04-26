@@ -23,6 +23,7 @@
     "@flow/ui": "workspace:*",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.0",
+    "jotai": "^2.19.1",
     "next": "^15.3.0",
     "next-themes": "^0.4.6",
     "react": "^19.1.0",

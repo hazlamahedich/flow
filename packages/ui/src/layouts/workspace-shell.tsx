@@ -12,6 +12,7 @@ import { CommandPalette } from '../components/command-palette/command-palette';
 import { KeyboardListener } from '../components/command-palette/keyboard-listener';
 import { ShortcutOverlay } from '../components/command-palette/shortcut-overlay';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
+import type { AgentStatusBarEntry } from '../components/agent-status-bar/agent-status-bar';
 
 export interface WorkspaceShellProps {
   agentCount: number;
@@ -21,6 +22,7 @@ export interface WorkspaceShellProps {
   onSwitchWorkspace?: ((workspaceId: string) => Promise<void>) | undefined;
   searchAction?: (query: string) => Promise<{ success: boolean; data?: SearchResult[]; error?: { message: string } }>;
   onNavigate?: (href: string) => void;
+  agentStatusEntries?: AgentStatusBarEntry[] | undefined;
 }
 
 export function WorkspaceShell({
@@ -31,6 +33,7 @@ export function WorkspaceShell({
   onSwitchWorkspace,
   searchAction,
   onNavigate,
+  agentStatusEntries,
 }: WorkspaceShellProps) {
   const [collapsed, setCollapsed] = useAtom(sidebarCollapsedAtom);
   const setHoverExpanded = useSetAtom(sidebarHoverExpandedAtom);
@@ -138,6 +141,7 @@ export function WorkspaceShell({
                   workspaces={workspaces}
                   activeWorkspaceId={activeWorkspaceId}
                   onSwitchWorkspace={onSwitchWorkspace}
+                  agentStatusEntries={agentStatusEntries}
                 />
               </div>
             </SidebarErrorBoundary>

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { Sidebar } from './sidebar';
 import { toast } from 'sonner';
+import type { AgentStatusBarEntry } from '../components/agent-status-bar/agent-status-bar';
 
 interface SidebarProviderProps {
   agentCount: number;
@@ -13,6 +14,7 @@ interface SidebarProviderProps {
   workspaces?: Array<{ id: string; name: string; role: string }> | undefined;
   activeWorkspaceId?: string | undefined;
   onSwitchWorkspace?: ((workspaceId: string) => Promise<void>) | undefined;
+  agentStatusEntries?: AgentStatusBarEntry[] | undefined;
 }
 
 const REVEAL_KEY = 'flow-sidebar-revealed';
@@ -42,6 +44,7 @@ export function SidebarProvider({
   workspaces,
   activeWorkspaceId,
   onSwitchWorkspace,
+  agentStatusEntries,
 }: SidebarProviderProps) {
   const prevCountRef = useRef(agentCount);
 
@@ -73,6 +76,7 @@ export function SidebarProvider({
       workspaces={workspaces}
       activeWorkspaceId={activeWorkspaceId}
       onSwitchWorkspace={onSwitchWorkspace}
+      agentStatusEntries={agentStatusEntries}
     />
   );
 }

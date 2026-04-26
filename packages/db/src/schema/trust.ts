@@ -122,3 +122,46 @@ export const trustPreconditions = pgTable(
     index('idx_trust_preconditions_workspace_text').on(sql`(workspace_id::text)`),
   ],
 );
+
+export const trustAudits = pgTable(
+  'trust_audits',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    agentId: agentIdTypeEnum('agent_id').notNull(),
+    lastReviewedAt: timestamp('last_reviewed_at', { withTimezone: true }).notNull().defaultNow(),
+    reviewCount: integer('review_count').notNull().default(0),
+    deferredCount: integer('deferred_count').notNull().default(0),
+    lastDeferredAt: timestamp('last_deferred_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('idx_trust_audits_unique').on(table.workspaceId, table.agentId),
+    index('idx_trust_audits_workspace_reviewed').on(table.workspaceId, table.lastReviewedAt),
+    index('idx_trust_audits_workspace_text').on(sql`(workspace_id::text)`),
+  ],
+);
+
+export const trustMilestones = pgTable(
+  'trust_milestones',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    agentId: agentIdTypeEnum('agent_id').notNull(),
+    milestoneType: text('milestone_type').notNull(),
+    threshold: integer('threshold').notNull(),
+    achievedAt: timestamp('achieved_at', { withTimezone: true }).notNull().defaultNow(),
+    acknowledgedAt: timestamp('acknowledged_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('idx_trust_milestones_unique').on(table.workspaceId, table.agentId, table.milestoneType),
+    index('idx_trust_milestones_workspace_agent').on(table.workspaceId, table.agentId),
+    index('idx_trust_milestones_workspace_text').on(sql`(workspace_id::text)`),
+  ],
+);

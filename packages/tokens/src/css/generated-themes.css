@@ -31,6 +31,7 @@
   --flow-emotion-pride: #6366f1;
   --flow-emotion-trust-building: #3b82f6;
   --flow-emotion-trust-established: #22c55e;
+  --flow-emotion-trust-confirm: hsl(263, 85%, 75%);
   --flow-emotion-trust-auto: #16a34a;
   --flow-emotion-trust-betrayed: #ef4444;
   --flow-shadow-none: none;
@@ -132,6 +133,11 @@
   --flow-breakpoint-2xl: 1536px;
 }
 
+@keyframes pulse-trust {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
 [data-theme="dark"] {
   /* Semantic Colors */
   --flow-bg-canvas: #09090b;
@@ -167,6 +173,7 @@
   --flow-emotion-pride: #6366f1;
   --flow-emotion-trust-building: #3b82f6;
   --flow-emotion-trust-established: #22c55e;
+  --flow-emotion-trust-confirm: hsl(263, 85%, 75%);
   --flow-emotion-trust-auto: #16a34a;
   --flow-emotion-trust-betrayed: #ef4444;
 
@@ -332,6 +339,7 @@
   --flow-emotion-pride: #6366f1;
   --flow-emotion-trust-building: #3b82f6;
   --flow-emotion-trust-established: #22c55e;
+  --flow-emotion-trust-confirm: hsl(263, 85%, 75%);
   --flow-emotion-trust-auto: #16a34a;
   --flow-emotion-trust-betrayed: #ef4444;
 

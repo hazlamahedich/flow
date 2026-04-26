@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { WorkspaceSwitcher } from './workspace-switcher';
+import type { AgentStatusBarEntry } from '../components/agent-status-bar/agent-status-bar';
+import { AgentStatusBar } from '../components/agent-status-bar/agent-status-bar';
 
 const NAV_ITEMS = [
   { href: '/inbox', label: 'Inbox', Icon: Inbox },
@@ -36,9 +38,10 @@ interface SidebarProps {
   workspaces?: Array<{ id: string; name: string; role: string }> | undefined;
   activeWorkspaceId?: string | undefined;
   onSwitchWorkspace?: ((workspaceId: string) => Promise<void>) | undefined;
+  agentStatusEntries?: AgentStatusBarEntry[] | undefined;
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRef, workspaces, activeWorkspaceId, onSwitchWorkspace }: SidebarProps) {
+export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRef, workspaces, activeWorkspaceId, onSwitchWorkspace, agentStatusEntries }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -109,6 +112,12 @@ export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRe
           })}
         </ul>
       </nav>
+
+      {agentStatusEntries && agentStatusEntries.length >= 1 && (
+        <div className="shrink-0 border-t border-[var(--flow-color-border-default)] px-2 py-1">
+          <AgentStatusBar agents={agentStatusEntries} collapsed={collapsed} />
+        </div>
+      )}
 
       <div
         className="shrink-0 border-t border-[var(--flow-color-border-default)] p-3 flex items-center gap-2"

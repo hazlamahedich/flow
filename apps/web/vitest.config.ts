@@ -25,6 +25,8 @@ export default defineConfig({
       { find: '@flow/auth/env', replacement: path.resolve(__dirname, '../../packages/auth/src/env.ts') },
       { find: /^@flow\/auth$/, replacement: path.resolve(__dirname, '../../packages/auth/src/index.ts') },
       { find: '@flow/test-utils', replacement: path.resolve(__dirname, '../../packages/test-utils/src/index.ts') },
+      { find: /^@flow\/trust$/, replacement: path.resolve(__dirname, '../../packages/trust/src/index.ts') },
+      { find: /^@flow\/shared$/, replacement: path.resolve(__dirname, '../../packages/shared/src/index.ts') },
     ],
   },
 });

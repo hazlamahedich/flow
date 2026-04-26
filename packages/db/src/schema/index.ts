@@ -17,4 +17,6 @@ export {
   trustTransitions,
   trustSnapshots,
   trustPreconditions,
+  trustAudits,
+  trustMilestones,
 } from './trust';

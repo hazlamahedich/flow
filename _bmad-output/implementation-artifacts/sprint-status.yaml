@@ -15,6 +15,10 @@
 # last_updated: 2026-04-25 (story 2-5 created, status → ready-for-dev)
 # last_updated: 2026-04-25 (story 2-5 revised after 4-agent adversarial review, 59 findings addressed, 9 critical + 7 high fixes applied, 14 tasks restructured)
 # last_updated: 2026-04-25 (story 2-5 dev started, status → in-progress)
+# last_updated: 2026-04-25 (story 2-6 created, status → ready-for-dev)
+# last_updated: 2026-04-25 (story 2-6 split after 4-agent adversarial review: 2-6a, 2-6b, 2-6c)
+# last_updated: 2026-04-26 (story 2-6a implementation complete, all 17 tasks done, status → review)
+# last_updated: 2026-04-26 (story 2-6a re-review clean, 1 patch applied, status → done)
 # project: flow
 # project_key: NOKEY
 # tracking_system: file-system
@@ -50,7 +54,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-20
-last_updated: 2026-04-25T18:00:00Z
+last_updated: 2026-04-26T08:20:00Z
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -84,6 +88,9 @@ development_status:
   2-4-pre-check-post-check-gates: done
   2-5-agent-approval-queue-keyboard-triage: done
   2-6-agent-badge-system-trust-progression-ui: backlog
+  2-6a-trust-badge-display-agent-status: done
+  2-6b-trust-ceremonies-regression-milestones: backlog
+  2-6c-trust-audit-stick-time-tracking: backlog
   2-7-agent-action-history-coordination-timeline: backlog
   epic-2-retrospective: optional
 
