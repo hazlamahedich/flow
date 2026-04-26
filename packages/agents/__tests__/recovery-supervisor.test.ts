@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// NOTE: runRecoveryCycle is a private function in orchestrator/factory.ts
+// (not exported). These tests inline the recovery loop logic to test the
+// decision paths directly. If runRecoveryCycle becomes exported in future,
+// refactor these tests to call it via the public API.
+
 vi.mock('pg-boss', () => ({
   PgBoss: vi.fn().mockImplementation(() => ({
     start: vi.fn(async () => undefined),

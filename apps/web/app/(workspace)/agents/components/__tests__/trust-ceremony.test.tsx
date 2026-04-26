@@ -5,20 +5,9 @@ import { Provider } from 'jotai';
 import { createStore } from 'jotai';
 import { overlayStackAtom, topOverlayAtom, type OverlayEntry } from '../../../../../lib/atoms/overlay';
 import { trustBadgeAnimationAtom } from '../../../../../lib/atoms/trust';
+import { mockMatchMedia } from './helpers/match-media-mock';
 
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-});
+mockMatchMedia();
 
 vi.mock('../../actions/trust-actions', () => ({
   upgradeTrustLevel: vi.fn().mockResolvedValue({

@@ -28,6 +28,7 @@
 # last_updated: 2026-04-26 (story 2-7 created, status → ready-for-dev)
 # last_updated: 2026-04-26 (story 2-7 code review complete, 23 patches applied, status → done)
 # last_updated: 2026-04-26 (epic 2 complete — all 10 stories done, retrospective completed)
+# last_updated: 2026-04-26 (test quality review applied: 6 findings addressed, 3 helper files created)
 # project: flow
 # project_key: NOKEY
 # tracking_system: file-system
@@ -167,3 +168,13 @@ development_status:
   10-8-context-shift-detection-proactive-transparency: backlog
   10-9-agency-owner-actions-layer: backlog
   epic-10-retrospective: optional
+
+test_metrics:
+  epic-2-atdd:
+    last_measured: 2026-04-26
+    passing: 67
+    skipped: 77
+    total: 144
+    pass_rate: "46.5%"
+    note: "TDD red-phase scaffolding — P0 acceptance tests must pass before epic close-out"
+    target_pass_rate: "100% of P0 tests"

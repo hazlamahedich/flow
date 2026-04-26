@@ -4,20 +4,9 @@ import { render, screen, fireEvent, act, cleanup } from '@testing-library/react'
 import { Provider } from 'jotai';
 import { createStore } from 'jotai';
 import { overlayStackAtom, type OverlayEntry } from '../../../../../lib/atoms/overlay';
+import { mockMatchMedia } from './helpers/match-media-mock';
 
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-});
+mockMatchMedia();
 
 vi.mock('../../../../lib/hooks/use-trust-announcer', () => ({
   useTrustAnnouncer: () => vi.fn(),
