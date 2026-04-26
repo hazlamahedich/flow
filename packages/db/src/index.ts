@@ -78,8 +78,11 @@ export {
   getPreconditions,
   upsertPrecondition,
   deletePrecondition,
+  getUnacknowledgedRegressions,
+  acknowledgeTransition,
+  recordMilestone,
 } from './queries/trust';
-export type { TrustTransitionDbRow, TrustPreconditionDbRow } from './queries/trust';
+export type { TrustTransitionDbRow, TrustPreconditionDbRow, UnacknowledgedRegression } from './queries/trust';
 export {
   getPendingApprovals,
   getPendingApprovalCount,

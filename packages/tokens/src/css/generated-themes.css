@@ -133,11 +133,6 @@
   --flow-breakpoint-2xl: 1536px;
 }
 
-@keyframes pulse-trust {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-}
-
 [data-theme="dark"] {
   /* Semantic Colors */
   --flow-bg-canvas: #09090b;

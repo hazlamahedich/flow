@@ -12,6 +12,7 @@ import { CommandPalette } from '../components/command-palette/command-palette';
 import { KeyboardListener } from '../components/command-palette/keyboard-listener';
 import { ShortcutOverlay } from '../components/command-palette/shortcut-overlay';
 import { useReducedMotion } from '../hooks/use-reduced-motion';
+import type { ReactNode } from 'react';
 import type { AgentStatusBarEntry } from '../components/agent-status-bar/agent-status-bar';
 
 export interface WorkspaceShellProps {
@@ -23,6 +24,7 @@ export interface WorkspaceShellProps {
   searchAction?: (query: string) => Promise<{ success: boolean; data?: SearchResult[]; error?: { message: string } }>;
   onNavigate?: (href: string) => void;
   agentStatusEntries?: AgentStatusBarEntry[] | undefined;
+  overlaySlot?: ReactNode;
 }
 
 export function WorkspaceShell({
@@ -34,6 +36,7 @@ export function WorkspaceShell({
   searchAction,
   onNavigate,
   agentStatusEntries,
+  overlaySlot,
 }: WorkspaceShellProps) {
   const [collapsed, setCollapsed] = useAtom(sidebarCollapsedAtom);
   const setHoverExpanded = useSetAtom(sidebarHoverExpandedAtom);
@@ -165,6 +168,8 @@ export function WorkspaceShell({
         onNavigate={handleNavigate}
       />
       <ShortcutOverlay />
+
+      {overlaySlot}
 
       <button
         type="button"

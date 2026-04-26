@@ -7,3 +7,7 @@ body {
   background-color: var(--flow-color-bg-primary, #0a0a0a);
   color: var(--flow-color-text-primary, #fafafa);
 }
+
+:root {
+  --flow-z-overlay: 9999;
+}

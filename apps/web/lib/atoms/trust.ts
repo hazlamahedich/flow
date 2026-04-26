@@ -2,6 +2,10 @@ import { atom, type Atom } from 'jotai';
 import type { AgentId } from '@flow/types';
 import type { TrustBadgeState } from '@flow/trust';
 
+export type BadgeAnimState = 'pulse-promoting' | 'pulse-regressing' | 'default';
+
+export const trustBadgeAnimationAtom = atom<BadgeAnimState>('default');
+
 export interface TrustBadgeData {
   agentId: AgentId;
   state: TrustBadgeState;

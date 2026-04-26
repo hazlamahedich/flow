@@ -2,6 +2,12 @@
 
 Generated from Story 2.6a adversarial code review (2026-04-26).
 
+## Deferred from: code review of 2-6b-trust-ceremonies-regression-milestones (2026-04-26)
+
+- Focus trap rAF not cancelled on rapid activate/deactivate — edge case in rapid mount/unmount only
+- Focus trap containerRef stale on React remount — rare edge case
+- `overlayReducer` default silently accepts unknown actions — TypeScript exhaustive check catches at build time
+
 ## From Story 2.6a — Trust Badge Display & Agent Status Indicators
 
 ### DW-2.6a-1: File size limit violations

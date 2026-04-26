@@ -6,6 +6,8 @@ import type { WorkspaceShellProps } from '@flow/ui';
 import { WorkspaceShell, UndoWorkspaceProvider, UndoProvider, UndoFab } from '@flow/ui';
 import { searchEntitiesAction } from './actions/search-entities';
 import { undoAction } from '@/lib/actions/undo';
+import { OverlayHost } from './components/overlay-host';
+import { TrustAnnouncerRegion } from '@/lib/hooks/use-trust-announcer';
 
 export function WorkspaceShellClient({
   agentCount,
@@ -34,22 +36,8 @@ export function WorkspaceShellClient({
 
   if (!activeWorkspaceId) {
     return (
-      <WorkspaceShell
-        agentCount={agentCount}
-        workspaces={workspaces}
-        activeWorkspaceId={activeWorkspaceId}
-        onSwitchWorkspace={onSwitchWorkspace}
-        searchAction={searchAction}
-        onNavigate={handleNavigate}
-      >
-        {children}
-      </WorkspaceShell>
-    );
-  }
-
-  return (
-    <UndoWorkspaceProvider workspaceId={activeWorkspaceId}>
-      <UndoProvider undoAction={undoAction}>
+      <>
+        <TrustAnnouncerRegion />
         <WorkspaceShell
           agentCount={agentCount}
           workspaces={workspaces}
@@ -57,6 +45,26 @@ export function WorkspaceShellClient({
           onSwitchWorkspace={onSwitchWorkspace}
           searchAction={searchAction}
           onNavigate={handleNavigate}
+          overlaySlot={<OverlayHost />}
+        >
+          {children}
+        </WorkspaceShell>
+      </>
+    );
+  }
+
+  return (
+    <UndoWorkspaceProvider workspaceId={activeWorkspaceId}>
+      <UndoProvider undoAction={undoAction}>
+        <TrustAnnouncerRegion />
+        <WorkspaceShell
+          agentCount={agentCount}
+          workspaces={workspaces}
+          activeWorkspaceId={activeWorkspaceId}
+          onSwitchWorkspace={onSwitchWorkspace}
+          searchAction={searchAction}
+          onNavigate={handleNavigate}
+          overlaySlot={<OverlayHost />}
         >
           {children}
         </WorkspaceShell>

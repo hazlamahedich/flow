@@ -21,3 +21,10 @@ export {
   deletePrecondition,
 } from './preconditions';
 export type { TrustPreconditionDbRow } from './preconditions';
+
+export {
+  getUnacknowledgedRegressions,
+  acknowledgeTransition,
+  recordMilestone,
+} from './trust-mutations';
+export type { UnacknowledgedRegression } from './trust-mutations';
