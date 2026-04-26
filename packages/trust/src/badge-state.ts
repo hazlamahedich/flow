@@ -80,7 +80,10 @@ export function deriveBadgeState(entry: TrustMatrixEntry, now: Date): TrustBadge
   const consecutive = entry.consecutiveSuccesses;
   const score = entry.score;
   const lastTransition = new Date(entry.lastTransitionAt);
-  const daysAtLevel = (now.getTime() - lastTransition.getTime()) / MS_PER_DAY;
+  const transitionTime = lastTransition.getTime();
+  const daysAtLevel = Number.isFinite(transitionTime)
+    ? (now.getTime() - transitionTime) / MS_PER_DAY
+    : 0;
 
   if (level === 'supervised') {
     if (score >= 70 && consecutive >= 7) return 'promoting';

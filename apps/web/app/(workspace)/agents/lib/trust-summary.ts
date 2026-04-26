@@ -1,7 +1,30 @@
 import { getServerSupabase } from '@/lib/supabase-server';
 import type { AgentId } from '@flow/types';
+import { z } from 'zod';
 
 export const CANONICAL_ACTION_TYPE = 'general';
+
+const trustMatrixRowSchema = z.object({
+  workspace_id: z.string(),
+  agent_id: z.string(),
+  action_type: z.string(),
+  current_level: z.enum(['supervised', 'confirm', 'auto']),
+  score: z.number(),
+  consecutive_successes: z.number(),
+  total_executions: z.number(),
+  successful_executions: z.number(),
+  violation_count: z.number(),
+  last_transition_at: z.string(),
+  last_violation_at: z.string().nullable().optional(),
+}).passthrough();
+
+const trustMilestoneRowSchema = z.object({
+  agent_id: z.string(),
+  milestone_type: z.string(),
+  threshold: z.number(),
+  achieved_at: z.string(),
+  acknowledged_at: z.string().nullable().optional(),
+}).passthrough();
 
 export interface TrustSummaryRow {
   workspaceId: string;
@@ -33,18 +56,21 @@ export async function getTrustSummaryForWorkspace(
   if (error) throw error;
   if (!data) return [];
 
-  return data.map((row) => ({
-    workspaceId: row.workspace_id,
-    agentId: row.agent_id as AgentId,
-    currentLevel: row.current_level as 'supervised' | 'confirm' | 'auto',
-    score: row.score,
-    consecutiveSuccesses: row.consecutive_successes,
-    totalExecutions: row.total_executions,
-    successfulExecutions: row.successful_executions,
-    violationCount: row.violation_count,
-    lastTransitionAt: row.last_transition_at,
-    lastViolationAt: row.last_violation_at,
-  }));
+  return data.map((row) => {
+    const parsed = trustMatrixRowSchema.parse(row);
+    return {
+      workspaceId: parsed.workspace_id,
+      agentId: parsed.agent_id as AgentId,
+      currentLevel: parsed.current_level,
+      score: parsed.score,
+      consecutiveSuccesses: parsed.consecutive_successes,
+      totalExecutions: parsed.total_executions,
+      successfulExecutions: parsed.successful_executions,
+      violationCount: parsed.violation_count,
+      lastTransitionAt: parsed.last_transition_at,
+      lastViolationAt: parsed.last_violation_at ?? null,
+    };
+  });
 }
 
 export async function getTrustMilestones(
@@ -65,11 +91,14 @@ export async function getTrustMilestones(
   if (error) throw error;
   if (!data) return [];
 
-  return data.map((row) => ({
-    agentId: row.agent_id as AgentId,
-    milestoneType: row.milestone_type,
-    threshold: row.threshold,
-    achievedAt: row.achieved_at,
-    acknowledgedAt: row.acknowledged_at,
-  }));
+  return data.map((row) => {
+    const parsed = trustMilestoneRowSchema.parse(row);
+    return {
+      agentId: parsed.agent_id as AgentId,
+      milestoneType: parsed.milestone_type,
+      threshold: parsed.threshold,
+      achievedAt: parsed.achieved_at,
+      acknowledgedAt: parsed.acknowledged_at ?? null,
+    };
+  });
 }

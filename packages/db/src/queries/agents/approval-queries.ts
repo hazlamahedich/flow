@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AgentId, AgentRun, ApprovalQueueItem } from '@flow/types';
 import { parseApprovalOutputWithRun } from '@flow/types';
+import { z } from 'zod';
 
 interface PendingApprovalsOptions {
   limit?: number;
@@ -15,31 +16,58 @@ interface PendingApprovalsResult {
   trustStaleIds: Set<string>;
 }
 
+const agentRunRowSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string(),
+  agent_id: z.string(),
+  job_id: z.string(),
+  signal_id: z.string().nullable().optional(),
+  action_type: z.string(),
+  client_id: z.string().nullable().optional(),
+  idempotency_key: z.string().nullable().optional(),
+  status: z.string(),
+  input: z.record(z.string(), z.unknown()),
+  output: z.record(z.string(), z.unknown()).nullable().optional(),
+  error: z.record(z.string(), z.unknown()).nullable().optional(),
+  trust_tier_at_execution: z.string().nullable().optional(),
+  trust_snapshot_id: z.string().nullable().optional(),
+  correlation_id: z.string(),
+  started_at: z.string().nullable().optional(),
+  completed_at: z.string().nullable().optional(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  corrected_run_id: z.string().nullable().optional(),
+  correction_depth: z.number().optional(),
+  correction_issued: z.boolean().optional(),
+  source: z.enum(['agent', 'human_correction']).optional(),
+}).passthrough();
+
 export function mapRun(raw: Record<string, unknown>): AgentRun {
+  const parsed = agentRunRowSchema.parse(raw);
   return {
-    id: raw.id as string,
-    workspaceId: raw.workspace_id as string,
-    agentId: raw.agent_id as AgentId,
-    jobId: raw.job_id as string,
-    signalId: (raw.signal_id as string | null) ?? null,
-    actionType: raw.action_type as string,
-    clientId: (raw.client_id as string | null) ?? null,
-    idempotencyKey: (raw.idempotency_key as string | null) ?? null,
-    status: raw.status as AgentRun['status'],
-    input: raw.input as Record<string, unknown>,
-    output: (raw.output as Record<string, unknown> | null) ?? null,
-    error: (raw.error as Record<string, unknown> | null) ?? null,
-    trustTierAtExecution: (raw.trust_tier_at_execution as string | null) ?? null,
-    trustSnapshotId: (raw.trust_snapshot_id as string | null) ?? null,
-    correlationId: raw.correlation_id as string,
-    startedAt: (raw.started_at as string | null) ?? null,
-    completedAt: (raw.completed_at as string | null) ?? null,
-    createdAt: raw.created_at as string,
-    updatedAt: raw.updated_at as string,
-    correctedRunId: (raw.corrected_run_id as string | null) ?? null,
-    correctionDepth: (raw.correction_depth as number) ?? 0,
-    correctionIssued: (raw.correction_issued as boolean) ?? false,
-    source: (raw.source as 'agent' | 'human_correction') ?? 'agent',
+    id: parsed.id,
+    workspaceId: parsed.workspace_id,
+    agentId: parsed.agent_id as AgentId,
+    jobId: parsed.job_id,
+    signalId: parsed.signal_id ?? null,
+    actionType: parsed.action_type,
+    clientId: parsed.client_id ?? null,
+    idempotencyKey: parsed.idempotency_key ?? null,
+    status: parsed.status as AgentRun['status'],
+    input: parsed.input,
+    output: parsed.output ?? null,
+    error: parsed.error ?? null,
+    trustTierAtExecution: parsed.trust_tier_at_execution ?? null,
+    trustSnapshotId: parsed.trust_snapshot_id ?? null,
+    correlationId: parsed.correlation_id,
+    startedAt: parsed.started_at ?? null,
+    completedAt: parsed.completed_at ?? null,
+    createdAt: parsed.created_at,
+    updatedAt: parsed.updated_at,
+    correctedRunId: parsed.corrected_run_id ?? null,
+    correctionDepth: parsed.correction_depth ?? 0,
+    correctionIssued: parsed.correction_issued ?? false,
+    source: parsed.source ?? 'agent',
   };
 }
 
@@ -120,7 +148,7 @@ export async function getAgentBreakdown(
 
   const breakdown: Record<string, number> = {};
   for (const row of data ?? []) {
-    const aid = row.agent_id as string;
+    const aid = row.agent_id;
     breakdown[aid] = (breakdown[aid] ?? 0) + 1;
   }
   return breakdown;

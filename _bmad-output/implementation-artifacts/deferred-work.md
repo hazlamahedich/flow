@@ -2,6 +2,33 @@
 
 Generated from Story 2.6a adversarial code review (2026-04-26).
 
+## Review Cadence
+
+Deferred items are reviewed at every sprint boundary (epic completion):
+- **When:** After each epic retrospective, before next epic begins
+- **Owner:** Tech Writer (Paige) maintains this file; PM (John) triages at review
+- **Process:**
+  1. At sprint boundary, review each open item
+  2. If trigger condition met → create story or standalone task
+  3. If no longer relevant → mark resolved with reason
+  4. Update status column below
+- **Next review:** Before Epic 3 sprint planning
+
+### Status Tracker
+
+| ID | Severity | Status | Last Reviewed |
+|----|----------|--------|---------------|
+| DW-2.6a-1 | Low | open | 2026-04-26 |
+| DW-2.6a-2 | Medium | open | 2026-04-26 |
+| DW-2.6a-3 | Low | resolved (A4 migration) | 2026-04-26 |
+| DW-2.6a-4 | Medium | resolved (A5 Zod schemas) | 2026-04-26 |
+| DW-2.6a-5 | Low | resolved (A4 migration) | 2026-04-26 |
+| DW-2.6a-6 | Low | open | 2026-04-26 |
+| DW-2.6a-7 | Low | resolved (A5 atomCache cleanup) | 2026-04-26 |
+| DW-2.6a-8 | Low | resolved (A5 NaN guard) | 2026-04-26 |
+| 2-6b focus traps | — | open | 2026-04-26 |
+| 2-4 boundary audit | — | resolved (A3 audit) | 2026-04-26 |
+
 ## Deferred from: code review of 2-6b-trust-ceremonies-regression-milestones (2026-04-26)
 
 - Focus trap rAF not cancelled on rapid activate/deactivate — edge case in rapid mount/unmount only

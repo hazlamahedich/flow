@@ -1,7 +1,7 @@
 ---
 project_name: 'flow'
 user_name: 'team mantis'
-date: '2026-04-19'
+date: '2026-04-26'
 sections_completed:
   - 'technology_stack'
   - 'language_rules'
@@ -115,6 +115,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 **Supabase-Specific TypeScript:**
 - Always use `::text` cast when comparing `workspace_id` against JWT claims in RLS policies. JWT claims return text; `workspace_id` columns are uuid. Without the cast, RLS silently denies all queries.
+- **All RLS policies must use the `::text` JWT cast pattern:** `workspace_id::text IN (SELECT wm.workspace_id::text FROM workspace_members wm WHERE wm.user_id = auth.uid() AND wm.removed_at IS NULL)`. Do NOT use subquery join patterns (`SELECT w.id FROM workspaces w INNER JOIN workspace_members wm ON ...`). The `::text` cast is non-negotiable — see `supabase/migrations/20260428000006_trust_rls_policies.sql` for the canonical pattern.
 - Generated types from `supabase gen types` — use them. No manual type definitions for database tables.
 - `service_role` key ONLY in server-side edge functions for system-level operations (billing webhooks, agent orchestration, audit logs). NEVER in client code.
 
@@ -181,9 +182,9 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Note: Supabase Realtime subscriptions evaluate RLS against JWT at subscribe time. Token refresh does NOT re-evaluate. Use SSE or polling for permission-sensitive real-time updates.
 
 **Monorepo Package Boundaries:**
-- Packages: `@flow/ui` (components), `@flow/agents` (agent modules), `@flow/db` (database client + types), `@flow/validators` (Zod schemas), `@flow/test-utils` (shared test infrastructure).
-- `@flow/agents` imports from `@flow/db` and `@flow/validators` only. Cannot reach into `@flow/ui`.
-- `@flow/ui` imports from `@flow/validators` only. Cannot reach into `@flow/agents` or `@flow/db`.
+- Packages: `@flow/ui` (components), `@flow/agents` (agent modules), `@flow/db` (database client + types), `@flow/types` (shared types + Zod schemas), `@flow/trust` (trust calculations + badge state), `@flow/tokens` (design tokens + theme), `@flow/auth` (auth + device trust), `@flow/shared` (shared utilities), `@flow/test-utils` (shared test infrastructure).
+- `@flow/agents` imports from `@flow/db` and `@flow/types` only. Cannot reach into `@flow/ui`.
+- `@flow/ui` imports from `@flow/tokens` and `@flow/types` only. Cannot reach into `@flow/agents` or `@flow/db`.
 - Enforce with `eslint-plugin-import` no-restricted-paths config.
 - Turborepo pipeline: `build → test → lint`. Packages build before apps.
 
@@ -306,6 +307,8 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - No `any`. Use `unknown` + type guard, or explicit eslint-disable with comment explaining why.
 - No manual type assertions (`as SomeType`). Use Zod schema validation at boundaries.
 - Zod schemas are the source of truth for runtime shapes. Derived TypeScript types via `z.infer<>`.
+- **DB query boundary validation:** every Supabase row mapping function MUST use a Zod schema to validate incoming data. Never cast raw `Record<string, unknown>` with `as`. Pattern: define `z.object({...}).passthrough()` schema, call `.parse(raw)` or `.safeParse(raw)` before mapping to domain types. See `packages/db/src/queries/agents/approval-queries.ts` for reference implementation.
+- **New DB query files MUST include Zod validation.** No exceptions. If a query function touches Supabase results, it validates with Zod first.
 
 **`"use client"` / `"use server"` Placement:**
 - Server Actions in `actions/*.ts` files with `"use server"` at top of file. No inline `"use server"` in mixed files.
@@ -346,6 +349,18 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Breaking changes: `feat(scope)!: description` with `BREAKING CHANGE:` in body.
 - One logical change per commit. Migrations in their own commit, separate from application code.
 - Branch naming: `feature/`, `fix/`, `refactor/` prefixes.
+
+**Scope Check Gate (Pre-Development):**
+- Before any story moves from `ready-for-dev` to `in-progress`, a scope check must pass. See `_bmad-output/implementation-artifacts/scope-check-gate.md` for the full checklist.
+- Split triggers: 3+ integration points, schema + interface + implementation in one story, display + ceremony + audit in one story, 3+ new tables.
+- Sign-off required: PM + Architect + Developer.
+- If a story would have been split mid-sprint (like Epic 2's 2-1 and 2-6), this gate catches it early.
+
+**Deferred Work Tracking:**
+- Deferred items live in `_bmad-output/implementation-artifacts/deferred-work.md`.
+- Every deferred item must have: severity, affected files, reason for deferral, trigger condition for fixing.
+- Deferred items reviewed at every sprint boundary (epic completion). Owner: Tech Writer maintains file; PM triages at review.
+- Do not lose track of deferred work — it accumulates technical debt that compounds if ignored.
 
 ### Development Workflow Rules
 
@@ -507,4 +522,4 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Review quarterly for outdated rules.
 - Add new rules when an AI agent makes the same mistake twice — that's the signal threshold.
 
-Last Updated: 2026-04-23
+Last Updated: 2026-04-26

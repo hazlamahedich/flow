@@ -210,4 +210,5 @@ export const agentLLMPreferencesSchema = z.object({
   qualityMode: z.enum(['fast', 'quality']).optional(),
 });
 
-export type { TrustBlockOutput, ApprovalQueueItem, ApprovalResult, BatchActionResult, parseApprovalOutput, parseApprovalOutputWithRun } from './approval-types';
+export type { TrustBlockOutput, ApprovalQueueItem, ApprovalResult, BatchActionResult } from './approval-types';
+export { parseApprovalOutput, parseApprovalOutputWithRun } from './approval-types';

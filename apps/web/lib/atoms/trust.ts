@@ -15,9 +15,11 @@ export interface TrustBadgeData {
   daysAtLevel: number;
 }
 
-export const trustBadgeMapAtom = atom<Map<string, TrustBadgeData>>(new Map());
-
 const atomCache = new Map<string, Atom<TrustBadgeData | null>>();
+
+function clearAtomCache() {
+  atomCache.clear();
+}
 
 export function trustBadgeAtom(workspaceId: string, agentId: AgentId) {
   const key = `${workspaceId}:${agentId}`;
@@ -30,6 +32,15 @@ export function trustBadgeAtom(workspaceId: string, agentId: AgentId) {
   atomCache.set(key, derived);
   return derived;
 }
+
+export const trustBadgeMapAtom = atom<Map<string, TrustBadgeData>>(new Map());
+
+trustBadgeMapAtom.onMount = (set) => {
+  return () => {
+    set(new Map());
+    clearAtomCache();
+  };
+};
 
 export const dominantTrustTierAtom = atom<TrustBadgeState | null>((get) => {
   const map = get(trustBadgeMapAtom);

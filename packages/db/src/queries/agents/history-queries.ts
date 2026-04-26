@@ -1,5 +1,6 @@
 import { createServiceClient } from '../../client';
 import { mapRun } from './approval-queries';
+import { z } from 'zod';
 import type {
   ActionHistoryFilters,
   ActionHistoryRow,
@@ -8,13 +9,22 @@ import type {
   FeedbackRow,
 } from './history-types';
 
+const feedbackRowSchema = z.object({
+  id: z.string(),
+  sentiment: z.enum(['positive', 'negative']),
+  note: z.string().nullable().optional(),
+  created_at: z.string(),
+}).passthrough();
+
 function mapFeedback(raw: Record<string, unknown> | null): FeedbackRow | null {
   if (!raw) return null;
+  const parsed = feedbackRowSchema.safeParse(raw);
+  if (!parsed.success) return null;
   return {
-    id: raw.id as string,
-    sentiment: raw.sentiment as 'positive' | 'negative',
-    note: (raw.note as string | null) ?? null,
-    createdAt: raw.created_at as string,
+    id: parsed.data.id,
+    sentiment: parsed.data.sentiment,
+    note: parsed.data.note ?? null,
+    createdAt: parsed.data.created_at,
   };
 }
 

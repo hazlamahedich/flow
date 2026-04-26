@@ -1,4 +1,5 @@
 import { createServiceClient } from '../../client';
+import { z } from 'zod';
 import type {
   TrustEventFilters,
   TrustEventRow,
@@ -8,6 +9,29 @@ import type {
 } from './audit-types';
 
 const PAGE_SIZE = 25;
+
+const trustEventRowSchema = z.object({
+  id: z.string(),
+  matrix_entry_id: z.string(),
+  workspace_id: z.string(),
+  trust_matrix: z.object({ agent_id: z.string() }).passthrough().nullable().optional(),
+  from_level: z.string(),
+  to_level: z.string(),
+  trigger_type: z.string(),
+  trigger_reason: z.string(),
+  is_context_shift: z.boolean(),
+  actor: z.string(),
+  created_at: z.string(),
+}).passthrough();
+
+const autoActionRowSchema = z.object({
+  id: z.string(),
+  agent_id: z.string(),
+  action_type: z.string(),
+  status: z.string(),
+  created_at: z.string(),
+  summary: z.string().nullable().optional(),
+}).passthrough();
 
 const LEVEL_ORDER: Record<string, number> = {
   supervised: 0,
@@ -68,19 +92,22 @@ export async function getTrustEvents(
   if (error) throw error;
   if (!data) return { data: [], total: 0, page, pageSize: PAGE_SIZE };
 
-  let rows: TrustEventRow[] = data.map((r: Record<string, unknown>) => ({
-    id: r.id as string,
-    matrixEntryId: r.matrix_entry_id as string,
-    workspaceId: r.workspace_id as string,
-    agentId: ((r.trust_matrix as Record<string, unknown>)?.agent_id ?? '') as string,
-    fromLevel: r.from_level as string,
-    toLevel: r.to_level as string,
-    triggerType: r.trigger_type as string,
-    triggerReason: r.trigger_reason as string,
-    isContextShift: r.is_context_shift as boolean,
-    actor: r.actor as string,
-    createdAt: r.created_at as string,
-  }));
+  let rows: TrustEventRow[] = data.map((r: Record<string, unknown>) => {
+    const parsed = trustEventRowSchema.parse(r);
+    return {
+      id: parsed.id,
+      matrixEntryId: parsed.matrix_entry_id,
+      workspaceId: parsed.workspace_id,
+      agentId: parsed.trust_matrix?.agent_id ?? '',
+      fromLevel: parsed.from_level,
+      toLevel: parsed.to_level,
+      triggerType: parsed.trigger_type,
+      triggerReason: parsed.trigger_reason,
+      isContextShift: parsed.is_context_shift,
+      actor: parsed.actor,
+      createdAt: parsed.created_at,
+    };
+  });
 
   if (filters.direction && filters.direction !== 'all') {
     rows = rows.filter((r) =>
@@ -174,12 +201,15 @@ export async function getRecentAutoActions(
   if (error) throw error;
   if (!data) return [];
 
-  return data.map((r: Record<string, unknown>) => ({
-    id: r.id as string,
-    agentId: r.agent_id as string,
-    actionType: r.action_type as string,
-    status: r.status as string,
-    createdAt: r.created_at as string,
-    summary: (r.summary as string | null) ?? null,
-  }));
+  return data.map((r: Record<string, unknown>) => {
+    const parsed = autoActionRowSchema.parse(r);
+    return {
+      id: parsed.id,
+      agentId: parsed.agent_id,
+      actionType: parsed.action_type,
+      status: parsed.status,
+      createdAt: parsed.created_at,
+      summary: parsed.summary ?? null,
+    };
+  });
 }
