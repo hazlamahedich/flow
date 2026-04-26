@@ -36,6 +36,9 @@ export const agentRunStatusSchema = z.enum([
   'cancelled',
 ]);
 
+export const agentRunSourceValues = ['agent', 'human_correction'] as const;
+export type AgentRunSource = typeof agentRunSourceValues[number];
+
 export interface AgentRun {
   id: string;
   workspaceId: string;
@@ -56,28 +59,22 @@ export interface AgentRun {
   completedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  correctedRunId: string | null; correctionDepth: number;
+  correctionIssued: boolean; source: AgentRunSource;
 }
 
 export const agentRunSchema = z.object({
-  id: z.string().uuid(),
-  workspaceId: z.string().uuid(),
-  agentId: agentIdSchema,
-  jobId: z.string(),
-  signalId: z.string().uuid().nullable(),
-  actionType: z.string(),
-  clientId: z.string().uuid().nullable(),
-  idempotencyKey: z.string().nullable(),
-  status: agentRunStatusSchema,
-  input: z.record(z.unknown()),
-  output: z.record(z.unknown()).nullable(),
-  error: z.record(z.unknown()).nullable(),
-  trustTierAtExecution: z.string().nullable(),
-  trustSnapshotId: z.string().uuid().nullable(),
-  correlationId: z.string().uuid(),
-  startedAt: z.string().datetime({ offset: true }).nullable(),
+  id: z.string().uuid(), workspaceId: z.string().uuid(), agentId: agentIdSchema,
+  jobId: z.string(), signalId: z.string().uuid().nullable(), actionType: z.string(),
+  clientId: z.string().uuid().nullable(), idempotencyKey: z.string().nullable(),
+  status: agentRunStatusSchema, input: z.record(z.unknown()),
+  output: z.record(z.unknown()).nullable(), error: z.record(z.unknown()).nullable(),
+  trustTierAtExecution: z.string().nullable(), trustSnapshotId: z.string().uuid().nullable(),
+  correlationId: z.string().uuid(), startedAt: z.string().datetime({ offset: true }).nullable(),
   completedAt: z.string().datetime({ offset: true }).nullable(),
-  createdAt: z.string().datetime({ offset: true }),
-  updatedAt: z.string().datetime({ offset: true }),
+  createdAt: z.string().datetime({ offset: true }), updatedAt: z.string().datetime({ offset: true }),
+  correctedRunId: z.string().uuid().nullable(), correctionDepth: z.number().int().min(0).max(5),
+  correctionIssued: z.boolean(), source: z.enum(agentRunSourceValues),
 });
 
 export interface AgentSignal {
@@ -213,5 +210,4 @@ export const agentLLMPreferencesSchema = z.object({
   qualityMode: z.enum(['fast', 'quality']).optional(),
 });
 
-export type { TrustBlockOutput, ApprovalQueueItem, ApprovalResult, BatchActionResult } from './approval-types';
-export { parseApprovalOutput, parseApprovalOutputWithRun } from './approval-types';
+export type { TrustBlockOutput, ApprovalQueueItem, ApprovalResult, BatchActionResult, parseApprovalOutput, parseApprovalOutputWithRun } from './approval-types';

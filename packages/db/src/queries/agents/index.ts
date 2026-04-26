@@ -38,3 +38,18 @@ export {
   writeBudgetAuditAlert,
   hasBudgetAlertThisPeriod,
 } from './budget-audit';
+export type {
+  ActionHistoryFilters,
+  ActionHistoryRow,
+  AgentRunError,
+  CoordinationGroup,
+  CorrectionInfo,
+  FeedbackRow,
+} from './history-types';
+export {
+  getActionHistory,
+  getCoordinationGroups,
+  getRunDetail,
+  getRecentActivity,
+  getCorrectionChain,
+} from './history-queries';

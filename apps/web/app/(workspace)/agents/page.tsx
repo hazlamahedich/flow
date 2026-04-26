@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AgentTrustGrid } from './components/agent-trust-grid';
 import { getTrustSummaryForWorkspace } from './lib/trust-summary';
+import { RecentActivityWidget } from './components/recent-activity-widget';
 
 export const metadata: Metadata = { title: 'Agents' };
 export const dynamic = 'force-dynamic';
@@ -37,6 +38,7 @@ export default async function AgentsPage() {
         checkInDue={checkInDue}
         checkInEnabled={checkInEnabled}
       />
+      <RecentActivityWidget workspaceId={workspaceId} />
     </div>
   );
 }

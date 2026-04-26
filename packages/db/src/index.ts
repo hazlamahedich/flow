@@ -63,6 +63,21 @@ export {
   hasBudgetAlertThisPeriod,
 } from './queries/agents';
 export type { CostLogEntry, CostLogRow } from './queries/agents';
+export type {
+  ActionHistoryFilters,
+  ActionHistoryRow,
+  AgentRunError,
+  CoordinationGroup,
+  CorrectionInfo,
+  FeedbackRow,
+} from './queries/agents/history-types';
+export {
+  getActionHistory,
+  getCoordinationGroups,
+  getRunDetail,
+  getRecentActivity,
+  getCorrectionChain,
+} from './queries/agents/history-queries';
 export {
   getTrustMatrix,
   getTrustMatrixEntry,
@@ -102,4 +117,5 @@ export {
   getPendingApprovals,
   getPendingApprovalCount,
   getAgentBreakdown,
+  mapRun,
 } from './queries/agents/approval-queries';

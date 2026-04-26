@@ -15,7 +15,7 @@ interface PendingApprovalsResult {
   trustStaleIds: Set<string>;
 }
 
-function mapRun(raw: Record<string, unknown>): AgentRun {
+export function mapRun(raw: Record<string, unknown>): AgentRun {
   return {
     id: raw.id as string,
     workspaceId: raw.workspace_id as string,
@@ -36,6 +36,10 @@ function mapRun(raw: Record<string, unknown>): AgentRun {
     completedAt: (raw.completed_at as string | null) ?? null,
     createdAt: raw.created_at as string,
     updatedAt: raw.updated_at as string,
+    correctedRunId: (raw.corrected_run_id as string | null) ?? null,
+    correctionDepth: (raw.correction_depth as number) ?? 0,
+    correctionIssued: (raw.correction_issued as boolean) ?? false,
+    source: (raw.source as 'agent' | 'human_correction') ?? 'agent',
   };
 }
 

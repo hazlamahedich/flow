@@ -21,6 +21,10 @@ const mockRun = {
   completedAt: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
+  correctedRunId: null,
+  correctionDepth: 0,
+  correctionIssued: false,
+  source: 'agent' as const,
 };
 
 describe('parseApprovalOutput', () => {
