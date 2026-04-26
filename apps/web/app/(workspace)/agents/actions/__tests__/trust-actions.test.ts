@@ -1,11 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const mockClient = {
+  from: vi.fn(),
+};
+
+function mockChain(data: unknown, error: unknown) {
+  const chainable: Record<string, unknown> = { data, error, eq: () => chainable, single: () => Promise.resolve({ data, error }) };
+  return {
+    select: () => chainable,
+  };
+}
+
 vi.mock('@flow/db', () => ({
   updateTrustMatrixEntry: vi.fn(),
   insertTransition: vi.fn(),
   getTrustMatrixEntry: vi.fn(),
-  createServerClient: vi.fn(),
-  createServiceClient: vi.fn(),
+  createServerClient: vi.fn(() => mockClient),
+  createServiceClient: vi.fn(() => mockClient),
   requireTenantContext: vi.fn(),
 }));
 
@@ -39,6 +50,12 @@ beforeEach(() => {
     id: 'm1', score: 75, version: 2,
   });
   (insertTransition as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 't1' });
+  mockClient.from.mockImplementation((table: string) => {
+    const data = table === 'trust_matrix'
+      ? { id: 'm1', cooldown_until: new Date(Date.now() + 7 * 86400000).toISOString(), current_level: 'confirm' }
+      : { from_level: 'supervised', to_level: 'confirm', trigger_type: 'soft_violation' };
+    return mockChain(data, null);
+  });
 });
 
 describe('upgradeTrustLevel', () => {
@@ -113,25 +130,6 @@ describe('downgradeTrustLevel', () => {
 
 describe('undoRegression', () => {
   it('returns success on valid undo within cooldown', async () => {
-    const { createServiceClient } = await import('@flow/db');
-    (createServiceClient as ReturnType<typeof vi.fn>).mockReturnValue({
-      from: () => ({
-        select: () => ({
-          eq: () => ({
-            eq: () => ({
-              single: () => Promise.resolve({
-                data: {
-                  id: 'm1',
-                  cooldown_until: new Date(Date.now() + 7 * 86400000).toISOString(),
-                  current_level: 'confirm',
-                },
-                error: null,
-              }),
-            }),
-          }),
-        }),
-      }),
-    });
     const result = await undoRegression({
       transitionId: '00000000-0000-0000-0000-000000000002',
       matrixEntryId: '00000000-0000-0000-0000-000000000001',
@@ -141,24 +139,11 @@ describe('undoRegression', () => {
   });
 
   it('returns error when cooldown has expired', async () => {
-    const { createServiceClient } = await import('@flow/db');
-    (createServiceClient as ReturnType<typeof vi.fn>).mockReturnValue({
-      from: () => ({
-        select: () => ({
-          eq: () => ({
-            eq: () => ({
-              single: () => Promise.resolve({
-                data: {
-                  id: 'm1',
-                  cooldown_until: new Date(Date.now() - 1000).toISOString(),
-                  current_level: 'confirm',
-                },
-                error: null,
-              }),
-            }),
-          }),
-        }),
-      }),
+    mockClient.from.mockImplementation((table: string) => {
+      if (table === 'trust_matrix') {
+        return mockChain({ id: 'm1', cooldown_until: new Date(Date.now() - 1000).toISOString() }, null);
+      }
+      return mockChain({ from_level: 'supervised', to_level: 'confirm', trigger_type: 'soft_violation' }, null);
     });
     const result = await undoRegression({
       transitionId: '00000000-0000-0000-0000-000000000002',

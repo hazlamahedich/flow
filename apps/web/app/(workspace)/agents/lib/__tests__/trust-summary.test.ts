@@ -11,8 +11,8 @@ vi.mock('next/headers', () => ({
   })),
 }));
 
-vi.mock('@flow/db', () => ({
-  createServerClient: vi.fn(() => ({
+vi.mock('@/lib/supabase-server', () => ({
+  getServerSupabase: vi.fn(async () => ({
     from: mockFrom,
   })),
 }));
@@ -22,7 +22,8 @@ import { getTrustSummaryForWorkspace, getTrustMilestones } from '../trust-summar
 const WS_ID = '00000000-0000-0000-0000-000000000001';
 
 function setupQuery(data: unknown[] | null, error: unknown | null) {
-  mockEq.mockReturnValue({ data, error });
+  const chainable: Record<string, unknown> = { data, error, eq: mockEq };
+  mockEq.mockReturnValue(chainable);
   mockSelect.mockReturnValue({ eq: mockEq });
   mockFrom.mockReturnValue({ select: mockSelect });
 }
@@ -45,14 +46,15 @@ describe('getTrustSummaryForWorkspace', () => {
         violation_count: 1,
         last_transition_at: '2025-01-01T00:00:00Z',
         last_violation_at: null,
+        action_type: 'general',
       },
     ], null);
 
     const result = await getTrustSummaryForWorkspace(WS_ID);
     expect(result).toHaveLength(1);
-    expect(result[0].agentId).toBe('inbox');
-    expect(result[0].currentLevel).toBe('supervised');
-    expect(result[0].score).toBe(50);
+    expect(result[0]!.agentId).toBe('inbox');
+    expect(result[0]!.currentLevel).toBe('supervised');
+    expect(result[0]!.score).toBe(50);
   });
 
   it('returns empty array when no data', async () => {
@@ -80,13 +82,14 @@ describe('getTrustSummaryForWorkspace', () => {
       violation_count: 0,
       last_transition_at: '2025-01-01T00:00:00Z',
       last_violation_at: null,
+      action_type: 'general',
     }], null);
 
     const result = await getTrustSummaryForWorkspace(WS_ID);
-    expect(result[0].workspaceId).toBe(WS_ID);
-    expect(result[0].totalExecutions).toBe(100);
-    expect(result[0].successfulExecutions).toBe(98);
-    expect(result[0].consecutiveSuccesses).toBe(50);
+    expect(result[0]!.workspaceId).toBe(WS_ID);
+    expect(result[0]!.totalExecutions).toBe(100);
+    expect(result[0]!.successfulExecutions).toBe(98);
+    expect(result[0]!.consecutiveSuccesses).toBe(50);
   });
 
   it('queries the trust_matrix table', async () => {
@@ -108,11 +111,12 @@ describe('getTrustSummaryForWorkspace', () => {
       violation_count: 2,
       last_transition_at: '2025-01-01T00:00:00Z',
       last_violation_at: null,
+      action_type: 'general',
     }], null);
 
     const result = await getTrustSummaryForWorkspace(WS_ID);
-    expect(result[0].lastViolationAt).toBeNull();
-    expect(result[0].violationCount).toBe(2);
+    expect(result[0]!.lastViolationAt).toBeNull();
+    expect(result[0]!.violationCount).toBe(2);
   });
 });
 
@@ -132,9 +136,9 @@ describe('getTrustMilestones', () => {
 
     const result = await getTrustMilestones(WS_ID);
     expect(result).toHaveLength(1);
-    expect(result[0].agentId).toBe('inbox');
-    expect(result[0].milestoneType).toBe('hundred_tasks');
-    expect(result[0].acknowledgedAt).toBeNull();
+    expect(result[0]!.agentId).toBe('inbox');
+    expect(result[0]!.milestoneType).toBe('hundred_tasks');
+    expect(result[0]!.acknowledgedAt).toBeNull();
   });
 
   it('queries trust_milestones table', async () => {

@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { Provider } from 'jotai';
 
-const mockDeriveBadgeState = vi.fn(() => 'supervised');
+const { mockDeriveBadgeState } = vi.hoisted(() => ({
+  mockDeriveBadgeState: vi.fn(() => 'supervised'),
+}));
 
 vi.mock('@flow/trust', () => ({
-  deriveBadgeState: (...args: unknown[]) => mockDeriveBadgeState(...args),
+  deriveBadgeState: mockDeriveBadgeState,
   TRUST_BADGE_DISPLAY: {
     supervised: { label: 'Learning', colorToken: '--c', borderStyle: '1px solid' },
     confirm: { label: 'Established', colorToken: '--c', borderStyle: '1px dashed' },
@@ -34,7 +36,38 @@ vi.mock('../trust-badge-wrapper', () => ({
   ),
 }));
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/agents' }));
+vi.mock('../trust-checkin-prompt', () => ({
+  TrustCheckInPrompt: () => null,
+}));
+
+vi.mock('../trust-checkin-review', () => ({
+  TrustCheckInReview: () => null,
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/agents',
+}));
+
+vi.mock('../../actions/checkin-actions', () => ({
+  deferCheckIn: vi.fn().mockResolvedValue({ success: true }),
+  acknowledgeCheckIn: vi.fn().mockResolvedValue({ success: true }),
+  fetchRecentAutoActions: vi.fn().mockResolvedValue({ success: true, data: [] }),
+}));
+
+vi.mock('../../constants/trust-copy', () => ({
+  CHECKIN_COPY: {
+    history: { allCaughtUp: 'All caught up!' },
+  },
+}));
+
+vi.mock('@/lib/atoms/trust', async () => {
+  const { atom } = await import('jotai');
+  return {
+    trustBadgeMapAtom: atom(new Map()),
+    trustBadgeAnimationAtom: atom('default'),
+  };
+});
 
 import { AgentTrustGrid } from '../agent-trust-grid';
 import type { TrustSummaryRow } from '../../lib/trust-summary';
@@ -59,13 +92,13 @@ function makeRow(overrides: Partial<TrustSummaryRow> = {}): TrustSummaryRow {
 
 function getCard(agentId: string) {
   const cards = screen.getAllByTestId(`agent-card-${agentId}`);
-  return cards[cards.length - 1];
+  return cards[cards.length - 1]!;
 }
 
 function renderGrid(rows: TrustSummaryRow[] = []) {
   return render(
     <Provider>
-      <AgentTrustGrid workspaceId={WS_ID} initialData={rows} />
+      <AgentTrustGrid workspaceId={WS_ID} initialData={rows} checkInDue={[]} checkInEnabled={false} />
     </Provider>,
   );
 }
@@ -77,8 +110,7 @@ describe('AgentTrustGrid', () => {
 
   it('renders grid container', () => {
     renderGrid();
-    const grids = screen.getAllByTestId('agent-trust-grid');
-    expect(grids.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByTestId('agent-trust-grid').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders all 6 agent cards', () => {
@@ -120,8 +152,7 @@ describe('AgentTrustGrid', () => {
 
   it('shows no detail for agent without row', () => {
     renderGrid();
-    const card = getCard('inbox');
-    expect(card.textContent).not.toContain('Score');
+    expect(getCard('inbox').textContent).not.toContain('Score');
   });
 
   it('shows rejection count in supervised detail', () => {

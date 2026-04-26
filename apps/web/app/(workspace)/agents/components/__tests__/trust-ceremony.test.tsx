@@ -241,7 +241,7 @@ describe('TrustCeremony', () => {
     const entry = makeCeremonyEntry();
     renderWithStore(store, entry);
     act(() => { fireEvent.click(screen.getByText('Accept')); });
-    expect(screen.getByText('Accept')).toBeInTheDocument();
+    expect(screen.getByText('Saving…')).toBeInTheDocument();
     await act(async () => { resolvePromise!({ success: true, data: {} }); });
   });
 
