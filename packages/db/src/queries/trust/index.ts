@@ -28,3 +28,22 @@ export {
   recordMilestone,
 } from './trust-mutations';
 export type { UnacknowledgedRegression } from './trust-mutations';
+
+export {
+  getTrustEvents,
+  getCheckInDue,
+  getRecentAutoActions,
+} from './audit-queries';
+export type {
+  TrustEventFilters,
+  TrustEventRow,
+  TrustEventPage,
+  CheckInDueRow,
+  AutoActionRow,
+  CheckInSettingResult,
+} from './audit-types';
+
+export {
+  getCheckInSetting,
+  setCheckInSetting,
+} from './checkin-settings';

@@ -1,27 +1,39 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSetAtom, useAtomValue } from 'jotai';
 import { TRUST_BADGE_DISPLAY, deriveBadgeState } from '@flow/trust';
 import type { TrustBadgeState } from '@flow/trust';
 import type { AgentId } from '@flow/types';
 import { AGENT_IDENTITY, AGENT_IDS } from '@flow/shared';
 import { TrustBadgeWrapper } from './trust-badge-wrapper';
-import { trustBadgeMapAtom, type TrustBadgeData } from '@/lib/atoms/trust';
+import { TrustCheckInPrompt } from './trust-checkin-prompt';
+import { TrustCheckInReview } from './trust-checkin-review';
+import { trustBadgeMapAtom, trustBadgeAnimationAtom, type TrustBadgeData } from '@/lib/atoms/trust';
+import { CHECKIN_COPY } from '../constants/trust-copy';
+import { deferCheckIn, acknowledgeCheckIn, fetchRecentAutoActions } from '../actions/checkin-actions';
+import type { CheckInDueRow, AutoActionRow } from '@flow/db';
 import type { TrustSummaryRow } from '../lib/trust-summary';
 
 interface AgentTrustGridProps {
   workspaceId: string;
   initialData: TrustSummaryRow[];
+  checkInDue: CheckInDueRow[];
+  checkInEnabled: boolean;
 }
 
 function daysBetween(dateStr: string, now: Date): number {
   return Math.max(0, Math.floor((now.getTime() - new Date(dateStr).getTime()) / 86_400_000));
 }
 
-export function AgentTrustGrid({ workspaceId, initialData }: AgentTrustGridProps) {
+export function AgentTrustGrid({ workspaceId, initialData, checkInDue, checkInEnabled }: AgentTrustGridProps) {
   const setBadgeMap = useSetAtom(trustBadgeMapAtom);
   const badgeMap = useAtomValue(trustBadgeMapAtom);
+  const setBadgeAnim = useSetAtom(trustBadgeAnimationAtom);
+  const router = useRouter();
+  const [reviewAgentId, setReviewAgentId] = useState<string | null>(null);
+  const [reviewActions, setReviewActions] = useState<AutoActionRow[]>([]);
 
   useEffect(() => {
     const now = new Date();
@@ -78,8 +90,69 @@ export function AgentTrustGrid({ workspaceId, initialData }: AgentTrustGridProps
 
   const dataMap = useMemo(() => new Map(initialData.map((r) => [r.agentId, r])), [initialData]);
 
+  const handleAcceptCheckIn = useCallback(async (agentId: string) => {
+    const result = await fetchRecentAutoActions({ workspaceId, agentId });
+    if (result.success) {
+      setReviewActions(result.data);
+      setReviewAgentId(agentId);
+    }
+  }, [workspaceId]);
+
+  const handleDeferCheckIn = useCallback(async (agentId: string) => {
+    return deferCheckIn({ workspaceId, agentId });
+  }, [workspaceId]);
+
+  const handleAcknowledge = useCallback(async (agentId: string) => {
+    return acknowledgeCheckIn({ workspaceId, agentId });
+  }, [workspaceId]);
+
+  const handleAdjust = useCallback((agentId: string) => {
+    router.push(`/agents?agent=${agentId}&tab=trust`);
+  }, [router]);
+
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="agent-trust-grid">
+    <div className="space-y-4">
+      {checkInEnabled && checkInDue.length > 0 && !reviewAgentId && (
+        <div className="space-y-3">
+          {checkInDue.map((due) => {
+            const identity = AGENT_IDENTITY[due.agentId as keyof typeof AGENT_IDENTITY];
+            if (!identity) return null;
+            return (
+              <TrustCheckInPrompt
+                key={due.agentId}
+                agentId={due.agentId}
+                agentLabel={identity.label}
+                workspaceId={workspaceId}
+                deferredCount={due.deferredCount}
+                isPinned={due.deferredCount >= 3}
+                onAccept={() => handleAcceptCheckIn(due.agentId)}
+                onDefer={() => handleDeferCheckIn(due.agentId)}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {checkInEnabled && checkInDue.length === 0 && !reviewAgentId && (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950/30" data-testid="all-caught-up">
+          <p className="text-sm text-[var(--flow-color-text-primary)]">
+            {CHECKIN_COPY.history.allCaughtUp}
+          </p>
+        </div>
+      )}
+
+      {reviewAgentId && (
+        <TrustCheckInReview
+          agentId={reviewAgentId}
+          agentLabel={AGENT_IDENTITY[reviewAgentId as keyof typeof AGENT_IDENTITY]?.label ?? reviewAgentId}
+          workspaceId={workspaceId}
+          actions={reviewActions}
+          onAcknowledge={() => handleAcknowledge(reviewAgentId)}
+          onAdjust={handleAdjust}
+        />
+      )}
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="agent-trust-grid">
       {AGENT_IDS.map((agentId) => {
         const identity = AGENT_IDENTITY[agentId];
         const atomData = badgeMap.get(`${workspaceId}:${agentId}`);
@@ -146,6 +219,7 @@ export function AgentTrustGrid({ workspaceId, initialData }: AgentTrustGridProps
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

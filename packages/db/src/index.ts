@@ -84,6 +84,21 @@ export {
 } from './queries/trust';
 export type { TrustTransitionDbRow, TrustPreconditionDbRow, UnacknowledgedRegression } from './queries/trust';
 export {
+  getTrustEvents,
+  getCheckInDue,
+  getRecentAutoActions,
+  getCheckInSetting,
+  setCheckInSetting,
+} from './queries/trust';
+export type {
+  TrustEventFilters,
+  TrustEventRow,
+  TrustEventPage,
+  CheckInDueRow,
+  AutoActionRow,
+  CheckInSettingResult,
+} from './queries/trust';
+export {
   getPendingApprovals,
   getPendingApprovalCount,
   getAgentBreakdown,

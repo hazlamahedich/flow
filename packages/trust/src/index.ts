@@ -58,3 +58,18 @@ export { evaluatePreconditions } from './pre-check';
 export { applyViolationRollback } from './rollback';
 export { createTrustClient } from './client/trust-client';
 export type { TrustClient, TrustClientDeps, MatrixEntry } from './client/trust-client';
+
+export {
+  shouldTriggerCheckIn,
+  scheduleNextCheckIn,
+  isMaxDeferralsReached,
+  REVIEW_ITEMS_MIN,
+  REVIEW_ITEMS_MAX,
+  REVIEW_ITEMS_DEFAULT,
+  SNOOZE_DAYS,
+  MAX_DEFERRALS,
+  AUTO_REVIEW_INTERVAL_DAYS,
+  AUTO_ACTION_LOOKBACK_DAYS,
+  AUTO_DISMISS_MS,
+} from './audit/check-in';
+export type { TrustAuditRecord } from './audit/check-in';

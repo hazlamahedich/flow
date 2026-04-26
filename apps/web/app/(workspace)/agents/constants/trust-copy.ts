@@ -80,3 +80,46 @@ export const AUTO_DISMISS_TOAST_MS = 10_000;
 export const AUTO_DISMISS_MILESTONE_MS = 8_000;
 export const CEREMONY_BADGE_PULSE_MS = 500;
 export const CELEBRATION_DURATION_MS = 300;
+
+export const CHECKIN_COPY = {
+  prompt: {
+    title: (agentLabel: string) =>
+      `It's been a while since you reviewed ${agentLabel}'s work. Want to take a look?`,
+    accept: 'Take a look',
+    defer: 'Remind me later',
+    pinnedBadge: 'Review needed',
+    pinnedToast: (agentLabel: string) =>
+      `${agentLabel} is ready for a check-in`,
+  },
+  review: {
+    title: (agentLabel: string) => `Recent ${agentLabel} actions`,
+    accept: 'All good?',
+    adjust: "Let's adjust",
+    emptyTitle: 'No recent actions to review. All good!',
+    adjustHref: (agentId: string) => `/agents?agent=${agentId}&tab=trust`,
+  },
+  history: {
+    title: 'Trust History',
+    empty: 'No trust events yet. Events will appear here when agent trust levels change.',
+    allCaughtUp: 'All caught up! Your agents are reviewed and current.',
+    columns: {
+      agent: 'Agent',
+      transition: 'Change',
+      reason: 'Reason',
+      date: 'Date',
+    },
+    filters: {
+      agent: 'Agent',
+      direction: 'Direction',
+      directionAll: 'All',
+      directionUpgrade: 'Upgrades',
+      directionRegression: 'Adjustments',
+      dateFrom: 'From',
+      dateTo: 'To',
+      apply: 'Apply',
+      clear: 'Clear',
+    },
+    error: 'Could not load trust history. Please try again.',
+    checkinDisabled: 'Check-in reminders are turned off.',
+  },
+} as const;
