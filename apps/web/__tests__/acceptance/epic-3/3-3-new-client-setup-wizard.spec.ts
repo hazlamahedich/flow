@@ -5,16 +5,14 @@ describe('Story 3.3: New Client Setup Wizard', () => {
     test('[P0] should define the wizard step order', () => {
       const wizardSteps = [
         'contact_details',
-        'service_agreement',
-        'billing_preferences',
+        'billing_notes',
         'retainer_setup',
         'review',
       ] as const;
       expect(wizardSteps[0]).toBe('contact_details');
-      expect(wizardSteps[1]).toBe('service_agreement');
-      expect(wizardSteps[2]).toBe('billing_preferences');
-      expect(wizardSteps[3]).toBe('retainer_setup');
-      expect(wizardSteps[4]).toBe('review');
+      expect(wizardSteps[1]).toBe('billing_notes');
+      expect(wizardSteps[2]).toBe('retainer_setup');
+      expect(wizardSteps[3]).toBe('review');
     });
 
     test('[P0] should require contact details as the first step', () => {
@@ -23,16 +21,10 @@ describe('Story 3.3: New Client Setup Wizard', () => {
       expect(contactFields).toContain('email');
     });
 
-    test('[P0] should include service agreement as a wizard step', () => {
-      const agreementFields = ['agreement_type', 'start_date', 'end_date', 'terms'] as const;
-      expect(agreementFields).toContain('agreement_type');
-      expect(agreementFields).toContain('start_date');
-    });
-
-    test('[P0] should include billing preferences as a wizard step', () => {
-      const billingFields = ['billing_email', 'payment_terms_days', 'currency'] as const;
+    test('[P0] should include billing and notes fields', () => {
+      const billingFields = ['billing_email', 'hourly_rate_cents', 'address'] as const;
       expect(billingFields).toContain('billing_email');
-      expect(billingFields).toContain('payment_terms_days');
+      expect(billingFields).toContain('hourly_rate_cents');
     });
 
     test('[P1] should allow retainer setup as optional wizard step', () => {
@@ -59,22 +51,22 @@ describe('Story 3.3: New Client Setup Wizard', () => {
 
   describe('Progress Indicators', () => {
     test('[P0] should define progress indicator for each wizard step', () => {
-      const totalSteps = 5;
+      const totalSteps = 4;
       const steps = Array.from({ length: totalSteps }, (_, i) => ({
         step: i + 1,
         completed: false,
         label: `Step ${i + 1}`,
       }));
-      expect(steps).toHaveLength(5);
-      expect(steps[0].step).toBe(1);
-      expect(steps[4].step).toBe(5);
+      expect(steps).toHaveLength(4);
+      expect(steps[0]?.step).toBe(1);
+      expect(steps[3]?.step).toBe(4);
     });
 
     test('[P1] should calculate progress percentage from current step', () => {
-      const totalSteps = 5;
-      const currentStep = 3;
-      const progress = Math.round((currentStep / totalSteps) * 100);
-      expect(progress).toBe(60);
+      const totalSteps = 4;
+      const currentStep = 2;
+      const progress = Math.round(((currentStep - 1) / (totalSteps - 1)) * 100);
+      expect(progress).toBe(33);
     });
 
     test('[P1] should mark completed steps in progress indicator', () => {
@@ -83,7 +75,6 @@ describe('Story 3.3: New Client Setup Wizard', () => {
         { step: 2, completed: true },
         { step: 3, completed: false },
         { step: 4, completed: false },
-        { step: 5, completed: false },
       ];
       const completedCount = stepStates.filter((s) => s.completed).length;
       expect(completedCount).toBe(2);
@@ -98,19 +89,16 @@ describe('Story 3.3: New Client Setup Wizard', () => {
     test('[P0] should define complete client payload from wizard aggregation', () => {
       const wizardPayload = {
         contact: { name: '', email: '', phone: '', company_name: '' },
-        agreement: { agreement_type: '', start_date: '', end_date: '', terms: '' },
-        billing: { billing_email: '', payment_terms_days: 30, currency: 'USD' },
-        retainer: { type: '', value_cents: 0 },
+        billing: { billing_email: '', hourly_rate_cents: null, address: '' },
+        retainer: undefined as { type: string } | undefined,
       };
       expect(wizardPayload.contact).toBeDefined();
-      expect(wizardPayload.agreement).toBeDefined();
       expect(wizardPayload.billing).toBeDefined();
-      expect(wizardPayload.retainer).toBeDefined();
     });
 
     test('[P0] should validate required fields before wizard submission', () => {
-      const requiredOnSubmit = ['name', 'email'] as const;
-      const payload = { name: 'Acme Corp', email: 'contact@acme.com' };
+      const requiredOnSubmit = ['name'] as const;
+      const payload = { name: 'Acme Corp' };
       const isValid = requiredOnSubmit.every((field) => {
         const value = payload[field as keyof typeof payload];
         return typeof value === 'string' && value.length > 0;
@@ -119,8 +107,8 @@ describe('Story 3.3: New Client Setup Wizard', () => {
     });
 
     test('[P1] should reject wizard submission with missing required fields', () => {
-      const requiredOnSubmit = ['name', 'email'] as const;
-      const payload = { name: '', email: '' };
+      const requiredOnSubmit = ['name'] as const;
+      const payload = { name: '' };
       const isValid = requiredOnSubmit.every((field) => {
         const value = payload[field as keyof typeof payload];
         return typeof value === 'string' && value.length > 0;
@@ -132,7 +120,7 @@ describe('Story 3.3: New Client Setup Wizard', () => {
       // Requires running Supabase — integration test
     });
 
-    test.skip('[P0] should redirect to client list after successful creation', () => {
+    test.skip('[P0] should redirect to client detail page after successful creation', () => {
       // Requires running app — E2E test
     });
 
@@ -151,17 +139,15 @@ describe('Story 3.3: New Client Setup Wizard', () => {
 
   describe('Navigation & Validation Per Step', () => {
     test('[P0] should prevent forward navigation when current step is invalid', () => {
-      const validateContactStep = (data: { name: string; email: string }) => {
+      const validateContactStep = (data: { name: string }) => {
         const errors: string[] = [];
         if (!data.name || data.name.trim().length === 0) errors.push('name_required');
-        if (!data.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) errors.push('email_invalid');
         return { valid: errors.length === 0, errors };
       };
 
-      const result = validateContactStep({ name: '', email: 'bad' });
+      const result = validateContactStep({ name: '' });
       expect(result.valid).toBe(false);
       expect(result.errors).toContain('name_required');
-      expect(result.errors).toContain('email_invalid');
     });
 
     test('[P1] should allow backward navigation to previous steps', () => {
@@ -178,11 +164,11 @@ describe('Story 3.3: New Client Setup Wizard', () => {
 
     test('[P1] should skip optional retainer step when declined', () => {
       const wantsRetainer = false;
-      const steps = ['contact_details', 'service_agreement', 'billing_preferences', 'review'];
+      const steps = ['contact_details', 'billing_notes', 'review'];
       const finalSteps = wantsRetainer
-        ? ['contact_details', 'service_agreement', 'billing_preferences', 'retainer_setup', 'review']
+        ? ['contact_details', 'billing_notes', 'retainer_setup', 'review']
         : steps;
-      expect(finalSteps).toHaveLength(4);
+      expect(finalSteps).toHaveLength(3);
       expect(finalSteps).not.toContain('retainer_setup');
     });
 
@@ -202,7 +188,7 @@ describe('Story 3.3: New Client Setup Wizard', () => {
       // Requires running app — E2E accessibility audit
     });
 
-    test.skip('[P1] should announce step changes to screen readers via ARIA live regions', () => {
+    test.skip('[P1] should announce step changes to screen readers via focus management', () => {
       // Requires running app — E2E accessibility test
     });
   });

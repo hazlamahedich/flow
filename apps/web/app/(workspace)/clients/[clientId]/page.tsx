@@ -5,6 +5,7 @@ import { ClientHeader } from './components/client-header';
 import { ClientDetails } from './components/client-details';
 import { RetainerPanel } from './components/retainer-panel';
 import { RetainerScopeBanner } from './components/retainer-scope-banner';
+import { WizardToast } from './components/wizard-toast';
 import type { Client, UtilizationState } from '@flow/types';
 
 function deriveUtilizationState(
@@ -50,10 +51,13 @@ function deriveUtilizationState(
 
 export default async function ClientDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ clientId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { clientId } = await params;
+  const search = await searchParams;
   const supabase = await getServerSupabase();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -87,8 +91,16 @@ export default async function ClientDetailPage({
     isScopeAlert = utilizationState?.type === 'trackable' && utilizationState.percent >= 90;
   }
 
+  const toastCode = typeof search.toast_code === 'string' ? search.toast_code : undefined;
+  const toastMsg = typeof search.toast_msg === 'string' ? search.toast_msg : undefined;
+  const toastLinkLabel = typeof search.toast_link_label === 'string' ? search.toast_link_label : undefined;
+  const toastLinkHref = typeof search.toast_link_href === 'string' ? search.toast_link_href : undefined;
+
   return (
     <div className="space-y-6">
+      {toastCode && toastMsg && (
+        <WizardToast code={toastCode} message={toastMsg} linkLabel={toastLinkLabel} linkHref={toastLinkHref} />
+      )}
       {isScopeAlert && utilizationState && utilizationState.type === 'trackable' && (
         <RetainerScopeBanner clientName={clientName} utilizationPercent={utilizationState.percent} />
       )}

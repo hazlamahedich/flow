@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Retainer } from '@flow/types';
 import { createRetainerAction } from '../actions/retainer/create-retainer';
 import { updateRetainerAction } from '../actions/retainer/update-retainer';
+import { TYPE_CARDS, RetainerTypeFields } from '../../components/retainer-type-fields';
 
 interface RetainerFormProps {
   retainer?: Retainer;
@@ -12,12 +13,6 @@ interface RetainerFormProps {
 }
 
 type RetainerType = 'hourly_rate' | 'flat_monthly' | 'package_based';
-
-const TYPE_CARDS: { type: RetainerType; title: string; description: string }[] = [
-  { type: 'hourly_rate', title: 'Hourly Rate', description: 'Bill by the hour at a fixed rate' },
-  { type: 'flat_monthly', title: 'Flat Monthly', description: 'Fixed fee per billing period' },
-  { type: 'package_based', title: 'Package', description: 'Set hours for a defined package' },
-];
 
 export function RetainerForm({ retainer, clientId, onCancel }: RetainerFormProps) {
   const isEdit = !!retainer;
@@ -86,6 +81,8 @@ export function RetainerForm({ retainer, clientId, onCancel }: RetainerFormProps
     }
   }
 
+  const register = (name: string) => ({ name });
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-[var(--flow-color-border-default)] p-6">
       <h3 className="text-sm font-semibold text-[var(--flow-color-text-primary)]">
@@ -98,7 +95,7 @@ export function RetainerForm({ retainer, clientId, onCancel }: RetainerFormProps
 
       {!isEdit && (
         <div className="grid grid-cols-3 gap-3">
-          {TYPE_CARDS.map((card) => (
+          {TYPE_CARDS.map((card: { type: RetainerType; title: string; description: string }) => (
             <button
               key={card.type}
               type="button"
@@ -116,119 +113,20 @@ export function RetainerForm({ retainer, clientId, onCancel }: RetainerFormProps
         </div>
       )}
 
-      <div className="space-y-3">
-        {(selectedType === 'hourly_rate' || (isEdit && retainer?.type === 'hourly_rate')) && (
-          <label className="block text-sm">
-            <span className="text-[var(--flow-color-text-secondary)]">Rate ($/hr)</span>
-            <input
-              name="hourlyRateCents"
-              type="number"
-              step="0.01"
-              min="0"
-              defaultValue={retainer?.hourlyRateCents ? (retainer.hourlyRateCents / 100).toFixed(2) : ''}
-              className="mt-1 block w-full rounded-md border border-[var(--flow-color-border-default)] px-3 py-2 text-sm"
-              required
-            />
-          </label>
-        )}
-
-        {(selectedType === 'flat_monthly' || (isEdit && retainer?.type === 'flat_monthly')) && (
-          <>
-            <label className="block text-sm">
-              <span className="text-[var(--flow-color-text-secondary)]">Monthly Fee ($)</span>
-              <input
-                name="monthlyFeeCents"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={retainer?.monthlyFeeCents ? (retainer.monthlyFeeCents / 100).toFixed(2) : ''}
-                className="mt-1 block w-full rounded-md border border-[var(--flow-color-border-default)] px-3 py-2 text-sm"
-                required
-              />
-            </label>
-            <label className="block text-sm">
-              <span className="text-[var(--flow-color-text-secondary)]">Hours Threshold</span>
-              <input
-                name="monthlyHoursThreshold"
-                type="text"
-                defaultValue={retainer?.monthlyHoursThreshold ?? ''}
-                placeholder="e.g., 30"
-                className="mt-1 block w-full rounded-md border border-[var(--flow-color-border-default)] px-3 py-2 text-sm"
-                required
-              />
-            </label>
-          </>
-        )}
-
-        {(selectedType === 'package_based' || (isEdit && retainer?.type === 'package_based')) && (
-          <>
-            <label className="block text-sm">
-              <span className="text-[var(--flow-color-text-secondary)]">Package Name</span>
-              <input
-                name="packageName"
-                type="text"
-                defaultValue={retainer?.packageName ?? ''}
-                className="mt-1 block w-full rounded-md border border-[var(--flow-color-border-default)] px-3 py-2 text-sm"
-                required
-              />
-            </label>
-            <label className="block text-sm">
-              <span className="text-[var(--flow-color-text-secondary)]">Package Hours</span>
-              <input
-                name="packageHours"
-                type="text"
-                defaultValue={retainer?.packageHours ?? ''}
-                placeholder="e.g., 40"
-                className="mt-1 block w-full rounded-md border border-[var(--flow-color-border-default)] px-3 py-2 text-sm"
-                required
-              />
-            </label>
-            <label className="block text-sm">
-              <span className="text-[var(--flow-color-text-secondary)]">Overage Rate ($/hr, optional)</span>
-              <input
-                name="hourlyRateCents"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={retainer?.hourlyRateCents ? (retainer.hourlyRateCents / 100).toFixed(2) : ''}
-                className="mt-1 block w-full rounded-md border border-[var(--flow-color-border-default)] px-3 py-2 text-sm"
-              />
-            </label>
-          </>
-        )}
-
-        <label className="block text-sm">
-          <span className="text-[var(--flow-color-text-secondary)]">Billing Period (days)</span>
-          <input
-            name="billingPeriodDays"
-            type="number"
-            min="1"
-            max="365"
-            defaultValue={retainer?.billingPeriodDays ?? 30}
-            className="mt-1 block w-full rounded-md border border-[var(--flow-color-border-default)] px-3 py-2 text-sm"
-          />
-        </label>
-
-        <label className="block text-sm">
-          <span className="text-[var(--flow-color-text-secondary)]">End Date (optional)</span>
-          <input
-            name="endDate"
-            type="date"
-            defaultValue={retainer?.endDate ?? ''}
-            className="mt-1 block w-full rounded-md border border-[var(--flow-color-border-default)] px-3 py-2 text-sm"
-          />
-        </label>
-
-        <label className="block text-sm">
-          <span className="text-[var(--flow-color-text-secondary)]">Notes</span>
-          <textarea
-            name="notes"
-            defaultValue={retainer?.notes ?? ''}
-            rows={3}
-            className="mt-1 block w-full rounded-md border border-[var(--flow-color-border-default)] px-3 py-2 text-sm"
-          />
-        </label>
-      </div>
+      <RetainerTypeFields
+        type={isEdit ? retainer.type : selectedType}
+        register={register}
+        defaultValue={{
+          hourlyRateCents: retainer?.hourlyRateCents ? (retainer.hourlyRateCents / 100).toFixed(2) : null,
+          monthlyFeeCents: retainer?.monthlyFeeCents ? (retainer.monthlyFeeCents / 100).toFixed(2) : null,
+          monthlyHoursThreshold: retainer?.monthlyHoursThreshold ?? null,
+          packageHours: retainer?.packageHours ?? null,
+          packageName: retainer?.packageName ?? null,
+          billingPeriodDays: retainer?.billingPeriodDays ?? 30,
+          endDate: retainer?.endDate ?? null,
+          notes: retainer?.notes ?? null,
+        }}
+      />
 
       <div className="flex gap-3">
         <button
