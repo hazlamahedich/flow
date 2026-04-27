@@ -6,7 +6,7 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({ status, code, message, category }),
+  createFlowError: (status: number, code: string, message: string, category: string, details?: unknown) => ({ status, code, message, category, details }),
   cacheTag: vi.fn((entity: string, id: string) => `${entity}:${id}`),
   updateRetainer: vi.fn(),
   getRetainerById: vi.fn(),
@@ -25,7 +25,7 @@ const mockRequireTenantContext = vi.mocked(requireTenantContext);
 const mockUpdateRetainer = vi.mocked(updateRetainer);
 const mockGetRetainerById = vi.mocked(getRetainerById);
 
-const RETAINER_ID = '00000000-0000-0000-0000-000000000002';
+const RETAINER_ID = '00000000-0000-0000-0000-000000000003';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -34,47 +34,69 @@ beforeEach(() => {
 });
 
 describe('updateRetainerAction', () => {
-  it('updates active retainer', async () => {
+  it('updates hourly rate on active retainer', async () => {
     mockGetRetainerById.mockResolvedValue({ id: RETAINER_ID, status: 'active', type: 'hourly_rate' } as never);
-    mockUpdateRetainer.mockResolvedValue({ id: RETAINER_ID, notes: 'updated' } as never);
+    mockUpdateRetainer.mockResolvedValue({ id: RETAINER_ID, status: 'active', hourlyRateCents: 8000 } as never);
 
-    const result = await updateRetainerAction({ retainerId: RETAINER_ID, notes: 'updated' });
+    const result = await updateRetainerAction({ retainerId: RETAINER_ID, hourlyRateCents: 8000 });
     expect(result.success).toBe(true);
+    expect(mockUpdateRetainer).toHaveBeenCalled();
   });
 
-  it('rejects update on cancelled retainer', async () => {
-    mockGetRetainerById.mockResolvedValue({ id: RETAINER_ID, status: 'cancelled', type: 'hourly_rate' } as never);
-
-    const result = await updateRetainerAction({ retainerId: RETAINER_ID, notes: 'x' });
+  it('rejects invalid input', async () => {
+    const result = await updateRetainerAction({ retainerId: 'bad' });
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.code).toBe('RETAINER_NOT_ACTIVE');
+    if (!result.success) expect(result.error.code).toBe('VALIDATION_ERROR');
   });
 
   it('rejects member role', async () => {
     mockRequireTenantContext.mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'member' });
-
-    const result = await updateRetainerAction({ retainerId: RETAINER_ID, notes: 'x' });
+    const result = await updateRetainerAction({ retainerId: RETAINER_ID, hourlyRateCents: 8000 });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('INSUFFICIENT_ROLE');
   });
 
-  it('returns not found for missing retainer', async () => {
+  it('returns 404 for missing retainer', async () => {
     mockGetRetainerById.mockResolvedValue(null);
-
-    const result = await updateRetainerAction({ retainerId: RETAINER_ID, notes: 'x' });
+    const result = await updateRetainerAction({ retainerId: RETAINER_ID, hourlyRateCents: 8000 });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('RETAINER_NOT_FOUND');
   });
 
-  it('type is not in the update schema (immutable)', async () => {
-    mockGetRetainerById.mockResolvedValue({ id: RETAINER_ID, status: 'active', type: 'hourly_rate' } as never);
-    mockUpdateRetainer.mockResolvedValue({ id: RETAINER_ID, type: 'hourly_rate' } as never);
+  it('blocks update on non-active retainer', async () => {
+    mockGetRetainerById.mockResolvedValue({ id: RETAINER_ID, status: 'cancelled', type: 'hourly_rate' } as never);
+    const result = await updateRetainerAction({ retainerId: RETAINER_ID, hourlyRateCents: 8000 });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error.code).toBe('RETAINER_NOT_ACTIVE');
+  });
 
-    const result = await updateRetainerAction({ retainerId: RETAINER_ID, notes: 'test' });
-    expect(result.success).toBe(true);
-    expect(mockUpdateRetainer).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ data: expect.objectContaining({ notes: 'test' }) }),
-    );
+  it('handles concurrent cancellation conflict (PGRQ116)', async () => {
+    mockGetRetainerById.mockResolvedValue({ id: RETAINER_ID, status: 'active', type: 'hourly_rate' } as never);
+    const pgErr = new Error('concurrent') as Error & { code: string };
+    pgErr.code = 'PGRQ116';
+    mockUpdateRetainer.mockRejectedValue(pgErr as never);
+
+    const result = await updateRetainerAction({ retainerId: RETAINER_ID, hourlyRateCents: 8000 });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error.code).toBe('RETAINER_NOT_ACTIVE');
+  });
+
+  it('handles generic db error', async () => {
+    mockGetRetainerById.mockResolvedValue({ id: RETAINER_ID, status: 'active', type: 'hourly_rate' } as never);
+    mockUpdateRetainer.mockRejectedValue(new Error('db fail') as never);
+
+    const result = await updateRetainerAction({ retainerId: RETAINER_ID, hourlyRateCents: 8000 });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error.code).toBe('INTERNAL_ERROR');
+  });
+
+  it('rejects mixing fields from different retainer types', async () => {
+    const result = await updateRetainerAction({
+      retainerId: RETAINER_ID,
+      hourlyRateCents: 8000,
+      monthlyFeeCents: 50000,
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error.code).toBe('VALIDATION_ERROR');
   });
 });

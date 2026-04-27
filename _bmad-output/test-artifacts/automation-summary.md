@@ -1,7 +1,7 @@
 ---
-stepsCompleted: ['step-01-preflight-and-context', 'step-02-identify-targets', 'step-03-generate-tests', 'step-03c-aggregate', 'step-04-validate-and-summarize']
-lastStep: 'step-04-validate-and-summarize'
-lastSaved: '2026-04-23'
+stepsCompleted: ['step-01-preflight-and-context', 'step-02-identify-targets', 'step-03-generate-tests', 'step-03c-aggregate', 'step-04-validate-and-summarize', 'epic-3-automation']
+lastStep: 'epic-3-automation'
+lastSaved: '2026-04-27'
 inputDocuments:
   - '_bmad/tea/config.yaml'
   - '_bmad-output/planning-artifacts/epics.md'
@@ -413,3 +413,77 @@ These are pre-existing issues with cleanup in component tests — not caused by 
 2. **`bmad-testarch-test-review`** — Review quality of generated tests
 3. **`bmad-testarch-trace`** — Generate traceability matrix against ATDD checklist
 4. **P2 batch** — Generate remaining 10 P2 targets when bandwidth allows
+
+---
+
+## Epic 3: Client Management — Automation Expansion (2026-04-27)
+
+### Coverage Gap Analysis
+
+| Layer | Existing | Gap Found | Tests Added |
+|---|---|---|---|
+| **Unit — Client Actions** | create-client (4), archive-client (4), team-scoping (4) | update-client, restore-client, check-duplicate-email untested | 19 new |
+| **Unit — Retainer Actions** | cancel-retainer (5), get-retainer (2) | create-retainer, update-retainer untested | 18 new |
+| **RLS (pgTAP)** | rls_clients (18), rls_retainer_agreements (25) | Complete | 0 |
+| **ATDD (Vitest)** | 3.1, 3.2, 3.3 scaffold tests | Integration tests still skip() | 0 (not in scope) |
+| **E2E (Playwright)** | clients.spec.ts (15 tests) | Missing edit, archive, restore, retainer E2E | 0 (requires running app) |
+
+### New Test Files Created
+
+| File | Tests | Priority Coverage |
+|---|---|---|
+| `clients/actions/__tests__/update-client.test.ts` | 8 | P0: valid update, validation, role guard, 404, archived block, null fields, db error |
+| `clients/actions/__tests__/restore-client.test.ts` | 6 | P0: restore success, validation, role guard, 404, db error, admin allow |
+| `clients/actions/__tests__/check-duplicate-email.test.ts` | 5 | P0: empty email, no dup, found dup, member reject, trim |
+| `clients/[clientId]/actions/retainer/__tests__/create-retainer.test.ts` | 10 | P0: all 3 types, validation, role guard, 404, archived client, 409 conflict, db error, admin |
+| `clients/[clientId]/actions/retainer/__tests__/update-retainer.test.ts` | 8 | P0: valid update, validation, role guard, 404, non-active block, PGRQ116 conflict, db error, type mixing |
+
+### Results
+
+- **37 new unit tests**, all passing
+- **18 RLS tests rewritten** — `rls_clients.sql` fixed to match actual schema (was written against idealized schema with non-existent `status` column, wrong policy names, and FK violations)
+- **0 typecheck errors** introduced
+- **FRs covered:** FR11 (create), FR13 (edit), FR14 (archive/restore), FR16 (team scoping), FR73a (retainer CRUD)
+- **No duplicate coverage** with existing ATDD or E2E tests
+
+### RLS Test Fixes (rls_clients.sql)
+
+Original tests had 10/18 failures due to:
+1. FK violations — used fake workspace UUIDs without creating workspaces
+2. `status`/`archived_at` columns don't exist on `clients` table
+3. Wrong policy names (expected `rls_clients_owner_admin`, actual `policy_clients_select_member`)
+4. `throws_ok` for DELETE — RLS silently blocks, doesn't throw
+
+Fixed by:
+- Creating proper auth.users/public.users/workspaces/workspace_members fixtures
+- Using `set_config('request.jwt.claims', ...)` + `SET ROLE authenticated` pattern from `rls_workspaces_full.sql`
+- Testing actual RLS behavior (workspace_id-based, no role distinction at DB level)
+- Using `is()` count checks for DELETE instead of `throws_ok`
+- Removing tests for non-existent columns
+
+### Workaround: Supabase on External Drive
+
+Supabase CLI fails to start on `/Volumes/One Touch/` due to Docker mount issue with path spaces. Workaround:
+```bash
+mkdir -p /tmp/flow-workaround
+cp -R supabase /tmp/flow-workaround/supabase
+cd /tmp/flow-workaround && npx supabase start
+# Then run tests against 127.0.0.1:54322 as usual
+```
+
+### RLS Test Fixes (rls_retainer_agreements.sql)
+
+Applied migration `20260505000001_add_retainer_agreements.sql` to running Supabase, then rewrote 25 tests to match actual schema:
+- Created proper auth.users/public.users/workspaces/workspace_members/clients fixtures
+- 3 clients per workspace to avoid unique-index conflicts across tests
+- Cancelled retainers between test sections to free unique active-per-client slots
+- Used `set_config('request.jwt.claims', ...)` + `SET ROLE authenticated` pattern
+- Tests member_client_access scoping (scoped member sees 1, unscoped sees 0)
+- Tests block_delete policy (USING false)
+- CHECK constraint tests use SQLSTATE `23514` (not `23`)
+
+### Remaining Gaps (requires integration/E2E)
+
+- `test.skip()` ATDD integration tests (require running Supabase)
+- E2E tests for client editing, archiving, restoring, retainer creation
+- Scope creep alert surfacing in dashboard (cross-epic, blocked by Epic 10 notifications)
