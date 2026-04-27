@@ -47,6 +47,8 @@ export {
   minutesToNumericStr,
   calculateThresholdMinutes,
   isScopeCreep,
+  formatCentsToDollar,
+  parseDollarToCents,
 } from './numeric-helpers';
 
 export {

@@ -50,7 +50,7 @@ export function TrustBadge({
       )}
       style={{
         color: `var(${colorToken})`,
-        backgroundColor: `color-mix(in srgb, var(${colorToken}) 12%, transparent)`,
+        backgroundColor: `var(${colorToken}-light, color-mix(in srgb, var(${colorToken}) 12%, transparent))`,
         border: borderStyle !== 'none'
           ? `${borderStyle} var(${colorToken})`
           : 'none',

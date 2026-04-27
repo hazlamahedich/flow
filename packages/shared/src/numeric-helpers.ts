@@ -21,3 +21,15 @@ export function isScopeCreep(trackedMinutes: number, thresholdMinutes: number | 
   if (thresholdMinutes === null || thresholdMinutes <= 0) return false;
   return trackedMinutes >= thresholdMinutes;
 }
+
+export function formatCentsToDollar(cents: number | null): string {
+  if (cents === null || cents === undefined) return '';
+  return (cents / 100).toFixed(2);
+}
+
+export function parseDollarToCents(value: string): number | null {
+  if (value === '' || value === undefined || value === null) return null;
+  const parsed = parseFloat(value);
+  if (Number.isNaN(parsed) || parsed < 0) return null;
+  return Math.round(parsed * 100);
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Retainer } from '@flow/types';
 import { createRetainerAction } from '../actions/retainer/create-retainer';
 import { updateRetainerAction } from '../actions/retainer/update-retainer';
@@ -10,15 +10,32 @@ interface RetainerFormProps {
   retainer?: Retainer;
   clientId: string;
   onCancel: () => void;
+  onSuccess?: (message: string) => void;
 }
 
 type RetainerType = 'hourly_rate' | 'flat_monthly' | 'package_based';
 
-export function RetainerForm({ retainer, clientId, onCancel }: RetainerFormProps) {
+function useIsMobile(breakpoint = 640): boolean {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    setMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [breakpoint]);
+  return mobile;
+}
+
+export function RetainerForm({ retainer, clientId, onCancel, onSuccess }: RetainerFormProps) {
   const isEdit = !!retainer;
+  const isMobile = useIsMobile();
   const [selectedType, setSelectedType] = useState<RetainerType>(retainer?.type ?? 'hourly_rate');
+  const [mobileStep, setMobileStep] = useState<1 | 2>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const showFields = isEdit || !isMobile || mobileStep === 2;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -73,6 +90,9 @@ export function RetainerForm({ retainer, clientId, onCancel }: RetainerFormProps
           return;
         }
       }
+      if (onSuccess) {
+        onSuccess(isEdit ? 'Retainer updated successfully.' : 'Retainer created successfully.');
+      }
       onCancel();
     } catch {
       setError('Something went wrong. Please try again.');
@@ -94,39 +114,70 @@ export function RetainerForm({ retainer, clientId, onCancel }: RetainerFormProps
       )}
 
       {!isEdit && (
-        <div className="grid grid-cols-3 gap-3">
-          {TYPE_CARDS.map((card: { type: RetainerType; title: string; description: string }) => (
+        <div className="space-y-3">
+          {isMobile && mobileStep === 1 && (
+            <p className="text-xs text-[var(--flow-color-text-secondary)]">Step 1 of 2 — Choose type</p>
+          )}
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-3'} gap-3`}>
+            {TYPE_CARDS.map((card: { type: RetainerType; title: string; description: string }) => (
+              <button
+                key={card.type}
+                type="button"
+                onClick={() => {
+                  setSelectedType(card.type);
+                  if (isMobile && mobileStep === 1) setMobileStep(2);
+                }}
+                className={`rounded-lg border p-3 text-left text-sm transition-colors ${
+                  selectedType === card.type
+                    ? 'border-[var(--flow-accent-primary)] bg-[var(--flow-accent-primary)]/10'
+                    : 'border-[var(--flow-color-border-default)]'
+                }`}
+              >
+                <span className="font-medium">{card.title}</span>
+                <span className="mt-1 block text-xs text-[var(--flow-color-text-secondary)]">{card.description}</span>
+              </button>
+            ))}
+          </div>
+          {isMobile && mobileStep === 1 && (
             <button
-              key={card.type}
               type="button"
-              onClick={() => setSelectedType(card.type)}
-              className={`rounded-lg border p-3 text-left text-sm transition-colors ${
-                selectedType === card.type
-                  ? 'border-[var(--flow-accent-primary)] bg-[var(--flow-accent-primary)]/10'
-                  : 'border-[var(--flow-color-border-default)]'
-              }`}
+              onClick={() => setMobileStep(2)}
+              disabled={!selectedType}
+              className="w-full rounded-md bg-[var(--flow-accent-primary)] px-4 py-2 text-sm font-medium text-[var(--flow-accent-primary-text)] disabled:opacity-50"
             >
-              <span className="font-medium">{card.title}</span>
-              <span className="mt-1 block text-xs text-[var(--flow-color-text-secondary)]">{card.description}</span>
+              Next
             </button>
-          ))}
+          )}
         </div>
       )}
 
-      <RetainerTypeFields
-        type={isEdit ? retainer.type : selectedType}
-        register={register}
-        defaultValue={{
-          hourlyRateCents: retainer?.hourlyRateCents ? (retainer.hourlyRateCents / 100).toFixed(2) : null,
-          monthlyFeeCents: retainer?.monthlyFeeCents ? (retainer.monthlyFeeCents / 100).toFixed(2) : null,
-          monthlyHoursThreshold: retainer?.monthlyHoursThreshold ?? null,
-          packageHours: retainer?.packageHours ?? null,
-          packageName: retainer?.packageName ?? null,
-          billingPeriodDays: retainer?.billingPeriodDays ?? 30,
-          endDate: retainer?.endDate ?? null,
-          notes: retainer?.notes ?? null,
-        }}
-      />
+      {showFields && (
+        <>
+          {isMobile && !isEdit && mobileStep === 2 && (
+            <button
+              type="button"
+              onClick={() => setMobileStep(1)}
+              className="text-xs text-[var(--flow-accent-primary)] underline"
+            >
+              ← Change type
+            </button>
+          )}
+          <RetainerTypeFields
+            type={isEdit ? retainer.type : selectedType}
+            register={register}
+            defaultValue={{
+              hourlyRateCents: retainer?.hourlyRateCents ? (retainer.hourlyRateCents / 100).toFixed(2) : null,
+              monthlyFeeCents: retainer?.monthlyFeeCents ? (retainer.monthlyFeeCents / 100).toFixed(2) : null,
+              monthlyHoursThreshold: retainer?.monthlyHoursThreshold ?? null,
+              packageHours: retainer?.packageHours ?? null,
+              packageName: retainer?.packageName ?? null,
+              billingPeriodDays: retainer?.billingPeriodDays ?? 30,
+              endDate: retainer?.endDate ?? null,
+              notes: retainer?.notes ?? null,
+            }}
+          />
+        </>
+      )}
 
       <div className="flex gap-3">
         <button

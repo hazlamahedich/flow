@@ -354,13 +354,22 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Before any story moves from `ready-for-dev` to `in-progress`, a scope check must pass. See `_bmad-output/implementation-artifacts/scope-check-gate.md` for the full checklist.
 - Split triggers: 3+ integration points, schema + interface + implementation in one story, display + ceremony + audit in one story, 3+ new tables.
 - Sign-off required: PM + Architect + Developer.
+- **Architect completeness sign-off:** Architect reviews all ACs against file-size limits and component complexity. If a story can't ship all ACs within constraints, it gets split proactively before dev starts.
 - If a story would have been split mid-sprint (like Epic 2's 2-1 and 2-6), this gate catches it early.
 
-**Deferred Work Tracking:**
+**Deferred Work Rules:**
 - Deferred items live in `_bmad-output/implementation-artifacts/deferred-work.md`.
 - Every deferred item must have: severity, affected files, reason for deferral, trigger condition for fixing.
 - Deferred items reviewed at every sprint boundary (epic completion). Owner: Tech Writer maintains file; PM triages at review.
+- **Deferred cap:** maximum 5 deferred items per story. If code review flags more than 5, the story splits before continuing — do not accumulate.
+- **Deferred closure ratio:** at least 50% of the previous epic's deferred items must be resolved before starting a new epic.
+- **Spec-gap tagging:** known spec deviations are tagged `spec-gap` with severity. Must be addressed within 2 epics or formally descoped in PRD. These are NOT optional polish — they are committed UX features that shipped incomplete.
 - Do not lose track of deferred work — it accumulates technical debt that compounds if ignored.
+
+**Graphify Pre-Dev Step (Mandatory):**
+- Before implementing any story, query `graphify-out/graph.json` for file dependencies relevant to that story's scope.
+- Use `/graphify query "what files does story X touch?"` or `/graphify path "Concept A" "Concept B"` to trace dependencies.
+- This prevents mid-story discoveries of missed dependencies and ensures story specs are grounded in actual codebase relationships.
 
 ### Development Workflow Rules
 
@@ -522,4 +531,4 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Review quarterly for outdated rules.
 - Add new rules when an AI agent makes the same mistake twice — that's the signal threshold.
 
-Last Updated: 2026-04-26
+Last Updated: 2026-04-27

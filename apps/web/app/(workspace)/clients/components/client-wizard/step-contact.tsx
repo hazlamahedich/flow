@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useCallback, useState } from 'react';
+import { z } from 'zod';
 import type { ContactData } from '../../actions/wizard-types';
 import { checkDuplicateEmailAction } from '../../actions/check-duplicate-email';
 
@@ -20,6 +21,13 @@ export function StepContact({ data, onChange, onNext, headingRef }: StepContactP
   const nameRef = useRef<HTMLInputElement>(null);
   const [duplicateWarning, setDuplicateWarning] = useState<DuplicateWarning | null>(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [nameBlurred, setNameBlurred] = useState(false);
+
+  const emailSchema = z.string().trim().email().optional();
+
+  const isNameValid = data.name.trim().length >= 1 && data.name.trim().length <= 200;
+  const showNameError = nameBlurred && !isNameValid;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange({ ...data, name: e.target.value });
@@ -27,6 +35,7 @@ export function StepContact({ data, onChange, onNext, headingRef }: StepContactP
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange({ ...data, email: e.target.value });
     setDuplicateWarning(null);
+    setEmailError(null);
   };
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange({ ...data, phone: e.target.value });
@@ -35,13 +44,16 @@ export function StepContact({ data, onChange, onNext, headingRef }: StepContactP
     onChange({ ...data, company_name: e.target.value });
   };
 
-  const isNameValid = data.name.trim().length >= 1 && data.name.trim().length <= 200;
-
   const handleNext = useCallback(async () => {
     if (!isNameValid) return;
 
     const email = data.email?.trim();
     if (email && email.length > 0) {
+      const parsed = emailSchema.safeParse(email);
+      if (!parsed.success) {
+        setEmailError('Please enter a valid email address.');
+        return;
+      }
       setCheckingDuplicate(true);
       try {
         const result = await checkDuplicateEmailAction({ email });
@@ -103,6 +115,11 @@ export function StepContact({ data, onChange, onNext, headingRef }: StepContactP
           className="h-10 w-full rounded-md border border-[var(--flow-color-border-default)] px-3 text-sm"
           placeholder="optional"
         />
+        {emailError && (
+          <p className="mt-1 text-sm text-[var(--flow-status-error)]" role="alert">
+            {emailError}
+          </p>
+        )}
         {duplicateWarning && (
           <p className="mt-1 text-sm text-[var(--flow-status-warning)]" role="alert">
             A client with this email already exists ({duplicateWarning.clientName}).

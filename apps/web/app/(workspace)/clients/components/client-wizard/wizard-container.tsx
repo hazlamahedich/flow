@@ -28,6 +28,7 @@ export function WizardContainer({ onDataChange }: WizardContainerProps) {
   const [isPending, startTransition] = useTransition();
   const isSubmittingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -70,6 +71,7 @@ export function WizardContainer({ onDataChange }: WizardContainerProps) {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     setError(null);
+    setErrorCode(null);
 
     startTransition(async () => {
       try {
@@ -91,6 +93,7 @@ export function WizardContainer({ onDataChange }: WizardContainerProps) {
 
         if (!result.success) {
           setError(result.error.message);
+          setErrorCode(result.error.code);
           isSubmittingRef.current = false;
           return;
         }
@@ -167,6 +170,7 @@ export function WizardContainer({ onDataChange }: WizardContainerProps) {
             onGoToStep={handleGoToStep}
             isSubmitting={isPending || isSubmittingRef.current}
             error={error}
+            errorCode={errorCode}
             headingRef={stepHeadingRef}
           />
         );

@@ -219,9 +219,11 @@ export async function cancelRetainer(
     .eq('id', input.retainerId)
     .eq('workspace_id', input.workspaceId)
     .eq('status', 'active')
+    .gte('updated_at', existing.updatedAt)
     .select('*')
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!data) throw new Error('RETAINER_CONCURRENT_MODIFICATION');
   return mapRetainerRow(data);
 }

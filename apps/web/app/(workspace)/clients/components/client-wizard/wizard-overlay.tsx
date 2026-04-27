@@ -96,7 +96,7 @@ export function WizardOverlay({ open, onClose, triggerRef }: WizardOverlayProps)
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 backdrop-blur-sm sm:items-start sm:p-0 [&@media_(max-width:640px)]:flex-col"
         onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
       >
         <div
@@ -104,13 +104,13 @@ export function WizardOverlay({ open, onClose, triggerRef }: WizardOverlayProps)
           role="dialog"
           aria-modal="true"
           aria-label="New Client Setup Wizard"
-          className="relative mx-4 my-8 w-full max-w-2xl rounded-xl bg-[var(--flow-color-bg-primary)] p-6 shadow-xl"
+          className="relative h-full w-full overflow-y-auto bg-[var(--flow-color-bg-primary)] p-6 sm:mx-4 sm:my-8 sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-xl sm:shadow-xl"
         >
           <button
             type="button"
             onClick={handleClose}
             aria-label="Close wizard"
-            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md text-[var(--flow-color-text-tertiary)] hover:text-[var(--flow-color-text-primary)]"
+            className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-md text-[var(--flow-color-text-tertiary)] hover:text-[var(--flow-color-text-primary)]"
           >
             ✕
           </button>

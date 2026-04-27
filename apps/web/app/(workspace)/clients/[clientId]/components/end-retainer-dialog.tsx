@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Retainer } from '@flow/types';
+import { useFocusTrap } from '@flow/ui';
 import { cancelRetainerAction } from '../actions/retainer/cancel-retainer';
 
 interface EndRetainerDialogProps {
@@ -22,6 +23,24 @@ export function EndRetainerDialog({
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const { ref: focusTrapRef } = useFocusTrap({ enabled: true, restoreFocus: true });
+
+  const setBothRefs = useCallback((node: HTMLDivElement | null) => {
+    dialogRef.current = node;
+    focusTrapRef(node);
+  }, [focusTrapRef]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   async function handleEnd() {
     setSubmitting(true);
@@ -48,6 +67,10 @@ export function EndRetainerDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
+        ref={setBothRefs}
+        role="alertdialog"
+        aria-modal="true"
+        aria-label="End Retainer Agreement"
         className="w-full max-w-md rounded-lg border border-[var(--flow-color-border-default)] bg-[var(--flow-bg-surface)] p-6 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >

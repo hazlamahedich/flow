@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { formatCentsToDollar } from '@flow/shared';
 import type { Retainer, UtilizationState } from '@flow/types';
 import { RetainerForm } from './retainer-form';
 import { RetainerUtilizationBar } from './retainer-utilization-bar';
 import { EndRetainerDialog } from './end-retainer-dialog';
+import { RetainerTimeline } from './retainer-timeline';
 
 interface RetainerPanelProps {
   retainer: Retainer | null;
@@ -15,37 +17,46 @@ interface RetainerPanelProps {
   clientName?: string | undefined;
   overageMinutes?: number | undefined;
   trackedMinutes?: number | undefined;
+  historicalRetainers?: readonly Retainer[] | undefined;
 }
 
-function formatCents(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
-}
-
-export function RetainerPanel({ retainer, utilization, clientId, role, billingPeriodEnd, clientName, overageMinutes, trackedMinutes }: RetainerPanelProps) {
+export function RetainerPanel({ retainer, utilization, clientId, role, billingPeriodEnd, clientName, overageMinutes, trackedMinutes, historicalRetainers }: RetainerPanelProps) {
   const [showForm, setShowForm] = useState(false);
   const [showEndDialog, setShowEndDialog] = useState(false);
+  const [successToast, setSuccessToast] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(`retainer-dismissed-${clientId}`) === 'true';
   });
   const isOwnerOrAdmin = role === 'owner' || role === 'admin';
 
+  const handleFormSuccess = (message: string) => {
+    setSuccessToast(message);
+    setTimeout(() => setSuccessToast(null), 5000);
+  };
+
   if (retainer && showForm) {
     return (
-      <RetainerForm
-        retainer={retainer}
-        clientId={clientId}
-        onCancel={() => setShowForm(false)}
-      />
+      <>
+        <RetainerForm
+          retainer={retainer}
+          clientId={clientId}
+          onCancel={() => setShowForm(false)}
+          onSuccess={handleFormSuccess}
+        />
+      </>
     );
   }
 
   if (!retainer && showForm) {
     return (
-      <RetainerForm
-        clientId={clientId}
-        onCancel={() => setShowForm(false)}
-      />
+      <>
+        <RetainerForm
+          clientId={clientId}
+          onCancel={() => setShowForm(false)}
+          onSuccess={handleFormSuccess}
+        />
+      </>
     );
   }
 
@@ -85,7 +96,25 @@ export function RetainerPanel({ retainer, utilization, clientId, role, billingPe
   }
 
   return (
-    <div id="retainer-panel" className="rounded-lg border border-[var(--flow-color-border-default)] p-6">
+    <div id="retainer-panel" className="space-y-3">
+      {successToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-2 rounded-md bg-[var(--flow-color-bg-success)] px-4 py-3 text-sm text-[var(--flow-color-text-primary)]"
+        >
+          <span>{successToast}</span>
+          <button
+            type="button"
+            onClick={() => setSuccessToast(null)}
+            className="ml-auto text-[var(--flow-color-text-tertiary)]"
+            aria-label="Dismiss"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+      <div className="rounded-lg border border-[var(--flow-color-border-default)] p-6">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-[var(--flow-color-text-primary)]">Retainer Agreement</h3>
         <div className="flex items-center gap-2">
@@ -117,7 +146,7 @@ export function RetainerPanel({ retainer, utilization, clientId, role, billingPe
 
       {utilization && (
         <div className="mt-4">
-          <RetainerUtilizationBar state={utilization} billingPeriodEnd={billingPeriodEnd ?? undefined} overageMinutes={overageMinutes} />
+          <RetainerUtilizationBar state={utilization} billingPeriodEnd={billingPeriodEnd ?? undefined} overageMinutes={overageMinutes} clientId={clientId} />
         </div>
       )}
 
@@ -130,16 +159,21 @@ export function RetainerPanel({ retainer, utilization, clientId, role, billingPe
           onEnded={() => { setShowEndDialog(false); window.location.reload(); }}
         />
       )}
+
+      {historicalRetainers && historicalRetainers.length > 0 && (
+        <RetainerTimeline retainers={historicalRetainers} />
+      )}
+    </div>
     </div>
   );
 }
 
 function RetainerDetailLine({ retainer }: { retainer: Retainer }) {
   if (retainer.type === 'hourly_rate' && retainer.hourlyRateCents != null) {
-    return <p>Rate: {formatCents(retainer.hourlyRateCents)}/hr</p>;
+    return <p>Rate: ${formatCentsToDollar(retainer.hourlyRateCents)}/hr</p>;
   }
   if (retainer.type === 'flat_monthly' && retainer.monthlyFeeCents != null) {
-    return <p>Monthly fee: {formatCents(retainer.monthlyFeeCents)}</p>;
+    return <p>Monthly fee: ${formatCentsToDollar(retainer.monthlyFeeCents)}</p>;
   }
   if (retainer.type === 'package_based' && retainer.packageHours) {
     return <p>{retainer.packageName}: {retainer.packageHours}h included</p>;

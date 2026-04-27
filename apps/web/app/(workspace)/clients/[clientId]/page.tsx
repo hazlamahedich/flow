@@ -1,10 +1,11 @@
-import { getClientById, getActiveRetainerForClient, getRetainerUtilization } from '@flow/db';
+import { getClientById, getActiveRetainerForClient, getRetainerUtilization, listRetainersForClient } from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { notFound } from 'next/navigation';
 import { ClientHeader } from './components/client-header';
 import { ClientDetails } from './components/client-details';
 import { RetainerPanel } from './components/retainer-panel';
 import { RetainerScopeBanner } from './components/retainer-scope-banner';
+import { TeamAccessPanel } from './components/team-access-panel';
 import { WizardToast } from './components/wizard-toast';
 import type { Client, UtilizationState } from '@flow/types';
 
@@ -72,6 +73,8 @@ export default async function ClientDetailPage({
 
   const clientName = (client as { company_name?: string }).company_name ?? 'Client';
   const retainer = await getActiveRetainerForClient(supabase, { clientId, workspaceId });
+  const allRetainers = await listRetainersForClient(supabase, { clientId, workspaceId });
+  const historicalRetainers = allRetainers.filter((r) => r.status !== 'active');
 
   let utilizationResult = null;
   let utilizationState: UtilizationState | null = null;
@@ -117,7 +120,11 @@ export default async function ClientDetailPage({
           ? utilizationResult.totalMinutes - utilizationResult.allocatedMinutes
           : undefined}
         trackedMinutes={utilizationResult?.totalMinutes}
+        historicalRetainers={historicalRetainers}
       />
+      {(role === 'owner' || role === 'admin') && (
+        <TeamAccessPanel clientId={clientId} workspaceId={workspaceId} />
+      )}
     </div>
   );
 }

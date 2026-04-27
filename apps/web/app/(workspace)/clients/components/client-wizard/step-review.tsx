@@ -2,6 +2,7 @@
 
 import type { ContactData, BillingData, RetainerFormData, WizardStep } from '../../actions/wizard-types';
 import { formatCentsToDollar } from './dollar-cents';
+import { TierLimitBanner } from '../tier-limit-banner';
 
 interface StepReviewProps {
   contactData: ContactData;
@@ -12,6 +13,7 @@ interface StepReviewProps {
   onGoToStep: (step: WizardStep) => void;
   isSubmitting: boolean;
   error: string | null;
+  errorCode?: string | null;
   headingRef: React.RefObject<HTMLHeadingElement | null>;
 }
 
@@ -24,6 +26,7 @@ export function StepReview({
   onGoToStep,
   isSubmitting,
   error,
+  errorCode,
   headingRef,
 }: StepReviewProps) {
   const hasBillingData = billingData.billing_email || billingData.hourly_rate_cents !== undefined || billingData.address || billingData.notes;
@@ -84,7 +87,10 @@ export function StepReview({
         )}
       </section>
 
-      {error && (
+      {error && errorCode === 'CLIENT_LIMIT_REACHED' && (
+        <TierLimitBanner activeCount={5} limit={5} tierName="Free" />
+      )}
+      {error && errorCode !== 'CLIENT_LIMIT_REACHED' && (
         <div className="rounded-md border border-[var(--flow-status-warning)] bg-[var(--flow-status-warning)]/10 p-3 text-sm text-[var(--flow-status-warning)]">
           {error}
         </div>

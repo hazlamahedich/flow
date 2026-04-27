@@ -42,6 +42,12 @@ export async function cancelRetainerAction(
     return { success: false, error: createFlowError(404, 'RETAINER_NOT_FOUND', 'Retainer not found.', 'validation') };
   }
 
+  if (existing.status === 'cancelled') {
+    revalidateTag(cacheTag('retainer_agreement', ctx.workspaceId));
+    revalidateTag(cacheTag('workspace_client', ctx.workspaceId));
+    return { success: true, data: existing };
+  }
+
   try {
     const retainer = await cancelRetainer(supabase, {
       retainerId: parsed.data.retainerId,

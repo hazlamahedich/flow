@@ -1,12 +1,34 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ClientEmptyState } from '../client-empty-state';
+import { CreateClientForm } from '../create-client-form';
 import { TierLimitBanner } from '../tier-limit-banner';
 
-describe('CreateClientForm validation', () => {
-  it('renders form fields', () => {
-    render(<ClientEmptyState variant="no-clients" />);
-    expect(screen.getByText('Add your first client')).toBeTruthy();
+vi.mock('../actions/create-client', () => ({
+  createWorkspaceClient: vi.fn(),
+}));
+
+describe('CreateClientForm', () => {
+  it('renders required name input', () => {
+    render(<CreateClientForm activeCount={0} onSuccess={vi.fn()} />);
+    const nameInput = screen.getByPlaceholderText(/client contact name/i);
+    expect(nameInput).toBeTruthy();
+  });
+
+  it('renders company input', () => {
+    render(<CreateClientForm activeCount={0} onSuccess={vi.fn()} />);
+    expect(screen.getByLabelText(/company/i)).toBeTruthy();
+  });
+
+  it('renders hourly rate input', () => {
+    render(<CreateClientForm activeCount={0} onSuccess={vi.fn()} />);
+    expect(screen.getByLabelText(/hourly rate/i)).toBeTruthy();
+  });
+
+  it('renders submit button with correct text', () => {
+    render(<CreateClientForm activeCount={0} onSuccess={vi.fn()} />);
+    const buttons = screen.getAllByRole('button');
+    const submitBtn = buttons.find((b) => b.textContent?.includes('Create Client'));
+    expect(submitBtn).toBeTruthy();
   });
 });
 

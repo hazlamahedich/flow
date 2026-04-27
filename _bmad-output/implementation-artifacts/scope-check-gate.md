@@ -38,7 +38,15 @@ Split the story if ANY apply:
 | Creates 3+ new tables or migrations | Multi-table stories |
 | Introduces new provider abstraction | Provider interface + implementation |
 
-### 5. Sign-off
+### 5. Completeness Sign-Off (Architect)
+
+- [ ] Architect reviews all acceptance criteria against file-size limits (200 soft / 250 hard) and component complexity limits (80 lines)
+- [ ] For each AC, confirm: can this ship within constraints without deferring?
+- [ ] If any AC would require deferral to meet constraints → split the story before dev starts
+- [ ] Count estimated ACs that involve new UI components. If **4+ new components**, consider splitting by UI surface
+- [ ] Check for "polish" ACs (tooltips, animations, mobile responsiveness). If present, confirm they're achievable in the same story or move to a follow-up story explicitly
+
+### 6. Sign-off
 
 - **PM (John):** Scope matches epic requirements, no missing acceptance criteria
 - **Architect (Winston):** Integration surface area is manageable, no hidden dependencies
@@ -56,4 +64,5 @@ Split the story if ANY apply:
 | Epic | Stories Checked | Splits Caught Pre-Dev | Splits During Dev |
 |------|----------------|----------------------|-------------------|
 | Epic 2 | 0 (not yet implemented) | 0 | 2 (2-1, 2-6) |
-| Epic 3+ | — | — | — |
+| Epic 3 | 3 | 0 | 0 (but 15+ deferred items accumulated) |
+| Epic 3 Retro | Process improvement: added completeness sign-off (step 5) and deferred cap rule | — | — |
