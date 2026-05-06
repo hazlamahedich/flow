@@ -134,3 +134,25 @@ export type {
   UtilizationState,
 } from './retainer';
 export type { PaginatedResult, PaginationInput } from './pagination';
+export {
+  inboxAccessTypeEnum,
+  syncStatusEnum,
+  oauthTokensSchema,
+  oauthStateEncryptedSchema,
+  oauthStateCookieSchema,
+  connectInboxInputSchema,
+  clientInboxSchema,
+  inboxStatusResponseSchema,
+  gmailPubSubMessageSchema,
+} from './inbox';
+export type {
+  InboxAccessType,
+  SyncStatus,
+  OAuthTokens,
+  OAuthStateEncrypted,
+  OAuthStateCookie,
+  ConnectInboxInput,
+  ClientInbox,
+  InboxStatusResponse,
+  GmailPubSubMessage,
+} from './inbox';

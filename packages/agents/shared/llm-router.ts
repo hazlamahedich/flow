@@ -16,6 +16,7 @@ export interface LLMOptions {
   taskTier?: 'fast' | 'quality';
   maxTokens?: number;
   temperature?: number;
+  abortSignal?: AbortSignal;
 }
 
 export interface LlmResponse {
@@ -171,6 +172,7 @@ export function createLLMRouter(
           messages,
           maxTokens: options.maxTokens ?? 1024,
           temperature: options.temperature ?? 0.3,
+          ...(options.abortSignal ? { abortSignal: options.abortSignal } : {}),
         });
 
         const resolvedModelId = result.response.modelId ?? provider.name;

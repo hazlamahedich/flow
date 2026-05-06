@@ -17,6 +17,7 @@ export default defineConfig({
       '@flow/agents/orchestrator/agent-lifecycle': path.resolve(__dirname, 'orchestrator/agent-lifecycle.ts'),
       '@flow/db/schema/agent-runs': path.resolve(__dirname, '../db/src/schema/agent-runs.ts'),
       '@flow/db/schema/agent-signals': path.resolve(__dirname, '../db/src/schema/agent-signals.ts'),
+      '@flow/db/vault/inbox-tokens': path.resolve(__dirname, '../db/src/vault/inbox-tokens.ts'),
     },
   },
 });

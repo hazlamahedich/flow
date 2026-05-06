@@ -255,3 +255,47 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - **Files:** `wizard-overlay.tsx`
 - **Reason:** AC12 requires full-screen wizard on mobile (below 640px). Current implementation uses same centered dialog on all viewports. Critical for mobile UX.
 - **Action:** Add responsive breakpoint: full-screen at <640px, overlay at ≥640px.
+
+---
+
+## Deferred from: code review of 4-1-gmail-oauth-inbox-connection (2026-05-05)
+
+- 4-1-defer-1: In-memory rate limiting ineffective in serverless — module-level Map trivially bypassed by cold starts. Use Redis/DB-backed limiter post-MVP. `tech-debt` `initiate-oauth.ts:19`
+- 4-1-defer-2: Rate limit map unbounded memory growth — entries never pruned. Prune expired entries periodically. `tech-debt` `initiate-oauth.ts:19`
+- 4-1-defer-3: Initial sync 500+ sequential Gmail API calls — no batching or concurrency control. Add batch endpoint or controlled concurrency (p-limit). `tech-debt` `initial-sync.ts:83-95`
+- 4-1-defer-4: oauth_state jsonb type mismatch forces unsafe casts across codebase — Drizzle maps jsonb to `Record<string, unknown>`, requiring `as unknown as` casts. Fix requires schema-level type parameter. `tech-debt` `callback/route.ts:143, initial-sync.ts:72, disconnect-inbox.ts:69`
+- 4-1-defer-5: Token refresh retry mechanism / scheduled cron not implemented — AC4 specifies daily cron with exponential backoff (1min→5min→15min, 3 attempts). Deferred to Story 4.2 when email processing pipeline is built. `spec-gap`
+- 4-1-defer-6: access_type allows service_account in DB CHECK but not in UI/API — future-proofing per spec for post-MVP Outlook support. No code path creates service_account inboxes. `tech-debt`
+- 4-1-defer-7: sync_status has no database-level transition constraint — invalid transitions possible (e.g., disconnected→syncing). Add trigger or app-level validation. `tech-debt`
+- 4-1-defer-8: oauth_state jsonb column has no schema validation at DB level — accepts any JSON shape. Add CHECK constraint: `{} OR {encrypted, iv, version}`. `tech-debt`
+- 4-1-defer-9: verifyGoogleOidcToken doesn't validate token subject or issuer — verifies audience only. Low risk in current context. `tech-debt` `gmail-verify.ts`
+- 4-1-defer-10: Pub/Sub tables (raw_pubsub_payloads, processed_pubsub_messages) lack workspace-scoped RLS — system-only tables with service_role policies only. `tech-debt`
+
+## Deferred from: code review of 4-2-email-categorization-sanitization-pipeline (2026-05-05)
+
+- 4-2-defer-1: Structured logging instead of console.log across executor.ts and categorizer.ts — use pino with workspace_id, agent_id, correlation_id. `tech-debt` `executor.ts, categorizer.ts`
+- 4-2-defer-2: Supabase Realtime subscription has no reconnection or error handling — WebSocket disconnect silently stops processing. Add onError/onClose with exponential backoff. `tech-debt` `history-worker.ts:15-30`
+- 4-2-defer-3: PII tokenizer global regex lastIndex state on concurrent calls — module-level PII_PATTERNS with /g flag retain state between invocations. Clone regex inside function. `tech-debt` `pii-tokenizer.ts:13-16`
+
+## Deferred from: code review of 4-3-morning-brief-generation (2026-05-06)
+
+- W1: 30-day retention cleanup not implemented — morning_briefs table grows unbounded. AC7 requires 30-day retention. Blocked by Trigger.dev job setup — add pg_cron or scheduled job when job infrastructure is wired. `spec-gap` `supabase/migrations/20260509000001_morning_briefs.sql`
+- W2: Timezone mismatch on brief_date — server uses UTC, user may be in different timezone. Brief generated at 6 AM UTC may not match user's "today". Pre-existing architectural concern affecting all date-scoped queries. `tech-debt` `morning-brief.tsx:19, migration`
+- W3: StrictMode double-fire on markBriefViewed — React 19 StrictMode mounts/unmounts/remounts, causing two server action calls in dev. Harmless in production (idempotent). Added useRef guard but dev-mode still fires twice by design. `tech-debt` `morning-brief-tracker.tsx`
+- W4: Signals query in brief-context.ts fetched but unused in return value — signals are queried for future use but never referenced in context assembly. Wasted I/O. Remove or integrate in a follow-up. `tech-debt` `brief-context.ts`
+
+## Deferred from: re-review of 4-3-morning-brief-generation (2026-05-06)
+
+- RR-D1: RLS WITH CHECK tautological — workspace members can modify all brief columns via direct API. The WITH CHECK pattern compares columns to themselves (always true). Only workspace membership is enforced. Should use column-level locking or trigger. Pre-existing design choice; `mark_brief_viewed` SECURITY DEFINER function is the intended mutation path. `spec-gap` `20260509000001_morning_briefs.sql:56-72`
+- RR-D2: Orphaned promises after timeout race in Trigger.dev job — `Promise.race` rejects but `generateMorningBrief` continues. On cron re-trigger, duplicate generation possible. Blocked by Trigger.dev integration. `tech-debt` `jobs/morning-brief.ts:32-38`
+- RR-D3: AC1 Trigger.dev not integrated — job function exists but no `@trigger.dev/sdk` import, `job()`, or `cron()` registration. Cron will not fire. `spec-gap` `jobs/morning-brief.ts`
+- RR-D4: AC6 Open/Dismiss buttons non-functional — `formAction={undefined}`, no server actions. Requires new `dismissBrief` and `openThread` server actions. `spec-gap` `morning-brief.tsx:116,119`
+- RR-D5: AC12 Telemetry signals missing — `brief.viewed` and `brief.interaction_complete` not emitted. `markBriefViewed` only updates `viewed_at` column, no `insertSignal` call. `spec-gap` `actions/morning-brief.ts`
+- RR-D6: Missing RLS test file — `supabase/tests/morning-briefs-rls.sql` does not exist per spec Task 13. `spec-gap` `supabase/tests/`
+
+## Deferred from: code review of 4-4a-action-item-extraction-draft-response-pipeline (2026-05-06)
+
+- DW-4.4a-D1: Double sequential state transition not atomic in executor — `categorized → extraction_pending` are two separate calls. If second fails, email stuck with no retry. `tech-debt` `executor.ts:68-69`
+- DW-4.4a-D2: `recordRecategorizationMetric` failure propagates after committed state changes — trust metric goes stale after recategorization. Should wrap in try/catch. `tech-debt` `trust.ts:68`
+- DW-4.4a-D3: `scheduleDeferredDrafts` sequential loop — one bad email stalls all subsequent drafts. Should use `Promise.allSettled`. `tech-debt` `flood.ts:42-54`
+- DW-4.4a-D4: PII tokenizer duplicate detection case-sensitive with case-insensitive regex — financial pattern uses `i` flag but dedup check `t.original === original` is case-sensitive. `tech-debt` `pii-tokenizer.ts:34`

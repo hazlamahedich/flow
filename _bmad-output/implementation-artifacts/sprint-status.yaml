@@ -41,6 +41,10 @@
 # last_updated: 2026-04-27 (story 3-3 dev started, status → in-progress)
 # last_updated: 2026-04-27 (story 3-3 implementation complete, 60 tests, 0 new errors, status → review)
 # last_updated: 2026-04-27 (epic 3 complete — all 3 stories done, retrospective completed, polish sprint planned)
+# last_updated: 2026-05-04 (story 4-1 created, status → ready-for-dev, epic 4 → in-progress)
+# last_updated: 2026-05-05 (story 4-1 code review: round 1=27 patches, round 2=8 patches, status → done)
+# last_updated: 2026-05-05 (story 4-2 code review: 4-agent adversarial review, 5 decisions via party mode, 15 patches applied, status → done)
+# last_updated: 2026-05-05 (story 4-2 round 2 re-review: 4 patches applied, clean, status → done confirmed)
 # project: flow
 # project_key: NOKEY
 # tracking_system: file-system
@@ -76,7 +80,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-20
-last_updated: 2026-04-27 (epic 3 complete — all 3 stories done, retrospective completed, polish sprint planned)
+last_updated: 2026-05-06 (story 4-4a dev started, status → in-progress)
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -122,11 +126,14 @@ development_status:
   3-3-new-client-setup-wizard: done
   epic-3-retrospective: done
 
-  epic-4: backlog
-  4-1-gmail-oauth-inbox-connection: backlog
-  4-2-email-categorization-sanitization-pipeline: backlog
-  4-3-morning-brief-generation: backlog
+  epic-4: in-progress
+  4-1-gmail-oauth-inbox-connection: done
+  4-2-email-categorization-sanitization-pipeline: done
+  4-3-morning-brief-generation: done
   4-4-action-item-extraction-draft-responses: backlog
+  4-4a-action-item-extraction-draft-response-pipeline: done
+  4-4b-adaptive-inbox-density-flood-state: backlog
+  4-4c-handled-quietly-mobile-triage: backlog
   4-5-unified-communication-timeline: backlog
   epic-4-retrospective: optional
 

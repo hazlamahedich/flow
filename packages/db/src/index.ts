@@ -62,6 +62,7 @@ export {
   writeBudgetAuditAlert,
   hasBudgetAlertThisPeriod,
 } from './queries/agents';
+export { decryptInboxTokens, encryptInboxTokens } from './vault/inbox-tokens';
 export type { CostLogEntry, CostLogRow } from './queries/agents';
 export type {
   ActionHistoryFilters,
@@ -148,3 +149,22 @@ export {
   getCurrentBillingPeriod,
 } from './queries/retainers';
 export type { UtilizationResult, BillingPeriod } from './queries/retainers';
+export {
+  createClientInbox,
+  getClientInboxes,
+  getClientInboxById,
+  getClientInboxByEmail,
+  updateClientInboxSyncStatus,
+  updateClientInboxOAuthState,
+  getConnectedInboxes,
+  clearClientInboxTokens,
+  saveMorningBrief,
+  insertEmail,
+  updateEmailCategorization,
+  getUnprocessedEmails,
+} from './queries/inbox';
+export {
+  insertRawPayload,
+  isMessageProcessed,
+  markMessageProcessed,
+} from './queries/inbox';

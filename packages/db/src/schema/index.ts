@@ -22,3 +22,15 @@ export {
   trustAudits,
   trustMilestones,
 } from './trust';
+export { clientInboxes } from './client-inboxes';
+export { emails } from './emails';
+export { morningBriefs } from './morning-briefs';
+export {
+  workspaceVoiceProfiles,
+  extractedActions,
+  draftResponses,
+  clientToneOverrides,
+  inboxTrustMetrics,
+  recategorizationLog,
+  emailProcessingState,
+} from './inbox-pipeline';

@@ -11,3 +11,4 @@ export { CircuitBreaker } from './circuit-breaker';
 export type { CircuitBreakerState } from './circuit-breaker';
 export { createBudgetMonitor } from './budget-monitor';
 export type { BudgetMonitor, BudgetMonitorDeps, BudgetCheckResult } from './budget-monitor';
+export { ContextBoundary } from './context-boundary';
