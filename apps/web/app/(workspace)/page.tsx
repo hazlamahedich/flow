@@ -4,6 +4,8 @@ import { DashboardContent } from '@flow/ui';
 import { WelcomeCard } from './_components/welcome-card';
 import { DayTwoInput } from './_components/day-two-input';
 import { ScopeAlertsSection } from './_components/scope-alerts-section';
+import { MorningBrief } from './_components/morning-brief';
+import { Suspense } from 'react';
 
 export default async function WorkspacePage() {
   const supabase = await getServerSupabase();
@@ -28,6 +30,9 @@ export default async function WorkspacePage() {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <MorningBrief />
+      </Suspense>
       {completedOnboarding && (
         isDayOne ? (
           <WelcomeCard name={profile?.name ?? null} />

@@ -299,3 +299,8 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - DW-4.4a-D2: `recordRecategorizationMetric` failure propagates after committed state changes — trust metric goes stale after recategorization. Should wrap in try/catch. `tech-debt` `trust.ts:68`
 - DW-4.4a-D3: `scheduleDeferredDrafts` sequential loop — one bad email stalls all subsequent drafts. Should use `Promise.allSettled`. `tech-debt` `flood.ts:42-54`
 - DW-4.4a-D4: PII tokenizer duplicate detection case-sensitive with case-insensitive regex — financial pattern uses `i` flag but dedup check `t.original === original` is case-sensitive. `tech-debt` `pii-tokenizer.ts:34`
+
+## Deferred from: code review (2026-05-06) for 4-4b-adaptive-inbox-density-flood-state.md
+
+- Persistence Redundancy: flood_state is stored both as a top-level column and inside the content JSON in morning_briefs table. [packages/agents/inbox/index.ts:23]
+- Type Safety Bypass: Using 'as unknown as Record<string, unknown>' for database payloads bypasses compiler checks. [packages/agents/inbox/index.ts:23]

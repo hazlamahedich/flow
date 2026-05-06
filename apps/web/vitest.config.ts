@@ -27,6 +27,11 @@ export default defineConfig({
       { find: '@flow/test-utils', replacement: path.resolve(__dirname, '../../packages/test-utils/src/index.ts') },
       { find: /^@flow\/trust$/, replacement: path.resolve(__dirname, '../../packages/trust/src/index.ts') },
       { find: /^@flow\/shared$/, replacement: path.resolve(__dirname, '../../packages/shared/src/index.ts') },
+      { find: /^@flow\/agents\/providers$/, replacement: path.resolve(__dirname, '../../packages/agents/providers/index.ts') },
+      { find: /^@flow\/agents\/inbox\/initial-sync$/, replacement: path.resolve(__dirname, '../../packages/agents/inbox/initial-sync.ts') },
+      { find: /^@flow\/agents\/inbox$/, replacement: path.resolve(__dirname, '../../packages/agents/inbox/index.ts') },
+      { find: /^@flow\/agents$/, replacement: path.resolve(__dirname, '../../packages/agents/index.ts') },
+      { find: /^@flow\/auth\/gmail-env$/, replacement: path.resolve(__dirname, '../../packages/auth/src/gmail-env.ts') },
     ],
   },
 });

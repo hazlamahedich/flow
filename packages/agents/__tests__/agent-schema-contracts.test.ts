@@ -19,15 +19,19 @@ describe('Agent Schema Contracts', () => {
     });
 
     it('parses valid proposal', () => {
-      expect(inboxProposalSchema.safeParse({ category: 'invoice', confidence: 0.9, reasoning: 'Looks like an invoice' }).success).toBe(true);
+      expect(inboxProposalSchema.safeParse({ category: 'urgent', confidence: 0.9, reasoning: 'Looks like an invoice' }).success).toBe(true);
     });
 
     it('rejects confidence > 1', () => {
-      expect(inboxProposalSchema.safeParse({ category: 'invoice', confidence: 1.5, reasoning: 'test' }).success).toBe(false);
+      expect(inboxProposalSchema.safeParse({ category: 'urgent', confidence: 1.5, reasoning: 'test' }).success).toBe(false);
     });
 
     it('rejects negative confidence', () => {
-      expect(inboxProposalSchema.safeParse({ category: 'invoice', confidence: -0.1, reasoning: 'test' }).success).toBe(false);
+      expect(inboxProposalSchema.safeParse({ category: 'urgent', confidence: -0.1, reasoning: 'test' }).success).toBe(false);
+    });
+
+    it('rejects invalid category', () => {
+      expect(inboxProposalSchema.safeParse({ category: 'invoice', confidence: 0.9, reasoning: 'test' }).success).toBe(false);
     });
   });
 

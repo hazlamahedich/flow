@@ -23,6 +23,8 @@ describe('inbox processing pipeline', () => {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     single: vi.fn(),
+    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+    upsert: vi.fn().mockResolvedValue({ error: null }),
   };
 
   beforeEach(() => {

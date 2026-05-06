@@ -85,6 +85,7 @@ export interface MorningBriefProposal {
   threadSummaries: ThreadSummary[];
   reassuranceMessage?: string;
   clientBreakdown: ClientBreakdown[];
+  floodState?: boolean;
 }
 
 export const inboxInputSchema = z.object({
@@ -138,6 +139,7 @@ export const morningBriefOutputSchema = z.object({
       handledCount: z.number(),
     })
   ),
-}).strict();
+  floodState: z.boolean().optional(),
+});
 
 // See schemas/ directory for pipeline-specific types (extraction, draft, trust, etc.)

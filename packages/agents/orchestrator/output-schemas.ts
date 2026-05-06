@@ -60,7 +60,7 @@ export function registerMvpSchemas(registry: OutputSchemaRegistry): void {
     'client-health',
     'time-integrity',
   ];
-  const mvpActions = ['execute'];
+  const mvpActions = ['execute', 'drain_history', 'categorize_email'];
   const passthrough = z.object({}).passthrough();
 
   for (const agentId of mvpAgents) {

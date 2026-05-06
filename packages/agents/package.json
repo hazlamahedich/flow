@@ -42,6 +42,7 @@
     "googleapis": "^144.0.0",
     "isomorphic-dompurify": "^3.12.0",
     "node-html-markdown": "^2.0.0",
+    "p-limit": "^7.3.0",
     "pg-boss": "^12.16.0"
   },
   "devDependencies": {

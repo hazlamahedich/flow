@@ -14,6 +14,13 @@ vi.mock('../brief-generator', () => ({
 
 vi.mock('@flow/db', () => ({
   saveMorningBrief: vi.fn(),
+  createServiceClient: vi.fn(() => ({
+    from: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    in: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockResolvedValue({ count: 0, error: null }),
+  })),
 }));
 
 describe('brief-latency', () => {

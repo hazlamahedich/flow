@@ -6,6 +6,7 @@ import { ClientDetails } from './components/client-details';
 import { RetainerPanel } from './components/retainer-panel';
 import { RetainerScopeBanner } from './components/retainer-scope-banner';
 import { TeamAccessPanel } from './components/team-access-panel';
+import { InboxConnectionCard } from './components/inbox-connection-card';
 import { WizardToast } from './components/wizard-toast';
 import type { Client, UtilizationState } from '@flow/types';
 
@@ -125,6 +126,7 @@ export default async function ClientDetailPage({
       {(role === 'owner' || role === 'admin') && (
         <TeamAccessPanel clientId={clientId} workspaceId={workspaceId} />
       )}
+      <InboxConnectionCard clientId={clientId} role={role} />
     </div>
   );
 }

@@ -18,6 +18,7 @@ vi.mock('../../shared/index.js', () => ({
 
 vi.mock('../state-machine', () => ({
   transitionState: vi.fn().mockResolvedValue(undefined),
+  getProcessingState: vi.fn().mockResolvedValue('draft_pending'),
 }));
 
 vi.mock('../voice', () => ({
@@ -76,10 +77,17 @@ describe('isolation-drafting', () => {
       insert: vi.fn().mockResolvedValue({ error: null }),
     };
 
+    const profileChain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
+    };
+
     mockSupabase.from.mockImplementation((table: string) => {
       if (table === 'emails') return emailChain;
       if (table === 'extracted_actions') return actionsChain;
       if (table === 'draft_responses') return insertChain;
+      if (table === 'workspace_voice_profiles') return profileChain;
       return {};
     });
 

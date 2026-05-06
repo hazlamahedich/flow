@@ -23,6 +23,10 @@
     "./device-types": {
       "types": "./src/device-types.ts",
       "default": "./dist/device-types.js"
+    },
+    "./gmail-env": {
+      "types": "./src/gmail-env.ts",
+      "default": "./dist/gmail-env.js"
     }
   },
   "scripts": {
