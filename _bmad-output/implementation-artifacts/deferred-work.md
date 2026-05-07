@@ -304,3 +304,45 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 
 - Persistence Redundancy: flood_state is stored both as a top-level column and inside the content JSON in morning_briefs table. [packages/agents/inbox/index.ts:23]
 - Type Safety Bypass: Using 'as unknown as Record<string, unknown>' for database payloads bypasses compiler checks. [packages/agents/inbox/index.ts:23]
+
+## Deferred from: code review of 4-4c-handled-quietly-mobile-triage.md (2026-05-07)
+
+- AC1-B: HandledQuietlySection not collapsed by default — requires collapse toggle state; AC compliance iteration [handled-quietly-section.tsx]
+- AC2-B: No 300ms animation on promote to inbox — CSS transition work needed [handled-quietly-item.tsx]
+- AC5-B/C: No swipe-down 50px dismiss / chevron-down close button — UX gesture iteration [mobile-card-overlay.tsx]
+- AC6-B: Swipe auto-fires on drag-end; spec requires separate TAP to confirm — significant interaction model change [swipeable-card.tsx]
+- AC6-D: Approve/Reject use CSS vars instead of bg-green-600/bg-red-600 — low-impact visual spec deviation [swipeable-card.tsx]
+- AC7: DraftEditor lacks shadcn Textarea, auto-save on blur, AI portion highlighting — multiple feature gaps [draft-editor.tsx]
+- AC8: Quick-edit chip labels wrong; no auto-save on overlay dismiss — UX details [draft-editor.tsx, mobile-card-overlay.tsx]
+- listAllWorkspaces unbounded query — OOM risk at scale + service-client tenant enumeration; needs pagination + rate limiting design [list-all.ts, audit-worker.ts]
+- Serial workspace loop in audit-worker — O(n) sequential DB calls; refactor to batch/concurrent with backpressure [audit-worker.ts]
+- AC3-D: Cron fires UTC, not per-workspace local time — requires workspaces.timezone field and per-workspace schedule entries [scheduler.ts]
+- rls_emails_service_role policy is dead — service_role bypasses RLS by design; pre-existing migration issue needing cleanup [supabase/migrations/]
+- workspaceId prop in HandledQuietlySection is dead — misleading contract; refactor to remove unused prop [handled-quietly-section.tsx]
+
+## Deferred from: code review re-run of 4-4c-handled-quietly-mobile-triage.md (2026-05-07)
+
+- Silent success on zero rows — no row-count check after update in rejectDraft/approveDraft/editDraft; needs .select('id').single() + 404 guard [draft-actions.ts]
+- Prompt injection via unsanitized email body in performQuickEdit LLM prompt — email body_clean interpolated without delimiters [draft-actions.ts]
+- performQuickEdit creates second getServerSupabase() client instead of inheriting caller's client [draft-actions.ts]
+- No status-state guard before draft mutations — double-approval/state corruption possible; needs .eq('status','pending') guard [draft-actions.ts]
+- AnimatePresence outside Dialog.Root — exit animations may not fire correctly with forceMount; pre-existing Radix+Framer interaction [mobile-bottom-sheet.tsx]
+- Dialog.Description absent — ARIA warning + WCAG 2.1 SC 4.1.2 gap; add aria-describedby={undefined} or sr-only description [mobile-bottom-sheet.tsx]
+- Close button missing aria-label="Close" [mobile-bottom-sheet.tsx]
+- performQuickEdit catch block swallows all error detail — original error not logged [draft-actions.ts]
+- MobileBottomSheet component created but never consumed — wiring to "More" secondary actions is additional scope [mobile-bottom-sheet.tsx]
+- AC12 desktop: 3-chip + Delegate/Snooze dropdown entirely absent — additional scope
+- DraftEditor calls useOptimisticAction with incompatible signature (runId: string) vs (input: unknown) [draft-editor.tsx]
+- useMobileTriage uses next/navigation (triage_id) while MobileBottomSheet uses nuqs (sheet) — migrating useMobileTriage is additional scope [use-mobile-triage.ts]
+- getWeeklyAuditCount is a dead export — not wired to any UI component; requires Audit story [handled-quietly-actions.ts]
+- HandledQuietlyItem types email prop as any — needs typed interface [handled-quietly-item.tsx]
+- No regression test for rejectDraft rejection_reason field persistence [draft-actions.ts]
+
+## Deferred from: Edge Case Hunter review of 4-4c-handled-quietly-mobile-triage.md (2026-05-07)
+
+- Prompt injection via unbounded email body in performQuickEdit LLM prompt (OWASP LLM01) — truncate body_clean to ≤2000 chars + XML fence email content from instructions [draft-actions.ts]
+- TOCTOU race — promoteToInbox and recategorizeEmail read then update category in separate round-trips — add optimistic lock via .eq('category', expectedCategory) on UPDATE [handled-quietly-actions.ts, recategorize-action.ts]
+- Trust violation recorded with stale version after email update — CAS failure silently swallowed; read trust version before email update or use atomic RPC [recategorize-action.ts, handled-quietly-actions.ts]
+- updateEmailCategorization missing workspace_id scope — cross-tenant write vector for service-role callers; add workspaceId param + .eq('workspace_id', workspaceId) [packages/db/src/queries/inbox/email-queries.ts]
+- isFiring ref in SwipeableCard resets before server action resolves — second swipe possible during in-flight action; wire disabled prop from parent isPending [swipeable-card.tsx]
+- getHandledEmails returns full EmailRow including body_clean and headers — unnecessary PII over wire; replace .select('*') with field projection [email-queries.ts]

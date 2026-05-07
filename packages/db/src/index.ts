@@ -25,8 +25,9 @@ export {
 } from './queries/users';
 export { getDashboardSummary, getDashboardCacheTag } from './queries/dashboard';
 export type { DashboardSummary } from './queries/dashboard';
-export { listUserWorkspaces } from './queries/workspaces';
+export { listUserWorkspaces, listAllWorkspaces } from './queries/workspaces';
 export type { UserWorkspace } from './queries/workspaces';
+
 export { searchEntities } from './queries/search/search-entities';
 export type { SearchEntitiesOptions } from './queries/search/search-entities';
 export {
@@ -162,7 +163,13 @@ export {
   insertEmail,
   updateEmailCategorization,
   getUnprocessedEmails,
+  getHandledEmails,
+  getWeeklyAuditCount,
+  updateInboxTrustMetric,
+  recategorizeEmail,
 } from './queries/inbox';
+
+
 export {
   insertRawPayload,
   isMessageProcessed,

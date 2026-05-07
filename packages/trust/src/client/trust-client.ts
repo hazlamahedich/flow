@@ -34,6 +34,7 @@ export interface TrustClientDeps {
   recordViolation: (workspaceId: string, agentId: string, actionType: string, severity: 'soft' | 'hard', riskWeight: number, expectedVersion: number, targetLevel?: 'supervised' | 'confirm' | 'auto') => Promise<MatrixEntry>;
   recordPrecheckFailure: (workspaceId: string, agentId: string, actionType: string, expectedVersion: number) => Promise<MatrixEntry>;
   insertTransition: (entry: Record<string, unknown>) => Promise<unknown>;
+  updateInboxTrustMetric?: (workspaceId: string, clientInboxId: string, metricType: string, value: number, sampleCount: number) => Promise<void>;
 }
 
 const MAX_CACHE_SIZE = 1000;
@@ -44,7 +45,9 @@ export interface TrustClient {
   recordViolation(snapshotId: string, severity: 'soft' | 'hard'): Promise<void>;
   recordPrecheckFailure(snapshotId: string): Promise<void>;
   manualOverride(agentId: AgentId, actionType: string, workspaceId: string, newLevel: TrustLevel, actor: string): Promise<void>;
+  updateMetric(workspaceId: string, clientInboxId: string, metricType: string, value: number, sampleCount: number): Promise<void>;
 }
+
 
 function evictOldestEntry(cache: Map<string, { entry: MatrixEntry; snapshotId: string }>): void {
   if (cache.size >= MAX_CACHE_SIZE) {
@@ -263,5 +266,12 @@ export function createTrustClient(deps: TrustClientDeps): TrustClient {
         actor,
       });
     },
+
+    async updateMetric(workspaceId, clientInboxId, metricType, value, sampleCount): Promise<void> {
+      if (deps.updateInboxTrustMetric) {
+        await deps.updateInboxTrustMetric(workspaceId, clientInboxId, metricType, value, sampleCount);
+      }
+    },
   };
 }
+

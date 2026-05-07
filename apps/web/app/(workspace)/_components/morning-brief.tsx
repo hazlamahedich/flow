@@ -5,6 +5,8 @@ import { Badge, Button } from '@flow/ui';
 import { MorningBriefTracker } from './morning-brief-tracker';
 import { FloodStateBanner } from './flood-state-banner';
 import { CollapsedEmailCluster } from './collapsed-email-cluster';
+import { MorningBriefQuietSummary } from './morning-brief-quiet-summary';
+
 
 export async function MorningBrief() {
   const supabase = await getServerSupabase();
@@ -173,6 +175,8 @@ export async function MorningBrief() {
           </div>
         </div>
       )}
+
+      <MorningBriefQuietSummary />
 
       {content.handledItems.length === 0 && content.needsAttentionItems.length === 0 && (
         <div className="py-12 text-center">

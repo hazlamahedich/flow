@@ -26,7 +26,7 @@ export function createOrchestrator(trustGateConfig?: TrustGateConfig): Orchestra
     connectionString,
     schema: 'pgboss',
     supervise: true,
-    schedule: false,
+    schedule: true,
     migrate: true,
     max: maxConnections,
     superviseIntervalSeconds: 30,
@@ -81,6 +81,14 @@ export function createOrchestrator(trustGateConfig?: TrustGateConfig): Orchestra
 
     await boss.start();
     started = true;
+
+    // Register schedules (AC3)
+    const { registerSchedules } = await import('./scheduler');
+    await registerSchedules(boss);
+
+    const { registerAuditWorkers } = await import('./audit-worker');
+    await registerAuditWorkers(boss);
+
 
     if (trustGateConfig?.outputSchemaRegistry) {
       const mvpIds: AgentId[] = [

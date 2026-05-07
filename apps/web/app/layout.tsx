@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ThemeProvider } from '@flow/tokens/providers';
 import '@flow/tokens/css';
 import './globals.css';
@@ -33,9 +34,11 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable}`}
     >
       <body>
-        <ThemeProvider defaultTheme="dark">
-          {children}
-        </ThemeProvider>
+        <NuqsAdapter>
+          <ThemeProvider defaultTheme="dark">
+            {children}
+          </ThemeProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

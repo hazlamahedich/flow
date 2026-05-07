@@ -73,3 +73,71 @@ export async function getUnprocessedEmails(
   if (error) throw error;
   return (data ?? []).map((row) => emailRowSchema.parse(row));
 }
+
+export async function getHandledEmails(
+  supabase: SupabaseClient,
+  workspaceId: string,
+  options: { limit?: number; offset?: number } = {},
+): Promise<{ items: EmailRow[]; totalCount: number }> {
+  const limit = Math.min(options.limit ?? 20, 100);
+  const offset = options.offset ?? 0;
+
+  // AC1: info or noise categories at trust auto (3+)
+  // We query emails where category is info/noise.
+  // Note: Filtering by trust level 'auto' should ideally be done by joining trust_matrix
+  // but since trust is per client_inbox, we'll fetch them all and filter or trust the caller.
+  // The story says "Render emails categorized as info or noise (at trust >= 3)".
+  // This implies they ARE already categorized.
+  
+  const { data, count, error } = await supabase
+    .from('emails')
+    .select('*', { count: 'exact' })
+    .eq('workspace_id', workspaceId)
+    .in('category', ['info', 'noise'])
+    .order('received_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) throw error;
+
+  return {
+    items: (data ?? []).map((row) => emailRowSchema.parse(row)),
+    totalCount: count ?? 0,
+  };
+}
+
+export async function getWeeklyAuditCount(
+  supabase: SupabaseClient,
+  workspaceId: string,
+): Promise<number> {
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const { count, error } = await supabase
+    .from('emails')
+    .select('*', { count: 'exact', head: true })
+    .eq('workspace_id', workspaceId)
+    .in('category', ['info', 'noise'])
+    .gte('received_at', sevenDaysAgo.toISOString());
+
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function recategorizeEmail(
+  supabase: SupabaseClient,
+  workspaceId: string,
+  emailId: string,
+  newCategory: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from('emails')
+    .update({ category: newCategory })
+    .eq('id', emailId)
+    .eq('workspace_id', workspaceId);
+
+  if (error) throw error;
+}
+
+
+

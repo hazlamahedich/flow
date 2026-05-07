@@ -2,6 +2,8 @@ import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, getPendingApprovals } from '@flow/db';
 import type { Metadata } from 'next';
 import { ApprovalQueue } from './components/approval-queue';
+import { HandledQuietlySection } from './components/handled-quietly-section';
+
 import { AGENT_LABELS, ACTION_LABELS } from './constants';
 
 export const metadata: Metadata = { title: 'Agent Approvals' };
@@ -52,6 +54,9 @@ export default async function ApprovalsPage() {
         trustStaleIds={result.trustStaleIds}
         workspaceId={workspaceId}
       />
+
+      <HandledQuietlySection workspaceId={workspaceId} />
     </div>
   );
 }
+
