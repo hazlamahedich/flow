@@ -94,7 +94,7 @@ export async function categorizeEmail(
   const executionContext: AgentExecutionContext = {
     workspaceId: email.workspace_id,
     agentId: 'inbox',
-    runId: email.run_id,
+    ...(email.run_id ? { runId: email.run_id } : {}),
   };
 
   const response = await llmRouter.complete(

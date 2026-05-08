@@ -16,8 +16,8 @@ export async function HandledQuietlySection({ workspaceId }: HandledQuietlySecti
   const { items, totalCount } = result.data;
 
   return (
-    <div className="mt-8 space-y-4">
-      <div className="border-t-2 border-amber-500/40 my-6 flex items-center gap-4 pt-4">
+    <div className="mt-8 space-y-4" data-testid="handled-quietly-section">
+      <div className="border-t-2 border-amber-500/40 my-6 flex items-center gap-4 pt-4" data-testid="handled-quietly-divider">
         <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-[var(--flow-color-gold)]/10 text-[var(--flow-color-gold)] text-xs font-medium">
           <span>Handled Quietly</span>
           <span className="flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-[var(--flow-color-gold)] text-white text-[10px]">

@@ -41,7 +41,7 @@ export function CollapsedEmailCluster({ title, items, variant }: CollapsedEmailC
           >
             <div className="flex items-center gap-3 min-w-0 flex-1">
               {isAttention && item.category && (
-                <Badge variant={item.category === 'urgent' ? 'destructive' : 'outline'} className="text-[8px] h-3.5 px-1 font-black uppercase shrink-0">
+                <Badge variant={item.category === 'urgent' ? 'error' : 'outline'} className="text-[8px] h-3.5 px-1 font-black uppercase shrink-0">
                   {item.category[0]}
                 </Badge>
               )}

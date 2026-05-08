@@ -69,7 +69,7 @@ export function SwipeableCard({ children, onApprove, onReject, disabled }: Swipe
   };
 
   return (
-    <div className="relative w-full touch-none">
+    <div className="relative w-full touch-none" data-testid="swipeable-card">
       <motion.div
         style={{ x, rotate, opacity }}
         drag={disabled ? false : 'x'}

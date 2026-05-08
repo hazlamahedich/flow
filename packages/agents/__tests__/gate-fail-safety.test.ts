@@ -49,6 +49,7 @@ function makeTrustClient(canActResult: TrustDecision): TrustClient {
     recordViolation: vi.fn(),
     recordPrecheckFailure: vi.fn(),
     manualOverride: vi.fn(),
+    updateMetric: vi.fn(),
   };
 }
 

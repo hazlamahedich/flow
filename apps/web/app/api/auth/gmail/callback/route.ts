@@ -142,7 +142,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const cookieStore = await getCookieStore();
-  const session = await getIronSession<OAuthStateCookie>(cookieStore, {
+  const session = await getIronSession<OAuthStateCookie>(cookieStore as any, {
     password: ironPassword,
     cookieName: `oauth_pkce_${state}`,
     cookieOptions: { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' as const, maxAge: 600, path: '/' },

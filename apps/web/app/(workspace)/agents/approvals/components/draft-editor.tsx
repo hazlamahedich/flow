@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useOptimisticAction } from './use-optimistic-action';
 import { editDraft, quickEditTone, quickEditLength } from '../actions/draft-actions';
 import { Button } from '@flow/ui';
 import { Sparkles, Save, RotateCcw, MessageSquare, List } from 'lucide-react';
@@ -15,29 +14,39 @@ interface DraftEditorProps {
 
 export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProps) {
   const [content, setContent] = useState(initialContent);
-  
-  const editAction = useOptimisticAction(editDraft);
-  const toneAction = useOptimisticAction(quickEditTone);
-  const lengthAction = useOptimisticAction(quickEditLength);
-
-  const isAnyPending = editAction.isPending || toneAction.isPending || lengthAction.isPending;
+  const [isPending, setIsPending] = useState(false);
 
   const handleSave = async () => {
-    const result = await editAction.execute({ draftId, content });
-    if (result.success && onSave) onSave();
+    setIsPending(true);
+    try {
+      const result = await editDraft({ draftId, content });
+      if (result.success && onSave) onSave();
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const handleToneChange = async (tone: 'professional' | 'friendly' | 'concise' | 'detailed') => {
-    const result = await toneAction.execute({ draftId, tone });
-    if (result.success && result.data?.content) {
-      setContent(result.data.content);
+    setIsPending(true);
+    try {
+      const result = await quickEditTone({ draftId, tone });
+      if (result.success && result.data?.content) {
+        setContent(result.data.content);
+      }
+    } finally {
+      setIsPending(false);
     }
   };
 
   const handleLengthChange = async (length: 'shorter' | 'longer') => {
-    const result = await lengthAction.execute({ draftId, length });
-    if (result.success && result.data?.content) {
-      setContent(result.data.content);
+    setIsPending(true);
+    try {
+      const result = await quickEditLength({ draftId, length });
+      if (result.success && result.data?.content) {
+        setContent(result.data.content);
+      }
+    } finally {
+      setIsPending(false);
     }
   };
 
@@ -47,15 +56,15 @@ export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProp
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          disabled={isAnyPending}
+          disabled={isPending}
           className={cn(
             "w-full min-h-[300px] p-4 rounded-xl border border-[var(--flow-color-border-default)] bg-[var(--flow-bg-surface)] text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-[var(--flow-accent-primary)]/20 transition-all",
-            isAnyPending && "opacity-50"
+            isPending && "opacity-50"
           )}
           placeholder="Draft response..."
         />
         
-        {isAnyPending && (
+        {isPending && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-[1px] rounded-xl">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white shadow-sm border border-[var(--flow-color-border-subtle)]">
               <Sparkles className="w-4 h-4 text-[var(--flow-color-gold)] animate-pulse" />
@@ -74,7 +83,7 @@ export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProp
           variant="outline"
           size="sm"
           onClick={() => handleToneChange('professional')}
-          disabled={isAnyPending}
+          disabled={isPending}
           className="h-7 px-2.5 text-[11px] rounded-full border-dashed"
         >
           Professional
@@ -83,7 +92,7 @@ export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProp
           variant="outline"
           size="sm"
           onClick={() => handleToneChange('friendly')}
-          disabled={isAnyPending}
+          disabled={isPending}
           className="h-7 px-2.5 text-[11px] rounded-full border-dashed"
         >
           Friendly
@@ -92,7 +101,7 @@ export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProp
           variant="outline"
           size="sm"
           onClick={() => handleLengthChange('shorter')}
-          disabled={isAnyPending}
+          disabled={isPending}
           className="h-7 px-2.5 text-[11px] rounded-full border-dashed"
         >
           Shorter
@@ -101,7 +110,7 @@ export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProp
           variant="outline"
           size="sm"
           onClick={() => handleLengthChange('longer')}
-          disabled={isAnyPending}
+          disabled={isPending}
           className="h-7 px-2.5 text-[11px] rounded-full border-dashed"
         >
           Longer
@@ -113,7 +122,7 @@ export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProp
           variant="ghost"
           size="sm"
           onClick={() => setContent(initialContent)}
-          disabled={isAnyPending || content === initialContent}
+          disabled={isPending || content === initialContent}
           className="text-[var(--flow-color-text-secondary)]"
         >
           <RotateCcw className="w-4 h-4 mr-2" />
@@ -123,7 +132,7 @@ export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProp
         <div className="flex items-center gap-2">
           <Button
             onClick={handleSave}
-            disabled={isAnyPending || content === initialContent}
+            disabled={isPending || content === initialContent}
             className="rounded-full px-6"
           >
             <Save className="w-4 h-4 mr-2" />

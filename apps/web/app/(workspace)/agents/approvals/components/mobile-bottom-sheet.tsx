@@ -18,7 +18,7 @@ export function MobileBottomSheet({ name, title, children }: MobileBottomSheetPr
   const closeSheet = () => setSheet(null);
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && closeSheet()}>
+    <Dialog.Root open={isOpen} onOpenChange={(open: boolean) => !open && closeSheet()}>
       <AnimatePresence>
         {isOpen && (
           <Dialog.Portal forceMount>

@@ -16,6 +16,8 @@ export {
   DialogTitle,
   DialogDescription,
 } from './components/dialog/dialog';
+export { Skeleton } from './components/skeleton/skeleton';
+export { ExpandableReasoning } from './components/expandable-reasoning/expandable-reasoning';
 export { cn } from './lib/utils';
 
 export { DashboardSection } from './components/dashboard/dashboard-section';

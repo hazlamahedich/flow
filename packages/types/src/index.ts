@@ -156,3 +156,8 @@ export type {
   InboxStatusResponse,
   GmailPubSubMessage,
 } from './inbox';
+export type {
+  EmailTimelineEntry,
+  AgentRunTimelineEntry,
+  TimelineEvent,
+} from './timeline';

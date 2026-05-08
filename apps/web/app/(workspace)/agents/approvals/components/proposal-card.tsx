@@ -42,6 +42,7 @@ export function ProposalCard({
       aria-selected={isFocused}
       aria-expanded={isExpanded}
       aria-label={`${identity.label} ${typeLabel}: ${itemTitle}`}
+      data-testid="approval-card"
       onFocus={onFocus}
       className={[
         'rounded-[var(--flow-radius-lg)] border bg-[var(--flow-bg-surface)] p-4 motion-reduce:transition-none transition-colors',

@@ -68,7 +68,7 @@ export async function draftWorker(job: { data: DraftJobPayload }, boss: PgBoss) 
     const executionContext: AgentExecutionContext = {
       workspaceId,
       agentId: 'inbox',
-      correlationId: emailId,
+      taskId: emailId,
     };
 
     const response = await llmRouter.complete(

@@ -36,12 +36,29 @@ const clientId = '00000000-0000-0000-0000-000000000002';
 
 const makeEmailEvent = (id: string, subject: string) => ({
   kind: 'email' as const,
-  data: { id, subject, sender: 'test@test.com', receivedAt: new Date().toISOString(), category: 'info', status: 'read', requiresConfirmation: false, snippet: '', clientInboxId: '00000000-0000-0000-0000-000000000003' },
+  sortKey: new Date().toISOString(),
+  data: {
+    id,
+    subject,
+    fromAddress: 'test@test.com',
+    receivedAt: new Date().toISOString(),
+    category: 'info' as const,
+    requiresConfirmation: false,
+    processingState: null,
+  },
 });
 
 const makeAgentEvent = (id: string, status: string) => ({
   kind: 'agent_run' as const,
-  data: { id, status, agentId: 'inbox', actionType: 'Categorize', startedAt: new Date().toISOString(), completedAt: null, proposal: null, workspaceId: wsId, clientId },
+  sortKey: new Date().toISOString(),
+  data: {
+    id,
+    status: status as 'running' | 'completed' | 'failed' | 'pending_approval' | 'cancelled',
+    agentId: 'inbox',
+    actionType: 'Categorize',
+    createdAt: new Date().toISOString(),
+    clientId,
+  },
 });
 
 describe('ClientTimeline', () => {

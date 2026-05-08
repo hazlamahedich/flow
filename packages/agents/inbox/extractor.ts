@@ -67,7 +67,7 @@ export async function extractionWorker(job: { data: ExtractionJobPayload }, boss
     const sanitizedBody =
       email.body_clean
         ?.split('\n')
-        .filter((line) => !line.trim().startsWith('>'))
+        .filter((line: string) => !line.trim().startsWith('>'))
         .join('\n') || '';
 
     // PII Tokenization
@@ -79,7 +79,7 @@ export async function extractionWorker(job: { data: ExtractionJobPayload }, boss
     const executionContext: AgentExecutionContext = {
       workspaceId,
       agentId: 'inbox',
-      correlationId: emailId,
+      taskId: emailId,
     };
 
     const response = await llmRouter.complete(

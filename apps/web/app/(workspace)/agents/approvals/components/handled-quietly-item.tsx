@@ -56,6 +56,7 @@ export function HandledQuietlyItem({ email }: HandledQuietlyItemProps) {
       <button
         onClick={handlePromote}
         disabled={isPending}
+        data-testid="promote-to-inbox-button"
         className="mt-3 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-md border border-[var(--flow-status-warning)]/30 text-[var(--flow-status-warning)] text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--flow-status-warning)]/5"
       >
         <ArrowUpRight className="w-3.5 h-3.5" />

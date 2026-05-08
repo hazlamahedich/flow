@@ -1,5 +1,6 @@
 import { createServiceClient, insertEmail, insertSignal, updateClientInboxSyncStatus, updateClientInboxOAuthState, decryptInboxTokens, encryptInboxTokens, isMessageProcessed } from '@flow/db';
 import type { PgBoss } from 'pg-boss';
+import type { OAuthStateEncrypted } from '@flow/types';
 import { PgBossProducer } from '../orchestrator/pg-boss-producer.js';
 import { GmailProvider } from '../providers/index.js';
 import { sanitizeEmail } from './sanitizer.js';
@@ -66,7 +67,7 @@ export async function handleDrainHistory(input: {
       throw new Error(`Inbox not found: ${input.clientInboxId}`);
     }
 
-    let tokens = decryptInboxTokens(inbox.oauth_state as Record<string, unknown>);
+    let tokens = decryptInboxTokens(inbox.oauth_state as OAuthStateEncrypted);
     let accessToken = tokens.accessToken;
 
     const expiry = typeof tokens.expiryDate === 'number' ? tokens.expiryDate : 0;
@@ -81,13 +82,13 @@ export async function handleDrainHistory(input: {
     const syncCursor = inbox.sync_cursor ?? '0';
     const historyItems = await provider.getHistorySince(accessToken, syncCursor);
 
-    const bossInstance = boss ?? await (globalThis as Record<string, unknown>).getBoss?.() as PgBoss;
+    const bossInstance = boss ?? await ((globalThis as unknown as Record<string, (() => Promise<PgBoss>) | undefined>).getBoss?.());
     if (!bossInstance) throw new Error('PgBoss instance not available');
     const producer = new PgBossProducer(bossInstance);
 
     for (const item of historyItems) {
       try {
-        const alreadyProcessed = await isMessageProcessed(item.messageId);
+        const alreadyProcessed = await isMessageProcessed(supabase, item.messageId);
         if (alreadyProcessed) continue;
 
         const message = await provider.getMessage(accessToken, item.messageId);
@@ -109,6 +110,10 @@ export async function handleDrainHistory(input: {
           headers: message.headers,
           body_clean: cleanText,
           body_raw_safe: safeHtml,
+          category: null,
+          confidence: null,
+          requires_confirmation: null,
+          processed_at: null,
         });
 
         await insertSignal({

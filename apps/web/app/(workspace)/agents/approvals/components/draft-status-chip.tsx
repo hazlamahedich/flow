@@ -30,7 +30,8 @@ interface DraftStatusChipProps extends VariantProps<typeof chipVariants> {
   className?: string;
 }
 
-export function DraftStatusChip({ status = "pending", className }: DraftStatusChipProps) {
+export function DraftStatusChip({ status: statusProp = "pending", className }: DraftStatusChipProps) {
+  const status = statusProp ?? "pending";
   const Icon = iconMap[status as keyof typeof iconMap] || Clock;
 
   return (

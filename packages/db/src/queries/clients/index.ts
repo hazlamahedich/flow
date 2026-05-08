@@ -15,3 +15,4 @@ export {
   getMembersForClient,
   getClientsForMember,
 } from './scoping';
+export { getClientEngagementTimeline } from './timeline';

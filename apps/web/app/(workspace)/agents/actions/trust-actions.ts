@@ -204,7 +204,7 @@ export async function undoRegression(
 
 export async function acknowledgeRegression(
   input: unknown,
-): Promise<ActionResult<{ acknowledged: boolean }>> {
+): Promise<ActionResult<TrustTransitionResult>> {
   const parsed = AcknowledgeRegressionSchema.safeParse(input);
   if (!parsed.success) return validationError('Invalid input');
 
@@ -222,8 +222,8 @@ export async function acknowledgeRegression(
   try {
     await acknowledgeTransition(workspaceId, transitionId);
     revalidateTag('trust:' + workspaceId);
-    return { success: true, data: { acknowledged: true } };
+    return { success: true, data: { matrixEntryId: transitionId, fromLevel: '', toLevel: '', version: 0 } };
   } catch {
-    return { success: false, error: { status: 500, code: 'SERVER_ERROR', message: 'Failed to acknowledge', category: 'system' } };
+    return { success: false, error: { status: 500, code: 'INTERNAL_ERROR', message: 'Failed to acknowledge', category: 'system' } };
   }
 }

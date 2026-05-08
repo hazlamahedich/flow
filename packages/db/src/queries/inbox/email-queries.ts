@@ -132,7 +132,7 @@ export async function recategorizeEmail(
 ): Promise<void> {
   const { error } = await supabase
     .from('emails')
-    .update({ category: newCategory })
+    .update({ category: newCategory, requires_confirmation: false })
     .eq('id', emailId)
     .eq('workspace_id', workspaceId);
 

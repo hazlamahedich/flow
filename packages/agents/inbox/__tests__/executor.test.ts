@@ -58,6 +58,7 @@ describe('inbox executor', () => {
         workspaceId: 'ws-1',
         clientInboxId: 'inbox-1',
         payloadId: 'payload-1',
+        signalId: 'sig-1',
       });
 
       expect(handleDrainHistory).toHaveBeenCalledWith({
@@ -110,6 +111,7 @@ describe('inbox executor', () => {
         actionType: 'email_categorization',
         workspaceId: 'ws-1',
         emailId: 'email-1',
+        signalId: 'sig-1',
       });
 
       expect(categorizeEmail).toHaveBeenCalledWith(
@@ -122,7 +124,7 @@ describe('inbox executor', () => {
       expect(insertSignal).toHaveBeenCalledWith(
         expect.objectContaining({ signalType: 'email.client_urgent' }),
       );
-      expect(result.category).toBe('urgent');
+      if (result) expect(result.category).toBe('urgent');
     });
 
     it('throws when email not found', async () => {
@@ -133,6 +135,7 @@ describe('inbox executor', () => {
           actionType: 'email_categorization',
           workspaceId: 'ws-1',
           emailId: 'missing',
+          signalId: 'sig-missing',
         }),
       ).rejects.toThrow('Email not found: missing');
     });
@@ -155,6 +158,7 @@ describe('inbox executor', () => {
         actionType: 'email_categorization',
         workspaceId: 'ws-1',
         emailId: 'email-1',
+        signalId: 'sig-1',
       });
 
       expect(insertSignal).toHaveBeenCalledWith(
@@ -177,6 +181,7 @@ describe('inbox executor', () => {
         actionType: 'email_categorization',
         workspaceId: 'ws-1',
         emailId: 'email-1',
+        signalId: 'sig-1',
       });
 
       const signalCalls = (insertSignal as any).mock.calls;

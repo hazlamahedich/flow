@@ -1,5 +1,7 @@
 import { describe, test, expect } from 'vitest';
+// @ts-expect-error ATDD red-phase stub — module will be created when feature is implemented
 import { clients } from '@flow/db/schema/clients';
+// @ts-expect-error ATDD red-phase stub — module will be created when feature is implemented
 import { memberClientAccess } from '@flow/db/schema/member-client-access';
 import {
   createClientSchema,

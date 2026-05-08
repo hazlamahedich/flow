@@ -139,7 +139,7 @@ export function EmailTimelineItem({ email, workspaceId, clientId }: EmailTimelin
                       disabled={isPending || cat === currentCategory}
                       className="h-7 px-2 text-xs capitalize"
                     >
-                      {CATEGORY_CONFIG[cat].label}
+                      {CATEGORY_CONFIG[cat]?.label ?? cat}
                     </Button>
                   ))}
                 </div>

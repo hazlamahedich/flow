@@ -1,23 +1,24 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { TimelineList } from '../timeline-list';
+import type { ActionHistoryRow } from '@flow/db';
 
 vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-function buildEntry(overrides: Record<string, unknown> = {}) {
+function buildEntry(overrides: Record<string, unknown> = {}): ActionHistoryRow {
   return {
-    id: overrides.id ?? 'entry-1',
+    id: overrides.id as string ?? 'entry-1',
     workspaceId: 'ws-1',
-    agentId: overrides.agentId ?? 'inbox',
-    actionType: overrides.actionType ?? 'categorize-email',
-    status: overrides.status ?? 'completed',
+    agentId: (overrides.agentId as import('@flow/types').AgentId) ?? 'inbox',
+    actionType: (overrides.actionType as string) ?? 'categorize-email',
+    status: (overrides.status as import('@flow/types').AgentRunStatus) ?? 'completed',
     input: {},
     output: {},
-    correlationId: overrides.correlationId ?? 'corr-1',
-    createdAt: overrides.createdAt ?? new Date('2026-01-15T12:00:00Z').toISOString(),
+    correlationId: overrides.correlationId as string ?? 'corr-1',
+    createdAt: overrides.createdAt as string ?? new Date('2026-01-15T12:00:00Z').toISOString(),
     updatedAt: new Date('2026-01-15T12:00:00Z').toISOString(),
     jobId: 'job-1',
     signalId: null,

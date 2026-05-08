@@ -132,6 +132,7 @@ export {
   checkDuplicateEmail,
   hasActiveAgentRuns,
 } from './queries/clients';
+export { getClientEngagementTimeline } from './queries/clients/timeline';
 export {
   assignMemberToClient,
   revokeMemberAccess,

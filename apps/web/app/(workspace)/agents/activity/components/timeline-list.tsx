@@ -146,12 +146,15 @@ export function TimelineList({ entries, totalCount, filters, grouped, onToggleGr
               {dateEntries.map((entry, idx) => {
                 const globalIdx = entries.indexOf(entry);
                 return (
-                  <TimelineEntry
+                  <div
                     key={entry.id}
-                    entry={entry}
-                    workspaceId={workspaceId}
-                    ref={(el) => { if (el) entryRefs.current.set(globalIdx, el); }}
-                  />
+                    ref={(el: HTMLElement | null) => { if (el) entryRefs.current.set(globalIdx, el); }}
+                  >
+                    <TimelineEntry
+                      entry={entry}
+                      workspaceId={workspaceId}
+                    />
+                  </div>
                 );
               })}
             </div>

@@ -15,7 +15,7 @@ export async function generateMorningBrief(workspaceId: string) {
   ]);
   const { brief, isFallback } = await generateBrief(context);
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0]!;
 
   const result = await saveMorningBrief({
     workspace_id: workspaceId,

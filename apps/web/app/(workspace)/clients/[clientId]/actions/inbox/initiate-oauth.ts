@@ -124,7 +124,7 @@ export async function initiateOAuth(
   }
 
   const cookieStore = await getCookieStore();
-  const session = await getIronSession<OAuthStateCookie>(cookieStore, {
+  const session = await getIronSession<OAuthStateCookie>(cookieStore as any, {
     password: ironPassword,
     cookieName: `oauth_pkce_${state}`,
     cookieOptions: {

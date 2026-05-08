@@ -1,4 +1,5 @@
 import { describe, test, expect } from 'vitest';
+// @ts-expect-error ATDD red-phase stub — module will be created when feature is implemented
 import { retainerAgreements } from '@flow/db/schema/retainer-agreements';
 import {
   retainerSchema,

@@ -31,7 +31,7 @@ export function useApprovalRealtime({ workspaceId, onNewItem }: UseApprovalRealt
           const raw = payload.new;
           if (!raw || raw.status !== 'waiting_approval') return;
           if (raw.workspace_id !== workspaceId) return;
-          const run = {
+          const run: import('@flow/types').AgentRun = {
             id: raw.id as string,
             workspaceId: raw.workspace_id as string,
             agentId: raw.agent_id as import('@flow/types').AgentId,
@@ -51,6 +51,10 @@ export function useApprovalRealtime({ workspaceId, onNewItem }: UseApprovalRealt
             completedAt: null,
             createdAt: raw.created_at as string,
             updatedAt: raw.updated_at as string,
+            correctedRunId: null,
+            correctionDepth: 0,
+            correctionIssued: false,
+            source: 'agent' as const,
           };
           const item = parseApprovalOutputWithRun(run.output, run);
           if (item) {

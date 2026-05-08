@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
 import { Provider } from 'jotai';
 import { createStore } from 'jotai';
-import { trustBadgeMapAtom, trustBadgeAnimationAtom, type TrustBadgeData } from '../../../../../../lib/atoms/trust';
+import { trustBadgeMapAtom, trustBadgeAnimationAtom, type TrustBadgeData } from '@/lib/atoms/trust';
 import { mockMatchMedia } from './helpers/match-media-mock';
 
 mockMatchMedia();
@@ -96,7 +96,7 @@ describe('Check-in integration', () => {
 
   it('error in action shows inline error', async () => {
     const { deferCheckIn } = await import('../../actions/checkin-actions');
-    vi.mocked(deferCheckIn).mockResolvedValueOnce({ success: false, error: { message: 'fail' } });
+    vi.mocked(deferCheckIn).mockResolvedValueOnce({ success: false, error: { status: 500, code: 'INTERNAL_ERROR', message: 'fail', category: 'system' } });
 
     render(
       <TrustCheckInPrompt

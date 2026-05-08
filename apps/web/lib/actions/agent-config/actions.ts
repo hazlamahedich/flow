@@ -53,7 +53,7 @@ export async function deactivateAgent(input: unknown): Promise<ActionResult<Reco
     return { success: true, data: result as unknown as Record<string, unknown> };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Deactivation failed';
-    return { success: false, error: { status: 500, code: 'DRAIN_ERROR', message, category: 'server' } };
+    return { success: false, error: { status: 500, code: 'INTERNAL_ERROR', message, category: 'system' } };
   }
 }
 

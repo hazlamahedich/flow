@@ -62,6 +62,7 @@ export function ClientTable({ clients, sortBy, sortOrder, onSort }: ClientTableP
                 <td className="px-4 py-3">
                   <Link
                     href={`/clients/${client.id}`}
+                    data-testid="client-list-link"
                     className="font-medium text-[var(--flow-color-text-brand)] hover:underline"
                   >
                     {client.name}

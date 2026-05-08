@@ -346,3 +346,20 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - updateEmailCategorization missing workspace_id scope — cross-tenant write vector for service-role callers; add workspaceId param + .eq('workspace_id', workspaceId) [packages/db/src/queries/inbox/email-queries.ts]
 - isFiring ref in SwipeableCard resets before server action resolves — second swipe possible during in-flight action; wire disabled prop from parent isPending [swipeable-card.tsx]
 - getHandledEmails returns full EmailRow including body_clean and headers — unnecessary PII over wire; replace .select('*') with field projection [email-queries.ts]
+
+## Deferred from: code review of 4-5-unified-communication-timeline (2026-05-08)
+
+- M1 — Class-based React error boundary cannot catch RSC streaming errors; Next.js App Router requires `error.tsx` for server errors [components/TimelineErrorBoundary.tsx]
+- V1 — `buildMixedTimelineFixture` uses non-UUID IDs (`'email-0'`, `'run-0'`); safe for unit tests but would break integration tests [packages/test-utils/src/fixtures/timeline.ts]
+- W1 — Optimistic category state can persist stale after filter navigation if React reuses component instance at same list position [components/EmailTimelineItem.tsx]
+- X1 — React list key uses array index (`${kind}-${id}-${index}`); index tiebreaker prevents duplicate-key warnings at cost of unstable keys on re-order [components/ClientTimeline.tsx:79]
+- AA1 — Relative time display (`"5m ago"`) is computed at mount, never refreshed for long-lived sessions [components/EmailTimelineItem.tsx:22, AgentActionTimelineItem.tsx:21]
+- AB1 — `dateFrom` computed at RSC render time; theoretical mismatch if page revalidates across midnight boundary [page.tsx:TimelineSection]
+
+## Deferred from: code review of 4-5-unified-communication-timeline pass 2 (2026-05-08)
+
+- ECH-7 — `computeDateFrom` duplicated in `ClientTimeline.tsx` and `page.tsx:TimelineSection`; extract to shared utility to prevent divergence when new range values are added.
+- ECH-4 — `dateTo` is recomputed at Load More click time; items created between initial render and Load More could appear out of order. Mitigated in practice by cursor-based pagination.
+- ECH-10 — `TimelineErrorBoundary` holds class-level error state that would not reset on client navigation if the boundary were ever moved to a shared layout; add `key={clientId}` prop as a safeguard if/when refactored.
+- ECH-12 — `formatRelativeTime` function is duplicated identically in `EmailTimelineItem.tsx` and `AgentActionTimelineItem.tsx`; extract to `@flow/ui` or a local `utils.ts`.
+- ECH-13 — `supabase` prop in `TimelineSection` is typed as `any`, bypassing Supabase's generated type-safety; replace with the project's typed `SupabaseClient`.

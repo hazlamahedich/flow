@@ -136,7 +136,7 @@ export async function MorningBrief() {
               <form key={item.emailId ?? idx} className="flex items-start justify-between p-5 rounded-xl border border-destructive/20 bg-destructive/[0.02] hover:bg-destructive/[0.04] transition-colors">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge variant={item.category === 'urgent' ? 'destructive' : 'outline'} className="text-[9px] h-4 px-1.5 font-black uppercase">
+                    <Badge variant={item.category === 'urgent' ? 'error' : 'outline'} className="text-[9px] h-4 px-1.5 font-black uppercase">
                       {item.category}
                     </Badge>
                     <span className="text-sm font-bold truncate">{item.sender}</span>

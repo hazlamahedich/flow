@@ -1,4 +1,5 @@
 import { describe, test, expect } from 'vitest';
+// @ts-expect-error ATDD red-phase stub — module will be created when feature is implemented
 import type { AgentRunProducer, AgentRunWorker } from '../../../../packages/agents/orchestrator/types';
 
 describe('Story 2.1: Agent Orchestrator Core & Signal Schema', () => {

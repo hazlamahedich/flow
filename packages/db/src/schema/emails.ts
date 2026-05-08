@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, jsonb, index, doublePrecision, boolean } from 'drizzle-orm/pg-core';
 import { workspaces } from './workspaces';
 import { clientInboxes } from './client-inboxes';
 import { clients } from './clients';
@@ -24,6 +24,10 @@ export const emails = pgTable(
     toAddresses: jsonb('to_addresses').notNull().default([]),
     ccAddresses: jsonb('cc_addresses').notNull().default([]),
     receivedAt: timestamp('received_at', { withTimezone: true }).notNull(),
+    category: text('category'),
+    confidence: doublePrecision('confidence'),
+    requiresConfirmation: boolean('requires_confirmation').default(false),
+    processedAt: timestamp('processed_at', { withTimezone: true }),
     bodyClean: text('body_clean'),
     bodyRawSafe: text('body_raw_safe'),
     headers: jsonb('headers'),

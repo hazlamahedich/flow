@@ -1,14 +1,31 @@
-import { getClientById, getActiveRetainerForClient, getRetainerUtilization, listRetainersForClient } from '@flow/db';
+import { 
+  getClientById, 
+  getActiveRetainerForClient, 
+  getRetainerUtilization, 
+  listRetainersForClient,
+  getClientEngagementTimeline 
+} from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { notFound } from 'next/navigation';
+import { createSearchParamsCache, parseAsString } from 'nuqs/server';
+import { Suspense } from 'react';
 import { ClientHeader } from './components/client-header';
 import { ClientDetails } from './components/client-details';
 import { RetainerPanel } from './components/retainer-panel';
 import { RetainerScopeBanner } from './components/retainer-scope-banner';
 import { TeamAccessPanel } from './components/team-access-panel';
 import { InboxConnectionCard } from './components/inbox-connection-card';
+import { ClientTimeline } from './components/ClientTimeline';
+import { TimelineSkeleton } from './components/TimelineSkeleton';
+import { TimelineErrorBoundary } from './components/TimelineErrorBoundary';
 import { WizardToast } from './components/wizard-toast';
 import type { Client, UtilizationState } from '@flow/types';
+
+export const timelineSearchParamsCache = createSearchParamsCache({
+  type: parseAsString.withDefault('all'),
+  range: parseAsString.withDefault('90d'),
+  cursor: parseAsString,
+});
 
 function deriveUtilizationState(
   type: string,
@@ -69,6 +86,8 @@ export default async function ClientDetailPage({
   const role = user.app_metadata?.role as string | undefined;
   if (!workspaceId || !role) return notFound();
 
+  const { type, range, cursor } = timelineSearchParamsCache.parse(search);
+
   const client = await getClientById(supabase, { clientId, workspaceId });
   if (!client) return notFound();
 
@@ -127,6 +146,72 @@ export default async function ClientDetailPage({
         <TeamAccessPanel clientId={clientId} workspaceId={workspaceId} />
       )}
       <InboxConnectionCard clientId={clientId} role={role} />
+
+      <TimelineErrorBoundary>
+        <Suspense fallback={<TimelineSkeleton />}>
+          <TimelineSection 
+            supabase={supabase}
+            workspaceId={workspaceId}
+            clientId={clientId}
+            eventType={type as 'all' | 'emails' | 'agent_runs'}
+            dateRange={range}
+            cursor={cursor}
+          />
+        </Suspense>
+      </TimelineErrorBoundary>
     </div>
   );
 }
+
+async function TimelineSection({
+  supabase,
+  workspaceId,
+  clientId,
+  eventType,
+  dateRange,
+  cursor,
+}: {
+  supabase: any;
+  workspaceId: string;
+  clientId: string;
+  eventType: 'all' | 'emails' | 'agent_runs';
+  dateRange: string;
+  cursor: string | null;
+}) {
+  // P7: Validate dateRange against allowlist to prevent crafted URL params
+  const ALLOWED_RANGES = new Set(['7d', '30d', '90d', 'all']);
+  const safeRange = ALLOWED_RANGES.has(dateRange) ? dateRange : '90d';
+
+  let dateFrom: string | undefined;
+  if (safeRange !== 'all') {
+    const days = parseInt(safeRange.replace('d', ''), 10);
+    const date = new Date();
+    date.setUTCDate(date.getUTCDate() - days);
+    date.setUTCHours(0, 0, 0, 0);
+    dateFrom = date.toISOString();
+  }
+
+  const dateTo = new Date().toISOString();
+
+  const timeline = await getClientEngagementTimeline(supabase, {
+    workspaceId,
+    clientId,
+    eventType,
+    ...(dateFrom ? { dateFrom } : {}),
+    dateTo,
+    ...(cursor != null ? { cursor } : {}),
+    limit: 50,
+  });
+
+  return (
+    <ClientTimeline 
+      initialEvents={timeline.events}
+      initialCursor={timeline.nextCursor}
+      workspaceId={workspaceId}
+      clientId={clientId}
+      eventType={eventType}
+      dateRange={dateRange}
+    />
+  );
+}
+
