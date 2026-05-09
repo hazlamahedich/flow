@@ -120,71 +120,8 @@ export async function getScopeCreepAlerts(
   });
 
   if (error) {
-    console.warn('[getScopeCreepAlerts] RPC failed, using JS fallback:', error.message);
-    return await getScopeCreepAlertsFallback(client, input);
+    throw new Error(`[getScopeCreepAlerts] RPC failed for workspace ${input.workspaceId}: ${error.message}`);
   }
 
   return (data ?? []) as ScopeCreepAlert[];
-}
-
-async function getScopeCreepAlertsFallback(
-  client: SupabaseClient,
-  input: { workspaceId: string },
-): Promise<ScopeCreepAlert[]> {
-  const { data: retainers, error: rError } = await client
-    .from('retainer_agreements')
-    .select('id, client_id, type, monthly_hours_threshold, package_hours, billing_period_days, start_date, clients(name)')
-    .eq('workspace_id', input.workspaceId)
-    .eq('status', 'active')
-    .in('type', ['flat_monthly', 'package_based']);
-
-  if (rError) throw rError;
-
-  const alerts: ScopeCreepAlert[] = [];
-
-  for (const r of (retainers ?? [])) {
-    const allocatedHoursStr = r.type === 'flat_monthly'
-      ? r.monthly_hours_threshold
-      : r.package_hours;
-
-    if (!allocatedHoursStr) continue;
-    if (r.type === 'flat_monthly' && !r.monthly_hours_threshold) continue;
-
-    const allocatedMinutes = numericToMinutes(allocatedHoursStr);
-    if (allocatedMinutes <= 0) continue;
-    const thresholdMinutes = Math.ceil(allocatedMinutes * 90 / 100);
-
-    const startDate = new Date(r.start_date + 'T00:00:00Z');
-    const now = new Date();
-    const { periodStart, periodEnd } = getCurrentBillingPeriod(startDate, r.billing_period_days, now);
-    const periodStartStr = periodStart.toISOString().split('T')[0];
-    const periodEndStr = periodEnd.toISOString().split('T')[0];
-
-    const { data: entries, error: teError } = await client
-      .from('time_entries')
-      .select('duration_minutes')
-      .eq('client_id', r.client_id)
-      .eq('workspace_id', input.workspaceId)
-      .gte('date', periodStartStr)
-      .lt('date', periodEndStr);
-
-    if (teError) throw teError;
-    const trackedMinutes = (entries ?? []).reduce((sum: number, e: { duration_minutes: number }) => sum + e.duration_minutes, 0);
-
-    if (trackedMinutes >= thresholdMinutes && thresholdMinutes > 0) {
-      const clientRow = r.clients as unknown as { name: string } | null;
-      const clientName = clientRow?.name ?? 'Unknown';
-      alerts.push({
-        retainerId: r.id,
-        clientId: r.client_id,
-        clientName,
-        retainerType: r.type,
-        trackedMinutes,
-        thresholdMinutes,
-        utilizationPercent: Math.floor(trackedMinutes * 100 / thresholdMinutes),
-      });
-    }
-  }
-
-  return alerts;
 }

@@ -269,6 +269,7 @@ Raw HTML email
 |-------------|----------|---------|-----|-------------|-----------|
 | `email.received` | info | `{email_id, client_id, from_address, category}` | 24h | Client Health (engagement tracking) | `email.received:{email_id}` |
 | `email.client_urgent` | urgent | `{email_id, client_id, reasoning}` | 4h | Client Health, Weekly Report | `email.client_urgent:{email_id}` |
+| `email.low_trust` | warn | `{email_id, client_id, reasoning, category}` | 4h | Client Health (confidence monitoring) | `email.low_trust:{email_id}` |
 | `email.overdue_mentioned` | warn | `{email_id, client_id, invoice_id?}` | 48h | AR Collection | `email.overdue_mentioned:{email_id}` |
 | `email.action_extracted` | info | `{email_id, client_id, action_type, description}` | 48h | Weekly Report | `email.action_extracted:{email_id}` |
 | `email.categorization_corrected` | info | `{email_id, old_category, new_category}` | 7d | *(internal — trust tracking)* | `email.cat_corrected:{email_id}` |

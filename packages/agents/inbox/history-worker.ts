@@ -2,6 +2,7 @@ import { createServiceClient, insertEmail, insertSignal, updateClientInboxSyncSt
 import type { PgBoss } from 'pg-boss';
 import type { OAuthStateEncrypted } from '@flow/types';
 import { PgBossProducer } from '../orchestrator/pg-boss-producer.js';
+import { getBossInstance } from '../orchestrator/boss-di.js';
 import { GmailProvider } from '../providers/index.js';
 import { sanitizeEmail } from './sanitizer.js';
 import type { RealtimePostgresInsertPayload } from '@supabase/supabase-js';
@@ -82,8 +83,7 @@ export async function handleDrainHistory(input: {
     const syncCursor = inbox.sync_cursor ?? '0';
     const historyItems = await provider.getHistorySince(accessToken, syncCursor);
 
-    const bossInstance = boss ?? await ((globalThis as unknown as Record<string, (() => Promise<PgBoss>) | undefined>).getBoss?.());
-    if (!bossInstance) throw new Error('PgBoss instance not available');
+    const bossInstance = boss ?? getBossInstance();
     const producer = new PgBossProducer(bossInstance);
 
     for (const item of historyItems) {

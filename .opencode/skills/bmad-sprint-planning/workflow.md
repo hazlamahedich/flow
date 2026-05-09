@@ -13,11 +13,23 @@
 Load config from `{project-root}/_bmad/bmm/config.yaml` and resolve:
 
 - `project_name`, `user_name`
-- `communication_language`, `document_output_language`
+- `communication_language`, `document_language`
 - `implementation_artifacts`
 - `planning_artifacts`
 - `date` as system-generated current datetime
 - YOU MUST ALWAYS SPEAK OUTPUT in your Agent communication style with the config `{communication_language}`
+
+### Deferred Closure Ratio Check (A3-REVISED — from Epic 4 retro)
+
+Before generating any new story files, the sprint-planning workflow **must** perform a deferred closure audit:
+
+1. Open `{implementation_artifacts}/deferred-work.md`
+2. Count total open (unresolved) deferred items from the **previous completed epic**
+3. Count total resolved (fixed OR formally descoped) items from the previous epic
+4. Calculate closure ratio: `resolved / (resolved + open)`
+5. **If closure ratio < 50%**: Refuse to generate new story files. Display warning to user with open item count and advise resolving or formally descoping before proceeding.
+6. **Exception**: If user provides a named exception (with rationale), record it in `deferred-work.md` and proceed.
+7. "Closed" = fixed OR formally descoped in PRD. "Still deferred" or "new deferred date" does NOT count as closed.
 
 ### Paths
 

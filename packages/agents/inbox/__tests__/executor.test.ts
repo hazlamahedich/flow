@@ -28,12 +28,17 @@ vi.mock('../../orchestrator/pg-boss-producer.js', () => ({
   })),
 }));
 
+vi.mock('../../orchestrator/boss-di.js', () => ({
+  getBossInstance: vi.fn().mockReturnValue({ send: vi.fn() }),
+}));
+
 import { execute } from '../executor';
 import { createServiceClient, insertSignal, updateEmailCategorization } from '@flow/db';
 import { handleDrainHistory } from '../history-worker';
 import { categorizeEmail } from '../categorizer';
 import { generateMorningBrief } from '../index';
 import { transitionState } from '../state-machine';
+import { getBossInstance } from '../../orchestrator/boss-di.js';
 
 describe('inbox executor', () => {
   let mockSupabase: any;
@@ -105,7 +110,7 @@ describe('inbox executor', () => {
       (updateEmailCategorization as any).mockResolvedValue(undefined);
       (insertSignal as any).mockResolvedValue(undefined);
       (transitionState as any).mockResolvedValue(undefined);
-      (globalThis as any).getBoss = vi.fn().mockReturnValue(undefined);
+      (getBossInstance as any).mockReturnValue({ send: vi.fn() });
 
       const result = await execute({
         actionType: 'email_categorization',
@@ -152,7 +157,7 @@ describe('inbox executor', () => {
       (updateEmailCategorization as any).mockResolvedValue(undefined);
       (insertSignal as any).mockResolvedValue(undefined);
       (transitionState as any).mockResolvedValue(undefined);
-      (globalThis as any).getBoss = vi.fn().mockReturnValue(undefined);
+      (getBossInstance as any).mockReturnValue({ send: vi.fn() });
 
       await execute({
         actionType: 'email_categorization',

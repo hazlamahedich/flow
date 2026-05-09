@@ -21,30 +21,14 @@ describe('getScopeCreepAlerts', () => {
     expect(result).toEqual([]);
   });
 
-  it('delegates to JS fallback when RPC fails', async () => {
-    const client = {
-      rpc: vi.fn().mockResolvedValue({
-        data: null,
-        error: { message: 'function not found' },
-      }),
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              in: vi.fn().mockResolvedValue({ data: [], error: null }),
-            }),
-          }),
-        }),
-      }),
-    } as unknown as SupabaseClient;
+  it('throws error when RPC fails (no fallback)', async () => {
+    const client = createRpcClient({
+      data: null,
+      error: { message: 'function not found' },
+    });
 
-    const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const result = await getScopeCreepAlerts(client, { workspaceId: 'w1' });
-    expect(result).toEqual([]);
-    expect(consoleWarn).toHaveBeenCalledWith(
-      expect.stringContaining('[getScopeCreepAlerts] RPC failed'),
-      expect.anything(),
-    );
-    consoleWarn.mockRestore();
+    await expect(
+      getScopeCreepAlerts(client, { workspaceId: 'w1' }),
+    ).rejects.toThrow('[getScopeCreepAlerts] RPC failed');
   });
 });

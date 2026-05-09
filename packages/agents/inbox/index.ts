@@ -7,6 +7,8 @@ import { getMorningBriefContext } from './brief-context';
 import { generateBrief } from './brief-generator';
 import { saveMorningBrief } from '@flow/db';
 import { scheduleDeferredDrafts, isFloodState } from './flood';
+import { getBossInstance } from '../orchestrator/boss-di.js';
+import { PgBossProducer } from '../orchestrator/pg-boss-producer.js';
 
 export async function generateMorningBrief(workspaceId: string) {
   const [context, flood] = await Promise.all([
@@ -29,12 +31,10 @@ export async function generateMorningBrief(workspaceId: string) {
   });
 
   // Task: After brief delivery, trigger deferred drafts (AC10)
-  const boss = await (globalThis as any).getBoss?.();
-  if (boss) {
-    await scheduleDeferredDrafts(workspaceId, boss).catch(err => {
-      console.error(`[inbox] Failed to schedule deferred drafts for workspace ${workspaceId}:`, err);
-    });
-  }
+  const boss = getBossInstance();
+  await scheduleDeferredDrafts(workspaceId, boss).catch(err => {
+    console.error(`[inbox] Failed to schedule deferred drafts for workspace ${workspaceId}:`, err);
+  });
 
   return result;
 }

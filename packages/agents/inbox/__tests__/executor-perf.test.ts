@@ -26,8 +26,14 @@ vi.mock('../index', () => ({
   generateMorningBrief: vi.fn(),
 }));
 
-vi.mock('../orchestrator/pg-boss-producer.js', () => ({
-  PgBossProducer: vi.fn(),
+vi.mock('../../orchestrator/pg-boss-producer.js', () => ({
+  PgBossProducer: vi.fn().mockImplementation(() => ({
+    submit: vi.fn().mockResolvedValue({ runId: 'run-1', status: 'queued' }),
+  })),
+}));
+
+vi.mock('../../orchestrator/boss-di.js', () => ({
+  getBossInstance: vi.fn().mockReturnValue({ send: vi.fn() }),
 }));
 
 describe('executor-perf', () => {

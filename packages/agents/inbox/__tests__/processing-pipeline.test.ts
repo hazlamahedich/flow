@@ -17,6 +17,20 @@ vi.mock('../../shared/index.js', async (importOriginal) => {
   };
 });
 
+vi.mock('../../orchestrator/boss-di.js', () => ({
+  getBossInstance: vi.fn().mockReturnValue({ send: vi.fn() }),
+}));
+
+vi.mock('../../orchestrator/pg-boss-producer.js', () => ({
+  PgBossProducer: vi.fn().mockImplementation(() => ({
+    submit: vi.fn().mockResolvedValue({ runId: 'run-1', status: 'queued' }),
+  })),
+}));
+
+vi.mock('../state-machine', () => ({
+  transitionState: vi.fn().mockResolvedValue(undefined),
+}));
+
 describe('inbox processing pipeline', () => {
   const mockSupabase = {
     from: vi.fn().mockReturnThis(),

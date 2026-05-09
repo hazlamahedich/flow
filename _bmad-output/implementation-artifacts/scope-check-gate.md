@@ -52,6 +52,30 @@ Split the story if ANY apply:
 - **Architect (Winston):** Integration surface area is manageable, no hidden dependencies
 - **Developer (Amelia):** Implementation plan fits within file/function limits
 
+### 7. Deferred Item Close Gate (A1-REVISED — from Epic 4 retro)
+
+At end of every code review pass, deferred item count is recorded in the story file. **Enforcement rule:**
+
+- If deferred item count > 5, story **cannot** be marked `done` without named approval from Architect + PM
+- Approval must be recorded in story file with: (a) which ACs are incomplete, (b) why deferral is acceptable, (c) target resolution date
+- This gate absorbs the architect completeness sign-off (step 5) — the architect's approval is now part of the deferred-count approval process
+
+**Process:**
+
+1. Code review pass completes → count deferred items in review findings
+2. Record count in story file's `## Dev Agent Record → Completion Notes` section
+3. If count ≤ 5 → proceed to `done`
+4. If count > 5 → require explicit approval block:
+   ```
+   ### Deferred Exception Approval
+   - Architect (Winston): [APPROVED/DENIED] — [date]
+   - PM (John): [APPROVED/DENIED] — [date]
+   - Incomplete ACs: [list]
+   - Rationale: [why acceptable]
+   - Target resolution: [date or epic]
+   ```
+5. Without this approval block, story remains in `review` status
+
 ## Process
 
 1. Story file created → `status: ready-for-dev`
@@ -66,3 +90,5 @@ Split the story if ANY apply:
 | Epic 2 | 0 (not yet implemented) | 0 | 2 (2-1, 2-6) |
 | Epic 3 | 3 | 0 | 0 (but 15+ deferred items accumulated) |
 | Epic 3 Retro | Process improvement: added completeness sign-off (step 5) and deferred cap rule | — | — |
+| Epic 4 | 7 | 0 | 0 (but 40+ total deferred items, cap not enforced) |
+| Epic 4 Retro | A1-REVISED: deferred close gate (step 7) with mandatory approval for >5 deferred | — | — |

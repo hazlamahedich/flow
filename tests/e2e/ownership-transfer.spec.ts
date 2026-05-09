@@ -12,13 +12,16 @@ test.describe('[P0] Ownership Transfer Flow', () => {
     const table = ownerPage.getByRole('table');
     const transferButton = ownerPage.locator('button[aria-label^="Transfer ownership to"]').first();
 
-    if (await table.isVisible()) {
-      if (await transferButton.isVisible()) {
-        await transferButton.click();
-        const dialog = ownerPage.locator('[aria-label="Confirm ownership transfer"]');
-        await expect(dialog).toBeVisible();
-      }
-    }
+    const hasTable = await table.isVisible().catch(() => false);
+    test.skip(!hasTable, 'No team table visible — team may have insufficient members for transfer');
+
+    await expect(table).toBeVisible();
+    const hasTransferButton = await transferButton.isVisible().catch(() => false);
+    test.skip(!hasTransferButton, 'No transfer button visible — owner-only feature may not be active');
+
+    await transferButton.click();
+    const dialog = ownerPage.locator('[aria-label="Confirm ownership transfer"]');
+    await expect(dialog).toBeVisible();
   });
 
   test('transfer dialog requires typing workspace name to confirm', async ({ ownerPage }) => {

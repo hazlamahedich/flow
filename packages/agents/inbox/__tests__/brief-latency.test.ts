@@ -23,6 +23,18 @@ vi.mock('@flow/db', () => ({
   })),
 }));
 
+vi.mock('../../orchestrator/boss-di.js', () => ({
+  getBossInstance: vi.fn().mockReturnValue({ send: vi.fn() }),
+}));
+
+vi.mock('../flood', async (importOriginal) => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    scheduleDeferredDrafts: vi.fn().mockResolvedValue(undefined),
+  };
+});
+
 describe('brief-latency', () => {
   beforeEach(() => {
     vi.clearAllMocks();

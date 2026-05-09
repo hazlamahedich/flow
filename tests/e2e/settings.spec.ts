@@ -15,9 +15,9 @@ test.describe('[P0] Dashboard — Authenticated', () => {
     await ownerPage.setViewportSize({ width: 1280, height: 720 });
 
     const sidebar = ownerPage.locator('[data-testid="sidebar-nav"]');
-    if (await sidebar.isVisible()) {
-      await expect(sidebar).toBeVisible();
-    }
+    const hasSidebar = await sidebar.isVisible().catch(() => false);
+    test.skip(!hasSidebar, 'Sidebar not rendered — feature may not be active');
+    await expect(sidebar).toBeVisible();
   });
 
   test('skip-to-content link exists', async ({ ownerPage }) => {
@@ -58,9 +58,9 @@ test.describe('[P0] Team Management', () => {
   test('team page shows invite form for owner/admin', async ({ ownerPage }) => {
     await expect(ownerPage).not.toHaveURL(/\/login/);
     const inviteButton = ownerPage.getByRole('button', { name: /invite/i });
-    if (await inviteButton.isVisible()) {
-      await expect(inviteButton).toBeVisible();
-    }
+    const hasInvite = await inviteButton.isVisible().catch(() => false);
+    test.skip(!hasInvite, 'Invite button not visible — feature may not be active for this workspace');
+    await expect(inviteButton).toBeVisible();
   });
 });
 

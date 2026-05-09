@@ -29,6 +29,10 @@ vi.mock('../state-machine', () => ({
   transitionState: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('../../orchestrator/boss-di.js', () => ({
+  getBossInstance: vi.fn().mockReturnValue({ send: vi.fn() }),
+}));
+
 describe('pipeline-drafting integration', () => {
   let mockSupabase: any;
 
@@ -41,7 +45,6 @@ describe('pipeline-drafting integration', () => {
       single: vi.fn(),
     };
     (createServiceClient as any).mockReturnValue(mockSupabase);
-    (globalThis as any).getBoss = vi.fn().mockResolvedValue({});
   });
 
   it('should trigger extraction pipeline when email is categorized as action', async () => {

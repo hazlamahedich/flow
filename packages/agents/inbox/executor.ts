@@ -5,11 +5,15 @@ import { generateMorningBrief } from './index';
 import { insertSignal, updateEmailCategorization, createServiceClient } from '@flow/db';
 import { transitionState } from './state-machine';
 import { PgBossProducer } from '../orchestrator/pg-boss-producer.js';
+import { getBossInstance } from '../orchestrator/boss-di.js';
 import type { PgBoss } from 'pg-boss';
 import { extractionWorker } from './extractor';
 import { draftWorker } from './drafter';
+import { scanSignalForPII } from './pii-scanner';
 
 export async function registerInboxPipelineWorkers(boss: PgBoss) {
+  const { setBossInstance } = await import('../orchestrator/boss-di.js');
+  setBossInstance(boss);
   await boss.work('extract_actions', (job) => extractionWorker(job as any, boss));
   await boss.work('generate_draft', (job) => draftWorker(job as any, boss));
 }
@@ -68,24 +72,19 @@ export async function execute(input: InboxActionInput): Promise<InboxProposal | 
         await transitionState(email.id, email.workspace_id, 'categorized');
         await transitionState(email.id, email.workspace_id, 'extraction_pending');
 
-        const boss = await (globalThis as any).getBoss?.();
-        if (boss) {
-          const producer = new PgBossProducer(boss);
-          await producer.submit({
-            agentId: 'inbox',
-            actionType: 'extract_actions',
-            input: {
-              workspaceId: email.workspace_id,
-              emailId: email.id,
-              clientInboxId: inbox.id,
-            },
-            idempotencyKey: `extract:${email.id}`,
-            correlationId: email.id,
-          });
-        } else {
-          // Log explicitly instead of silently skipping
-          console.error(`[inbox] CRITICAL: PgBoss not available — extraction job NOT enqueued for email ${email.id}. Pipeline stalled at extraction_pending.`);
-        }
+        const boss = getBossInstance();
+        const producer = new PgBossProducer(boss);
+        await producer.submit({
+          agentId: 'inbox',
+          actionType: 'extract_actions',
+          input: {
+            workspaceId: email.workspace_id,
+            emailId: email.id,
+            clientInboxId: inbox.id,
+          },
+          idempotencyKey: `extract:${email.id}`,
+          correlationId: email.id,
+        });
       }
     }
 
@@ -98,35 +97,45 @@ export async function execute(input: InboxActionInput): Promise<InboxProposal | 
       console.log(`[inbox] Total pipeline latency: ${totalLatencyMs}ms (P95 target: 8000ms)`);
     }
 
+    const receivedPayload = {
+      email_id: email.id,
+      category: proposal.category,
+      confidence: proposal.confidence,
+      subject: email.subject,
+      requires_confirmation: proposal.requires_confirmation,
+      fallback: proposal.fallback ?? false,
+    };
+    const receivedScan = scanSignalForPII(receivedPayload, email.workspace_id);
+    if (receivedScan.hasPII) {
+      console.warn(`[inbox] PII detected in email.received signal for email ${email.id}:`, receivedScan.findings);
+    }
     await insertSignal({
       workspaceId: email.workspace_id,
       agentId: 'inbox',
       signalType: 'email.received',
       correlationId: email.id,
       clientId: email.client_id,
-      payload: {
-        email_id: email.id,
-        category: proposal.category,
-        confidence: proposal.confidence,
-        subject: email.subject,
-        requires_confirmation: proposal.requires_confirmation,
-        fallback: proposal.fallback ?? false,
-      },
+      payload: receivedScan.sanitizedPayload,
     });
 
     if (proposal.category === 'urgent' || proposal.requires_confirmation) {
       const signalType = proposal.category === 'urgent' ? 'email.client_urgent' : 'email.low_trust';
+      const alertPayload = {
+        email_id: email.id,
+        reasoning: proposal.reasoning,
+        category: proposal.category,
+      };
+      const alertScan = scanSignalForPII(alertPayload, email.workspace_id);
+      if (alertScan.hasPII) {
+        console.warn(`[inbox] PII detected in ${signalType} signal for email ${email.id}:`, alertScan.findings);
+      }
       await insertSignal({
         workspaceId: email.workspace_id,
         agentId: 'inbox',
         signalType,
         correlationId: email.id,
         clientId: email.client_id,
-        payload: {
-          email_id: email.id,
-          reasoning: proposal.reasoning,
-          category: proposal.category,
-        },
+        payload: alertScan.sanitizedPayload,
       });
     }
 
