@@ -196,4 +196,92 @@ describe('MorningBrief', () => {
 
     expect(screen.getByText('Connect an inbox to get your first Morning Brief')).toBeDefined();
   });
+
+  describe('inhale-before-exhale pattern (UX-DR6)', () => {
+    it('renders summaryLine before item sections', async () => {
+      mockSupabase.maybeSingle.mockResolvedValue({
+        data: {
+          id: 'b-1',
+          generation_status: 'completed',
+          content: standardContent,
+          flood_state: false,
+        },
+        error: null,
+      });
+
+      const jsx = await MorningBrief();
+      const { container } = render(jsx);
+
+      const summaryEl = screen.getByText('All clear today');
+      const handledEl = screen.getByText('Handled Overnight');
+      const attentionEl = screen.getByText('Requires Your Attention');
+
+      const allNodes = Array.from(container.querySelectorAll('*'));
+      const summaryIdx = allNodes.indexOf(summaryEl);
+      const handledIdx = allNodes.indexOf(handledEl);
+      const attentionIdx = allNodes.indexOf(attentionEl);
+
+      expect(summaryIdx).toBeLessThan(handledIdx);
+      expect(summaryIdx).toBeLessThan(attentionIdx);
+    });
+  });
+
+  describe('habit anchor ordering (UX-DR41)', () => {
+    it('renders handled items before attention items', async () => {
+      mockSupabase.maybeSingle.mockResolvedValue({
+        data: {
+          id: 'b-1',
+          generation_status: 'completed',
+          content: standardContent,
+          flood_state: false,
+        },
+        error: null,
+      });
+
+      const jsx = await MorningBrief();
+      const { container } = render(jsx);
+
+      const handledEl = screen.getByText('Handled Overnight');
+      const attentionEl = screen.getByText('Requires Your Attention');
+
+      const allNodes = Array.from(container.querySelectorAll('*'));
+      const handledIdx = allNodes.indexOf(handledEl);
+      const attentionIdx = allNodes.indexOf(attentionEl);
+
+      expect(handledIdx).toBeLessThan(attentionIdx);
+    });
+  });
+
+  describe('empty inbox reassurance (UX-DR15)', () => {
+    it('shows reassurance message when no items exist', async () => {
+      const emptyContent = {
+        summaryLine: 'All clear',
+        handledItems: [],
+        needsAttentionItems: [],
+        threadSummaries: [],
+        clientBreakdown: [],
+      };
+
+      (morningBriefOutputSchema.safeParse as any).mockReturnValue({
+        success: true,
+        data: emptyContent,
+      });
+
+      mockSupabase.maybeSingle.mockResolvedValue({
+        data: {
+          id: 'b-1',
+          generation_status: 'completed',
+          content: emptyContent,
+          flood_state: false,
+          generated_at: new Date().toISOString(),
+        },
+        error: null,
+      });
+
+      const jsx = await MorningBrief();
+      render(jsx);
+
+      expect(screen.getByText(/All clear.*your agents handled everything/i)).toBeDefined();
+    });
+  });
 });

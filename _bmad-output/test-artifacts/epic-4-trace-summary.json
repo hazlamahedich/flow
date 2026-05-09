@@ -1,0 +1,157 @@
+{
+  "schema_version": "0.1.0",
+  "snapshot_at": "2026-05-10T00:00:00.000Z",
+  "repo": "flow",
+  "collection_mode": "contract_static",
+  "collection_status": "COLLECTED",
+  "inventory_basis": "acceptance_criteria",
+  "gate_basis": "priority_thresholds",
+  "source_sha": "",
+  "target": {
+    "type": "epic",
+    "id": "epic-4",
+    "label": "Morning Brief — The Aha Moment"
+  },
+  "decision_mode": "deterministic",
+  "evaluator": "TEA Agent",
+  "confidence": "high",
+  "oracle": {
+    "resolution_mode": "formal_requirements",
+    "confidence": "high",
+    "sources": [
+      "epics.md (stories 4.1-4.5)",
+      "prd.md (FR28a-FR28h, FR73b, NFR02, NFR07, NFR11, NFR12, NFR16)",
+      "sprint-status.yaml (all sub-stories: done)"
+    ],
+    "external_pointer_status": "not_used",
+    "synthetic": false
+  },
+  "coverage": {
+    "inventory": {
+      "covered": 21,
+      "total": 28,
+      "pct": 75
+    },
+    "priority_breakdown": {
+      "P0": {
+        "total": 10,
+        "covered": 8,
+        "pct": 80
+      },
+      "P1": {
+        "total": 7,
+        "covered": 5,
+        "pct": 71
+      },
+      "P2": {
+        "total": 11,
+        "covered": 8,
+        "pct": 73
+      },
+      "P3": {
+        "total": 0,
+        "covered": 0,
+        "pct": 100
+      }
+    },
+    "by_level": {
+      "e2e": {
+        "tests": 3,
+        "criteria_covered": 4
+      },
+      "api": {
+        "tests": 0,
+        "criteria_covered": 0
+      },
+      "component": {
+        "tests": 4,
+        "criteria_covered": 8
+      },
+      "unit": {
+        "tests": 23,
+        "criteria_covered": 20
+      },
+      "other": {
+        "tests": 6,
+        "criteria_covered": 5
+      }
+    }
+  },
+  "tests": {
+    "files": 36,
+    "cases": 36,
+    "skipped_cases": 4,
+    "fixme_cases": 0,
+    "pending_cases": 0
+  },
+  "risk_summary": {
+    "critical_open": 2,
+    "high_open": 4,
+    "medium_open": 7,
+    "low_open": 0
+  },
+  "heuristics": {
+    "endpoint_gaps": 3,
+    "auth_negative_path_status": "partial",
+    "error_path_status": "partial",
+    "ui_journey_status": "not_applicable",
+    "ui_state_status": "not_applicable"
+  },
+  "blockers": [
+    {
+      "id": "AC-4.2-3",
+      "severity": "high",
+      "reason": "PII tokenization has zero test coverage (NFR12)",
+      "test_file": "",
+      "test_title": "PII tokenization tests missing"
+    },
+    {
+      "id": "AC-4.2-4",
+      "severity": "high",
+      "reason": "Prompt injection defense only partially tested (NFR11)",
+      "test_file": "packages/agents/inbox/__tests__/sanitizer.test.ts",
+      "test_title": "Input sanitization only"
+    },
+    {
+      "id": "AC-4.2-5",
+      "severity": "medium",
+      "reason": "No performance SLA test for categorization latency (NFR07a)",
+      "test_file": "",
+      "test_title": "Categorization perf test missing"
+    },
+    {
+      "id": "AC-4.2-6",
+      "severity": "medium",
+      "reason": "No performance SLA test for agent action latency (NFR02)",
+      "test_file": "",
+      "test_title": "Executor perf test missing"
+    }
+  ],
+  "recommendations": [
+    "Create pii-tokenizer.test.ts for NFR12 PII protection",
+    "Create prompt-injection-defense.test.ts for NFR11 defense-in-depth",
+    "Add performance SLA tests for NFR07a (60s categorization) and NFR02 (30s actions)",
+    "Stabilize 3 FRAGILE E2E tests or replace with component tests",
+    "Extend voice-profile.test.ts for per-client tone override and style application",
+    "Add accordion/reasoning component tests for UX-DR26 and UX-DR27"
+  ],
+  "gate_status": "FAIL",
+  "gate_criteria": {
+    "p0_coverage_required": "100%",
+    "p0_coverage_actual": "80%",
+    "p0_status": "NOT_MET",
+    "p1_coverage_target": "90%",
+    "p1_coverage_minimum": "80%",
+    "p1_coverage_actual": "71%",
+    "p1_status": "NOT_MET",
+    "overall_coverage_minimum": "80%",
+    "overall_coverage_actual": "39%",
+    "overall_status": "NOT_MET"
+  },
+  "links": {
+    "trace_report_path": "_bmad-output/test-artifacts/traceability-matrix-epic-4.md",
+    "trace_report_url": "",
+    "artifact_url": "",
+    "journey_evidence_url": ""
+  }
+}

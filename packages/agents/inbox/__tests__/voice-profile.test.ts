@@ -74,4 +74,74 @@ describe('voice-profile', () => {
     expect(prompt).toContain('Formality: 5/10');
     expect(prompt).toContain('Example style content');
   });
+
+  it('should apply client tone override over workspace default', async () => {
+    mockSupabase.maybeSingle
+      .mockResolvedValueOnce({ data: { tone: 'casual' }, error: null })
+      .mockResolvedValueOnce({
+        data: {
+          style_data: { toneDescriptors: ['professional'], formalityScore: 8 },
+          default_tone: 'formal',
+          exemplar_emails: [],
+        },
+        error: null,
+      });
+
+    const context = await loadVoiceContext(workspaceId, clientId);
+
+    expect(context.tone).toBe('casual');
+    expect(context.tone).not.toBe('formal');
+  });
+
+  it('should include per-client tone in generated draft prompt', () => {
+    const context = {
+      tone: 'casual' as const,
+      formalityScore: 6,
+      toneDescriptors: ['empathetic', 'professional'],
+      exemplarBlock: 'Thanks for reaching out! Let me look into this.',
+    };
+
+    const prompt = buildDraftPrompt(context, 'I need help with billing', 'Billing issue', []);
+
+    expect(prompt).toContain('Tone: casual');
+    expect(prompt).toContain('empathetic');
+    expect(prompt).toContain('professional');
+    expect(prompt).toContain('Thanks for reaching out');
+  });
+
+  it('should include action items in draft prompt context', () => {
+    const context = {
+      tone: 'formal' as const,
+      formalityScore: 8,
+      toneDescriptors: [],
+      exemplarBlock: '',
+    };
+
+    const actions = [
+      { type: 'reply', description: 'Confirm meeting time', confidence: 0.9 },
+    ];
+
+    const prompt = buildDraftPrompt(context, 'When is our meeting?', 'Meeting?', actions);
+
+    expect(prompt).toContain('Confirm meeting time');
+  });
+
+  it('should use workspace profile when no client override exists', async () => {
+    mockSupabase.maybeSingle
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({
+        data: {
+          style_data: { toneDescriptors: ['concise'], formalityScore: 7 },
+          default_tone: 'professional',
+          exemplar_emails: ['Best, Alice'],
+        },
+        error: null,
+      });
+
+    const context = await loadVoiceContext(workspaceId, clientId);
+
+    expect(context.tone).toBe('professional');
+    expect(context.toneDescriptors).toContain('concise');
+    expect(context.formalityScore).toBe(7);
+  });
 });

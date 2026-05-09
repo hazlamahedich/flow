@@ -154,4 +154,60 @@ describe('executeInitialSync', () => {
     expect(mockRefreshToken).toHaveBeenCalledWith('rt');
     expect(encryptInboxTokens).toHaveBeenCalled();
   });
+
+  it('encrypts tokens at rest via encryptInboxTokens after refresh (NFR16c)', async () => {
+    mockSupabase.maybeSingle.mockResolvedValue({ data: connectedInbox, error: null });
+    (decryptInboxTokens as any).mockReturnValue({
+      accessToken: 'at',
+      refreshToken: 'rt',
+      expiryDate: Date.now() - 1000,
+    });
+    mockRefreshToken.mockResolvedValue({
+      accessToken: 'new-at',
+      refreshToken: 'new-rt',
+      expiryDate: Date.now() + 3600000,
+    });
+    (encryptInboxTokens as any).mockReturnValue({ encrypted: 'new-enc', iv: 'new-iv', version: 1 });
+
+    await executeInitialSync(input);
+
+    expect(encryptInboxTokens).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accessToken: 'new-at',
+        refreshToken: 'new-rt',
+      }),
+    );
+
+    expect(mockSupabase.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        oauth_state: { encrypted: 'new-enc', iv: 'new-iv', version: 1 },
+      }),
+    );
+  });
+
+  it('never stores raw tokens in database (NFR16c)', async () => {
+    mockSupabase.maybeSingle.mockResolvedValue({ data: connectedInbox, error: null });
+    (decryptInboxTokens as any).mockReturnValue({
+      accessToken: 'plaintext-at',
+      refreshToken: 'plaintext-rt',
+      expiryDate: Date.now() - 1000,
+    });
+    mockRefreshToken.mockResolvedValue({
+      accessToken: 'new-plaintext-at',
+      refreshToken: 'new-plaintext-rt',
+      expiryDate: Date.now() + 3600000,
+    });
+    (encryptInboxTokens as any).mockReturnValue({ encrypted: 'encrypted-blob', iv: 'iv-value', version: 1 });
+
+    await executeInitialSync(input);
+
+    const updateCalls = (mockSupabase.update as any).mock.calls;
+    for (const call of updateCalls) {
+      const updateData = call[0];
+      if (updateData.oauth_state) {
+        expect(updateData.oauth_state).toEqual({ encrypted: 'encrypted-blob', iv: 'iv-value', version: 1 });
+        expect(JSON.stringify(updateData.oauth_state)).not.toContain('plaintext');
+      }
+    }
+  });
 });

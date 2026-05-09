@@ -1,0 +1,24 @@
+{
+  "schema_version": "0.1.0",
+  "evaluated_at": "2026-05-10T00:00:00.000Z",
+  "repo": "flow",
+  "target": {
+    "type": "epic",
+    "id": "epic-4",
+    "label": "Morning Brief — The Aha Moment"
+  },
+  "collection_status": "COLLECTED",
+  "gate_basis": "priority_thresholds",
+  "gate_status": "FAIL",
+  "rationale": "P0 coverage is 80% (required: 100%). 2 critical requirements uncovered: PII tokenization (NFR12) has zero tests, prompt injection defense (NFR11) is only partially tested. P1 coverage is 71% (minimum: 80%). Performance SLA tests for NFR07a and NFR02 are missing. Overall coverage 39% FULL (minimum: 80%).",
+  "p0_status": "NOT_MET",
+  "p1_status": "NOT_MET",
+  "overall_status": "NOT_MET",
+  "critical_open": 2,
+  "links": {
+    "trace_report_path": "_bmad-output/test-artifacts/traceability-matrix-epic-4.md",
+    "trace_report_url": "",
+    "artifact_url": "",
+    "journey_evidence_url": ""
+  }
+}

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
 
 vi.mock('../../actions/handled-quietly-actions', () => ({
   getHandledEmails: vi.fn(),
@@ -77,5 +78,42 @@ describe('HandledQuietlySection', () => {
 
     expect(html).toContain('Showing latest 10 items');
     expect(html).toContain('25');
+  });
+
+  describe('UX-DR27: gold accent divider with collapsed green items', () => {
+    it('renders gold accent divider border', async () => {
+      const items = [
+        { id: 'e-1', subject: 'Auto-replied', sender: 'a@b.com', category: 'info', received_at: new Date().toISOString(), confidence: 0.95 },
+      ];
+      (getHandledEmails as any).mockResolvedValue({
+        success: true,
+        data: { items, totalCount: 1 },
+      });
+
+      const jsx = await HandledQuietlySection({ workspaceId: 'ws-1' });
+
+      const { renderToString } = await import('react-dom/server');
+      const html = renderToString(jsx);
+
+      expect(html).toContain('border-amber-500');
+      expect(html).toContain('Handled Quietly');
+    });
+
+    it('renders handled items with confidence indicators', async () => {
+      const items = [
+        { id: 'e-1', subject: 'Handled', sender: 'x@y.com', category: 'info', received_at: new Date().toISOString(), confidence: 0.85 },
+      ];
+      (getHandledEmails as any).mockResolvedValue({
+        success: true,
+        data: { items, totalCount: 1 },
+      });
+
+      const jsx = await HandledQuietlySection({ workspaceId: 'ws-1' });
+
+      const { renderToString } = await import('react-dom/server');
+      const html = renderToString(jsx);
+
+      expect(html).toContain('85%');
+    });
   });
 });

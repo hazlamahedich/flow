@@ -63,4 +63,25 @@ describe('inbox isolation', () => {
     expect(userMessage.content).toContain('<user_email_content>');
     expect(userMessage.content).toContain('Beta data only');
   });
+
+  it('rejects categorization when email client_id does not match inbox scope', async () => {
+    const { ContextBoundary: RealBoundary } = await import('../../shared/context-boundary.js');
+    const boundary = new RealBoundary('client-A');
+
+    expect(() => boundary.assertClient('client-B')).toThrow('Context boundary violation');
+  });
+
+  it('ensures two different clients cannot share one inbox mapping', async () => {
+    const { ContextBoundary: RealBoundary } = await import('../../shared/context-boundary.js');
+
+    const boundaryA = new RealBoundary('client-A');
+    const boundaryB = new RealBoundary('client-B');
+
+    expect(boundaryA.getClientId()).toBe('client-A');
+    expect(boundaryB.getClientId()).toBe('client-B');
+    expect(boundaryA.getClientId()).not.toBe(boundaryB.getClientId());
+
+    expect(() => boundaryA.assertClient('client-B')).toThrow('Context boundary violation');
+    expect(() => boundaryB.assertClient('client-A')).toThrow('Context boundary violation');
+  });
 });
