@@ -1,5 +1,5 @@
 generated: 2026-04-20
-last_updated: 2026-05-09  # epic-4 retrospective complete
+last_updated: 2026-05-09  # 5-1 round-2 review patches applied; story done
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -56,8 +56,8 @@ development_status:
   4-5-unified-communication-timeline: done
   epic-4-retrospective: done
 
-  epic-5: backlog
-  5-1-time-entry-data-model-manual-logging: backlog
+  epic-5: in-progress
+  5-1-time-entry-data-model-manual-logging: in-progress
   5-2-persistent-sidebar-timer: backlog
   5-3-time-entry-editing-invoice-impact-warnings: backlog
   5-4-time-integrity-agent: backlog

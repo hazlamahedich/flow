@@ -16,3 +16,5 @@ export {
   getClientsForMember,
 } from './scoping';
 export { getClientEngagementTimeline } from './timeline';
+export { listAllActiveClients } from './list-all-active';
+export type { ActiveClientSummary } from './list-all-active';

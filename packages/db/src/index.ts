@@ -132,6 +132,8 @@ export {
   checkDuplicateEmail,
   hasActiveAgentRuns,
 } from './queries/clients';
+export { listAllActiveClients } from './queries/clients';
+export type { ActiveClientSummary } from './queries/clients';
 export { getClientEngagementTimeline } from './queries/clients/timeline';
 export {
   assignMemberToClient,
@@ -176,3 +178,28 @@ export {
   isMessageProcessed,
   markMessageProcessed,
 } from './queries/inbox';
+
+export {
+  createTimeEntry,
+  listTimeEntries,
+  softDeleteTimeEntry,
+} from './queries/time-entries';
+export type {
+  TimeEntry,
+  CreateTimeEntryInput,
+  TimeEntryFilters,
+  ListTimeEntriesInput,
+  ListTimeEntriesResult,
+  SoftDeleteTimeEntryInput,
+} from './queries/time-entries';
+
+export {
+  createProject,
+  ProjectNameDuplicateError,
+  listProjects,
+} from './queries/projects';
+export type {
+  Project,
+  CreateProjectInput,
+  ListProjectsInput,
+} from './queries/projects';

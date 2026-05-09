@@ -34,3 +34,7 @@ export {
   recategorizationLog,
   emailProcessingState,
 } from './inbox-pipeline';
+export { projects } from './projects';
+export type { Project, ProjectStatus, NewProject } from './projects';
+export { timeEntries } from './time-entries';
+export type { TimeEntry, NewTimeEntry } from './time-entries';

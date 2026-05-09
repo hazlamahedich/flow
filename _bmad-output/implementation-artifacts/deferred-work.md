@@ -363,3 +363,26 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - ECH-10 — `TimelineErrorBoundary` holds class-level error state that would not reset on client navigation if the boundary were ever moved to a shared layout; add `key={clientId}` prop as a safeguard if/when refactored.
 - ECH-12 — `formatRelativeTime` function is duplicated identically in `EmailTimelineItem.tsx` and `AgentActionTimelineItem.tsx`; extract to `@flow/ui` or a local `utils.ts`.
 - ECH-13 — `supabase` prop in `TimelineSection` is typed as `any`, bypassing Supabase's generated type-safety; replace with the project's typed `SupabaseClient`.
+
+## Deferred from: code review of 5-1-time-entry-data-model-manual-logging (2026-05-09)
+
+- D5-1-1 — `passthrough()` on Zod row schemas in `packages/db/src/queries/time-entries/` and `packages/db/src/queries/projects/` silently accepts unknown DB columns; switch to `.strip()` for stricter type safety at schema evolution boundaries.
+- D5-1-2 — `role` typed as `string` throughout query layer and components; introduce a `Role = 'owner' | 'admin' | 'member'` union type for exhaustiveness checking.
+- D5-1-3 — `app_metadata` JWT claims in `apps/web/app/(workspace)/time/page.tsx:14-17` cast via `as string | undefined` without structural validation; add Zod parse or type guard consistent with other workspace pages.
+- D5-1-4 — `member_client_access` fetched in a separate DB round-trip on every `listTimeEntries` call for member role; refactor to a JOIN or cache the access list at the session level.
+- D5-1-5 — `getClientName` performs an O(n) linear scan per table row per render in `time-entry-list.tsx`; memoize as a `Map<string, string>` with `useMemo`.
+- D5-1-6 — `createProject` catches all Postgres `23505` errors as `ProjectNameDuplicateError` regardless of which unique constraint fired; narrow to constraint name `projects_unique_name_per_client` for correctness.
+
+## Deferred from: code review (Round 2) of 5-1-time-entry-data-model-manual-logging (2026-05-09)
+
+- D5-1-R2-1 — `deleted_at` set via `new Date().toISOString()` in application code rather than DB-level `now()`; pre-existing pattern across the codebase; clock-skew risk negligible in practice. `tech-debt` `packages/db/src/queries/time-entries/soft-delete.ts`
+- D5-1-R2-2 — Duplicate `projectRowSchema`/`mapProjectRow` defined identically in `create.ts` and `list.ts`; pre-existing pattern in clients module; extract to shared `row-schema.ts` in a code quality pass. `tech-debt` `packages/db/src/queries/projects/`
+- D5-1-R2-3 — Duplicate `timeEntryRowSchema`/`mapTimeEntryRow` in `create.ts` and `list.ts`; same as D5-1-R2-2. `tech-debt` `packages/db/src/queries/time-entries/`
+- D5-1-R2-4 — Projects `UPDATE` RLS `WITH CHECK` does not prevent `client_id` mutation; no current UI path changes `client_id`; address when full project management UI is built. `tech-debt` `supabase/migrations/20260510000001_create_projects_table.sql`
+- D5-1-R2-5 — `AbortController` in `log-time-modal.tsx` has no effect on server actions (can't cancel); pattern still prevents stale state from being applied; acceptable as-is. `tech-debt` `apps/web/app/(workspace)/time/components/log-time-modal.tsx`
+- D5-1-R2-6 — `createProject` catches all `23505` Postgres errors as name-duplicate regardless of which constraint fired; very low probability of false match; narrowing deferred. `tech-debt` `packages/db/src/queries/projects/create.ts`
+- D5-1-R2-7 — `formatDuration` has no guard for negative or non-integer inputs; callers guaranteed valid input by DB CHECK (`duration_minutes > 0`) and Zod `.int().min(1)`. `tech-debt` `apps/web/lib/format-duration.ts`
+- D5-1-R2-8 — `CREATE INDEX` in migration lacks `IF NOT EXISTS` guard; migrations are not re-run in standard workflow; low risk. `tech-debt` `supabase/migrations/20260510000002_evolve_time_entries.sql`
+- D5-1-R2-9 — 500-entry `member_client_access` cap silently scopes member visibility; cap is a practical safety valve; acknowledged limitation, extremely rare at current scale. `tech-debt` `packages/db/src/queries/time-entries/list.ts`
+- D5-1-R2-10 — Vitest `mockClient.from` mock implementation not reset between test suites in `beforeEach`; `vi.clearAllMocks()` resets call counts only; tests set their own mock where needed; works in practice. `test-debt` `packages/db/src/queries/time-entries/__tests__/queries.test.ts`
+- D5-1-R2-11 — `parseInt("1.5e3", 10)` returns `1`, potentially bypassing the `min 1` duration guard; server-side Zod `.max(1440)` still catches out-of-range; extremely low real-world risk. `tech-debt` `apps/web/app/(workspace)/time/components/log-time-modal.tsx`
