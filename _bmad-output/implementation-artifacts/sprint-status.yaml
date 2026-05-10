@@ -1,5 +1,5 @@
 generated: 2026-04-20
-last_updated: 2026-05-11  # Story 5.3 revised after party mode adversarial review (Winston/Murat/Amelia); seam pattern for invoice warnings, edit history table added
+last_updated: 2026-05-11  # Story 5.3 code review complete — 6 decisions resolved, 12 patches applied, 2 deferred
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -59,7 +59,7 @@ development_status:
   epic-5: in-progress
   5-1-time-entry-data-model-manual-logging: in-progress
   5-2-persistent-sidebar-timer: done
-  5-3-time-entry-editing-invoice-impact-warnings: revised
+  5-3-time-entry-editing-invoice-impact-warnings: done
   5-4-time-integrity-agent: backlog
   epic-5-retrospective: optional
 

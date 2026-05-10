@@ -40,3 +40,5 @@ export { timeEntries } from './time-entries';
 export type { TimeEntry, NewTimeEntry } from './time-entries';
 export { timerState } from './timer-state';
 export type { TimerState, NewTimerState } from './timer-state';
+export { timeEntryEditHistory } from './time-entry-edit-history';
+export type { TimeEntryEditHistory, NewTimeEntryEditHistory } from './time-entry-edit-history';

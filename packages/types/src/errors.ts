@@ -61,7 +61,8 @@ export type FlowErrorCode =
   | 'OAUTH_TOKEN_EXCHANGE_FAILED'
   | 'ENCRYPTION_KEY_MISSING'
   | 'TIMER_ALREADY_RUNNING'
-  | 'TIMER_NOT_FOUND';
+  | 'TIMER_NOT_FOUND'
+  | 'INVOICED_ENTRY_WARNING';
 
 export type AgentErrorCode =
   | 'AGENT_ERROR'

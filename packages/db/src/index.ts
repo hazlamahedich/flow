@@ -197,6 +197,10 @@ export {
   getTimerState,
   startTimer,
   stopTimerRpc,
+  updateTimeEntry,
+  insertEditHistory,
+  getTimeEntryForUpdate,
+  defaultInvoiceEditGuard,
 } from './queries/time-tracking';
 export type {
   TimerStateWithNames,
@@ -204,6 +208,12 @@ export type {
   StartTimerInput,
   StopTimerRpcInput,
   StopTimerResult,
+  UpdateTimeEntryInput,
+  UpdateTimeEntryResult,
+  InsertEditHistoryInput,
+  GetTimeEntryForUpdateInput,
+  TimeEntryCurrentValues,
+  InvoiceEditGuard,
 } from './queries/time-tracking';
 
 export {

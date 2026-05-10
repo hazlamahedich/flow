@@ -2,15 +2,23 @@ import { describe, test, expect } from 'vitest';
 import { z } from 'zod';
 
 const TimeEntryEditSchema = z.object({
-  durationMinutes: z.number().int().positive().optional(),
-  date: z.string().date().optional(),
-  notes: z.string().max(500).optional(),
+  id: z.string().uuid(),
+  date: z.string().min(1),
+  durationMinutes: z.number().int().min(1).max(1440),
+  clientId: z.string().uuid(),
+  projectId: z.string().uuid().nullable().optional(),
+  notes: z.string().max(500).nullable().optional(),
 });
 
 describe('Story 5.3: Time Entry Editing & Invoice Impact Warnings', () => {
   describe('AC1: Edit time entry fields', () => {
-    test('[P0] should accept partial edit payload', () => {
-      const edit = { durationMinutes: 120 };
+    test('[P0] should accept valid edit payload', () => {
+      const edit = {
+        id: '00000000-0000-0000-0000-000000000001',
+        date: '2025-01-15',
+        durationMinutes: 120,
+        clientId: '00000000-0000-0000-0000-000000000099',
+      };
       const result = TimeEntryEditSchema.safeParse(edit);
       expect(result.success).toBe(true);
     });

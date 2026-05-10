@@ -394,3 +394,10 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - D5-2-R1-W3 — AC6: font-mono mapping to JetBrains Mono unverified in tailwind.config; pre-existing config concern applies across the codebase. `tech-debt` `tailwind.config`
 - D5-2-R1-W4 — collapsed timer staleness hour count computed at render time only (not live); cosmetic; off by at most 1 hour in the warning text. `tech-debt` `packages/ui/src/components/timer/collapsed-timer.tsx`
 - D5-2-R1-W5 — timer_state.notes field lacks DB-level length constraint (Zod-only at action boundary); intentional; consistent with other text fields in the schema. `tech-debt` `packages/db/src/schema/timer-state.ts`
+
+## Deferred from: code review of 5-3-time-entry-editing-invoice-impact-warnings (2026-05-11)
+
+- D5-3-R1-W1 — `previousValues` only captures scalar fields, not `updated_at`; minor for current use case (future undo/rollback may need it). `tech-debt` `apps/web/app/(workspace)/time/actions/update-time-entry.ts:105-110`
+- D5-3-R1-W2 — Service role UPDATE policy has no guardrails (unrestricted UPDATE including on deleted rows and cross-workspace); intentional for Epic 2 agent operations. `by-design` `supabase/migrations/20260511000001_time_entries_update_policy.sql:29-33`
+- D5-3-R2-W1 — `handleUpdated` doesn't update `projectName` in local state after edit; stale project name displayed until next fetch. Low impact (display-only). `tech-debt` `apps/web/app/(workspace)/time/components/time-entry-list.tsx:92-105`
+- D5-3-R2-W2 — Update + edit-history insert not atomic (two separate Supabase calls); if history insert fails after update commits, audit trail is lost. RPC transaction deferred to D5 (first review decision). `tech-debt` `apps/web/app/(workspace)/time/actions/update-time-entry.ts:116-133`
