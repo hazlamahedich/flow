@@ -386,3 +386,11 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - D5-1-R2-9 — 500-entry `member_client_access` cap silently scopes member visibility; cap is a practical safety valve; acknowledged limitation, extremely rare at current scale. `tech-debt` `packages/db/src/queries/time-entries/list.ts`
 - D5-1-R2-10 — Vitest `mockClient.from` mock implementation not reset between test suites in `beforeEach`; `vi.clearAllMocks()` resets call counts only; tests set their own mock where needed; works in practice. `test-debt` `packages/db/src/queries/time-entries/__tests__/queries.test.ts`
 - D5-1-R2-11 — `parseInt("1.5e3", 10)` returns `1`, potentially bypassing the `min 1` duration guard; server-side Zod `.max(1440)` still catches out-of-range; extremely low real-world risk. `tech-debt` `apps/web/app/(workspace)/time/components/log-time-modal.tsx`
+
+## Deferred from: code review of 5-2-persistent-sidebar-timer (2026-05-10)
+
+- D5-2-R1-W1 — AC1: timer slot gated on agentCount ≥ 2; pre-existing sidebar architecture; requires product decision on sidebar visibility scope. `product-debt` `packages/ui/src/layouts/workspace-shell.tsx`
+- D5-2-R1-W2 — no pagination on clients/projects list queries in timer picker; pre-existing pattern; becomes relevant at high client volume. `tech-debt` `apps/web/app/(workspace)/time/actions/list-clients-for-timer.ts`
+- D5-2-R1-W3 — AC6: font-mono mapping to JetBrains Mono unverified in tailwind.config; pre-existing config concern applies across the codebase. `tech-debt` `tailwind.config`
+- D5-2-R1-W4 — collapsed timer staleness hour count computed at render time only (not live); cosmetic; off by at most 1 hour in the warning text. `tech-debt` `packages/ui/src/components/timer/collapsed-timer.tsx`
+- D5-2-R1-W5 — timer_state.notes field lacks DB-level length constraint (Zod-only at action boundary); intentional; consistent with other text fields in the schema. `tech-debt` `packages/db/src/schema/timer-state.ts`

@@ -38,3 +38,5 @@ export { projects } from './projects';
 export type { Project, ProjectStatus, NewProject } from './projects';
 export { timeEntries } from './time-entries';
 export type { TimeEntry, NewTimeEntry } from './time-entries';
+export { timerState } from './timer-state';
+export type { TimerState, NewTimerState } from './timer-state';

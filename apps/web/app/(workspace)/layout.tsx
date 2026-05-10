@@ -2,6 +2,7 @@ import { WorkspaceShellClient } from './workspace-shell-client';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { listUserWorkspaces, getActiveAgentCount } from '@flow/db';
 import { switchWorkspace } from './actions/switch-workspace';
+import { getTimerStateAction } from './time/actions/timer-actions';
 import { redirect } from 'next/navigation';
 
 export default async function WorkspaceLayout({
@@ -45,12 +46,23 @@ export default async function WorkspaceLayout({
     workspaces = [];
   }
 
+  let initialTimerState = null;
+  try {
+    const timerResult = await getTimerStateAction();
+    if (timerResult.success) {
+      initialTimerState = timerResult.data;
+    }
+  } catch {
+    initialTimerState = null;
+  }
+
   return (
     <WorkspaceShellClient
       agentCount={agentCount}
       workspaces={workspaces}
       activeWorkspaceId={workspaceId ?? ''}
       onSwitchWorkspace={switchWorkspace}
+      initialTimerState={initialTimerState}
     >
       {children}
     </WorkspaceShellClient>

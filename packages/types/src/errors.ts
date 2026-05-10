@@ -59,7 +59,9 @@ export type FlowErrorCode =
   | 'OAUTH_DENIED'
   | 'OAUTH_CONFIG_ERROR'
   | 'OAUTH_TOKEN_EXCHANGE_FAILED'
-  | 'ENCRYPTION_KEY_MISSING';
+  | 'ENCRYPTION_KEY_MISSING'
+  | 'TIMER_ALREADY_RUNNING'
+  | 'TIMER_NOT_FOUND';
 
 export type AgentErrorCode =
   | 'AGENT_ERROR'

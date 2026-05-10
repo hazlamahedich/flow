@@ -47,6 +47,8 @@ export { useDebouncedCallback } from './hooks/use-debounced-callback';
 export { useReducedMotion } from './hooks/use-reduced-motion';
 export { useShortcut } from './hooks/use-shortcut';
 
+export type { TimerShellProps, TimerStateWithNames } from './components/timer/timer-types';
+
 export { UndoWorkspaceContext, useUndoWorkspaceId } from './components/undo/undo-workspace-context';
 export { UndoWorkspaceProvider } from './components/undo/undo-workspace-provider';
 export { StickyUndoToast } from './components/undo/undo-toast';

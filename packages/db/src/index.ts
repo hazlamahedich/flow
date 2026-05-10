@@ -194,6 +194,19 @@ export type {
 } from './queries/time-entries';
 
 export {
+  getTimerState,
+  startTimer,
+  stopTimerRpc,
+} from './queries/time-tracking';
+export type {
+  TimerStateWithNames,
+  GetTimerStateInput,
+  StartTimerInput,
+  StopTimerRpcInput,
+  StopTimerResult,
+} from './queries/time-tracking';
+
+export {
   createProject,
   ProjectNameDuplicateError,
   listProjects,

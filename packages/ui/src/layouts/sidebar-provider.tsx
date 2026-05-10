@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { Sidebar } from './sidebar';
 import { toast } from 'sonner';
 import type { AgentStatusBarEntry } from '../components/agent-status-bar/agent-status-bar';
+import type { TimerShellProps } from '../components/timer/timer-types';
 
 interface SidebarProviderProps {
   agentCount: number;
@@ -16,6 +17,7 @@ interface SidebarProviderProps {
   onSwitchWorkspace?: ((workspaceId: string) => Promise<void>) | undefined;
   agentStatusEntries?: AgentStatusBarEntry[] | undefined;
   scopeAlertCount?: number | undefined;
+  timerProps?: TimerShellProps | undefined;
 }
 
 const REVEAL_KEY = 'flow-sidebar-revealed';
@@ -47,6 +49,7 @@ export function SidebarProvider({
   onSwitchWorkspace,
   agentStatusEntries,
   scopeAlertCount,
+  timerProps,
 }: SidebarProviderProps) {
   const prevCountRef = useRef(agentCount);
 
@@ -80,6 +83,7 @@ export function SidebarProvider({
       onSwitchWorkspace={onSwitchWorkspace}
       agentStatusEntries={agentStatusEntries}
       scopeAlertCount={scopeAlertCount}
+      timerProps={timerProps}
     />
   );
 }

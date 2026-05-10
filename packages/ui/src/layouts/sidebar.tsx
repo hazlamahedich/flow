@@ -18,6 +18,8 @@ import { cn } from '../lib/utils';
 import { WorkspaceSwitcher } from './workspace-switcher';
 import type { AgentStatusBarEntry } from '../components/agent-status-bar/agent-status-bar';
 import { AgentStatusBar } from '../components/agent-status-bar/agent-status-bar';
+import { PersistentTimer } from '../components/timer/persistent-timer';
+import type { TimerShellProps } from '../components/timer/timer-types';
 
 const NAV_ITEMS = [
   { href: '/inbox', label: 'Inbox', Icon: Inbox },
@@ -40,9 +42,10 @@ interface SidebarProps {
   onSwitchWorkspace?: ((workspaceId: string) => Promise<void>) | undefined;
   agentStatusEntries?: AgentStatusBarEntry[] | undefined;
   scopeAlertCount?: number | undefined;
+  timerProps?: TimerShellProps | undefined;
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRef, workspaces, activeWorkspaceId, onSwitchWorkspace, agentStatusEntries, scopeAlertCount }: SidebarProps) {
+export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRef, workspaces, activeWorkspaceId, onSwitchWorkspace, agentStatusEntries, scopeAlertCount, timerProps }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -126,22 +129,28 @@ export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRe
       )}
 
       <div
-        className="shrink-0 border-t border-[var(--flow-color-border-default)] p-3 flex items-center gap-2"
-        aria-label="Timer area — coming soon"
+        className="shrink-0 border-t border-[var(--flow-color-border-default)] p-3"
         data-testid="sidebar-timer-slot"
+        aria-label={timerProps ? undefined : 'Timer area — coming soon'}
       >
-        <Clock
-          className="h-5 w-5 opacity-50 text-[var(--flow-color-text-muted)]"
-          aria-hidden="true"
-        />
-        <span
-          className={cn(
-            'text-xs text-[var(--flow-color-text-muted)]',
-            collapsed && 'sr-only',
-          )}
-        >
-          Timer
-        </span>
+        {timerProps ? (
+          <PersistentTimer timerProps={timerProps} collapsed={collapsed} />
+        ) : (
+          <div className="flex items-center gap-2">
+            <Clock
+              className="h-5 w-5 opacity-50 text-[var(--flow-color-text-muted)]"
+              aria-hidden="true"
+            />
+            <span
+              className={cn(
+                'text-xs text-[var(--flow-color-text-muted)]',
+                collapsed && 'sr-only',
+              )}
+            >
+              Timer
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

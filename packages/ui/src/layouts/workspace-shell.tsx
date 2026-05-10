@@ -14,6 +14,7 @@ import { ShortcutOverlay } from '../components/command-palette/shortcut-overlay'
 import { useReducedMotion } from '../hooks/use-reduced-motion';
 import type { ReactNode } from 'react';
 import type { AgentStatusBarEntry } from '../components/agent-status-bar/agent-status-bar';
+import type { TimerShellProps } from '../components/timer/timer-types';
 
 export interface WorkspaceShellProps {
   agentCount: number;
@@ -26,6 +27,7 @@ export interface WorkspaceShellProps {
   agentStatusEntries?: AgentStatusBarEntry[] | undefined;
   scopeAlertCount?: number | undefined;
   overlaySlot?: ReactNode;
+  timerProps?: TimerShellProps | undefined;
 }
 
 export function WorkspaceShell({
@@ -39,6 +41,7 @@ export function WorkspaceShell({
   agentStatusEntries,
   scopeAlertCount,
   overlaySlot,
+  timerProps,
 }: WorkspaceShellProps) {
   const [collapsed, setCollapsed] = useAtom(sidebarCollapsedAtom);
   const setHoverExpanded = useSetAtom(sidebarHoverExpandedAtom);
@@ -148,6 +151,7 @@ export function WorkspaceShell({
                   onSwitchWorkspace={onSwitchWorkspace}
                   agentStatusEntries={agentStatusEntries}
                   scopeAlertCount={scopeAlertCount}
+                  timerProps={timerProps}
                 />
               </div>
             </SidebarErrorBoundary>
