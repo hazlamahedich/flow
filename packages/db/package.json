@@ -27,6 +27,10 @@
     "./vault/inbox-tokens": {
       "types": "./src/vault/inbox-tokens.ts",
       "default": "./dist/vault/inbox-tokens.js"
+    },
+    "./vault/calendar-tokens": {
+      "types": "./src/vault/calendar-tokens.ts",
+      "default": "./dist/vault/calendar-tokens.js"
     }
   },
   "scripts": {

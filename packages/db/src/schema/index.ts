@@ -22,6 +22,8 @@ export {
   trustAudits,
   trustMilestones,
 } from './trust';
+export { clientCalendars } from './client-calendars';
+export { calendarEvents } from './calendar-events';
 export { clientInboxes } from './client-inboxes';
 export { emails } from './emails';
 export { morningBriefs } from './morning-briefs';
@@ -42,3 +44,5 @@ export { timerState } from './timer-state';
 export type { TimerState, NewTimerState } from './timer-state';
 export { timeEntryEditHistory } from './time-entry-edit-history';
 export type { TimeEntryEditHistory, NewTimeEntryEditHistory } from './time-entry-edit-history';
+export { timeIntegritySignals } from './time-integrity-signals';
+export type { TimeIntegritySignal, NewTimeIntegritySignal } from './time-integrity-signals';

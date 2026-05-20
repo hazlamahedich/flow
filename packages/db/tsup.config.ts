@@ -8,6 +8,7 @@ export default defineConfig({
     'src/queries/undo/conflict-types.ts',
     'src/queries/undo/undo-helpers.ts',
     'src/vault/inbox-tokens.ts',
+    'src/vault/calendar-tokens.ts',
   ],
   format: ['esm'],
   dts: true,

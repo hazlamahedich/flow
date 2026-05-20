@@ -161,3 +161,25 @@ export type {
   AgentRunTimelineEntry,
   TimelineEvent,
 } from './timeline';
+export {
+  calendarAccessTypeEnum,
+  calendarProviderEnum,
+  calendarSyncStatusEnum,
+  calendarEventTypeEnum,
+  calendarEventSourceEnum,
+  connectCalendarInputSchema,
+  calendarOAuthStateCookieSchema,
+  clientCalendarSchema,
+  calendarEventSchema,
+} from './calendar';
+export type {
+  CalendarAccessType,
+  CalendarProviderName,
+  CalendarSyncStatus,
+  CalendarEventType,
+  CalendarEventSource,
+  ConnectCalendarInput,
+  CalendarOAuthStateCookie,
+  ClientCalendar,
+  CalendarEvent as CalendarEventType2,
+} from './calendar';

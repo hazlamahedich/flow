@@ -1,5 +1,5 @@
 generated: 2026-04-20
-last_updated: 2026-05-11  # Story 5.3 code review complete — 6 decisions resolved, 12 patches applied, 2 deferred
+last_updated: 2026-05-13  # Story 5.4a rewritten after adversarial review (50+ findings, party mode roundtable)
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -56,15 +56,18 @@ development_status:
   4-5-unified-communication-timeline: done
   epic-4-retrospective: done
 
-  epic-5: in-progress
-  5-1-time-entry-data-model-manual-logging: in-progress
+  epic-5: done
+  5-1-time-entry-data-model-manual-logging: done
   5-2-persistent-sidebar-timer: done
   5-3-time-entry-editing-invoice-impact-warnings: done
-  5-4-time-integrity-agent: backlog
-  epic-5-retrospective: optional
+  5-4-time-integrity-agent: done
+  5-4a-time-of-day-gap-overlap-detection: done
+  epic-5-retrospective: done
+  epic-5-deferred-triage: done
+  calendar-provider-spike: done
 
-  epic-6: backlog
-  6-1-google-calendar-oauth-connection: backlog
+  epic-6: in-progress
+  6-1-google-calendar-oauth-connection: done
   6-2-real-time-conflict-detection: backlog
   6-3-booking-proposals-event-creation: backlog
   6-4-bypass-detection-cascade-rescheduling: backlog

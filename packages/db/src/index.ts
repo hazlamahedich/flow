@@ -226,3 +226,4 @@ export type {
   CreateProjectInput,
   ListProjectsInput,
 } from './queries/projects';
+export { decryptCalendarTokens, encryptCalendarTokens, rotateCalendarTokens } from './vault/calendar-tokens';
