@@ -11,12 +11,17 @@ vi.mock('pg-boss', () => ({
     fail: vi.fn(),
     cancel: vi.fn(),
     getJobById: vi.fn(),
+    schedule: vi.fn(async () => undefined),
+    work: vi.fn(async () => undefined),
   })),
 }));
 
 vi.mock('@flow/db', () => ({
   findStaleRuns: vi.fn(async () => []),
   updateRunStatus: vi.fn(),
+  createServiceClient: vi.fn(() => ({ from: vi.fn() })),
+  getAgentConfiguration: vi.fn(async () => null),
+  insertRun: vi.fn(),
 }));
 
 vi.mock('../shared/audit-writer', () => ({

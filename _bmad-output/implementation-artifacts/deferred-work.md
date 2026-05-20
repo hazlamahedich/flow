@@ -1,7 +1,7 @@
 # Deferred Work
 
 Generated from Story 2.6a adversarial code review (2026-04-26).
-Updated: Epic 3 retrospective (2026-04-27).
+Updated: Epic 5 retrospective triage (2026-05-12).
 
 ## Review Cadence
 
@@ -13,7 +13,7 @@ Deferred items are reviewed at every sprint boundary (epic completion):
   2. If trigger condition met → create story or standalone task
   3. If no longer relevant → mark resolved with reason
   4. Update status column below
-- **Next review:** Before Epic 4 sprint planning
+- **Next review:** Before Epic 6 sprint planning
 
 ## Tagging Convention
 
@@ -62,13 +62,64 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 | 3-3-gap-3 | Low | spec-gap | resolved (validation on submit, not inline onChange) | 2026-04-27 |
 | 3-3-gap-4 | Medium | spec-gap | resolved (polish sprint: TierLimitBanner in wizard) | 2026-04-27 |
 | 3-3-gap-5 | High | spec-gap | resolved (polish sprint: mobile full-screen) | 2026-04-27 |
+| D5-1-1 | Medium | tech-debt | resolved (Epic 5 retro follow-up: .passthrough() → .strip()) | 2026-05-13 |
+| D5-1-2 | Medium | tech-debt | open — carry to code quality sprint | 2026-05-12 |
+| D5-1-3 | Medium | tech-debt | open — carry to code quality sprint | 2026-05-12 |
+| D5-1-4 | Medium | tech-debt | open — carry to code quality sprint | 2026-05-12 |
+| D5-1-5 | Medium | tech-debt | resolved (already uses useMemo Map) | 2026-05-13 |
+| D5-1-6 | Medium | tech-debt | open — carry to code quality sprint | 2026-05-12 |
+| D5-1-R2-1 | Low | tech-debt | open — carry to code quality sprint | 2026-05-12 |
+| D5-1-R2-2 | Low | tech-debt | resolved (extracted shared projects/row-schema.ts) | 2026-05-13 |
+| D5-1-R2-3 | Low | tech-debt | resolved (extracted shared time-entries/row-schema.ts) | 2026-05-13 |
+| D5-1-R2-4 | Low | tech-debt | resolved (already fixed in migration 20260510000003) | 2026-05-13 |
+| D5-1-R2-5 | Low | tech-debt | descoped — acceptable as-is per review | 2026-05-12 |
+| D5-1-R2-6 | Low | tech-debt | descoped — duplicate of D5-1-6 | 2026-05-12 |
+| D5-1-R2-7 | Low | tech-debt | descoped — DB CHECK prevents invalid input | 2026-05-12 |
+| D5-1-R2-8 | Low | tech-debt | descoped — migrations not re-run | 2026-05-12 |
+| D5-1-R2-9 | Low | tech-debt | descoped — acceptable safety valve | 2026-05-12 |
+| D5-1-R2-10 | Low | test-debt | open — carry to test coverage pass | 2026-05-12 |
+| D5-1-R2-11 | Low | tech-debt | descoped — Zod catches at server boundary | 2026-05-12 |
+| D5-2-R1-W1 | Low | product-debt | descoped — requires product decision | 2026-05-12 |
+| D5-2-R1-W2 | Low | tech-debt | descoped — becomes relevant at high volume | 2026-05-12 |
+| D5-2-R1-W3 | Low | tech-debt | descoped — pre-existing config concern | 2026-05-12 |
+| D5-2-R1-W4 | Low | tech-debt | descoped — cosmetic, off by 1hr max | 2026-05-12 |
+| D5-2-R1-W5 | Low | tech-debt | descoped — consistent with other text fields | 2026-05-12 |
+| D5-3-R1-W1 | Low | tech-debt | open — carry to code quality sprint | 2026-05-12 |
+| D5-3-R1-W2 | — | by-design | descoped — intentional for agent ops | 2026-05-12 |
+| D5-3-R2-W1 | Low | tech-debt | resolved (handleUpdated now updates projectName) | 2026-05-13 |
+| D5-3-R2-W2 | Medium | tech-debt | open — carry to code quality sprint | 2026-05-12 |
+| D5-4-D1 | High | spec-gap | open — MUST fix before Epic 7 (story 5.4a) | 2026-05-12 |
+| D5-4-W1 | Low | tech-debt | descoped — calibrate post-MVP | 2026-05-12 |
+| D5-4-W2 | Medium | spec-gap | descoped — requires workspace settings (post-MVP) | 2026-05-12 |
+| D5-4-W3 | — | by-design | descoped — correct defensive behavior | 2026-05-12 |
+| D5-4-W4 | — | by-design | descoped — correct for idempotency | 2026-05-12 |
+| D5-4-W5 | Low | tech-debt | descoped — revisit when schema adds time-of-day | 2026-05-12 |
+| D5-4-W6 | Medium | spec-gap | descoped — signal lifecycle is post-MVP | 2026-05-12 |
+| D5-4-W7 | — | by-design | descoped — DB CHECK prevents | 2026-05-12 |
+| D5-4-W8 | — | by-design | descoped — pre-existing pattern | 2026-05-12 |
+| D5-4-W9 | Low | test-debt | descoped — unit benchmark appropriate | 2026-05-12 |
+| D5-4-R2-D1 | Medium | spec-gap | descoped — requires workspace settings (post-MVP) | 2026-05-12 |
+| D5-4-R2-D2 | — | by-design | descoped — DB CHECK prevents | 2026-05-12 |
+| D5-4-R2-D3 | Low | tech-debt | open — carry to code quality sprint | 2026-05-12 |
+| D5-4-R2-D4 | Low | tech-debt | open — carry to code quality sprint | 2026-05-12 |
+| D5-4-R2-D5 | Low | tech-debt | descoped — pg-boss dedup mitigates | 2026-05-12 |
+| D5-4-R2-D6 | Medium | spec-gap | descoped — requires workspace timezone settings (post-MVP) | 2026-05-12 |
+| D5-4-R2-D7 | Low | tech-debt | open — carry to code quality sprint | 2026-05-12 |
+| D5-4-R2-D8 | — | by-design | descoped — defensive pattern acceptable | 2026-05-12 |
+| D5-4-R2-D9 | Medium | spec-gap | descoped — post-MVP UX concern | 2026-05-12 |
+| D5-4-R2-D10 | Low | tech-debt | open — carry to code quality sprint | 2026-05-12 |
+| D5-4a-R1-W1 | Low | tech-debt | open — pagination follow-up | 2026-05-13 |
+| D5-4a-R1-W2 | Medium | tech-debt | open — Epic 10 error-handling (10-4) | 2026-05-13 |
+| D5-4a-R1-W3 | Low | tech-debt | open — UX polish pass | 2026-05-13 |
 
-**Open item counts:** 0 total — 0 spec-gap, 0 tech-debt, 0 test-debt
-**Resolved this polish sprint:** 21 items (all)
-**Descoped:** 0 items
-**Epic 2 remaining:** 0 (all resolved)
-**Epic 3 items resolved:** 21 of 21 (100%)
-**Closure rate:** 100% — clear for Epic 4
+**Open item counts:** 16 open — 1 spec-gap (D5-4-D1 story 5.4a created), 10 tech-debt, 1 test-debt, 1 additional tech-debt from 5-3
+**Resolved this follow-up:** 6 items (D5-1-1, D5-1-5, D5-1-R2-2, D5-1-R2-3, D5-1-R2-4, D5-3-R2-W1)
+**Descoped this triage:** 28 items (by-design, post-MVP dependencies, acceptable as-is)
+**Epic 5 total deferred:** 47 items
+**Epic 5 triaged:** 47 of 47 (100%)
+**Epic 5 resolved:** 6 items
+**Closure rate (descoped + resolved):** 34/47 = 72% — exceeds 50% threshold
+**Remaining open (13):** Carry to code quality sprint or post-MVP as tagged
 
 ## Deferred from: code review of 2-6b-trust-ceremonies-regression-milestones (2026-04-26)
 
@@ -401,3 +452,44 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - D5-3-R1-W2 — Service role UPDATE policy has no guardrails (unrestricted UPDATE including on deleted rows and cross-workspace); intentional for Epic 2 agent operations. `by-design` `supabase/migrations/20260511000001_time_entries_update_policy.sql:29-33`
 - D5-3-R2-W1 — `handleUpdated` doesn't update `projectName` in local state after edit; stale project name displayed until next fetch. Low impact (display-only). `tech-debt` `apps/web/app/(workspace)/time/components/time-entry-list.tsx:92-105`
 - D5-3-R2-W2 — Update + edit-history insert not atomic (two separate Supabase calls); if history insert fails after update commits, audit trail is lost. RPC transaction deferred to D5 (first review decision). `tech-debt` `apps/web/app/(workspace)/time/actions/update-time-entry.ts:116-133`
+
+## Deferred from: code review of 5-4-time-integrity-agent (2026-05-12)
+
+⚠️ Note: 9 deferred items exceeds the 5-item cap rule. Recommend pruning W3/W4/W7/W8 (all low-impact by-design) to bring within cap — see notes below.
+
+- D5-4-D1 — **MUST COMPLETE BEFORE EPIC 7** — Gap/overlap detectors deferred to story 5.4a: add `start_minutes`/`end_minutes` nullable columns to `time_entries`, update executor query, add optional time-pickers to manual-log UI. Without this, undetected billing overlaps reach invoice reconciliation (7-4) as a corrupted signal corpus. `spec-gap` `packages/agents/time-integrity/executor.ts, anomaly-detection.ts`
+- D5-4-W1 — `confidence: 0.9` hardcoded for all anomaly proposals regardless of type; no spec differentiation required; calibrate per-type post-MVP when trust scoring is extended. `tech-debt` `packages/agents/time-integrity/executor.ts:196`
+- D5-4-W2 — `detectLowHours` fires on weekends and public holidays generating noise signals; requires workspace settings infrastructure (working-days config) which is explicitly post-MVP. `spec-gap` `packages/agents/time-integrity/anomaly-detection.ts:116`
+- D5-4-W3 — TOCTOU double-check: trigger fan-out and executor both call `getAgentConfiguration`; the second check is correct defensive behavior; no action needed unless DB round-trip cost becomes measurable. `by-design` `sweep-worker.ts`, `executor.ts`
+- D5-4-W4 — `sweepDate` baked at trigger-time; delayed retries use original date; this is correct for idempotency; only a concern if sweepDate needs to be "today at retry time" which would break idempotency. `by-design` `packages/agents/orchestrator/sweep-worker.ts:43`
+- D5-4-W5 — Negative gap / midnight-spanning entries produce wrong gap calculations when `start_time`/`end_time` eventually added to `time_entries`; revisit when schema evolution adds time-of-day support. `tech-debt` `packages/agents/time-integrity/anomaly-detection.ts:51`
+- D5-4-W6 — Stale gap/overlap signals not auto-resolved when user fills the gap or removes the overlap; signal lifecycle management (mark resolved when anomaly no longer present) is post-MVP. `spec-gap`
+- D5-4-W7 — `durationMinutes: 0` entries not guarded in anomaly detection; prevented by DB `CHECK (duration_minutes > 0)` constraint; guard only needed if entries are inserted bypassing the constraint. `by-design` `packages/agents/time-integrity/anomaly-detection.ts:118`
+- D5-4-W8 — `workspaceId: 'system'` used in audit log for system-level sweep trigger events; pre-existing pattern in `factory.ts`; only a risk if `audit_log.workspace_id` is typed uuid at DB level. `by-design` `packages/agents/orchestrator/sweep-worker.ts:35`
+- D5-4-W9 — NFR02 performance test measures in-memory detection CPU time only, not full DB sweep round-trips; full E2E timing requires integration test environment with DB; unit benchmark is appropriate for detection algorithm layer. `test-debt` `packages/agents/time-integrity/__tests__/anomaly-detection.test.ts:216`
+
+## Deferred from: code review of 5-4a-time-of-day-gap-overlap-detection (2026-05-13)
+
+- D5-4a-R1-W1 — `ENTRY_FETCH_LIMIT=5000` silently truncates; sweep returns `success: true` with no `isPartial` flag; add pagination or an explicit partial-result indicator at scale. `tech-debt` `packages/agents/time-integrity/executor.ts:14`
+- D5-4a-R1-W2 — Orphan cleanup sets `dismissed_at` on transient `insertRun` DB error; signal permanently dismissed even on recoverable failures; revisit in Epic 10 error-handling story (10-4). `tech-debt` `packages/agents/time-integrity/executor.ts:~650`
+- D5-4a-R1-W3 — Auto-duration effect gives no real-time hint when `end <= start`; user only receives feedback at server-side submit; add inline warning near time pickers in a UX polish pass. `tech-debt` `apps/web/app/(workspace)/time/components/log-time-modal.tsx, edit-time-entry-modal.tsx`
+
+## Deferred from: code review round 2 of 5-4-time-integrity-agent (2026-05-12)
+
+- D5-4-R2-D1 — Days with zero time entries never flagged (strongest low-hours case invisible); requires workspace calendar or working-days configuration to know which days should have entries. `spec-gap` `packages/agents/time-integrity/anomaly-detection.ts:116`
+- D5-4-R2-D2 — `durationMinutes: NaN` or negative values silently corrupt low-hours detection; prevented by DB CHECK constraint at time_entries layer. `by-design` `packages/agents/time-integrity/anomaly-detection.ts:117`
+- D5-4-R2-D3 — Trust client catch-all `catch {}` masks programming errors (TypeError, ReferenceError); narrow to expected error types only post-MVP. `tech-debt` `packages/agents/time-integrity/executor.ts:176-179`
+- D5-4-R2-D4 — `getPendingIntegritySignals` limited to 50 results with no pagination; at scale older signals silently dropped. `tech-debt` `apps/web/lib/actions/time-integrity/actions.ts:107`
+- D5-4-R2-D5 — Concurrent sweeps can produce stale signals from different entry snapshots; low risk due to pg-boss job dedup and 2am UTC timing; add advisory lock per workspace post-MVP. `tech-debt` `packages/agents/time-integrity/executor.ts:135-265`
+- D5-4-R2-D6 — UTC date in sweep fan-out causes timezone mismatch for non-UTC workspaces; requires workspace timezone settings (post-MVP). `spec-gap` `packages/agents/orchestrator/sweep-worker.ts:43`
+- D5-4-R2-D7 — Missing composite index for pending-signals query (workspace_id + resolved_at IS NULL + dismissed_at IS NULL); add partial index when signal volume grows. `tech-debt` `supabase/migrations/20260512000001_time_integrity_signals.sql`
+- D5-4-R2-D8 — `preCheck` redundantly fetches agent config also fetched by execute; pre-existing defensive pattern acceptable for MVP. `by-design` `packages/agents/time-integrity/pre-check.ts:25`
+- D5-4-R2-D9 — Auto-trust signals never audited in TriageInbox; signal gets resolved_at immediately with no agent_run; action is audit-logged but UI-invisible. `spec-gap` `packages/agents/time-integrity/executor.ts:261-263`
+- D5-4-R2-D10 — `affected_entry_ids` references soft-deleted entries with no UI indication; entries deleted between sweep and display become invisible references. `tech-debt` `apps/web/lib/actions/time-integrity/actions.ts:119`
+
+## Deferred from: code review of 6-3-booking-proposals-event-creation.md (2026-05-20)
+
+- D6-3-R-M7 — CalendarTokenManager imported directly from google-calendar/token-manager.ts in action code (propose-booking-action.ts, create-event-action.ts). Same pattern in 6-1/6-2. Needs CalendarAuthProvider interface abstraction when adding second provider. Tagged Epic 2. `tech-debt`
+- D6-3-R-RLS — Dead service_role RLS policy in scheduling_requests migration (line 74-78). `auth.role() = 'service_role'` with `TO authenticated` never matches — service_role bypasses RLS entirely. Harmless but misleading. Remove in cleanup pass. `tech-debt`
+- D6-3-R-TIMEOUT — withTimeout utility duplicated in slot-finder.ts and create-event-action.ts. Extract to shared utility (packages/shared or within agents/shared). `tech-debt`
+- D6-3-R-DYNIMPORT — Dynamic imports inside loop in slot-finder.ts loadCalendarProviders(). Convert to static imports for bundler compatibility. `tech-debt`

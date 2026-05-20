@@ -1,5 +1,5 @@
 generated: 2026-04-20
-last_updated: 2026-05-13  # Story 5.4a rewritten after adversarial review (50+ findings, party mode roundtable)
+last_updated: 2026-05-20  # Story 6-3 complete: all tasks done, 19 tests passing, pending review
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -68,8 +68,8 @@ development_status:
 
   epic-6: in-progress
   6-1-google-calendar-oauth-connection: done
-  6-2-real-time-conflict-detection: backlog
-  6-3-booking-proposals-event-creation: backlog
+  6-2-real-time-conflict-detection: done
+  6-3-booking-proposals-event-creation: review
   6-4-bypass-detection-cascade-rescheduling: backlog
   epic-6-retrospective: optional
 

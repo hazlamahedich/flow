@@ -16,6 +16,10 @@
       "types": "./inbox/index.ts",
       "default": "./dist/inbox/index.js"
     },
+    "./calendar": {
+      "types": "./calendar/index.ts",
+      "default": "./dist/calendar/index.js"
+    },
     "./inbox/initial-sync": {
       "types": "./inbox/initial-sync.ts",
       "default": "./dist/inbox/initial-sync.js"

@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { CalendarProvider, CalendarEvent } from '../providers/calendar-provider.js';
 import { GoogleCalendarProvider } from '../providers/index.js';
 import type { CalendarProviderName } from '@flow/types';
+import type { AgentRunProducer } from '../orchestrator/types.js';
 
 /** Parameters for performing the initial calendar sync. */
 export interface InitialSyncParams {
@@ -11,6 +12,10 @@ export interface InitialSyncParams {
   accessToken: string;
   calendarId: string;
   provider: CalendarProviderName;
+  /** Optional producer for enqueuing conflict detection after sync. */
+  conflictProducer?: AgentRunProducer;
+  /** Optional client_id for conflict detection jobs. */
+  clientId?: string | null;
 }
 
 /** Row shape from client_calendars that we need for token decryption. */
@@ -134,16 +139,19 @@ export async function performInitialSync(params: InitialSyncParams): Promise<voi
     );
 
     // Batch upsert events in chunks of BATCH_SIZE
+    const upsertedEventIds: string[] = [];
+
     for (let i = 0; i < events.length; i += BATCH_SIZE) {
       const chunk = events.slice(i, i + BATCH_SIZE);
       const rows = chunk.map((ev) => mapEventToRow(ev, workspaceId, clientCalendarId));
 
-      const { error: upsertError } = await supabase
+      const { data: upsertedData, error: upsertError } = await supabase
         .from('calendar_events')
         .upsert(rows, {
           onConflict: 'client_calendar_id,provider_event_id',
           ignoreDuplicates: true,
-        });
+        })
+        .select('id');
 
       if (upsertError) {
         console.error(
@@ -151,6 +159,36 @@ export async function performInitialSync(params: InitialSyncParams): Promise<voi
           upsertError.message,
         );
         // Continue with remaining chunks rather than aborting entirely
+      }
+
+      if (upsertedData) {
+        for (const row of upsertedData) {
+          upsertedEventIds.push((row as { id: string }).id);
+        }
+      }
+    }
+
+    // Enqueue conflict detection for each newly upserted event
+    if (params.conflictProducer && upsertedEventIds.length > 0) {
+      const { enqueueConflictDetection } = await import('./enqueue-conflict-detection.js');
+      for (const evtId of upsertedEventIds) {
+        try {
+          await enqueueConflictDetection({
+            supabase,
+            producer: params.conflictProducer,
+            workspaceId,
+            eventId: evtId,
+            clientCalendarId,
+            ...(params.clientId != null ? { clientId: params.clientId } : {}),
+          });
+        } catch (enqueueErr: unknown) {
+          const msg = enqueueErr instanceof Error ? enqueueErr.message : 'unknown error';
+          console.error(
+            `[calendar-initial-sync] Failed to enqueue conflict detection for event ${evtId}:`,
+            msg,
+          );
+          // Non-fatal: conflict detection is best-effort after sync
+        }
       }
     }
 

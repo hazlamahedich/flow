@@ -8,7 +8,7 @@ const AGENT_IDENTITY: Record<string, { cssVar: string; icon: string; label: stri
   'ar-collection': { cssVar: 'var(--flow-agent-ar)', icon: '$', label: 'AR Collection' },
   'weekly-report': { cssVar: 'var(--flow-agent-report)', icon: 'R', label: 'Reports' },
   'client-health': { cssVar: 'var(--flow-agent-health)', icon: 'H', label: 'Health' },
-  'time-integrity': { cssVar: 'var(--flow-agent-time)', icon: 'T', label: 'Time' },
+  'time-integrity': { cssVar: 'var(--flow-agent-time)', icon: '\u25F7', label: 'Time' },
 };
 
 interface ProposalCardProps {
