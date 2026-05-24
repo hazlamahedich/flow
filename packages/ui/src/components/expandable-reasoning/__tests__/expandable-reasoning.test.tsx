@@ -47,11 +47,11 @@ describe('ExpandableReasoning (UX-DR26)', () => {
     const buttons = screen.getAllByText('Why?');
     expect(buttons).toHaveLength(2);
 
-    fireEvent.click(buttons[0]);
+    fireEvent.click(buttons[0]!);
     expect(screen.getByText('Reason A')).toBeDefined();
     expect(screen.queryByText('Reason B')).toBeNull();
 
-    fireEvent.click(buttons[1]);
+    fireEvent.click(buttons[1]!);
     expect(screen.getByText('Reason A')).toBeDefined();
     expect(screen.getByText('Reason B')).toBeDefined();
   });

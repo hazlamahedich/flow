@@ -61,7 +61,7 @@ export async function writeConflictSignals(
       correlation_id: correlationId,
       causation_id: causationId,
       agent_id: CALENDAR_AGENT_ID,
-      signal_type: 'conflict_detected',
+      signal_type: 'calendar.conflict.detected',
       payload,
       target_agent: CALENDAR_AGENT_ID,
       client_id: clientId,

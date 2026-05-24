@@ -271,5 +271,88 @@ SELECT lives_ok(
 RESET ROLE;
 
 
+-- ============================================================
+-- TABLE: calendar_bypass_metrics — RLS tests (Story 6.4)
+-- ============================================================
+
+-- Test 21: Unauthenticated cannot read calendar_bypass_metrics
+SELECT throws_ok(
+  $$SELECT * FROM calendar_bypass_metrics$$,
+  '42501',
+  'Unauthenticated user cannot read calendar_bypass_metrics'
+);
+
+-- Test 22: Owner can insert bypass metrics
+SELECT set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}', false);
+SET ROLE authenticated;
+SELECT lives_ok(
+  $$INSERT INTO calendar_bypass_metrics (workspace_id, client_id, total_events, bypass_count, bypass_rate, window_start, window_end) VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 5, 2, 0.4000, now() - interval '30 days', now())$$,
+  'Owner can insert calendar_bypass_metrics'
+);
+SELECT reset_role();
+
+-- Test 23: Owner can read own workspace bypass metrics
+SELECT set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}', false);
+SET ROLE authenticated;
+SELECT is(
+  (SELECT count(*) FROM calendar_bypass_metrics WHERE workspace_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  1::bigint,
+  'Owner can see own workspace bypass metrics'
+);
+SELECT reset_role();
+
+-- Test 24: Outsider cannot read other workspace bypass metrics
+SELECT set_config('request.jwt.claims', '{"sub": "33333333-3333-3333-3333-333333333333", "workspace_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "role": "owner"}', false);
+SET ROLE authenticated;
+SELECT is(
+  (SELECT count(*) FROM calendar_bypass_metrics WHERE workspace_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  0::bigint,
+  'Outsider cannot see other workspace bypass metrics'
+);
+SELECT reset_role();
+
+-- Test 25: service_role can read bypass metrics
+SET ROLE service_role;
+SELECT is(
+  (SELECT count(*) FROM calendar_bypass_metrics WHERE workspace_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  1::bigint,
+  'service_role can read bypass metrics'
+);
+RESET ROLE;
+
+
+-- ============================================================
+-- TABLE: calendar_event_relations — RLS tests (Story 6.4)
+-- ============================================================
+
+-- Test 26: service_role can insert event relations
+SET ROLE service_role;
+SELECT lives_ok(
+  $$INSERT INTO calendar_event_relations (parent_event_id, child_event_id, relation_type) VALUES ((SELECT id FROM calendar_events WHERE provider_event_id = 'evt-001' LIMIT 1), (SELECT id FROM calendar_events WHERE provider_event_id = 'evt-002' LIMIT 1), 'rescheduled_from')$$,
+  'service_role can insert calendar_event_relations'
+);
+RESET ROLE;
+
+-- Test 27: Owner can read event relations
+SELECT set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}', false);
+SET ROLE authenticated;
+SELECT is(
+  (SELECT count(*) FROM calendar_event_relations),
+  1::bigint,
+  'Owner can see event relations in own workspace'
+);
+SELECT reset_role();
+
+-- Test 28: Outsider cannot read event relations from other workspace
+SELECT set_config('request.jwt.claims', '{"sub": "33333333-3333-3333-3333-333333333333", "workspace_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "role": "owner"}', false);
+SET ROLE authenticated;
+SELECT is(
+  (SELECT count(*) FROM calendar_event_relations),
+  0::bigint,
+  'Outsider cannot see event relations from other workspace'
+);
+SELECT reset_role();
+
+
 SELECT * FROM finish();
 ROLLBACK;

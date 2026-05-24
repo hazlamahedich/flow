@@ -13,7 +13,7 @@ export const DEFAULT_CALENDAR_CONFIG: CalendarAgentConfig = {
   workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
   timezone: 'America/New_York',
   autoDetectBypass: true,
-  bypassAlertThreshold: 0.8,
+  bypassAlertThreshold: 0.3,
   travelBufferMinutes: 30,
 };
 

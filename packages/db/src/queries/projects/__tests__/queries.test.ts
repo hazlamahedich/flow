@@ -64,14 +64,12 @@ describe('createProject — constraint violations', () => {
     }));
     mockClient.from = vi.fn(() => chain);
 
-    // The app layer passes status via insert; DB rejects an invalid value
     await expect(createProject(mockClient as never, {
       workspaceId: 'ws1', clientId: 'c1', name: 'Bad Status Project',
     })).rejects.toMatchObject({ code: '23514' });
   });
 
   it('propagates check constraint for archived_at consistency violation', async () => {
-    // status='archived' without archived_at, or status='active' with archived_at
     const chain = createChain();
     chain.single = vi.fn(() => Promise.resolve({
       data: null,
@@ -107,6 +105,7 @@ describe('listProjects', () => {
       workspaceId: 'ws1', clientId: 'c1',
     });
     expect(result).toHaveLength(2);
-    expect(result[0].name).toBe('Alpha');
+    const first = result[0];
+    expect(first?.name).toBe('Alpha');
   });
 });

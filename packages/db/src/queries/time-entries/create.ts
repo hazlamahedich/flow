@@ -1,19 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { z } from 'zod';
-
-const timeEntryRowSchema = z.object({
-  id: z.string(),
-  workspace_id: z.string(),
-  client_id: z.string(),
-  user_id: z.string(),
-  project_id: z.string().nullable(),
-  date: z.string(),
-  duration_minutes: z.number(),
-  notes: z.string().nullable(),
-  deleted_at: z.string().nullable(),
-  created_at: z.string(),
-  updated_at: z.string(),
-}).passthrough();
+import { timeEntryRowSchema, mapTimeEntryRow } from './row-schema';
 
 export interface CreateTimeEntryInput {
   workspaceId: string;
@@ -22,6 +8,8 @@ export interface CreateTimeEntryInput {
   userId: string;
   date: string;
   durationMinutes: number;
+  startMinutes?: number | null;
+  endMinutes?: number | null;
   notes?: string | null;
 }
 
@@ -34,28 +22,12 @@ export interface TimeEntry {
   projectName: string | null;
   date: string;
   durationMinutes: number;
+  startMinutes: number | null;
+  endMinutes: number | null;
   notes: string | null;
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
-}
-
-function mapTimeEntryRow(row: Record<string, unknown>): TimeEntry {
-  const parsed = timeEntryRowSchema.parse(row);
-  return {
-    id: parsed.id,
-    workspaceId: parsed.workspace_id,
-    clientId: parsed.client_id,
-    userId: parsed.user_id,
-    projectId: parsed.project_id,
-    projectName: null,
-    date: parsed.date,
-    durationMinutes: parsed.duration_minutes,
-    notes: parsed.notes,
-    deletedAt: parsed.deleted_at,
-    createdAt: parsed.created_at,
-    updatedAt: parsed.updated_at,
-  };
 }
 
 export async function createTimeEntry(
@@ -71,11 +43,14 @@ export async function createTimeEntry(
       user_id: input.userId,
       date: input.date,
       duration_minutes: input.durationMinutes,
+      start_minutes: input.startMinutes ?? null,
+      end_minutes: input.endMinutes ?? null,
       notes: input.notes ?? null,
     })
     .select('*')
     .single();
 
   if (error) throw error;
-  return mapTimeEntryRow(data as Record<string, unknown>);
+  const parsed = timeEntryRowSchema.parse(data as Record<string, unknown>);
+  return mapTimeEntryRow(parsed, null);
 }

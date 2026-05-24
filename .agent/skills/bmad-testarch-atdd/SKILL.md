@@ -6,6 +6,18 @@ description: 'Generate red-phase acceptance test scaffolds using the TDD cycle. 
 ## Available Scripts
 
 - **`scripts/resolve-customization.py`** -- Resolves customization from three-layer TOML merge (user > team > defaults). Outputs JSON.
+- **`references/phoenix-atdd-handoff.md`** -- When stack detection finds `mix.exs` with Phoenix/Ecto deps and no frontend tooling, hand off to the `phoenix-atdd` skill instead of generating TypeScript scaffolds.
+
+## Phoenix / Elixir Projects
+
+When `bmad-testarch-atdd` detects an Elixir/Phoenix backend (via `mix.exs` with `:phoenix` or `:ecto` deps and no Playwright/Cypress config), do **not** follow the TypeScript/Playwright red-phase subagent workflow. Instead:
+
+1. Load the **`phoenix-atdd`** skill.
+2. Generate ExUnit `.exs` test scaffolds with `@moduletag :skip`.
+3. Create `test/support/atdd_stubs.ex` and add `log_in_user/2` stub to ConnCase so scaffolds compile before contexts exist.
+4. Run `mix test` — expect `0 failures, N skipped`.
+
+The generic `bmad-testarch-atdd` workflow assumes `playwright.config.*` or `cypress.config.*` and will produce unusable TypeScript scaffolds for Elixir codebases.
 
 ## Resolve Customization
 

@@ -12,7 +12,7 @@ import {
   defaultInvoiceEditGuard,
 } from '@flow/db';
 
-const updateTimeEntrySchema = z.object({
+export const updateTimeEntrySchema = z.object({
   id: z.string().uuid(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((d) => {
     const t = new Date();
@@ -20,11 +20,36 @@ const updateTimeEntrySchema = z.object({
     return d <= todayStr;
   }, 'Date cannot be in the future'),
   durationMinutes: z.number().int().min(1).max(1440),
+  startMinutes: z.number().int().min(0).max(1439).nullable().optional(),
+  endMinutes: z.number().int().min(0).max(1439).nullable().optional(),
   clientId: z.preprocess((v) => (v === '' ? null : v), z.string().uuid().nullable()),
   projectId: z.preprocess((v) => (v === '' ? null : v), z.string().uuid().nullable()),
   notes: z.string().max(500).nullable(),
   invoicedAcknowledged: z.boolean().optional(),
-});
+}).refine(
+  (d) => {
+    const startProvided = d.startMinutes !== undefined;
+    const endProvided = d.endMinutes !== undefined;
+    if (!startProvided && !endProvided) return true;
+    if (startProvided !== endProvided) return false;
+    return (d.startMinutes != null) === (d.endMinutes != null);
+  },
+  { message: 'Both start and end times are required together.' },
+).refine(
+  (d) => {
+    if (d.startMinutes != null && d.endMinutes != null) return d.startMinutes < d.endMinutes;
+    return true;
+  },
+  { message: 'End time must be after start time.' },
+).refine(
+  (d) => {
+    if (d.startMinutes != null && d.endMinutes != null) {
+      if (d.startMinutes + d.durationMinutes > 1440) return false;
+    }
+    return true;
+  },
+  { message: 'Entry spans midnight. Split into two entries for each calendar day.' },
+);
 
 export async function updateTimeEntryAction(
   input: unknown,
@@ -112,9 +137,11 @@ export async function updateTimeEntryAction(
   if (parsed.data.clientId !== current.clientId) previousValues.clientId = current.clientId;
   if (parsed.data.projectId !== current.projectId) previousValues.projectId = current.projectId;
   if (parsed.data.notes !== current.notes) previousValues.notes = current.notes;
+  if (parsed.data.startMinutes !== undefined && parsed.data.startMinutes !== current.startMinutes) previousValues.startMinutes = current.startMinutes;
+  if (parsed.data.endMinutes !== undefined && parsed.data.endMinutes !== current.endMinutes) previousValues.endMinutes = current.endMinutes;
 
   try {
-    const result = await updateTimeEntry(supabase, {
+    const updateInput: Parameters<typeof updateTimeEntry>[1] = {
       id: parsed.data.id,
       workspaceId: ctx.workspaceId,
       date: parsed.data.date,
@@ -122,7 +149,11 @@ export async function updateTimeEntryAction(
       clientId: effectiveClientId,
       projectId: effectiveProjectId,
       notes: parsed.data.notes,
-    });
+      ...(parsed.data.startMinutes !== undefined && { startMinutes: parsed.data.startMinutes }),
+      ...(parsed.data.endMinutes !== undefined && { endMinutes: parsed.data.endMinutes }),
+    };
+
+    const result = await updateTimeEntry(supabase, updateInput);
 
     if (Object.keys(previousValues).length > 0) {
       await insertEditHistory(supabase, {

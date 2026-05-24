@@ -5,7 +5,7 @@ import type { ActionResult } from '@flow/types';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, createFlowError, createTimeEntry } from '@flow/db';
 
-const createTimeEntrySchema = z.object({
+export const createTimeEntrySchema = z.object({
   clientId: z.string().uuid(),
   projectId: z.string().uuid().nullable(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((d) => {
@@ -14,8 +14,27 @@ const createTimeEntrySchema = z.object({
     return d <= todayStr;
   }, 'Date cannot be in the future'),
   durationMinutes: z.number().int().min(1).max(1440),
+  startMinutes: z.number().int().min(0).max(1439).optional(),
+  endMinutes: z.number().int().min(0).max(1439).optional(),
   notes: z.string().max(500).optional(),
-});
+}).refine(
+  (d) => (d.startMinutes != null) === (d.endMinutes != null),
+  { message: 'Both start and end times are required together.' },
+).refine(
+  (d) => {
+    if (d.startMinutes != null && d.endMinutes != null) return d.startMinutes < d.endMinutes;
+    return true;
+  },
+  { message: 'End time must be after start time.' },
+).refine(
+  (d) => {
+    if (d.startMinutes != null && d.endMinutes != null) {
+      if (d.startMinutes + d.durationMinutes > 1440) return false;
+    }
+    return true;
+  },
+  { message: 'Entry spans midnight. Split into two entries for each calendar day.' },
+);
 
 export async function createTimeEntryAction(
   input: unknown,
@@ -54,6 +73,8 @@ export async function createTimeEntryAction(
       userId: ctx.userId,
       date: parsed.data.date,
       durationMinutes: parsed.data.durationMinutes,
+      startMinutes: parsed.data.startMinutes ?? null,
+      endMinutes: parsed.data.endMinutes ?? null,
       notes: parsed.data.notes ?? null,
     });
 

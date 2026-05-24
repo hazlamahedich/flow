@@ -46,3 +46,11 @@ export { timeEntryEditHistory } from './time-entry-edit-history';
 export type { TimeEntryEditHistory, NewTimeEntryEditHistory } from './time-entry-edit-history';
 export { timeIntegritySignals } from './time-integrity-signals';
 export type { TimeIntegritySignal, NewTimeIntegritySignal } from './time-integrity-signals';
+export {
+  schedulingRequestSourceTypeEnum,
+  schedulingRequestTypeEnum,
+  schedulingRequestStatusEnum,
+  schedulingRequests,
+} from './scheduling-requests';
+export { calendarBypassMetrics } from './calendar-bypass-metrics';
+export { calendarEventRelations } from './calendar-event-relations';

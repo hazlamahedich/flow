@@ -22,7 +22,14 @@ description: 'Perform a Cynical Review and produce a findings report. Use when t
 - If content to review is empty, ask for clarification and abort
 - Identify content type (diff, branch, uncommitted changes, document, etc.)
 
-### Step 2: Adversarial Analysis
+### Step 2: Identify Content to Review
+
+- If reviewing a BMAD story, check the story file's frontmatter for `review_status` and `reviewed` fields
+- If `review_status` is already `resolved` and a companion `.review.md` file exists, **SKIP** — the story was already reviewed in a prior session
+- If the user explicitly asks to re-review, check the `.review.md` for unresolved findings before repeating the review
+- Do NOT duplicate existing review reports without user instruction
+
+### Step 3: Adversarial Analysis
 
 Review with extreme skepticism — assume problems exist. Find at least ten issues to fix or improve in the provided content.
 
@@ -30,8 +37,22 @@ Review with extreme skepticism — assume problems exist. Find at least ten issu
 
 Output findings as a Markdown list (descriptions only).
 
+#### BMAD Story Reviews
+
+When the content is a BMAD story file (e.g., `_bmad-output/implementation-artifacts/stories/*.md`), use the following structured severity format and write the review to a companion `.review.md` file alongside the story:
+
+- **CRITICAL** — Will cause implementation failure or permanent test regression
+- **HIGH** — Significant risk of wasted cycles or silent bugs
+- **MEDIUM** — Should fix for robustness
+- **ENHANCEMENT** — Improvements for clarity, completeness, or future maintainability
+
+Each finding must include: **Location**, **Problem**, and **Fix Applied** (or Recommended Fix).
+
+After findings are patched into the story, a validation step must confirm all resolutions are reflected in the story document, ATDD scaffolds, and sprint-status tracker. See `references/post-review-validation-checklist.md`.
+
 
 ## HALT CONDITIONS
 
 - HALT if zero findings — this is suspicious, re-analyze or ask for guidance
 - HALT if content is empty or unreadable
+- **HALT if `review_status` is already `resolved`** and a `.review.md` companion file exists — ask the user if they want to re-review or move to validation

@@ -1,8 +1,87 @@
+/* eslint-disable max-lines */
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { CalendarProvider, CalendarEvent } from '../providers/calendar-provider.js';
 import { GoogleCalendarProvider } from '../providers/index.js';
 import type { CalendarProviderName } from '@flow/types';
 import type { AgentRunProducer } from '../orchestrator/types.js';
+import { classifyEventSource } from './classify-source.js';
+
+async function enqueueBypassForEvents(
+  producer: AgentRunProducer,
+  supabase: SupabaseClient,
+  workspaceId: string,
+  clientId: string,
+  eventIds: string[],
+): Promise<void> {
+  const { enqueueBypassDetection } = await import('./enqueue-bypass-detection.js');
+  for (const evtId of eventIds) {
+    try {
+      await enqueueBypassDetection({
+        supabase,
+        producer,
+        workspaceId,
+        eventId: evtId,
+        clientId,
+        eventCreatedAt: new Date().toISOString(),
+      });
+    } catch (enqueueErr: unknown) {
+      const msg = enqueueErr instanceof Error ? enqueueErr.message : 'unknown error';
+      console.error(
+        `[calendar-initial-sync] Failed to enqueue bypass detection for event ${evtId}:`,
+        msg,
+      );
+    }
+  }
+}
+
+async function enqueueConflictForEvents(
+  producer: AgentRunProducer,
+  supabase: SupabaseClient,
+  workspaceId: string,
+  clientCalendarId: string,
+  eventIds: string[],
+  clientId?: string | null,
+): Promise<void> {
+  const { enqueueConflictDetection } = await import('./enqueue-conflict-detection.js');
+  for (const evtId of eventIds) {
+    try {
+      await enqueueConflictDetection({
+        supabase,
+        producer,
+        workspaceId,
+        eventId: evtId,
+        clientCalendarId,
+        ...(clientId != null ? { clientId } : {}),
+      });
+    } catch (enqueueErr: unknown) {
+      const msg = enqueueErr instanceof Error ? enqueueErr.message : 'unknown error';
+      console.error(
+        `[calendar-initial-sync] Failed to enqueue conflict detection for event ${evtId}:`,
+        msg,
+      );
+    }
+  }
+}
+
+async function incrementMetricsForEvents(
+  supabase: SupabaseClient,
+  workspaceId: string,
+  clientId: string,
+  eventIds: string[],
+): Promise<void> {
+  const { incrementTotalEvents } = await import('./bypass-metrics.js');
+  for (const evtId of eventIds) {
+    try {
+      await incrementTotalEvents(supabase, workspaceId, clientId);
+    } catch (incrErr: unknown) {
+      const msg = incrErr instanceof Error ? incrErr.message : 'unknown error';
+      console.error(
+        `[calendar-initial-sync] Failed to increment total events for ${evtId}:`,
+        msg,
+      );
+    }
+  }
+}
 
 /** Parameters for performing the initial calendar sync. */
 export interface InitialSyncParams {
@@ -12,10 +91,10 @@ export interface InitialSyncParams {
   accessToken: string;
   calendarId: string;
   provider: CalendarProviderName;
-  /** Optional producer for enqueuing conflict detection after sync. */
   conflictProducer?: AgentRunProducer;
-  /** Optional client_id for conflict detection jobs. */
   clientId?: string | null;
+  vaEmail?: string;
+  calendars?: Array<{ emailAddress: string | null }>;
 }
 
 /** Row shape from client_calendars that we need for token decryption. */
@@ -71,6 +150,7 @@ function mapEventToRow(
   event: CalendarEvent,
   workspaceId: string,
   clientCalendarId: string,
+  source?: string,
 ) {
   return {
     workspace_id: workspaceId,
@@ -85,7 +165,7 @@ function mapEventToRow(
     is_all_day: event.isAllDay,
     attendees: event.attendees as unknown as Record<string, unknown>[],
     event_type: 'unknown' as const,
-    source: 'unknown' as const,
+    source: source ?? ('unknown' as const),
     is_recurring: !!event.recurrenceRule,
     recurring_rule: event.recurrenceRule ?? null,
     created_via: 'external' as const,
@@ -143,7 +223,22 @@ export async function performInitialSync(params: InitialSyncParams): Promise<voi
 
     for (let i = 0; i < events.length; i += BATCH_SIZE) {
       const chunk = events.slice(i, i + BATCH_SIZE);
-      const rows = chunk.map((ev) => mapEventToRow(ev, workspaceId, clientCalendarId));
+      const rows = chunk.map((ev) => {
+        let classifiedSource: string | undefined;
+        if (params.vaEmail && params.calendars) {
+          const src = classifyEventSource(
+            {
+              organizerEmail: (ev.providerMetadata?.organizerEmail as string | undefined) ?? null,
+              title: ev.title,
+              isRecurring: !!ev.recurrenceRule,
+            },
+            params.calendars,
+            params.vaEmail,
+          );
+          classifiedSource = src;
+        }
+        return mapEventToRow(ev, workspaceId, clientCalendarId, classifiedSource);
+      });
 
       const { data: upsertedData, error: upsertError } = await supabase
         .from('calendar_events')
@@ -168,31 +263,31 @@ export async function performInitialSync(params: InitialSyncParams): Promise<voi
       }
     }
 
-    // Enqueue conflict detection for each newly upserted event
     if (params.conflictProducer && upsertedEventIds.length > 0) {
-      const { enqueueConflictDetection } = await import('./enqueue-conflict-detection.js');
-      for (const evtId of upsertedEventIds) {
-        try {
-          await enqueueConflictDetection({
-            supabase,
-            producer: params.conflictProducer,
-            workspaceId,
-            eventId: evtId,
-            clientCalendarId,
-            ...(params.clientId != null ? { clientId: params.clientId } : {}),
-          });
-        } catch (enqueueErr: unknown) {
-          const msg = enqueueErr instanceof Error ? enqueueErr.message : 'unknown error';
-          console.error(
-            `[calendar-initial-sync] Failed to enqueue conflict detection for event ${evtId}:`,
-            msg,
-          );
-          // Non-fatal: conflict detection is best-effort after sync
-        }
+      await enqueueConflictForEvents(
+        params.conflictProducer,
+        supabase,
+        workspaceId,
+        clientCalendarId,
+        upsertedEventIds,
+        params.clientId,
+      );
+    }
+
+    if (params.clientId && upsertedEventIds.length > 0) {
+      await incrementMetricsForEvents(supabase, workspaceId, params.clientId, upsertedEventIds);
+
+      if (params.conflictProducer) {
+        await enqueueBypassForEvents(
+          params.conflictProducer,
+          supabase,
+          workspaceId,
+          params.clientId,
+          upsertedEventIds,
+        );
       }
     }
 
-    // Derive sync cursor from the last event's etag if available
     const lastEvent = events.length > 0 ? events[events.length - 1] : null;
     let syncCursor: string | null = null;
     if (lastEvent?.providerMetadata) {

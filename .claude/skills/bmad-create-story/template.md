@@ -58,4 +58,12 @@ so that {{benefit}}.
 
 _Count recorded at each code review pass. If >5, require Architect + PM approval (see scope-check-gate.md step 7)._
 
+### Test Commit Record
+
+_Epic 5 retro A2: Record the SHA of the first failing test commit (red phase) before any implementation commit. This makes AC0 test-first auditable._
+
+| Test File | First Red Commit SHA | Date |
+|-----------|---------------------|------|
+| | | |
+
 ### File List

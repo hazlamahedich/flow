@@ -1,7 +1,7 @@
 ---
 project_name: 'flow'
 user_name: 'team mantis'
-date: '2026-04-26'
+date: '2026-05-12'
 sections_completed:
   - 'technology_stack'
   - 'language_rules'
@@ -39,8 +39,8 @@ _This file contains critical rules and patterns that AI agents must follow when 
 **Data Layer:**
 - Supabase (Postgres + Auth + Storage + RLS) — use `supabase-js` client. No raw SQL strings in application code; use Supabase client methods or RPC functions for complex queries.
 - Drizzle ORM for schema definition and type-safe queries where Supabase client is insufficient
-- pg-boss for **agent task orchestration only** (job queue). Job naming convention: `agent:{agent_name}:{action}`. pg-boss runs in Postgres — throughput bounded by connection pool. Do NOT "optimize" this prematurely.
-- Trigger.dev for **scheduled jobs and external webhooks only** (e.g., Stripe webhooks, Gmail Pub/Sub). NOT for agent orchestration.
+- pg-boss for **agent task orchestration AND scheduled sweeps** (job queue + cron). Job naming convention: `agent:{agent_name}:{action}`. pg-boss runs in Postgres — throughput bounded by connection pool. Do NOT "optimize" this prematurely. **Note:** Trigger.dev is NOT currently set up in this repo. pg-boss handles both orchestration and cron-triggered sweeps (e.g., `time-integrity-sweep-trigger` fans out per-workspace sweep jobs). See `packages/agents/orchestrator/scheduler.ts` for the sweep pattern.
+- Route Handlers (`app/api/`) for **external webhooks only** (e.g., Stripe webhooks, Gmail Pub/Sub, Google Calendar webhooks). Trigger.dev is planned but not yet configured — do not add Trigger.dev dependencies until the infrastructure is set up.
 - Postgres LISTEN/NOTIFY — Phase 2 target for stigmergic agent signals. MVP uses pg-boss + database records.
 
 **Data Fetching & State Management:**
@@ -114,8 +114,9 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - RLS policy failures return empty result sets, not error codes. Use `has_access()` RPC for permission checks before rendering.
 
 **Supabase-Specific TypeScript:**
+- **PostgreSQL UNIQUE constraints cannot cover `uuid[]` array columns** (B-tree indexes don't support arrays). If you need uniqueness on a composite key that includes an array, add a computed `signal_key text NOT NULL` column (e.g., sorted array elements joined as a string) and put the UNIQUE constraint on `(workspace_id, sweep_date, signal_key)` instead. See `supabase/migrations/20260512000001_time_integrity_signals.sql` for the canonical example.
 - Always use `::text` cast when comparing `workspace_id` against JWT claims in RLS policies. JWT claims return text; `workspace_id` columns are uuid. Without the cast, RLS silently denies all queries.
-- **All RLS policies must use the `::text` JWT cast pattern:** `workspace_id::text IN (SELECT wm.workspace_id::text FROM workspace_members wm WHERE wm.user_id = auth.uid() AND wm.removed_at IS NULL)`. Do NOT use subquery join patterns (`SELECT w.id FROM workspaces w INNER JOIN workspace_members wm ON ...`). The `::text` cast is non-negotiable — see `supabase/migrations/20260428000006_trust_rls_policies.sql` for the canonical pattern.
+- **All RLS policies must use the `::text` JWT cast pattern:** `workspace_id::text IN (SELECT wm.workspace_id::text FROM workspace_members wm WHERE wm.user_id = auth.uid() AND wm.status = 'active')`. Do NOT use subquery join patterns (`SELECT w.id FROM workspaces w INNER JOIN workspace_members wm ON ...`). The `::text` cast is non-negotiable — see `supabase/migrations/20260428000006_trust_rls_policies.sql` for the canonical pattern. **Critical:** use `wm.status = 'active'` (not `wm.removed_at IS NULL`) — `status` is authoritative since migration `20260421180001`; `removed_at` is stale and does not catch revoked members.
 - Generated types from `supabase gen types` — use them. No manual type definitions for database tables.
 - `service_role` key ONLY in server-side edge functions for system-level operations (billing webhooks, agent orchestration, audit logs). NEVER in client code.
 
@@ -531,4 +532,4 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Review quarterly for outdated rules.
 - Add new rules when an AI agent makes the same mistake twice — that's the signal threshold.
 
-Last Updated: 2026-04-27
+Last Updated: 2026-05-12 (Epic 5 retrospective — RLS canonical pattern corrected, pg-boss sweep pattern documented, Trigger.dev status clarified)

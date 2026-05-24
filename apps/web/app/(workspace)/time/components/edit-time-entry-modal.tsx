@@ -6,6 +6,7 @@ import { updateTimeEntryAction } from '../actions/update-time-entry';
 import { checkEntryInvoicedAction } from '../actions/check-entry-invoiced';
 import { listProjectsAction } from '../actions/list-projects';
 import { InvoiceWarningBanner } from './invoice-warning-banner';
+import { timeToMinutes, minutesToTime } from '../utils/time-conversion';
 
 interface ClientOption {
   id: string;
@@ -24,6 +25,8 @@ interface TimeEntryData {
   projectId: string | null;
   date: string;
   durationMinutes: number;
+  startMinutes: number | null;
+  endMinutes: number | null;
   notes: string | null;
 }
 
@@ -32,8 +35,11 @@ export interface EditTimeEntryResult {
   updatedAt: string;
   date?: string;
   durationMinutes?: number;
+  startMinutes?: number | null;
+  endMinutes?: number | null;
   clientId?: string;
   projectId?: string | null;
+  projectName?: string | null;
   notes?: string | null;
 }
 
@@ -49,10 +55,18 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
   const [projectId, setProjectId] = useState<string | null>(entry.projectId);
   const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [date, setDate] = useState(entry.date);
+  const [startTime, setStartTime] = useState<string | null>(
+    entry.startMinutes != null ? minutesToTime(entry.startMinutes) : null,
+  );
+  const [endTime, setEndTime] = useState<string | null>(
+    entry.endMinutes != null ? minutesToTime(entry.endMinutes) : null,
+  );
   const [durationMinutes, setDurationMinutes] = useState(String(entry.durationMinutes));
+  const [durationManuallySet, setDurationManuallySet] = useState(false);
   const [notes, setNotes] = useState(entry.notes ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [timeError, setTimeError] = useState<string | null>(null);
 
   const [invoiced, setInvoiced] = useState(false);
   const [invoicedAcknowledged, setInvoicedAcknowledged] = useState(false);
@@ -95,6 +109,16 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
     return () => { projectsMounted.current = false; };
   }, [clientId]);
 
+  useEffect(() => {
+    if (startTime && endTime && !durationManuallySet) {
+      const start = timeToMinutes(startTime);
+      const end = timeToMinutes(endTime);
+      if (end > start) {
+        setDurationMinutes(String(end - start));
+      }
+    }
+  }, [startTime, endTime, durationManuallySet]);
+
   const handleSubmit = useCallback(async () => {
     setError(null);
     const duration = parseInt(durationMinutes, 10);
@@ -111,12 +135,23 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
       return;
     }
 
+    const hasStart = startTime != null && startTime !== '';
+    const hasEnd = endTime != null && endTime !== '';
+    if (hasStart !== hasEnd) {
+      setTimeError('Both start and end times are required together.');
+      return;
+    }
+    setTimeError(null);
+
     setSubmitting(true);
     try {
       const result = await updateTimeEntryAction({
         id: entry.id,
         date,
         durationMinutes: duration,
+        ...(hasStart && hasEnd
+          ? { startMinutes: timeToMinutes(startTime!), endMinutes: timeToMinutes(endTime!) }
+          : { startMinutes: null, endMinutes: null }),
         clientId: clientId || null,
         projectId,
         notes: notes || null,
@@ -129,9 +164,12 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
           ...result.data,
           date,
           durationMinutes: duration,
+          startMinutes: hasStart && hasEnd ? timeToMinutes(startTime!) : null,
+          endMinutes: hasStart && hasEnd ? timeToMinutes(endTime!) : null,
           clientId: clientId || undefined,
           projectId,
           notes: notes || null,
+          projectName: projectId ? projects.find((p) => p.id === projectId)?.name ?? null : null,
         });
         onClose();
       } else if (!result.success) {
@@ -148,7 +186,7 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
     } finally {
       setSubmitting(false);
     }
-  }, [entry.id, date, durationMinutes, clientId, projectId, notes, invoicedAcknowledged, onUpdated, onClose]);
+  }, [entry.id, date, durationMinutes, startTime, endTime, clientId, projectId, notes, invoicedAcknowledged, onUpdated, onClose, projects]);
 
   const canSubmit = !submitting && (!invoiced || invoicedAcknowledged);
 
@@ -227,6 +265,28 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Start Time</label>
+              <input
+                type="time"
+                className="w-full rounded border bg-background p-2"
+                value={startTime ?? ''}
+                onChange={(e) => { setStartTime(e.target.value || null); setTimeError(null); }}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">End Time</label>
+              <input
+                type="time"
+                className="w-full rounded border bg-background p-2"
+                value={endTime ?? ''}
+                onChange={(e) => { setEndTime(e.target.value || null); setTimeError(null); }}
+              />
+            </div>
+          </div>
+          {timeError && <p className="text-sm text-destructive">{timeError}</p>}
+
           <div>
             <label className="mb-1 block text-sm font-medium">Minutes *</label>
             <input
@@ -236,7 +296,10 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
               max={1440}
               step={1}
               value={durationMinutes}
-              onChange={(e) => setDurationMinutes(e.target.value)}
+              onChange={(e) => {
+                setDurationMinutes(e.target.value);
+                setDurationManuallySet(true);
+              }}
               placeholder="e.g. 90 for 1h 30m"
             />
           </div>

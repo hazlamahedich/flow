@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { createTimeEntryAction } from '../actions/create-time-entry';
 import { createProjectAction } from '../actions/create-project';
 import { listProjectsAction } from '../actions/list-projects';
+import { timeToMinutes } from '../utils/time-conversion';
 
 interface ClientOption {
   id: string;
@@ -20,7 +21,7 @@ interface ProjectOption {
 interface LogTimeModalProps {
   clients: ClientOption[];
   onClose: () => void;
-  onCreated: (entry: { id: string; clientId: string; projectId: string | null; date: string; durationMinutes: number; notes: string | null }) => void;
+  onCreated: (entry: { id: string; clientId: string; projectId: string | null; date: string; durationMinutes: number; startMinutes: number | null; endMinutes: number | null; notes: string | null }) => void;
 }
 
 export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps) {
@@ -31,10 +32,14 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   });
+  const [startTime, setStartTime] = useState<string | null>(null);
+  const [endTime, setEndTime] = useState<string | null>(null);
   const [durationMinutes, setDurationMinutes] = useState('');
+  const [durationManuallySet, setDurationManuallySet] = useState(false);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [timeError, setTimeError] = useState<string | null>(null);
 
   const [showProjectCreate, setShowProjectCreate] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
@@ -53,7 +58,6 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
       return;
     }
 
-    // Cancel any in-flight request for a previous clientId
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -76,6 +80,16 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
 
     return () => { controller.abort(); };
   }, [clientId]);
+
+  useEffect(() => {
+    if (startTime && endTime && !durationManuallySet) {
+      const start = timeToMinutes(startTime);
+      const end = timeToMinutes(endTime);
+      if (end > start) {
+        setDurationMinutes(String(end - start));
+      }
+    }
+  }, [startTime, endTime, durationManuallySet]);
 
   const handleCreateProject = useCallback(async () => {
     if (!newProjectName.trim() || !clientId || isCreatingProject) return;
@@ -123,12 +137,21 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
       return;
     }
 
+    const hasStart = startTime != null && startTime !== '';
+    const hasEnd = endTime != null && endTime !== '';
+    if (hasStart !== hasEnd) {
+      setTimeError('Both start and end times are required together.');
+      return;
+    }
+    setTimeError(null);
+
     setSubmitting(true);
     const result = await createTimeEntryAction({
       clientId,
       projectId,
       date,
       durationMinutes: duration,
+      ...(hasStart && hasEnd ? { startMinutes: timeToMinutes(startTime!), endMinutes: timeToMinutes(endTime!) } : {}),
       notes: notes || undefined,
     });
 
@@ -140,16 +163,18 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
         projectId,
         date,
         durationMinutes: duration,
+        startMinutes: hasStart && hasEnd ? timeToMinutes(startTime!) : null,
+        endMinutes: hasStart && hasEnd ? timeToMinutes(endTime!) : null,
         notes: notes || null,
       });
       setSubmitting(false);
       onClose();
     } else {
       toast.error('Failed to log time — try again');
-      setError('Failed to log time — try again');
+      setError(result.success === false && result.error ? result.error.message : 'Failed to log time — try again');
       setSubmitting(false);
     }
-  }, [clientId, projectId, date, durationMinutes, notes, onCreated, onClose]);
+  }, [clientId, projectId, date, durationMinutes, startTime, endTime, notes, onCreated, onClose]);
 
   const clientProjects = projects.filter((p) => p.clientId === clientId);
   const hasNoProjects = clientId && clientProjects.length === 0;
@@ -241,6 +266,28 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Start Time</label>
+              <input
+                type="time"
+                className="w-full rounded border bg-background p-2"
+                value={startTime ?? ''}
+                onChange={(e) => { setStartTime(e.target.value || null); setTimeError(null); }}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">End Time</label>
+              <input
+                type="time"
+                className="w-full rounded border bg-background p-2"
+                value={endTime ?? ''}
+                onChange={(e) => { setEndTime(e.target.value || null); setTimeError(null); }}
+              />
+            </div>
+          </div>
+          {timeError && <p className="text-sm text-destructive">{timeError}</p>}
+
           <div>
             <label className="mb-1 block text-sm font-medium">Minutes *</label>
             <input
@@ -250,7 +297,10 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
               max={1440}
               step={1}
               value={durationMinutes}
-              onChange={(e) => setDurationMinutes(e.target.value)}
+              onChange={(e) => {
+                setDurationMinutes(e.target.value);
+                setDurationManuallySet(true);
+              }}
               placeholder="e.g. 90 for 1h 30m"
             />
           </div>

@@ -1,21 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
+import { timeEntryRowSchema, mapTimeEntryRow } from './row-schema';
 import type { TimeEntry } from './create';
 
-const timeEntryRowSchema = z.object({
-  id: z.string(),
-  workspace_id: z.string(),
-  client_id: z.string(),
-  user_id: z.string(),
-  project_id: z.string().nullable(),
+const listRowSchema = timeEntryRowSchema.extend({
   projects: z.object({ name: z.string() }).nullable().optional(),
-  date: z.string(),
-  duration_minutes: z.number(),
-  notes: z.string().nullable(),
-  deleted_at: z.string().nullable(),
-  created_at: z.string(),
-  updated_at: z.string(),
-}).passthrough();
+});
 
 export interface TimeEntryFilters {
   clientId?: string;
@@ -40,24 +30,6 @@ export interface ListTimeEntriesResult {
   page: number;
   pageSize: number;
   hasNextPage: boolean;
-}
-
-function mapTimeEntryRow(row: Record<string, unknown>): TimeEntry {
-  const parsed = timeEntryRowSchema.parse(row);
-  return {
-    id: parsed.id,
-    workspaceId: parsed.workspace_id,
-    clientId: parsed.client_id,
-    userId: parsed.user_id,
-    projectId: parsed.project_id,
-    projectName: parsed.projects?.name ?? null,
-    date: parsed.date,
-    durationMinutes: parsed.duration_minutes,
-    notes: parsed.notes,
-    deletedAt: parsed.deleted_at,
-    createdAt: parsed.created_at,
-    updatedAt: parsed.updated_at,
-  };
 }
 
 export async function listTimeEntries(
@@ -112,7 +84,10 @@ export async function listTimeEntries(
   const { data, error, count } = await query.range(offset, offset + pageSize - 1);
   if (error) throw error;
 
-  const items = (data ?? []).map((row) => mapTimeEntryRow(row as Record<string, unknown>));
+  const items = (data ?? []).map((row) => {
+    const parsed = listRowSchema.parse(row as Record<string, unknown>);
+    return mapTimeEntryRow(parsed, parsed.projects?.name ?? null);
+  });
   const total = count ?? 0;
   return { items, total, page, pageSize, hasNextPage: offset + pageSize < total };
 }

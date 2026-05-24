@@ -9,6 +9,7 @@ import type { ConflictDetectionInput } from '../calendar/detect-conflict-action.
 import type { ProposeBookingInput } from '../calendar/propose-booking-action.js';
 import type { CreateEventActionInput } from '../calendar/create-event-action.js';
 import { AgentJobPayloadSchema } from './schemas.js';
+import { handleDetectBypass, handleResolveCascade, registerCalendarScheduledJobs } from './calendar-bypass-worker.js';
 
 const QUEUE_NAME = 'agent:calendar';
 
@@ -29,8 +30,12 @@ const CreateEventJobInputSchema = z.object({
   workspace_id: z.string().uuid(),
 });
 
+export { registerCalendarScheduledJobs };
+
 export async function registerCalendarWorkers(boss: PgBoss): Promise<void> {
-  await boss.work(QUEUE_NAME, async (job) => {
+  await boss.work(QUEUE_NAME, async (jobs) => {
+    const job = Array.isArray(jobs) ? jobs[0] : jobs;
+    if (!job) return;
     const parsed = AgentJobPayloadSchema.safeParse(job.data);
     if (!parsed.success) {
       writeAuditLog({ workspaceId: 'unknown', agentId: 'calendar',
@@ -47,6 +52,10 @@ export async function registerCalendarWorkers(boss: PgBoss): Promise<void> {
       await handleProposeBooking(runId, workspaceId, input, supabase);
     } else if (actionType === 'createEvent') {
       await handleCreateEvent(runId, workspaceId, input, supabase);
+    } else if (actionType === 'detectBypass') {
+      await handleDetectBypass(runId, workspaceId, input, supabase);
+    } else if (actionType === 'resolveCascade') {
+      await handleResolveCascade(runId, workspaceId, input, supabase);
     } else {
       writeAuditLog({ workspaceId, agentId: 'calendar', action: 'worker.unknown_action',
         entityType: 'agent_run', entityId: runId,

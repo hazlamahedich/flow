@@ -493,3 +493,13 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - D6-3-R-RLS — Dead service_role RLS policy in scheduling_requests migration (line 74-78). `auth.role() = 'service_role'` with `TO authenticated` never matches — service_role bypasses RLS entirely. Harmless but misleading. Remove in cleanup pass. `tech-debt`
 - D6-3-R-TIMEOUT — withTimeout utility duplicated in slot-finder.ts and create-event-action.ts. Extract to shared utility (packages/shared or within agents/shared). `tech-debt`
 - D6-3-R-DYNIMPORT — Dynamic imports inside loop in slot-finder.ts loadCalendarProviders(). Convert to static imports for bundler compatibility. `tech-debt`
+
+## Deferred from: code review of 6-4-bypass-detection-cascade-rescheduling.md (2026-05-24)
+
+- D6-4-R-SRLS — Dead service_role RLS policies on calendar_bypass_metrics and calendar_event_relations. `TO authenticated` with `auth.role() = 'service_role'` never matches. Pre-existing pattern from earlier stories. `tech-debt`
+- D6-4-R-WINDOW — bypass_metrics window_start filter (`.gte`) fragments metrics when 30-day rolling window shifts. Window management needs product input on strategy (merge? new row? truncate?). `product-decision`
+- D6-4-R-MILLI — getRollingWindow() generates non-deterministic millisecond-precision boundaries causing unnecessary row creation. Coupled to D6-4-R-WINDOW. `tech-debt`
+- D6-4-R-MINSAMPLE — First bypass event triggers immediate alert (rate=1.0 > 0.3 threshold). Product decision needed on minimum sample size before alerts fire. `product-decision`
+- D6-4-R-DEADCODE — Cascade executor non-cancel update path sends empty provider payload. Currently unreachable but dead code. Blocked on move-to-vacated option implementation. `tech-debt`
+- D6-4-R-EMPTYCATCH — Empty catch block without comment in cascade rollback path (cascade-executor.ts:793). Project rule violation. Coupled to rollback rework. `tech-debt`
+- D6-4-R-PRECEDENCE — Operator precedence: `source ?? 'unknown' as const` in initial-sync.ts:121. `as const` binds tighter than `??` but TypeScript still infers correctly. Cosmetic. `tech-debt`

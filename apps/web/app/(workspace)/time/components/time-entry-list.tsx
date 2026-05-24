@@ -23,6 +23,8 @@ interface TimeEntry {
   projectName: string | null;
   date: string;
   durationMinutes: number;
+  startMinutes: number | null;
+  endMinutes: number | null;
   notes: string | null;
   userId: string;
   createdAt: string;
@@ -89,7 +91,7 @@ export function TimeEntryList({
     }
   }, []);
 
-  const handleUpdated = useCallback((updated: { id: string; updatedAt: string; date?: string; durationMinutes?: number; clientId?: string; projectId?: string | null; notes?: string | null }) => {
+  const handleUpdated = useCallback((updated: EditTimeEntryResult) => {
     setEntries((prev) => prev.map((e) => {
       if (e.id !== updated.id) return e;
       return {
@@ -99,6 +101,9 @@ export function TimeEntryList({
         clientId: updated.clientId ?? e.clientId,
         projectId: updated.projectId !== undefined ? updated.projectId : e.projectId,
         notes: updated.notes !== undefined ? updated.notes : e.notes,
+        projectName: updated.projectName !== undefined ? updated.projectName : e.projectName,
+        startMinutes: updated.startMinutes !== undefined ? updated.startMinutes : e.startMinutes,
+        endMinutes: updated.endMinutes !== undefined ? updated.endMinutes : e.endMinutes,
       };
     }));
     setEditingEntry(null);

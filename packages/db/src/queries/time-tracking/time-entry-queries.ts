@@ -5,6 +5,8 @@ export interface UpdateTimeEntryInput {
   workspaceId: string;
   date?: string;
   durationMinutes?: number;
+  startMinutes?: number | null;
+  endMinutes?: number | null;
   clientId?: string;
   projectId?: string | null;
   notes?: string | null;
@@ -24,6 +26,8 @@ export async function updateTimeEntry(
   };
   if (input.date !== undefined) updateFields.date = input.date;
   if (input.durationMinutes !== undefined) updateFields.duration_minutes = input.durationMinutes;
+  if (input.startMinutes !== undefined) updateFields.start_minutes = input.startMinutes;
+  if (input.endMinutes !== undefined) updateFields.end_minutes = input.endMinutes;
   if (input.clientId !== undefined) updateFields.client_id = input.clientId;
   if (input.projectId !== undefined) updateFields.project_id = input.projectId;
   if (input.notes !== undefined) updateFields.notes = input.notes;
@@ -78,6 +82,8 @@ export interface TimeEntryCurrentValues {
   id: string;
   date: string;
   durationMinutes: number;
+  startMinutes: number | null;
+  endMinutes: number | null;
   clientId: string;
   projectId: string | null;
   notes: string | null;
@@ -91,7 +97,7 @@ export async function getTimeEntryForUpdate(
 ): Promise<TimeEntryCurrentValues | null> {
   const { data, error } = await supabase
     .from('time_entries')
-    .select('id, date, duration_minutes, client_id, project_id, notes, deleted_at, user_id')
+    .select('id, date, duration_minutes, start_minutes, end_minutes, client_id, project_id, notes, deleted_at, user_id')
     .eq('id', input.id)
     .eq('workspace_id', input.workspaceId)
     .maybeSingle();
@@ -104,6 +110,8 @@ export async function getTimeEntryForUpdate(
     id: row.id as string,
     date: row.date as string,
     durationMinutes: row.duration_minutes as number,
+    startMinutes: row.start_minutes as number | null,
+    endMinutes: row.end_minutes as number | null,
     clientId: row.client_id as string,
     projectId: row.project_id as string | null,
     notes: row.notes as string | null,

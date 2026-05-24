@@ -21,6 +21,8 @@ export const timeEntries = pgTable(
     projectId: uuid('project_id').references(() => projects.id, { onDelete: 'set null' }),
     date: date('date').notNull(),
     durationMinutes: integer('duration_minutes').notNull(),
+    startMinutes: integer('start_minutes'),
+    endMinutes: integer('end_minutes'),
     notes: text('notes'),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

@@ -5,6 +5,7 @@ import { getCalendarProvider } from '../providers/registry.js';
 import { CalendarTokenManager } from '../providers/google-calendar/token-manager.js';
 import { resolveOriginatingSignal } from './signal-resolution.js';
 import { withTimeout } from './provider-utils.js';
+import { writeRescheduledFromRelation } from './event-relations.js';
 
 export interface CreateEventActionInput {
   workspaceId: string;
@@ -21,11 +22,13 @@ interface SchedulingRequestRow {
   workspace_id: string;
   client_id: string;
   status: string;
+  request_type: string;
   proposed_options: BookingProposal[];
   selected_option: number | null;
   duration_minutes: number | null;
   requested_by: Record<string, unknown>;
   source_email_id: string | null;
+  booked_event_id: string | null;
 }
 
 interface CalendarRow {
@@ -47,7 +50,7 @@ export async function executeCreateEvent(
 
   const { data: reqRow, error: reqError } = await supabase
     .from('scheduling_requests')
-    .select('id, workspace_id, client_id, status, proposed_options, selected_option, duration_minutes, requested_by, source_email_id')
+    .select('id, workspace_id, client_id, status, request_type, proposed_options, selected_option, duration_minutes, requested_by, source_email_id, booked_event_id')
     .eq('id', schedulingRequestId)
     .eq('workspace_id', workspaceId)
     .maybeSingle();
@@ -164,6 +167,12 @@ export async function executeCreateEvent(
       })
       .eq('id', schedulingRequestId)
       .eq('workspace_id', workspaceId);
+
+    if (req.request_type === 'reschedule' && req.booked_event_id) {
+      try {
+        await writeRescheduledFromRelation(req.booked_event_id, eventRow.id, supabase);
+      } catch { /* best-effort — relation writing is non-blocking */ }
+    }
 
     await supabase.from('agent_signals').insert({
       correlation_id: crypto.randomUUID(),
