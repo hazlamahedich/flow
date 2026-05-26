@@ -8,3 +8,5 @@ export { getInvoicePayments } from './get-payments';
 export type { PaymentHistoryRecord } from './get-payments';
 export { recordPaymentViaRpc } from './record-payment';
 export type { InvoicePaymentResult } from './record-payment';
+export { resolveHourlyRate } from './resolve-hourly-rate';
+export type { ResolveHourlyRateResult } from './resolve-hourly-rate';

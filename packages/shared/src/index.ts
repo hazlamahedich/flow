@@ -43,6 +43,12 @@ export {
 export { deriveUIStatus } from './derive-agent-ui-status';
 export { type CircuitBreakerPort, NOOP_CIRCUIT_BREAKER } from './resilience/types';
 export {
+  computeTimeEntryAmount,
+  formatTimeEntryDescription,
+  formatTimeEntryAmountDisplay,
+} from './time-entry-billing';
+
+export {
   numericToMinutes,
   minutesToNumericStr,
   calculateThresholdMinutes,

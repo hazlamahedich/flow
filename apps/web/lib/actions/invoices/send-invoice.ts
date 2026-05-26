@@ -235,6 +235,29 @@ export async function sendInvoiceAction(
     };
   }
 
+  // Mark referenced time entries as invoiced
+  const { data: lineItemTimeEntries } = await supabase
+    .from('invoice_line_items')
+    .select('time_entry_id')
+    .eq('invoice_id', invoiceId)
+    .not('time_entry_id', 'is', null);
+
+  const invoicedTimeEntryIds = ((lineItemTimeEntries ?? []) as Array<{ time_entry_id: string | null }>)
+    .map((te) => te.time_entry_id)
+    .filter((id): id is string => id !== null);
+
+  if (invoicedTimeEntryIds.length > 0) {
+    const { error: teMarkError } = await supabase
+      .from('time_entries')
+      .update({ invoiced_at: nowIso })
+      .in('id', invoicedTimeEntryIds)
+      .eq('workspace_id', ctx.workspaceId);
+
+    if (teMarkError) {
+      console.error('Failed to mark time entries as invoiced:', teMarkError.message, { invoiceId, timeEntryIds: invoicedTimeEntryIds });
+    }
+  }
+
   // Update delivery to sent
   await supabase
     .from('invoice_deliveries')

@@ -24,6 +24,7 @@ export const timeEntries = pgTable(
     startMinutes: integer('start_minutes'),
     endMinutes: integer('end_minutes'),
     notes: text('notes'),
+    invoicedAt: timestamp('invoiced_at', { withTimezone: true }),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -33,6 +34,7 @@ export const timeEntries = pgTable(
     index('idx_time_entries_client_id').on(table.clientId),
     index('idx_time_entries_user_id').on(table.userId),
     index('idx_time_entries_workspace_client_date').on(table.workspaceId, table.clientId, table.date),
+    index('idx_time_entries_invoiced_at').on(table.invoicedAt),
     check(
       'time_entries_duration_check',
       sql`duration_minutes > 0`,

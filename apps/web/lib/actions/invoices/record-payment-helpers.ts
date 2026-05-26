@@ -156,6 +156,7 @@ export async function callPaymentRpcWithRetry(
     paymentDate: string;
     notes: string | undefined;
     createdBy: string;
+    idempotencyKey: string | undefined;
   },
 ): Promise<{
   paymentId: string;
@@ -168,6 +169,9 @@ export async function callPaymentRpcWithRetry(
       await sleep(TRANSIENT_BACKOFFS[attempt - 1] ?? 400);
     }
 
+    const keyHash = params.idempotencyKey ? hashIdempotencyKey(params.invoiceId, params.idempotencyKey) : null;
+    const scope = params.idempotencyKey ? buildScope(params.workspaceId, params.invoiceId) : null;
+
     const { data: rpcResult, error: rpcError } = await supabase
       .rpc('record_payment_with_concurrency', {
         p_invoice_id: params.invoiceId,
@@ -178,6 +182,8 @@ export async function callPaymentRpcWithRetry(
         p_notes: params.notes ?? null,
         p_stripe_payment_intent_id: null,
         p_created_by: params.createdBy,
+        p_key_hash: keyHash,
+        p_key_scope: scope,
       });
 
     if (rpcError) {

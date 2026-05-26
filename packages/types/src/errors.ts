@@ -72,7 +72,8 @@ export type FlowErrorCode =
   | 'INVOICE_VOIDED'
   | 'INVOICE_ALREADY_PAID'
   | 'INVOICE_DRAFT'
-  | 'CONCURRENT_PAYMENT_CONFLICT';
+  | 'CONCURRENT_PAYMENT_CONFLICT'
+  | 'NO_HOURLY_RATE';
 
 export type AgentErrorCode =
   | 'AGENT_ERROR'

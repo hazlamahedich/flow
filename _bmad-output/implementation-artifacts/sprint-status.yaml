@@ -76,7 +76,8 @@ development_status:
   epic-7: in-progress
   7-1-invoice-data-model-creation: review
   7-2-invoice-delivery-payment-link: ready-for-dev
-  7-3-partial-payments-balance-tracking: review
+  7-3-partial-payments-balance-tracking: done
+  7-3a-time-entry-billing-computation: in-progress
   7-4-void-credit-note-time-reconciliation: backlog
   7-5-stripe-payment-failure-handling: backlog
   epic-7-retrospective: optional

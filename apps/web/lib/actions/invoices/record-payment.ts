@@ -7,7 +7,6 @@ import { recordPaymentSchema } from '@flow/types';
 import type { ActionResult, InvoicePayment, OverpaymentWarning, InvoiceWithBalance } from '@flow/types';
 import {
   checkIdempotencyKey,
-  storeIdempotencyKey,
   fetchInvoiceForPayment,
   callPaymentRpcWithRetry,
 } from './record-payment-helpers';
@@ -51,6 +50,7 @@ export async function recordPaymentAction(
 
   const rpcResult = await callPaymentRpcWithRetry(supabase, {
     invoiceId, workspaceId: ctx.workspaceId, amountCents, paymentMethod, paymentDate, notes, createdBy: ctx.userId,
+    idempotencyKey,
   });
 
   if ('error' in rpcResult) return { success: false, error: rpcResult.error };
@@ -80,21 +80,6 @@ export async function recordPaymentAction(
 
   if (isOverpayment) {
     response.warning = { type: 'OVERPAYMENT_CREDIT', excessAmountCents: amountCents - outstanding, creditBalanceCents: newCreditBalance };
-  }
-
-  await storeIdempotencyKey(supabase, ctx.workspaceId, invoiceId, idempotencyKey, response);
-
-  await supabase.from('audit_log').insert({
-    workspace_id: ctx.workspaceId, user_id: ctx.userId, action: 'create',
-    entity_type: 'invoice_payment', entity_id: paymentId,
-    details: { invoiceId, amountCents, paymentMethod, paymentDate, notes },
-  });
-
-  if (status !== newStatus) {
-    await supabase.from('audit_log').insert({
-      workspace_id: ctx.workspaceId, user_id: ctx.userId, action: 'status_change',
-      entity_type: 'invoice', entity_id: invoiceId, details: { from: status, to: newStatus },
-    });
   }
 
   revalidateTag(cacheTag('invoice', ctx.workspaceId));

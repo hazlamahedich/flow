@@ -144,7 +144,7 @@ export function RecordPaymentModal({
         {warning && (
           <OverpaymentConfirmation
             excessCents={warning.excessCents}
-            displayAmount={`$${formatCentsToDollar(parseAmount(amountStr) ?? 0)}`}
+            displayAmount={formatCentsToDollar(parseAmount(amountStr) ?? 0)}
             onConfirm={() => handleSubmit(true)}
             onCancel={() => setWarning(null)}
           />
@@ -172,9 +172,8 @@ export function RecordPaymentModal({
               id="payment-date" type="date" value={paymentDate} max={todayStr}
               onChange={(e) => setPaymentDate(e.target.value)} disabled={!!warning}
               className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline focus:outline-2 focus:outline-ring"
-              aria-describedby="date-error"
             />
-            <p id="date-error" className="sr-only">Payment date cannot be in the future.</p>
+            <p id="date-error" className="text-sm text-destructive"></p>
           </div>
 
           <div className="space-y-1">

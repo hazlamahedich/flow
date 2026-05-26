@@ -424,6 +424,6 @@ _Code review: 2026-05-26 — 3 parallel layers (Blind Hunter, Edge Case Hunter, 
 
 ---
 
-Status: review
+Status: done
 
 Last updated: 2026-05-26

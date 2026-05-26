@@ -160,7 +160,10 @@ CREATE OR REPLACE FUNCTION record_payment_with_concurrency(
   p_payment_date DATE,
   p_notes TEXT DEFAULT NULL,
   p_stripe_payment_intent_id TEXT DEFAULT NULL,
-  p_created_by UUID DEFAULT NULL
+  p_created_by UUID DEFAULT NULL,
+  p_key_hash TEXT DEFAULT NULL,
+  p_key_scope TEXT DEFAULT NULL,
+  p_key_expires_at TIMESTAMPTZ DEFAULT (now() + interval '24 hours')
 )
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -171,7 +174,22 @@ DECLARE
   v_new_amount_paid BIGINT;
   v_new_credit_balance BIGINT;
   v_payment_id UUID;
+  v_response_json jsonb;
+  v_idem_response jsonb;
 BEGIN
+  -- Idempotency: return cached response if key exists and hasn't expired
+  IF p_key_hash IS NOT NULL THEN
+    SELECT response_json INTO v_idem_response
+    FROM idempotency_keys
+    WHERE key_hash = p_key_hash
+      AND scope = p_key_scope
+      AND expires_at > now();
+
+    IF v_idem_response IS NOT NULL THEN
+      RETURN v_idem_response;
+    END IF;
+  END IF;
+
   SELECT id, total_cents, amount_paid_cents, credit_balance_cents, status, version
     INTO v_invoice
     FROM invoices
@@ -200,7 +218,6 @@ BEGIN
 
   v_new_amount_paid := v_invoice.amount_paid_cents + p_amount_cents;
 
-  -- Compute new status
   IF v_new_amount_paid >= v_invoice.total_cents THEN
     v_new_status := 'paid';
     v_new_credit_balance := v_new_amount_paid - v_invoice.total_cents;
@@ -221,12 +238,21 @@ BEGIN
     updated_at = now()
   WHERE id = p_invoice_id AND workspace_id = p_workspace_id;
 
-  RETURN jsonb_build_object(
+  v_response_json := jsonb_build_object(
     'payment_id', v_payment_id,
     'new_status', v_new_status,
     'amount_paid_cents', v_new_amount_paid,
     'credit_balance_cents', v_new_credit_balance
   );
+
+  -- Store idempotency key inside the same transaction
+  IF p_key_hash IS NOT NULL THEN
+    INSERT INTO idempotency_keys (key_hash, scope, invoice_id, workspace_id, response_json, expires_at)
+    VALUES (p_key_hash, p_key_scope, p_invoice_id, p_workspace_id, v_response_json, p_key_expires_at)
+    ON CONFLICT (key_hash, scope) DO NOTHING;
+  END IF;
+
+  RETURN v_response_json;
 END;
 $$;
 

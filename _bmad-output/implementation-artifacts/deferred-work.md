@@ -123,6 +123,9 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 | D7-3-R-W9 | — | by-design | descoped — Stripe webhooks post-MVP | 2026-05-26 |
 | D7-3-R-W10 | Low | test-debt | open — verify at integration test | 2026-05-26 |
 | D7-3-R-W11 | Low | tech-debt | open — helpers file near limit | 2026-05-26 |
+| D7-3a-R-D1 | Medium | tech-debt | open — pre-existing pattern from 7-1 | 2026-05-26 |
+| D7-3a-R-D2 | Medium | tech-debt | open — audit log regression from 7-3 | 2026-05-26 |
+| D7-3a-R-D3 | Low | tech-debt | open — aria-describedby regression | 2026-05-26 |
 
 **Open item counts:** 16 open — 1 spec-gap (D5-4-D1 story 5.4a created), 10 tech-debt, 1 test-debt, 1 additional tech-debt from 5-3
 **Resolved this follow-up:** 6 items (D5-1-1, D5-1-5, D5-1-R2-2, D5-1-R2-3, D5-1-R2-4, D5-3-R2-W1)
@@ -530,3 +533,9 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - D7-3-R-W9 — No Stripe webhook handler for `payment_intent.succeeded` to auto-record Stripe payments. Manual-only for v1 as specified. `spec-gap` (by design for Epic 7)
 - D7-3-R-W10 — `formatCentsToDollar` in overpayment-confirmation.tsx passes raw cents number to template literal, not formatted string. Parent passes pre-formatted string. Verify at integration test time. `test-debt` `apps/web/app/(workspace)/invoices/[invoiceId]/components/overpayment-confirmation.tsx:17`
 - D7-3-R-W11 — `record-payment-helpers.ts` at 245 lines is close to the 250-line limit. Further growth may require another split. `tech-debt` `apps/web/lib/actions/invoices/record-payment-helpers.ts`
+
+## Deferred from: code review of 7-3a-time-entry-billing-computation (2026-05-26)
+
+- D7-3a-R-D1 — Non-atomic delete-and-reinsert of line items in update-invoice. DELETE then INSERT without transaction. Concurrent read sees zero items. Pre-existing pattern from Story 7-1. `tech-debt` `apps/web/lib/actions/invoices/update-invoice.ts:192-213`
+- D7-3a-R-D2 — Audit log inserts removed from record-payment.ts without server-side replacement in RPC. Pre-existing regression from 7-3 idempotency refactor. `tech-debt` `apps/web/lib/actions/invoices/record-payment.ts`
+- D7-3a-R-D3 — Accessibility regression: `aria-describedby` removed from date input and error text emptied in record-payment-modal. Pre-existing from 7-3 patches. `tech-debt` `apps/web/app/(workspace)/invoices/[invoiceId]/components/record-payment-modal.tsx`

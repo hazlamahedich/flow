@@ -191,6 +191,8 @@ export {
   getInvoicePayments,
   recordPaymentViaRpc,
 } from './queries/invoices';
+export { resolveHourlyRate } from './queries/invoices/resolve-hourly-rate';
+export type { ResolveHourlyRateResult } from './queries/invoices/resolve-hourly-rate';
 export type {
   GetInvoicesParams,
   InvoiceDetail,
