@@ -187,8 +187,8 @@ describe('createInvoiceSchema', () => {
   });
 
   it('accepts time_entry line items without amountCents', () => {
-    // NOTE: time_entry line items are currently blocked by createInvoiceSchema.refine
-    // per Story 7-1 / 7-2 scope. They will be enabled in Story 7-3.
+    // NOTE: time_entry line items are now allowed in Zod schema (unblocked in Story 7-3)
+    // but rejected by Server Action with NOT_IMPLEMENTED. See Story 7-3a.
     const input = {
       ...validBase,
       lineItems: [
@@ -200,7 +200,7 @@ describe('createInvoiceSchema', () => {
         },
       ],
     };
-    expect(createInvoiceSchema.safeParse(input).success).toBe(false);
+    expect(createInvoiceSchema.safeParse(input).success).toBe(true);
   });
 
   it('rejects invalid date format', () => {

@@ -13,6 +13,7 @@ export interface InvoiceListItem {
   issueDate: string;
   dueDate: string;
   totalCents: number;
+  balanceCents: number;
   currency: string;
   clientId: string;
   clientName: string;
@@ -38,7 +39,7 @@ export async function getInvoices(
       .eq('workspace_id', params.workspaceId),
     client
       .from('invoices')
-      .select('id, invoice_number, status, issue_date, due_date, total_cents, currency, client_id, created_at, clients(name)')
+      .select('id, invoice_number, status, issue_date, due_date, total_cents, amount_paid_cents, currency, client_id, created_at, clients(name)')
       .eq('workspace_id', params.workspaceId)
       .order('created_at', { ascending: false })
       .range(from, to),
@@ -48,18 +49,23 @@ export async function getInvoices(
   if (queryError) throw queryError;
 
   return {
-    invoices: (rows ?? []).map((r: Record<string, unknown>) => ({
-      id: r.id as string,
-      invoiceNumber: r.invoice_number as string,
-      status: r.status as string,
-      issueDate: String(r.issue_date),
-      dueDate: String(r.due_date),
-      totalCents: Number(r.total_cents),
-      currency: r.currency as string,
-      clientId: r.client_id as string,
-      clientName: ((r.clients as Record<string, unknown> | null)?.name ?? '') as string,
-      createdAt: String(r.created_at),
-    })),
+    invoices: (rows ?? []).map((r: Record<string, unknown>) => {
+      const total = Number(r.total_cents ?? 0);
+      const paid = Number(r.amount_paid_cents ?? 0);
+      return {
+        id: r.id as string,
+        invoiceNumber: r.invoice_number as string,
+        status: r.status as string,
+        issueDate: String(r.issue_date),
+        dueDate: String(r.due_date),
+        totalCents: total,
+        balanceCents: Math.max(total - paid, 0),
+        currency: r.currency as string,
+        clientId: r.client_id as string,
+        clientName: ((r.clients as Record<string, unknown> | null)?.name ?? '') as string,
+        createdAt: String(r.created_at),
+      };
+    }),
     total: count ?? 0,
   };
 }

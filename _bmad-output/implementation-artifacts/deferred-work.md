@@ -111,6 +111,18 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 | D5-4a-R1-W1 | Low | tech-debt | open — pagination follow-up | 2026-05-13 |
 | D5-4a-R1-W2 | Medium | tech-debt | open — Epic 10 error-handling (10-4) | 2026-05-13 |
 | D5-4a-R1-W3 | Low | tech-debt | open — UX polish pass | 2026-05-13 |
+| D7-3-R-D1 | Medium | tech-debt | open — v1 tradeoff | 2026-05-26 |
+| D7-3-R-W1 | Medium | spec-gap | open — toast infrastructure story | 2026-05-26 |
+| D7-3-R-W2 | Low | tech-debt | open — clientName consistency | 2026-05-26 |
+| D7-3-R-W3 | Low | tech-debt | open — pre-existing import error | 2026-05-26 |
+| D7-3-R-W4 | Low | tech-debt | open — pre-existing type mismatch | 2026-05-26 |
+| D7-3-R-W5 | Medium | test-debt | open — ATDD stubs to implement | 2026-05-26 |
+| D7-3-R-W6 | Low | tech-debt | open — RPC error structuring | 2026-05-26 |
+| D7-3-R-W7 | Low | tech-debt | open — composite index | 2026-05-26 |
+| D7-3-R-W8 | Low | tech-debt | open — balance recalc perf | 2026-05-26 |
+| D7-3-R-W9 | — | by-design | descoped — Stripe webhooks post-MVP | 2026-05-26 |
+| D7-3-R-W10 | Low | test-debt | open — verify at integration test | 2026-05-26 |
+| D7-3-R-W11 | Low | tech-debt | open — helpers file near limit | 2026-05-26 |
 
 **Open item counts:** 16 open — 1 spec-gap (D5-4-D1 story 5.4a created), 10 tech-debt, 1 test-debt, 1 additional tech-debt from 5-3
 **Resolved this follow-up:** 6 items (D5-1-1, D5-1-5, D5-1-R2-2, D5-1-R2-3, D5-1-R2-4, D5-3-R2-W1)
@@ -503,3 +515,18 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - D6-4-R-DEADCODE — Cascade executor non-cancel update path sends empty provider payload. Currently unreachable but dead code. Blocked on move-to-vacated option implementation. `tech-debt`
 - D6-4-R-EMPTYCATCH — Empty catch block without comment in cascade rollback path (cascade-executor.ts:793). Project rule violation. Coupled to rollback rework. `tech-debt`
 - D6-4-R-PRECEDENCE — Operator precedence: `source ?? 'unknown' as const` in initial-sync.ts:121. `as const` binds tighter than `??` but TypeScript still infers correctly. Cosmetic. `tech-debt`
+
+## Deferred from: code review of 7-3-partial-payments-balance-tracking (2026-05-26)
+
+- D7-3-R-D1 — Idempotency key stored after RPC (not atomic inside transaction). If store fails after successful payment, retry produces duplicate. Accepted tradeoff for v1 — real-world probability negligible for single-VA billing. `tech-debt` `apps/web/lib/actions/invoices/record-payment-helpers.ts`
+- D7-3-R-W1 — No generic toast system; success notification uses `alert()`. Toast infrastructure is a cross-cutting concern deferred to a dedicated story. `spec-gap` `apps/web/app/(workspace)/invoices/[invoiceId]/components/record-payment-modal.tsx:94`
+- D7-3-R-W2 — `clientName` added as optional field on `InvoiceWithBalance` but not populated from DB in all query paths. Some consumers may see `undefined`. Populate consistently in a follow-up or remove optional field. `tech-debt` `packages/types/src/invoice-payment.ts:31`
+- D7-3-R-W3 — Pre-existing `create-invoice-form.tsx` imports `./actions` which doesn't exist; not a 7-3 issue. `tech-debt` `apps/web/app/(workspace)/invoices/new/components/create-invoice-form.tsx:5`
+- D7-3-R-W4 — Pre-existing `get-delivery-status.ts` type mismatch on `attemptLog` array (string vs optional fields). Not a 7-3 issue. `tech-debt` `apps/web/lib/actions/invoices/get-delivery-status.ts:63`
+- D7-3-R-W5 — ATDD stubs (8 `test.skip()` in `7-3-partial-payments.spec.ts`) remain skipped; implement when feature is integration-tested. `test-debt` `apps/web/__tests__/acceptance/epic-7/7-3-partial-payments.spec.ts`
+- D7-3-R-W6 — RPC `record_payment_with_concurrency` uses `RAISE EXCEPTION` for error signaling; no structured error code field in the exception message. Client parses error text to map codes. Consider adding `ERRCODE` or JSON payload in a hardening pass. `tech-debt` `supabase/migrations/20260529000001_invoice_payments.sql`
+- D7-3-R-W7 — `invoice_payments` table has no index on `(invoice_id, created_at)` for payment history ordering by date. Add composite index when payment history query performance becomes measurable. `tech-debt` `supabase/migrations/20260529000001_invoice_payments.sql`
+- D7-3-R-W8 — Balance recalculation in RPC uses `COALESCE(SUM(p.amount_cents), 0)` which scans all payments for the invoice on each payment. Acceptable at current scale. Consider materialized balance or trigger-based update at scale. `tech-debt` `supabase/migrations/20260529000001_invoice_payments.sql`
+- D7-3-R-W9 — No Stripe webhook handler for `payment_intent.succeeded` to auto-record Stripe payments. Manual-only for v1 as specified. `spec-gap` (by design for Epic 7)
+- D7-3-R-W10 — `formatCentsToDollar` in overpayment-confirmation.tsx passes raw cents number to template literal, not formatted string. Parent passes pre-formatted string. Verify at integration test time. `test-debt` `apps/web/app/(workspace)/invoices/[invoiceId]/components/overpayment-confirmation.tsx:17`
+- D7-3-R-W11 — `record-payment-helpers.ts` at 245 lines is close to the 250-line limit. Further growth may require another split. `tech-debt` `apps/web/lib/actions/invoices/record-payment-helpers.ts`

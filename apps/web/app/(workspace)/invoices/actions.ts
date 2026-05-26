@@ -5,3 +5,4 @@ export { getInvoicesAction } from '@/lib/actions/invoices/get-invoices';
 export { getInvoiceDetailAction } from '@/lib/actions/invoices/get-invoice-detail';
 export { updateInvoiceAction } from '@/lib/actions/invoices/update-invoice';
 export { checkInvoiceDuplicatesAction } from '@/lib/actions/invoices/check-invoice-duplicates';
+export { recordPaymentAction } from '@/lib/actions/invoices/record-payment';

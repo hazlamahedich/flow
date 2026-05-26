@@ -184,6 +184,19 @@ export type { TimerStateWithNames, GetTimerStateInput, StartTimerInput, StopTime
 export { createProject, ProjectNameDuplicateError, listProjects } from './queries/projects';
 export type { Project, CreateProjectInput, ListProjectsInput } from './queries/projects';
 export { decryptCalendarTokens, encryptCalendarTokens, rotateCalendarTokens } from './vault/calendar-tokens';
-export { getInvoices, getInvoiceDetail } from './queries/invoices';
-export type { GetInvoicesParams, InvoiceDetail, InvoiceListItem } from './queries/invoices';
+export {
+  getInvoices,
+  getInvoiceDetail,
+  getInvoiceWithBalance,
+  getInvoicePayments,
+  recordPaymentViaRpc,
+} from './queries/invoices';
+export type {
+  GetInvoicesParams,
+  InvoiceDetail,
+  InvoiceWithPaymentsAndBalance,
+  PaymentHistoryRecord,
+  InvoicePaymentResult,
+  InvoiceListItem,
+} from './queries/invoices';
 export { createInvoiceEditGuard } from './queries/invoices/invoice-edit-guard';

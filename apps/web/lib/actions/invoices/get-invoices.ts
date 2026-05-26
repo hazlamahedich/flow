@@ -31,7 +31,7 @@ export async function getInvoicesAction(
       .eq('workspace_id', ctx.workspaceId),
     supabase
       .from('invoices')
-      .select('id, invoice_number, status, issue_date, due_date, total_cents, currency, client_id, created_at, clients(name)')
+      .select('id, invoice_number, status, issue_date, due_date, total_cents, amount_paid_cents, currency, client_id, created_at, clients(name)')
       .eq('workspace_id', ctx.workspaceId)
       .order('created_at', { ascending: false })
       .range(from, to),
@@ -47,18 +47,23 @@ export async function getInvoicesAction(
   return {
     success: true,
     data: {
-      invoices: (queryResult.data ?? []).map((r: Record<string, unknown>) => ({
-        id: r.id as string,
-        invoiceNumber: r.invoice_number as string,
-        status: r.status as string,
-        issueDate: String(r.issue_date),
-        dueDate: String(r.due_date),
-        totalCents: Number(r.total_cents),
-        currency: r.currency as string,
-        clientId: r.client_id as string,
-        clientName: ((r.clients as Record<string, unknown> | null)?.name ?? '') as string,
-        createdAt: String(r.created_at),
-      })),
+      invoices: (queryResult.data ?? []).map((r: Record<string, unknown>) => {
+        const total = Number(r.total_cents ?? 0);
+        const paid = Number(r.amount_paid_cents ?? 0);
+        return {
+          id: r.id as string,
+          invoiceNumber: r.invoice_number as string,
+          status: r.status as string,
+          issueDate: String(r.issue_date),
+          dueDate: String(r.due_date),
+          totalCents: total,
+          balanceCents: Math.max(total - paid, 0),
+          currency: r.currency as string,
+          clientId: r.client_id as string,
+          clientName: ((r.clients as Record<string, unknown> | null)?.name ?? '') as string,
+          createdAt: String(r.created_at),
+        };
+      }),
       total: countResult.count ?? 0,
     },
   };

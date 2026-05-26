@@ -111,12 +111,17 @@ export async function createInvoiceAction(
 
   const invoiceNumber = invNumResult as string;
 
-  const billableItems = lineItems.filter(
-    (li): li is Extract<typeof li, { sourceType: 'retainer' }> | Extract<typeof li, { sourceType: 'fixed_service' }> =>
-      li.sourceType !== 'time_entry',
-  );
+  if (lineItems.some((li) => li.sourceType === 'time_entry')) {
+    return {
+      success: false,
+      error: createFlowError(501, 'NOT_IMPLEMENTED', 'Time entry billing computation is not yet implemented. See Story 7-3a.', 'validation'),
+    };
+  }
 
-  const dbLineItems = billableItems.map((item, index) => {
+  const dbLineItems = lineItems.map((item, index) => {
+    if (item.sourceType === 'time_entry') {
+      throw new Error('Unreachable: time_entry handled above');
+    }
     if (item.sourceType === 'retainer') {
       const amount = item.amountCents;
       return {
@@ -201,6 +206,13 @@ export async function createInvoiceAction(
         voidReason: null,
         createdAt: ((created as Record<string, unknown>)?.created_at as string) ?? new Date().toISOString(),
         updatedAt: ((created as Record<string, unknown>)?.updated_at as string) ?? new Date().toISOString(),
+        amountPaidCents: 0,
+        creditBalanceCents: 0,
+        version: 1,
+        paymentUrl: null,
+        sentAt: null,
+        viewedAt: null,
+        deliveryToken: null,
       },
     };
   } catch {

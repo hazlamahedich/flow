@@ -89,5 +89,8 @@ export async function createInvoice(
     sentAt: invoice.sent_at ?? null,
     viewedAt: invoice.viewed_at ?? null,
     deliveryToken: invoice.delivery_token ?? null,
+    amountPaidCents: invoice.amount_paid_cents ?? 0,
+    creditBalanceCents: invoice.credit_balance_cents ?? 0,
+    version: invoice.version ?? 1,
   };
 }

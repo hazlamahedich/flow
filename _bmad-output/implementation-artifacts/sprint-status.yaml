@@ -1,5 +1,5 @@
 generated: 2026-04-20
-last_updated: 2026-05-26  # Story 7-1 review
+last_updated: 2026-05-26  # Story 7-3 created
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -76,7 +76,7 @@ development_status:
   epic-7: in-progress
   7-1-invoice-data-model-creation: review
   7-2-invoice-delivery-payment-link: ready-for-dev
-  7-3-partial-payments-balance-tracking: backlog
+  7-3-partial-payments-balance-tracking: review
   7-4-void-credit-note-time-reconciliation: backlog
   7-5-stripe-payment-failure-handling: backlog
   epic-7-retrospective: optional

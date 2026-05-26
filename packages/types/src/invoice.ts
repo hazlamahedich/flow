@@ -18,6 +18,15 @@ export const invoiceLineItemSourceEnum = z.enum([
 ]);
 export type InvoiceLineItemSource = z.infer<typeof invoiceLineItemSourceEnum>;
 
+export const paymentMethodEnum = z.enum([
+  'stripe',
+  'manual_check',
+  'manual_bank_transfer',
+  'manual_cash',
+  'manual_other',
+]);
+export type PaymentMethod = z.infer<typeof paymentMethodEnum>;
+
 const validDateSchema = z.string().refine(
   (val) => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) return false;
@@ -77,11 +86,7 @@ export const createInvoiceSchema = z.object({
   lineItems: z
     .array(allLineItemSchemas)
     .min(1, 'At least one line item is required')
-    .max(100, 'Maximum 100 line items')
-    .refine(
-      (items) => !items.some((li) => li.sourceType === 'time_entry'),
-      { message: 'time_entry line items are not yet supported — coming in Story 7-3' },
-    ),
+    .max(100, 'Maximum 100 line items'),
   issueDate: validDateSchema,
   dueDate: validDateSchema,
   notes: z.string().max(5000).optional(),
@@ -90,47 +95,6 @@ export const createInvoiceSchema = z.object({
   { message: 'dueDate must be >= issueDate', path: ['dueDate'] },
 );
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
-
-export const invoiceDeliveryStatusEnum = z.enum([
-  'pending',
-  'sent',
-  'failed',
-  'bounced',
-]);
-export type InvoiceDeliveryStatus = z.infer<typeof invoiceDeliveryStatusEnum>;
-
-export interface InvoiceDelivery {
-  id: string;
-  invoiceId: string;
-  workspaceId: string;
-  status: InvoiceDeliveryStatus;
-  sentAt: string | null;
-  retryCount: number;
-  lastError: string | null;
-  messageId: string | null;
-  attemptLog: Array<{
-    attemptedAt: string;
-    error?: string;
-    providerResponse?: Record<string, unknown>;
-  }>;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export const sendInvoiceSchema = z.object({
-  invoiceId: z.string().uuid(),
-});
-export type SendInvoiceInput = z.infer<typeof sendInvoiceSchema>;
-
-export const resendInvoiceSchema = z.object({
-  invoiceId: z.string().uuid(),
-});
-export type ResendInvoiceInput = z.infer<typeof resendInvoiceSchema>;
-
-export const getDeliveryStatusSchema = z.object({
-  invoiceId: z.string().uuid(),
-});
-export type GetDeliveryStatusInput = z.infer<typeof getDeliveryStatusSchema>;
 
 export const invoiceSchema = z.object({
   id: z.string().uuid(),
@@ -151,6 +115,9 @@ export const invoiceSchema = z.object({
   sentAt: z.string().nullable(),
   viewedAt: z.string().nullable(),
   deliveryToken: z.string().nullable(),
+  amountPaidCents: z.number(),
+  creditBalanceCents: z.number(),
+  version: z.number(),
 });
 export type Invoice = z.infer<typeof invoiceSchema>;
 
@@ -184,10 +151,6 @@ export const updateInvoiceSchema = z.object({
     .array(allLineItemSchemas)
     .min(1)
     .max(100)
-    .refine(
-      (items) => !items.some((li) => li.sourceType === 'time_entry'),
-      { message: 'time_entry line items are not yet supported — coming in Story 7-3' },
-    )
     .optional(),
   issueDate: validDateSchema.optional(),
   dueDate: validDateSchema.optional(),

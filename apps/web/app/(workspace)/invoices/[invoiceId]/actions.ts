@@ -4,3 +4,4 @@ export { getInvoiceDetailAction } from '@/lib/actions/invoices/get-invoice-detai
 export { sendInvoiceAction } from '@/lib/actions/invoices/send-invoice';
 export { resendInvoiceAction } from '@/lib/actions/invoices/resend-invoice';
 export { getDeliveryStatusAction } from '@/lib/actions/invoices/get-delivery-status';
+export { recordPaymentAction } from '@/lib/actions/invoices/record-payment';

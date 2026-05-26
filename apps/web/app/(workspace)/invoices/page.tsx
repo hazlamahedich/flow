@@ -63,6 +63,7 @@ export default async function InvoicesPage() {
                   <th className="px-4 py-3 text-left font-medium">Client</th>
                   <th className="px-4 py-3 text-left font-medium">Status</th>
                   <th className="px-4 py-3 text-right font-medium">Total</th>
+                  <th className="px-4 py-3 text-right font-medium">Balance</th>
                   <th className="px-4 py-3 text-left font-medium">Issue Date</th>
                   <th className="px-4 py-3 text-left font-medium">Due Date</th>
                 </tr>
@@ -83,6 +84,9 @@ export default async function InvoicesPage() {
                     <td className="px-4 py-3 text-right font-mono">
                       {formatCentsToDollar(inv.totalCents)}
                     </td>
+                    <td className="px-4 py-3 text-right font-mono">
+                      {formatCentsToDollar(inv.balanceCents)}
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground">{inv.issueDate}</td>
                     <td className="px-4 py-3 text-muted-foreground">{inv.dueDate}</td>
                   </tr>
@@ -98,6 +102,7 @@ export default async function InvoicesPage() {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const label = status.replaceAll('_', ' ');
   const styles: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-700',
     sent: 'bg-blue-100 text-blue-700',
@@ -108,8 +113,11 @@ function StatusBadge({ status }: { status: string }) {
     voided: 'bg-gray-100 text-gray-400 line-through',
   };
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? 'bg-gray-100 text-gray-600'}`}>
-      {status.replace('_', ' ')}
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? 'bg-gray-100 text-gray-600'}`}
+      aria-label={`Status: ${label}`}
+    >
+      {label}
     </span>
   );
 }

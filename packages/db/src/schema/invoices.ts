@@ -21,6 +21,9 @@ export const invoices = pgTable(
     issueDate: date('issue_date').notNull(),
     dueDate: date('due_date').notNull(),
     totalCents: bigint('total_cents', { mode: 'number' }).notNull().default(0),
+    amountPaidCents: bigint('amount_paid_cents', { mode: 'number' }).notNull().default(0),
+    creditBalanceCents: bigint('credit_balance_cents', { mode: 'number' }).notNull().default(0),
+    version: integer('version').notNull().default(1),
     currency: text('currency').notNull().default('usd'),
     notes: text('notes'),
     metadata: jsonb('metadata').notNull().default({}),
@@ -46,6 +49,61 @@ export const invoices = pgTable(
       'invoices_total_nonneg',
       sql`total_cents >= 0`,
     ),
+    check(
+      'invoices_amount_paid_nonneg',
+      sql`amount_paid_cents >= 0`,
+    ),
+    check(
+      'invoices_credit_balance_nonneg',
+      sql`credit_balance_cents >= 0`,
+    ),
+  ],
+);
+
+export const invoicePayments = pgTable(
+  'invoice_payments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    invoiceId: uuid('invoice_id')
+      .notNull()
+      .references(() => invoices.id, { onDelete: 'cascade' }),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    amountCents: bigint('amount_cents', { mode: 'number' }).notNull().default(0),
+    paymentMethod: text('payment_method').notNull(),
+    paymentDate: date('payment_date').notNull(),
+    notes: text('notes'),
+    stripePaymentIntentId: text('stripe_payment_intent_id').unique(),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('idx_invoice_payments_invoice_id').on(table.invoiceId),
+    index('idx_invoice_payments_workspace_id').on(table.workspaceId),
+    check(
+      'ip_amount_nonneg',
+      sql`amount_cents >= 0`,
+    ),
+  ],
+);
+
+export const idempotencyKeys = pgTable(
+  'idempotency_keys',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    keyHash: text('key_hash').notNull(),
+    scope: text('scope').notNull(),
+    invoiceId: uuid('invoice_id').references(() => invoices.id, { onDelete: 'cascade' }),
+    workspaceId: uuid('workspace_id').references(() => workspaces.id, { onDelete: 'cascade' }),
+    responseJson: jsonb('response_json'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    index('idx_idempotency_keys_scope').on(table.scope),
+    index('idx_idempotency_keys_expires').on(table.expiresAt),
   ],
 );
 
@@ -128,3 +186,7 @@ export type InvoiceLineItem = typeof invoiceLineItems.$inferSelect;
 export type NewInvoiceLineItem = typeof invoiceLineItems.$inferInsert;
 export type InvoiceDelivery = typeof invoiceDeliveries.$inferSelect;
 export type NewInvoiceDelivery = typeof invoiceDeliveries.$inferInsert;
+export type InvoicePayment = typeof invoicePayments.$inferSelect;
+export type NewInvoicePayment = typeof invoicePayments.$inferInsert;
+export type IdempotencyKey = typeof idempotencyKeys.$inferSelect;
+export type NewIdempotencyKey = typeof idempotencyKeys.$inferInsert;

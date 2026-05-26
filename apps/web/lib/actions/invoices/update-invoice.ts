@@ -49,6 +49,13 @@ export async function updateInvoiceAction(
   if (dueDate !== undefined) updateData.due_date = dueDate;
 
   if (lineItems) {
+    if (lineItems.some((li) => li.sourceType === 'time_entry')) {
+      return {
+        success: false,
+        error: createFlowError(501, 'NOT_IMPLEMENTED', 'Time entry billing computation is not yet implemented. See Story 7-3a.', 'validation'),
+      };
+    }
+
     const { error: deleteError } = await supabase
       .from('invoice_line_items')
       .delete()
