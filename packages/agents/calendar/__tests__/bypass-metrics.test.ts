@@ -105,7 +105,7 @@ describe('upsertBypassMetrics', () => {
 
   it('retries on optimistic concurrency conflict (update returns null)', async () => {
     const existing = { id: 'm-1', total_events: 5, bypass_count: 2, bypass_rate: '0.4000', window_start: '2026-04-24', window_end: '2026-05-24' };
-    const updated = { id: 'm-1', total_events: 6, bypass_count: 3, bypass_rate: '0.5000' };
+    const updated = { id: 'm-1', total_events: 6, bypass_count: 3, bypass_rate: '0.5000', window_start: '2026-04-24', window_end: '2026-05-24' };
 
     let maybeSingleCallCount = 0;
     let fromCallCount = 0;

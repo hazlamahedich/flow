@@ -155,10 +155,10 @@ describe('Story 6-2: Real-Time Conflict Detection', () => {
 
   // AC5: Performance SLA
   describe('AC5: Performance SLA', () => {
-    test('[P0] detection uses idx_cal_events_conflicts partial index', () => {
-      // This is a DB-level concern verified by migration review
-      // The query must filter on workspace_id + time range + future events
-      expect(true).toBe(true);
+    test('[P0] detection uses idx_cal_events_conflicts partial index', async () => {
+      const fs = await import('fs');
+      const migration = fs.readFileSync('/Volumes/One Touch/flow/supabase/migrations/20260521000000_calendar_tables.sql', 'utf-8');
+      expect(migration).toContain('idx_cal_events_conflicts');
     });
   });
 

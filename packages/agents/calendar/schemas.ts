@@ -55,3 +55,72 @@ export const SlotFindingInputSchema = z.object({
   }).optional().nullable(),
   preferences: z.record(z.unknown()).optional().default({}),
 });
+
+export const BypassMetricsRowSchema = z.object({
+  id: z.string(),
+  total_events: z.number().int().nonnegative(),
+  bypass_count: z.number().int().nonnegative(),
+  bypass_rate: z.string(),
+  window_start: z.string(),
+  window_end: z.string(),
+});
+
+export const BypassMetricsSummarySchema = z.object({
+  id: z.string(),
+  total_events: z.number().int().nonnegative(),
+  bypass_count: z.number().int().nonnegative(),
+  bypass_rate: z.string(),
+});
+
+export const EventRelationRowSchema = z.object({
+  id: z.string(),
+  parent_event_id: z.string(),
+  child_event_id: z.string(),
+  relation_type: z.string(),
+});
+
+export const CalendarEventRowSchema = z.object({
+  id: z.string(),
+  client_calendar_id: z.string(),
+  provider_event_id: z.string(),
+  title: z.string(),
+  start_at: z.string(),
+  end_at: z.string(),
+  source: z.string(),
+  created_via: z.string().nullable(),
+});
+
+export const ClientCalendarRowSchema = z.object({
+  id: z.string(),
+  calendar_id: z.string(),
+  provider: z.string(),
+  oauth_state: z.record(z.unknown()),
+});
+
+export const BypassMetricsForAlertSchema = z.object({
+  client_id: z.string(),
+  bypass_rate: z.string(),
+  total_events: z.number().int().nonnegative(),
+  bypass_count: z.number().int().nonnegative(),
+});
+
+export const ClientRowSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+
+export const ConflictSignalRowSchema = z.object({
+  payload: z.record(z.unknown()),
+});
+
+export const EventPreviewRowSchema = z.object({
+  title: z.string(),
+  start_at: z.string(),
+  end_at: z.string(),
+  source: z.string(),
+  client_id: z.string().nullable(),
+});
+
+export const WorkspaceRowSchema = z.object({
+  timezone: z.string().optional().nullable(),
+});

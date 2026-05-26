@@ -9,6 +9,15 @@ function createMockSupabase(
 ) {
   return {
     from: vi.fn((table: string) => {
+      if (table === 'workspaces') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: { timezone: 'UTC' } }),
+            }),
+          }),
+        };
+      }
       if (table === 'calendar_events') {
         return {
           select: vi.fn().mockReturnValue({
@@ -68,7 +77,7 @@ describe('generateDailyPreview', () => {
     expect(result.events).toHaveLength(0);
     expect(result.conflicts).toHaveLength(0);
     expect(result.bypassAlerts).toHaveLength(0);
-    expect(result.date).toBe(new Date().toISOString().split('T')[0]);
+    expect(result.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it('includes events with client names in preview', async () => {

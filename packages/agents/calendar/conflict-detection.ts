@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { CalendarProvider } from '../providers/calendar-provider.js';
+import { withTimeout } from './provider-utils.js';
 
 /** A calendar event involved in a conflict. */
 export interface ConflictEvent {
@@ -46,23 +47,6 @@ interface OverlappingEventRow {
 }
 
 const PROVIDER_TIMEOUT_MS = 30_000;
-
-/**
- * Wraps a promise with a timeout using Promise.race.
- * Rejects with an Error if the promise does not settle within `ms` milliseconds.
- */
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  const controller = new AbortController();
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    const timer = setTimeout(() => {
-      controller.abort();
-      reject(new Error(`Operation timed out after ${ms}ms`));
-    }, ms);
-    // Keep timer reference so the finally block can clean up
-    timer.unref?.();
-  });
-  return Promise.race([promise, timeoutPromise]).finally(() => controller.abort());
-}
 
 /**
  * Calculate the overlap in seconds between two time intervals.

@@ -1,13 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { z } from 'zod';
 import type { CalendarProvider } from '../providers/calendar-provider.js';
 import { withTimeout } from './provider-utils.js';
 import type { CascadeOption, CascadeExecutionResult } from './resolve-cascade-action.js';
+import { CalendarTokenManager } from '../providers/google-calendar/token-manager.js';
+import type { OAuthStateEncrypted } from '@flow/types';
+import { ClientCalendarRowSchema, CalendarEventRowSchema } from './schemas.js';
 
-interface CalendarRow {
-  id: string;
-  calendar_id: string;
-  provider: string;
-  oauth_state: Record<string, unknown>;
+interface EventSnapshot {
+  title: string;
+  start: string;
+  end: string;
+  providerEventId: string;
 }
 
 const PROVIDER_TIMEOUT_MS = 30_000;
@@ -26,44 +30,62 @@ export async function executeCascadeOption(
     return { success: true, executed: [], rolledBack: [] };
   }
 
-  const { data: calData } = await supabase
+  const { data: rawCalData } = await supabase
     .from('client_calendars')
     .select('id, calendar_id, provider, oauth_state')
     .eq('workspace_id', workspaceId)
     .eq('sync_status', 'connected')
     .limit(1);
 
-  const cal = (calData ?? []) as CalendarRow[];
-  if (cal.length === 0) {
+  const calRaw = (rawCalData ?? [])[0];
+  if (!calRaw) {
     throw Object.assign(
       new Error('No connected calendar found for cascade execution'),
       { code: 'CALENDAR_NOT_FOUND' as const, statusCode: 404 },
     );
   }
 
-  const calendar = cal[0]!;
-  const { data: eventData } = await supabase
+  const calParsed = ClientCalendarRowSchema.safeParse(calRaw);
+  if (!calParsed.success) {
+    throw Object.assign(
+      new Error(`Invalid calendar row: ${calParsed.error.message}`),
+      { code: 'CALENDAR_PARSE_FAILED' as const, statusCode: 500 },
+    );
+  }
+  const calendar = calParsed.data;
+
+  const provider = getProvider(calendar.provider);
+  const tokenManager = new CalendarTokenManager(provider);
+  const { tokens } = await tokenManager.getValidTokens(
+    calendar.id,
+    calendar.oauth_state as unknown as OAuthStateEncrypted,
+  );
+
+  if (!tokens.accessToken) {
+    throw Object.assign(
+      new Error('Empty access token — cannot execute cascade'),
+      { code: 'CALENDAR_AUTH_FAILED' as const, statusCode: 401 },
+    );
+  }
+  const accessToken = tokens.accessToken;
+
+  const { data: rawEventData } = await supabase
     .from('calendar_events')
     .select('id, title, start_at, end_at, provider_event_id, client_calendar_id')
     .in('id', eventsToUpdate.map((e) => e.eventId))
     .eq('workspace_id', workspaceId);
 
-  const dbEvents = (eventData ?? []) as Array<{
-    id: string;
-    title: string;
-    start_at: string;
-    end_at: string;
-    provider_event_id: string;
-    client_calendar_id: string;
-  }>;
-
-  const snapshots = new Map<string, { title: string; start: string; end: string; providerEventId: string }>();
-  for (const ev of dbEvents) {
-    snapshots.set(ev.id, {
-      title: ev.title,
-      start: ev.start_at,
-      end: ev.end_at,
-      providerEventId: ev.provider_event_id,
+  const snapshots = new Map<string, EventSnapshot>();
+  for (const rawEv of rawEventData ?? []) {
+    const ev = CalendarEventRowSchema.pick({
+      id: true, title: true, start_at: true, end_at: true,
+    }).extend({ provider_event_id: z.string() }).safeParse(rawEv);
+    if (!ev.success) continue;
+    snapshots.set(ev.data.id, {
+      title: ev.data.title,
+      start: ev.data.start_at,
+      end: ev.data.end_at,
+      providerEventId: ev.data.provider_event_id,
     });
   }
 
@@ -76,15 +98,14 @@ export async function executeCascadeOption(
       const snapshot = snapshots.get(affected.eventId);
       if (!snapshot) continue;
 
-      const provider = getProvider(calendar.provider);
       if (affected.action === 'cancel') {
         await withTimeout(
-          provider.deleteEvent('', calendar.calendar_id, snapshot.providerEventId),
+          provider.deleteEvent(accessToken, calendar.calendar_id, snapshot.providerEventId),
           PROVIDER_TIMEOUT_MS,
         );
       } else {
         await withTimeout(
-          provider.updateEvent('', {
+          provider.updateEvent(accessToken, {
             providerEventId: snapshot.providerEventId,
             calendarId: calendar.calendar_id,
             title: snapshot.title,
@@ -104,14 +125,11 @@ export async function executeCascadeOption(
       if (!snapshot) continue;
 
       try {
-        const provider = getProvider(calendar.provider);
         if (item.action === 'cancel') {
-          /* cancel rollback: event was deleted, cannot restore via updateEvent.
-             log as rollback failure — provider event is gone */
           rollbackFailures.push({ eventId: item.eventId, error: 'cannot recreate deleted provider event' });
         } else {
           await withTimeout(
-            provider.updateEvent('', {
+            provider.updateEvent(accessToken, {
               providerEventId: snapshot.providerEventId,
               calendarId: calendar.calendar_id,
               title: snapshot.title,
@@ -120,14 +138,15 @@ export async function executeCascadeOption(
             }),
             PROVIDER_TIMEOUT_MS,
           );
+          rolledBack.push({ eventId: item.eventId, action: `rollback:${item.action}` });
         }
-        rolledBack.push({ eventId: item.eventId, action: `rollback:${item.action}` });
       } catch (rollbackErr: unknown) {
         const errMsg = rollbackErr instanceof Error ? rollbackErr.message : 'unknown';
         rollbackFailures.push({ eventId: item.eventId, error: errMsg });
-        /* continue attempting remaining rollbacks instead of breaking */
       }
     }
+
+    await recordSagaResult(supabase, workspaceId, executed, rolledBack, rollbackFailures);
 
     const message = err instanceof Error ? err.message : 'Cascade execution failed';
     throw Object.assign(
@@ -135,6 +154,8 @@ export async function executeCascadeOption(
       { code: 'CASCADE_PARTIAL_FAILURE' as const, statusCode: 500 },
     );
   }
+
+  await recordSagaResult(supabase, workspaceId, executed, rolledBack, rollbackFailures);
 
   await emitCascadeSignal(
     supabase,
@@ -145,6 +166,32 @@ export async function executeCascadeOption(
   );
 
   return { success: true, executed, rolledBack };
+}
+
+async function recordSagaResult(
+  supabase: SupabaseClient,
+  workspaceId: string,
+  executed: Array<{ eventId: string; action: string }>,
+  rolledBack: Array<{ eventId: string; action: string }>,
+  rollbackFailures: Array<{ eventId: string; error: string }>,
+): Promise<void> {
+  const { error } = await supabase
+    .from('agent_runs')
+    .insert({
+      agent_id: 'calendar',
+      action_type: 'cascadeExecution',
+      status: rollbackFailures.length > 0 ? 'partial_failure' : 'completed',
+      workspace_id: workspaceId,
+      metadata: {
+        executed: executed.map((e) => ({ event_id: e.eventId, action: e.action })),
+        rolled_back: rolledBack.map((e) => ({ event_id: e.eventId, action: e.action })),
+        rollback_failures: rollbackFailures.map((e) => ({ event_id: e.eventId, error: e.error })),
+      } as unknown as Record<string, unknown>,
+    });
+
+  if (error) {
+    console.error('[cascade-executor] Failed to record saga result:', error.message);
+  }
 }
 
 async function emitCascadeSignal(

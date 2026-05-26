@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { findDependentEvents } from './event-relations.js';
+import { CalendarEventRowSchema } from './schemas.js';
 
 export interface ResolveCascadeInput {
   workspaceId: string;
@@ -39,17 +40,6 @@ export interface CascadeExecutionResult {
   rolledBack: Array<{ eventId: string; action: string }>;
 }
 
-interface EventRow {
-  id: string;
-  client_calendar_id: string;
-  provider_event_id: string;
-  title: string;
-  start_at: string;
-  end_at: string;
-  source: string;
-  created_via: string | null;
-}
-
 const PROXIMITY_HOURS = 2;
 
 export async function executeResolveCascade(
@@ -61,23 +51,30 @@ export async function executeResolveCascade(
   const { workspaceId, originEventId, clientId } = input;
   void runId;
 
-  const { data: originRow } = await supabase
+  const { data: rawOriginRow } = await supabase
     .from('calendar_events')
     .select('id, client_calendar_id, provider_event_id, title, start_at, end_at, source, created_via')
     .eq('id', originEventId)
     .eq('workspace_id', workspaceId)
     .maybeSingle();
 
-  if (!originRow) {
+  if (!rawOriginRow) {
     throw Object.assign(
       new Error(`Origin event not found: ${originEventId}`),
       { code: 'EVENT_NOT_FOUND' as const, statusCode: 404 },
     );
   }
 
-  const origin = originRow as EventRow;
+  const originParsed = CalendarEventRowSchema.safeParse(rawOriginRow);
+  if (!originParsed.success) {
+    throw Object.assign(
+      new Error(`Invalid origin event row: ${originParsed.error.message}`),
+      { code: 'EVENT_PARSE_FAILED' as const, statusCode: 500 },
+    );
+  }
+  const origin = originParsed.data;
 
-  const relatedEvents = await findDependentEvents(originEventId, supabase);
+  const relatedEvents = await findDependentEvents(originEventId, workspaceId, supabase);
   const relatedEventIds = relatedEvents.map((r) =>
     r.parentEventId === originEventId ? r.childEventId : r.parentEventId,
   );
@@ -111,13 +108,16 @@ export async function executeResolveCascade(
     return { options: [], affectedCount: 0 };
   }
 
-  const { data: eventData } = await supabase
+  const { data: rawEventData } = await supabase
     .from('calendar_events')
     .select('id, client_calendar_id, provider_event_id, title, start_at, end_at, source, created_via')
     .in('id', affectedEventIds)
     .eq('workspace_id', workspaceId);
 
-  const events = (eventData ?? []) as EventRow[];
+  const events = (rawEventData ?? [])
+    .map((row) => CalendarEventRowSchema.safeParse(row))
+    .filter((r) => r.success)
+    .map((r) => r.data);
 
   const affected: AffectedEvent[] = events.map((ev) => ({
     eventId: ev.id,
@@ -127,6 +127,9 @@ export async function executeResolveCascade(
     action: 'keep' as const,
   }));
 
+  const vacatedStart = origin.start_at;
+  const vacatedEnd = origin.end_at;
+
   const option1: CascadeOption = {
     id: 'free-block',
     label: 'Free affected block',
@@ -134,12 +137,18 @@ export async function executeResolveCascade(
   };
 
   const option2: CascadeOption = {
+    id: 'move-to-vacated',
+    label: `Move to vacated slot (${vacatedStart.split('T')[1]?.substring(0, 5) ?? '?'} - ${vacatedEnd.split('T')[1]?.substring(0, 5) ?? '?'})`,
+    affectedEvents: affected.map((e) => ({ ...e, action: 'reschedule' as const })),
+  };
+
+  const option3: CascadeOption = {
     id: 'keep-as-is',
     label: 'Keep all as-is (no changes)',
     affectedEvents: affected.map((e) => ({ ...e, action: 'keep' as const })),
   };
 
-  const options = [option1, option2];
+  const options = [option1, option2, option3];
 
   await emitProposalSignal(supabase, workspaceId, originEventId, affected);
 

@@ -36,6 +36,13 @@ function createMockSupabase(
     }),
   };
 
+  const allRelationEventIds = [...new Set(relations.flatMap((r: Record<string, unknown>) => [r.parent_event_id as string, r.child_event_id as string]))];
+  const workspaceFilterChain = {
+    eq: vi.fn().mockReturnValue({
+      in: vi.fn().mockResolvedValue({ data: allRelationEventIds.map((id: string) => ({ id })) }),
+    }),
+  };
+
   let eventSelectCall = 0;
 
   return {
@@ -45,7 +52,9 @@ function createMockSupabase(
           select: vi.fn().mockImplementation(() => {
             eventSelectCall++;
             if (eventSelectCall === 1) return originChain;
-            if (hasRelations && eventSelectCall === 2) return dependentChain;
+            if (hasRelations && eventSelectCall === 2) return workspaceFilterChain;
+            if (hasRelations && eventSelectCall === 3) return dependentChain;
+            if (!hasRelations && eventSelectCall === 2) return eqEqNeqChain;
             return eqEqNeqChain;
           }),
         };
@@ -110,7 +119,7 @@ describe('executeResolveCascade', () => {
       { id: 'r-1', parent_event_id: 'evt-1', child_event_id: 'evt-2', relation_type: 'rescheduled_from' },
     ];
     const deps = [
-      { id: 'evt-2', title: 'Follow-up', start_at: '2026-05-24T11:00:00Z', end_at: '2026-05-24T12:00:00Z' },
+      { id: 'evt-2', client_calendar_id: 'cal-1', provider_event_id: 'p-2', title: 'Follow-up', start_at: '2026-05-24T11:00:00Z', end_at: '2026-05-24T12:00:00Z', source: 'client_created', created_via: null },
     ];
     const supabase = createMockSupabase(origin, relations, deps, []);
     const inputNoClient = { ...baseInput, clientId: null };
@@ -118,9 +127,10 @@ describe('executeResolveCascade', () => {
     const result = await executeResolveCascade('run-1', inputNoClient, { supabase });
 
     expect(result.affectedCount).toBe(1);
-    expect(result.options).toHaveLength(2);
+    expect(result.options).toHaveLength(3);
     expect(result.options[0]!.id).toBe('free-block');
-    expect(result.options[1]!.id).toBe('keep-as-is');
+    expect(result.options[1]!.id).toBe('move-to-vacated');
+    expect(result.options[2]!.id).toBe('keep-as-is');
   });
 
   it('emits cascade_triggered signal on proposal creation', async () => {
@@ -133,7 +143,7 @@ describe('executeResolveCascade', () => {
       { id: 'r-1', parent_event_id: 'evt-1', child_event_id: 'evt-2', relation_type: 'rescheduled_from' },
     ];
     const deps = [
-      { id: 'evt-2', title: 'Follow-up', start_at: '2026-05-24T11:00:00Z', end_at: '2026-05-24T12:00:00Z' },
+      { id: 'evt-2', client_calendar_id: 'cal-1', provider_event_id: 'p-2', title: 'Follow-up', start_at: '2026-05-24T11:00:00Z', end_at: '2026-05-24T12:00:00Z', source: 'client_created', created_via: null },
     ];
     const supabase = createMockSupabase(origin, relations, deps, []);
     const inputNoClient = { ...baseInput, clientId: null };

@@ -14,6 +14,14 @@ function createMockSupabase(
 
   return {
     from: vi.fn((table: string) => {
+      if (table === 'workspaces') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: { timezone: 'UTC' } }),
+          }),
+        };
+      }
       if (table === 'calendar_events') {
         return {
           select: vi.fn().mockReturnThis(),
@@ -78,10 +86,70 @@ describe('emitDailyPreviewSignal', () => {
     const bypassData = [
       { client_id: 'client-1', bypass_rate: '0.5000', total_events: 10, bypass_count: 5 },
     ];
-    const supabase = createMockSupabase(events, clients, [], bypassData);
+
+    let capturedInsert: Record<string, unknown> | null = null;
+    const originalCreate = createMockSupabase;
+    const mockInsert = vi.fn().mockImplementation((data: Record<string, unknown>) => {
+      capturedInsert = data;
+      return Promise.resolve({ error: null });
+    });
+
+    const supabase = {
+      from: vi.fn((table: string) => {
+        if (table === 'workspaces') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: { timezone: 'UTC' } }),
+            }),
+          };
+        }
+        if (table === 'calendar_events') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            gte: vi.fn().mockReturnThis(),
+            lte: vi.fn().mockReturnThis(),
+            order: vi.fn().mockResolvedValue({ data: events, error: null }),
+          };
+        }
+        if (table === 'clients') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            in: vi.fn().mockResolvedValue({ data: clients, error: null }),
+          };
+        }
+        if (table === 'agent_signals') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            gte: vi.fn().mockResolvedValue({ data: [], error: null }),
+            insert: mockInsert,
+          };
+        }
+        if (table === 'calendar_bypass_metrics') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            gt: vi.fn().mockResolvedValue({ data: bypassData, error: null }),
+          };
+        }
+        return { select: vi.fn().mockReturnThis() };
+      }),
+    } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
     await emitDailyPreviewSignal('ws-1', { supabase });
 
-    expect(supabase.from).toHaveBeenCalledWith('agent_signals');
+    expect(mockInsert).toHaveBeenCalledTimes(1);
+    expect(capturedInsert).toMatchObject({
+      agent_id: 'calendar',
+      signal_type: 'calendar.daily.preview',
+      target_agent: 'inbox',
+      workspace_id: 'ws-1',
+    });
+    const payload = (capturedInsert!.payload as Record<string, unknown>);
+    expect(payload.events).toHaveLength(1);
+    expect((payload.events as Array<unknown>)[0]).toHaveProperty('title', 'Meeting');
+    expect(payload.bypassAlerts).toHaveLength(1);
   });
 });

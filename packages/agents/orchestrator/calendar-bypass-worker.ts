@@ -122,20 +122,28 @@ export async function handleResolveCascade(
 }
 
 export async function registerCalendarScheduledJobs(boss: PgBoss): Promise<void> {
-  await boss.schedule('agent:calendar:dailyPreview', '0 6:45 * * *', {
+  await boss.schedule('agent:calendar:dailyPreview', '0 6 * * *', {
     actionType: 'dailyPreview',
   });
 
-  await boss.work('agent:calendar:dailyPreview', async () => {
+  await boss.work('agent:calendar:dailyPreview', async (job: unknown) => {
     const supabase = createServiceClient();
 
     const { data: workspaces } = await supabase
       .from('workspaces')
-      .select('id')
+      .select('id, timezone')
       .eq('status', 'active');
 
-    for (const ws of (workspaces ?? []) as Array<{ id: string }>) {
+    const now = new Date();
+    for (const ws of (workspaces ?? []) as Array<{ id: string; timezone: string | null }>) {
       const workspaceId = ws.id;
+      const tz = ws.timezone ?? 'UTC';
+      const localHour = parseInt(
+        new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: tz }).format(now),
+        10,
+      );
+      if (localHour < 6 || localHour >= 8) continue;
+
       try {
         await emitDailyPreviewSignal(workspaceId, { supabase });
         writeAuditLog({ workspaceId, agentId: 'calendar', action: 'dailyPreview.complete',

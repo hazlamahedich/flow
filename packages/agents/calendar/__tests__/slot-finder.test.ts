@@ -136,4 +136,13 @@ describe('findAvailableSlots', () => {
     expect(provider1.getFreeBusy).toHaveBeenCalled();
     expect(provider2.getFreeBusy).toHaveBeenCalled();
   });
+
+  it('completes within 5 seconds (slot-finder SLA)', async () => {
+    const params = makeParams();
+    const deps: SlotFinderDeps = { supabase: mockSupabaseEmpty() };
+    const start = performance.now();
+    await findAvailableSlots(params, deps);
+    const elapsed = performance.now() - start;
+    expect(elapsed).toBeLessThan(5000);
+  });
 });

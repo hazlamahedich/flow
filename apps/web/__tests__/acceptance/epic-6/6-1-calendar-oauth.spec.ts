@@ -59,6 +59,7 @@ describe('Story 6.1: Calendar OAuth Connection', () => {
         redirectUri: 'http://localhost:3000/api/auth/calendar/callback',
         state: 'test-state',
         codeChallenge: 'challenge',
+        scope: ['calendar.readonly', 'calendar.events'],
       });
 
       expect(result).toContain('calendar.readonly');

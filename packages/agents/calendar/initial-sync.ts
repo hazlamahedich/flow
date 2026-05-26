@@ -5,6 +5,7 @@ import { GoogleCalendarProvider } from '../providers/index.js';
 import type { CalendarProviderName } from '@flow/types';
 import type { AgentRunProducer } from '../orchestrator/types.js';
 import { classifyEventSource } from './classify-source.js';
+import { withTimeout } from './provider-utils.js';
 
 async function enqueueBypassForEvents(
   producer: AgentRunProducer,
@@ -128,22 +129,6 @@ function resolveProvider(name: CalendarProviderName): CalendarProvider {
     default:
       throw new Error(`Unknown calendar provider: ${name as string}`);
   }
-}
-
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`API call timed out after ${ms}ms`)), ms);
-    promise.then(
-      (val) => {
-        clearTimeout(timer);
-        resolve(val);
-      },
-      (err) => {
-        clearTimeout(timer);
-        reject(err);
-      },
-    );
-  });
 }
 
 function mapEventToRow(

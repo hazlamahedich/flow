@@ -1,4 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import {
+  EventPreviewRowSchema,
+  BypassMetricsForAlertSchema,
+  ClientRowSchema,
+  ConflictSignalRowSchema,
+  WorkspaceRowSchema,
+} from './schemas.js';
 
 export interface DailyPreviewDeps {
   supabase: SupabaseClient;
@@ -31,43 +38,26 @@ export interface DailyPreviewPayload {
   }>;
 }
 
-interface EventRow {
-  title: string;
-  start_at: string;
-  end_at: string;
-  source: string;
-  client_id: string | null;
-}
-
-interface ClientRow {
-  id: string;
-  name: string;
-}
-
-interface ConflictSignalRow {
-  payload: Record<string, unknown>;
-}
-
-interface BypassMetricsRow {
-  client_id: string;
-  bypass_rate: string;
-  total_events: number;
-  bypass_count: number;
-}
-
 export async function generateDailyPreview(
   workspaceId: string,
   deps: DailyPreviewDeps,
 ): Promise<DailyPreviewPayload> {
   const { supabase } = deps;
-  const today = new Date();
-  const dateStr = today.toISOString().split('T')[0] ?? new Date().toISOString().slice(0, 10);
-  const dayStart = new Date(today);
-  dayStart.setHours(0, 0, 0, 0);
-  const dayEnd = new Date(today);
-  dayEnd.setHours(23, 59, 59, 999);
 
-  const { data: eventData } = await supabase
+  const { data: rawWsData } = await supabase
+    .from('workspaces')
+    .select('timezone')
+    .eq('id', workspaceId)
+    .single();
+
+  const wsParsed = WorkspaceRowSchema.safeParse(rawWsData);
+  const tz = wsParsed.success ? (wsParsed.data.timezone ?? 'UTC') : 'UTC';
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('sv-SE', { timeZone: tz });
+  const dayStart = new Date(`${dateStr}T00:00:00Z`);
+  const dayEnd = new Date(`${dateStr}T23:59:59.999Z`);
+
+  const { data: rawEventData } = await supabase
     .from('calendar_events')
     .select('title, start_at, end_at, source, client_id')
     .eq('workspace_id', workspaceId)
@@ -75,31 +65,42 @@ export async function generateDailyPreview(
     .lte('start_at', dayEnd.toISOString())
     .order('start_at', { ascending: true });
 
-  const events = (eventData ?? []) as EventRow[];
+  const events = (rawEventData ?? [])
+    .map((row) => EventPreviewRowSchema.safeParse(row))
+    .filter((r) => r.success)
+    .map((r) => r.data);
 
-  const clientIds = [...new Set(events.map((e) => e.client_id).filter(Boolean))] as string[];
-  const clientMap = new Map<string, string>();
+  const eventClientIds = [...new Set(events.map((e) => e.client_id).filter(Boolean))] as string[];
 
-  const { data: bypassData } = await supabase
+  const { data: rawBypassData } = await supabase
     .from('calendar_bypass_metrics')
     .select('client_id, bypass_rate, total_events, bypass_count')
     .eq('workspace_id', workspaceId)
     .gt('bypass_rate', 0.3);
 
-  const bypassClientIds = [...new Set((bypassData ?? []).map((r: Record<string, unknown>) => r.client_id as string).filter(Boolean))];
-  const allClientIds = [...new Set([...clientIds, ...bypassClientIds])];
+  const bypassData = (rawBypassData ?? [])
+    .map((row) => BypassMetricsForAlertSchema.safeParse(row))
+    .filter((r) => r.success)
+    .map((r) => r.data);
 
+  const bypassClientIds = [...new Set(bypassData.map((r) => r.client_id))];
+  const allClientIds = [...new Set([...eventClientIds, ...bypassClientIds])];
+
+  const clientMap = new Map<string, string>();
   if (allClientIds.length > 0) {
-    const { data: clientData } = await supabase
+    const { data: rawClientData } = await supabase
       .from('clients')
       .select('id, name')
       .in('id', allClientIds);
-    for (const c of (clientData ?? []) as ClientRow[]) {
-      clientMap.set(c.id, c.name);
+    for (const rawC of rawClientData ?? []) {
+      const cParsed = ClientRowSchema.safeParse(rawC);
+      if (cParsed.success) {
+        clientMap.set(cParsed.data.id, cParsed.data.name);
+      }
     }
   }
 
-  const { data: conflictData } = await supabase
+  const { data: rawConflictData } = await supabase
     .from('agent_signals')
     .select('payload')
     .eq('workspace_id', workspaceId)
@@ -107,13 +108,17 @@ export async function generateDailyPreview(
     .eq('signal_type', 'calendar.conflict.detected')
     .gte('created_at', dayStart.toISOString());
 
-  const conflicts = ((conflictData ?? []) as ConflictSignalRow[]).map((row) => ({
-    eventTitle: (row.payload.event1Title as string) ?? 'Unknown',
-    conflictTitle: (row.payload.event2Title as string) ?? 'Unknown',
-    startAt: (row.payload.detectedAt as string) ?? dayStart.toISOString(),
-  }));
+  const conflicts = (rawConflictData ?? [])
+    .map((row) => ConflictSignalRowSchema.safeParse(row))
+    .filter((r) => r.success)
+    .map((r) => r.data)
+    .map((row) => ({
+      eventTitle: (row.payload.event1Title as string) ?? 'Unknown',
+      conflictTitle: (row.payload.event2Title as string) ?? 'Unknown',
+      startAt: (row.payload.detectedAt as string) ?? dayStart.toISOString(),
+    }));
 
-  const bypassAlerts = ((bypassData ?? []) as BypassMetricsRow[]).map((row) => ({
+  const bypassAlerts = bypassData.map((row) => ({
     clientName: clientMap.get(row.client_id) ?? null,
     bypassRate: parseFloat(row.bypass_rate),
     recentEvent: null as string | null,

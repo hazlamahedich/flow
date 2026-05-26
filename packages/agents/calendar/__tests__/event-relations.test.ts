@@ -13,6 +13,15 @@ function createMockSupabase() {
           select: mockSelect,
         };
       }
+      if (table === 'calendar_events') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              in: vi.fn().mockResolvedValue({ data: [{ id: 'evt-1' }, { id: 'evt-2' }] }),
+            }),
+          }),
+        };
+      }
       return { select: vi.fn(), insert: vi.fn() };
     }),
   } as unknown as import('@supabase/supabase-js').SupabaseClient;
@@ -87,7 +96,7 @@ describe('findDependentEvents', () => {
     });
     const supabase = createMockSupabase();
 
-    const result = await findDependentEvents('evt-1', supabase);
+    const result = await findDependentEvents('evt-1', 'ws-1', supabase);
 
     expect(result).toHaveLength(1);
     expect(result[0]!.relationType).toBe('rescheduled_from');
@@ -99,7 +108,7 @@ describe('findDependentEvents', () => {
     });
     const supabase = createMockSupabase();
 
-    const result = await findDependentEvents('evt-1', supabase);
+    const result = await findDependentEvents('evt-1', 'ws-1', supabase);
 
     expect(result).toHaveLength(0);
   });
@@ -110,6 +119,6 @@ describe('findDependentEvents', () => {
     });
     const supabase = createMockSupabase();
 
-    await expect(findDependentEvents('evt-1', supabase)).rejects.toThrow();
+    await expect(findDependentEvents('evt-1', 'ws-1', supabase)).rejects.toThrow();
   });
 });

@@ -1,3 +1,14 @@
+vi.mock('@flow/db/vault/calendar-tokens', () => ({
+  decryptCalendarTokens: vi.fn().mockReturnValue({
+    accessToken: 'mock-access-token',
+    refreshToken: 'mock-refresh-token',
+    expiryDate: Date.now() + 3600000,
+    scope: 'mock-scope',
+    tokenType: 'Bearer',
+  }),
+  rotateCalendarTokens: vi.fn(),
+}));
+
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { executeCascadeOption } from '../cascade-executor';
 import type { CascadeOption } from '../resolve-cascade-action';
@@ -31,6 +42,11 @@ function createMockSupabase(
       if (table === 'agent_signals') {
         return {
           insert: vi.fn().mockResolvedValue(signalInsertResult),
+        };
+      }
+      if (table === 'agent_runs') {
+        return {
+          insert: vi.fn().mockResolvedValue({ error: null }),
         };
       }
       return {};

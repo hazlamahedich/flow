@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { EventRelationRowSchema } from './schemas.js';
 
 export interface WriteRelationParams {
   parentEventId: string;
@@ -51,6 +52,7 @@ export interface DependentEvent {
 
 export async function findDependentEvents(
   eventId: string,
+  workspaceId: string,
   supabase: SupabaseClient,
 ): Promise<DependentEvent[]> {
   const { data, error } = await supabase
@@ -65,10 +67,33 @@ export async function findDependentEvents(
     );
   }
 
-  return (data ?? []).map((row: Record<string, unknown>) => ({
-    id: row.id as string,
-    parentEventId: row.parent_event_id as string,
-    childEventId: row.child_event_id as string,
-    relationType: row.relation_type as string,
-  }));
+  const relations = (data ?? []).filter((row) => {
+    const parsed = EventRelationRowSchema.safeParse(row);
+    return parsed.success;
+  });
+
+  if (relations.length === 0) return [];
+
+  const eventIds = relations.flatMap((r) => {
+    const parsed = EventRelationRowSchema.parse(r);
+    return [parsed.parent_event_id, parsed.child_event_id];
+  });
+
+  const { data: eventCheck } = await supabase
+    .from('calendar_events')
+    .select('id')
+    .eq('workspace_id', workspaceId)
+    .in('id', eventIds);
+
+  const validEventIds = new Set((eventCheck ?? []).map((r: Record<string, unknown>) => r.id as string));
+
+  return relations
+    .map((row) => EventRelationRowSchema.parse(row))
+    .filter((parsed) => validEventIds.has(parsed.parent_event_id) || validEventIds.has(parsed.child_event_id))
+    .map((parsed) => ({
+      id: parsed.id,
+      parentEventId: parsed.parent_event_id,
+      childEventId: parsed.child_event_id,
+      relationType: parsed.relation_type,
+    }));
 }
