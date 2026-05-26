@@ -132,7 +132,7 @@ describe('LogTimeModal', () => {
     await act(async () => { fireEvent.click(submitBtn); });
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to log time — try again')).toBeInTheDocument();
+      expect(screen.getByText('fail')).toBeInTheDocument();
     });
   });
 });

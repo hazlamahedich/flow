@@ -13,18 +13,14 @@ describe('SwipeableCard', () => {
   });
 
   it('should show approve/reject hints on drag', () => {
-    // This is hard to test with fireEvent for framer-motion drag
-    // but we can verify it doesn't crash
     render(
       <SwipeableCard onApprove={vi.fn()} onReject={vi.fn()}>
         <div>Card Content</div>
       </SwipeableCard>
     );
-    const card = screen.getByText('Card Content');
-    fireEvent.mouseDown(card);
-    fireEvent.mouseMove(card, { clientX: 100 });
-    // We expect the internal state to update, but checking opacity/rotate 
-    // depends on framer-motion internals.
+    const cards = screen.getAllByText('Card Content');
+    fireEvent.mouseDown(cards[0]);
+    fireEvent.mouseMove(cards[0], { clientX: 100 });
   });
 
   it('should respect disabled state', () => {

@@ -68,7 +68,7 @@ describe('token completeness', () => {
     expect(Object.keys(agentColors)).toHaveLength(6);
   });
 
-  it('emotional tokens have 7 entries', () => {
-    expect(Object.keys(emotionalTokens)).toHaveLength(7);
+  it('emotional tokens have 8 entries', () => {
+    expect(Object.keys(emotionalTokens)).toHaveLength(8);
   });
 });

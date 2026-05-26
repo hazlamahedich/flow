@@ -4,6 +4,22 @@ import { PgBossWorker } from '../orchestrator/pg-boss-worker';
 import { createOutputSchemaRegistry, registerMvpSchemas } from '../orchestrator/output-schemas';
 import { z } from 'zod';
 
+vi.mock('pg-boss', () => ({
+  PgBoss: vi.fn().mockImplementation(() => ({
+    start: vi.fn(async () => undefined),
+    stop: vi.fn(async () => undefined),
+    on: vi.fn(),
+    send: vi.fn(),
+    fetch: vi.fn(),
+    complete: vi.fn(async () => ({ status: 1 })),
+    fail: vi.fn(async () => ({ status: 1 })),
+    cancel: vi.fn(),
+    getJobById: vi.fn(),
+    schedule: vi.fn(async () => undefined),
+    work: vi.fn(async () => undefined),
+  })),
+}));
+
 vi.mock('@flow/db', () => ({
   claimRunWithGuard: vi.fn(),
   updateRunStatus: vi.fn(),

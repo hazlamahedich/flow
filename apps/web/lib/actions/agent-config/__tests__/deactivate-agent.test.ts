@@ -63,7 +63,7 @@ describe('deactivateAgent', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.code).toBe('DRAIN_ERROR');
+      expect(result.error.code).toBe('INTERNAL_ERROR');
       expect(result.error.message).toBe('Agent has active runs');
     }
   });

@@ -158,8 +158,8 @@ describe('agent identity colors', () => {
 });
 
 describe('emotional tokens', () => {
-  it('has all 7 emotional tokens', () => {
-    expect(Object.keys(emotionalTokens)).toHaveLength(7);
+  it('has all 8 emotional tokens', () => {
+    expect(Object.keys(emotionalTokens)).toHaveLength(8);
   });
 
   it('includes key emotions', () => {

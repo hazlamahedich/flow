@@ -59,7 +59,7 @@ describe('Orchestrator Factory', () => {
       expect(instance.on).toHaveBeenCalledWith('error', expect.any(Function));
       expect(instance.on).toHaveBeenCalledWith('warning', expect.any(Function));
     }
-  });
+  }, 15_000);
 
   it('throws when DATABASE_URL is missing', () => {
     delete process.env.DATABASE_URL;

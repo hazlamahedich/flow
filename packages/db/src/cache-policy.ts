@@ -13,7 +13,9 @@ export type CacheEntity =
   | 'trust_preconditions'
   | 'agent_feedback'
   | 'agent_runs_history'
-  | 'retainer_agreement';
+  | 'retainer_agreement'
+  | 'invoice'
+  | 'invoice_line_item';
 
 export type CacheMutation = 'create' | 'update' | 'delete';
 
@@ -33,6 +35,8 @@ const ENTITY_TAG_MAP: Record<CacheEntity, string> = {
   agent_feedback: 'agent-activity',
   agent_runs_history: 'agent-activity',
   retainer_agreement: 'retainers',
+  invoice: 'invoices',
+  invoice_line_item: 'invoices',
 };
 
 export function cacheTag(

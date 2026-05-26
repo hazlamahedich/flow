@@ -58,9 +58,10 @@ describe('categorizer', () => {
     );
 
     const calls = mockRouter.complete.mock.calls;
-    const callContent = calls[0]?.[1]?.content;
-    expect(callContent).toContain('<user_email_content>');
-    expect(callContent).toContain('</user_email_content>');
+    const messages = calls[0]?.[0] as Array<{ role: string; content: string }> | undefined;
+    const userMessage = messages?.find((m) => m.role === 'user');
+    expect(userMessage?.content).toContain('<user_email_content>');
+    expect(userMessage?.content).toContain('</user_email_content>');
   });
 
   it('validates output via Zod and handles malformed JSON', async () => {

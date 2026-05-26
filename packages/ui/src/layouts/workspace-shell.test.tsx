@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, fireEvent, act, type RenderResult } from '@testing-library/react';
 import { Provider } from 'jotai';
 import { WorkspaceShell } from './workspace-shell';
 import { resetShortcutRegistry } from '../components/command-palette/keyboard-listener';
@@ -20,14 +20,17 @@ function mockLocalStorage() {
   };
 }
 
+let rendered: RenderResult | null = null;
+
 function renderShell(agentCount = 2) {
-  return render(
+  rendered = render(
     <Provider>
       <WorkspaceShell agentCount={agentCount}>
         <div data-testid="page-content">Page content</div>
       </WorkspaceShell>
     </Provider>,
   );
+  return rendered;
 }
 
 describe('WorkspaceShell', () => {
@@ -44,6 +47,13 @@ describe('WorkspaceShell', () => {
       dispatchEvent: () => false,
     }));
     vi.stubGlobal('sessionStorage', mockLocalStorage());
+  });
+
+  afterEach(() => {
+    if (rendered) {
+      rendered.unmount();
+      rendered = null;
+    }
   });
 
   it('renders sidebar for agentCount >= 2', () => {

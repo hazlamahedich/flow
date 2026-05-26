@@ -11,7 +11,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT plan(20);
+SELECT plan(28);
 
 -- ============================================================
 -- Setup (run as superuser to avoid RLS recursion)

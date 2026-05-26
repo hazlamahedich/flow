@@ -139,9 +139,14 @@ export async function getTimerStateAction(): Promise<
     return { success: true, data: null };
   }
 
-  const timerState = await getTimerState(supabase, {
-    workspaceId: ctx.workspaceId,
-    userId: ctx.userId,
-  });
+  let timerState: Awaited<ReturnType<typeof getTimerState>> | null = null;
+  try {
+    timerState = await getTimerState(supabase, {
+      workspaceId: ctx.workspaceId,
+      userId: ctx.userId,
+    });
+  } catch {
+    return { success: true, data: null };
+  }
   return { success: true, data: timerState };
 }

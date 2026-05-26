@@ -173,57 +173,17 @@ export {
 } from './queries/inbox';
 
 
-export {
-  insertRawPayload,
-  isMessageProcessed,
-  markMessageProcessed,
-} from './queries/inbox';
+export { insertRawPayload, isMessageProcessed, markMessageProcessed } from './queries/inbox';
 
-export {
-  createTimeEntry,
-  listTimeEntries,
-  softDeleteTimeEntry,
-} from './queries/time-entries';
-export type {
-  TimeEntry,
-  CreateTimeEntryInput,
-  TimeEntryFilters,
-  ListTimeEntriesInput,
-  ListTimeEntriesResult,
-  SoftDeleteTimeEntryInput,
-} from './queries/time-entries';
+export { createTimeEntry, listTimeEntries, softDeleteTimeEntry } from './queries/time-entries';
+export type { TimeEntry, CreateTimeEntryInput, TimeEntryFilters, ListTimeEntriesInput, ListTimeEntriesResult, SoftDeleteTimeEntryInput } from './queries/time-entries';
 
-export {
-  getTimerState,
-  startTimer,
-  stopTimerRpc,
-  updateTimeEntry,
-  insertEditHistory,
-  getTimeEntryForUpdate,
-  defaultInvoiceEditGuard,
-} from './queries/time-tracking';
-export type {
-  TimerStateWithNames,
-  GetTimerStateInput,
-  StartTimerInput,
-  StopTimerRpcInput,
-  StopTimerResult,
-  UpdateTimeEntryInput,
-  UpdateTimeEntryResult,
-  InsertEditHistoryInput,
-  GetTimeEntryForUpdateInput,
-  TimeEntryCurrentValues,
-  InvoiceEditGuard,
-} from './queries/time-tracking';
+export { getTimerState, startTimer, stopTimerRpc, updateTimeEntry, insertEditHistory, getTimeEntryForUpdate, defaultInvoiceEditGuard } from './queries/time-tracking';
+export type { TimerStateWithNames, GetTimerStateInput, StartTimerInput, StopTimerRpcInput, StopTimerResult, UpdateTimeEntryInput, UpdateTimeEntryResult, InsertEditHistoryInput, GetTimeEntryForUpdateInput, TimeEntryCurrentValues, InvoiceEditGuard } from './queries/time-tracking';
 
-export {
-  createProject,
-  ProjectNameDuplicateError,
-  listProjects,
-} from './queries/projects';
-export type {
-  Project,
-  CreateProjectInput,
-  ListProjectsInput,
-} from './queries/projects';
+export { createProject, ProjectNameDuplicateError, listProjects } from './queries/projects';
+export type { Project, CreateProjectInput, ListProjectsInput } from './queries/projects';
 export { decryptCalendarTokens, encryptCalendarTokens, rotateCalendarTokens } from './vault/calendar-tokens';
+export { getInvoices, getInvoiceDetail } from './queries/invoices';
+export type { GetInvoicesParams, InvoiceDetail, InvoiceListItem } from './queries/invoices';
+export { createInvoiceEditGuard } from './queries/invoices/invoice-edit-guard';

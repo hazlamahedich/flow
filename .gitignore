@@ -23,4 +23,6 @@ graphify-out/
 # Root-level claude config (machine-specific)
 /CLAUDE.md
 
+# Build artifacts
+/amp
 

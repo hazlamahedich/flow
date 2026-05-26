@@ -1,32 +1,37 @@
 {
   "epic": "epic-1",
-  "date": "2026-04-24",
+  "date": "2026-05-25",
+  "previous_date": "2026-04-24",
   "gate_decision": "CONCERNS",
   "gate_type": "epic",
   "coverage": {
-    "overall_pct": 69,
-    "p0_pct": 82,
-    "p1_pct": 64,
-    "p2_pct": 63,
-    "p3_pct": 33
+    "overall_pct": 81,
+    "p0_pct": 88,
+    "p1_pct": 79,
+    "p2_pct": 75,
+    "p3_pct": 67
   },
   "tests": {
-    "total": 997,
-    "active": 773,
-    "passed": 770,
-    "failed": 3,
-    "skipped": 139,
-    "pass_rate_pct": 99.6
+    "total": 3418,
+    "active": 2858,
+    "passed": 2858,
+    "failed": 0,
+    "skipped": 136,
+    "pass_rate_pct": 100,
+    "skip_breakdown": {
+      "conditional_supabase": 12,
+      "atdd_red_phase": 124
+    }
   },
   "gaps": {
     "critical": 0,
-    "high": 5,
+    "high": 3,
     "medium": 4,
     "low": 2
   },
   "quality_issues": {
     "blocker": 0,
-    "warning": 3,
+    "warning": 0,
     "info": 1
   },
   "nfr": {
@@ -42,17 +47,26 @@
     "backlog": 0
   },
   "test_levels": {
-    "unit": 770,
-    "rls_pgTAP": 158,
-    "e2e": 15,
+    "unit": 2858,
+    "rls_pgTAP": 400,
+    "e2e": 70,
     "integration": 12,
-    "atdd_active": 50,
-    "atdd_scaffold": 139
+    "atdd_active": 78,
+    "atdd_scaffold": 136
   },
+  "improvements_since_last_eval": [
+    "Fixed 3 test failures (auth trustDevice, undo-provider export, macOS resource forks)",
+    "E2E specs grew from 4 to 13 (mobile-responsive, ownership-transfer, settings, client-timeline, time-entry)",
+    "RLS tests grew from 12 to 70 files (~400 assertions)",
+    "ATDD scaffolds fully activated for Epic 1 (78 tests, 0 skipped)",
+    "Overall coverage improved from 69% to 81%",
+    "Pass rate improved from 99.6% to 100%"
+  ],
   "residual_risk": "LOW",
   "next_steps": [
-    "Fix 3 test failures (undo-provider, auth trustDevice, macOS ._ files)",
-    "Create remediation backlog for 5 high-priority gaps",
-    "Continue Epic 2 Story 2-3 development"
+    "Add avatar upload validation unit test (P1 security gap)",
+    "Add split-brain email reconciliation test (P1 data integrity gap)",
+    "Add idempotency mechanism test (P2 NFR96 gap)",
+    "Add Playwright performance assertions for NFR01, NFR04, NFR06"
   ]
 }

@@ -52,6 +52,7 @@ describe('listTimeEntries', () => {
     const entries = [{
       id: 'e-1', workspace_id: 'ws-1', client_id: 'c-1', user_id: 'u-1',
       project_id: null, projects: null, date: '2026-05-10', duration_minutes: 60,
+      start_minutes: null, end_minutes: null,
       notes: null, deleted_at: null, created_at: now, updated_at: now,
     }];
     const supabase = createMockSupabase(entries, 1);

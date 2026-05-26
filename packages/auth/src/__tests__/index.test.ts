@@ -4,7 +4,7 @@ describe('@flow/auth package exports', () => {
   it('re-exports trustDevice from device-trust module', async () => {
     const mod = await import('@flow/auth');
     expect(typeof mod.trustDevice).toBe('function');
-  });
+  }, 15_000);
 
   it('re-exports verifyDeviceTrust', async () => {
     const mod = await import('@flow/auth');

@@ -1,5 +1,5 @@
 generated: 2026-04-20
-last_updated: 2026-05-24  # Story 6-4 implementation complete
+last_updated: 2026-05-26  # Story 7-1 review
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -66,16 +66,16 @@ development_status:
   epic-5-deferred-triage: done
   calendar-provider-spike: done
 
-  epic-6: in-progress
+  epic-6: done
   6-1-google-calendar-oauth-connection: done
   6-2-real-time-conflict-detection: done
-  6-3-booking-proposals-event-creation: review
+  6-3-booking-proposals-event-creation: done
   6-4-bypass-detection-cascade-rescheduling: done
-  epic-6-retrospective: optional
+  epic-6-retrospective: done
 
-  epic-7: backlog
-  7-1-invoice-data-model-creation: backlog
-  7-2-invoice-delivery-payment-link: backlog
+  epic-7: in-progress
+  7-1-invoice-data-model-creation: review
+  7-2-invoice-delivery-payment-link: ready-for-dev
   7-3-partial-payments-balance-tracking: backlog
   7-4-void-credit-note-time-reconciliation: backlog
   7-5-stripe-payment-failure-handling: backlog

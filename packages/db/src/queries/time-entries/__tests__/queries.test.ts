@@ -14,6 +14,7 @@ describe('createTimeEntry', () => {
         data: {
           id: 'te1', workspace_id: 'ws1', client_id: 'c1', user_id: 'u1',
           project_id: null, date: '2026-05-09', duration_minutes: 90,
+          start_minutes: null, end_minutes: null,
           notes: 'test', deleted_at: null, created_at: '2026-05-09T00:00:00Z', updated_at: '2026-05-09T00:00:00Z',
         },
         error: null,
@@ -165,6 +166,7 @@ describe('createTimeEntry — constraint violations', () => {
         data: {
           id: 'te2', workspace_id: 'ws1', client_id: 'c1', user_id: 'u1',
           project_id: null, date: '2026-05-09', duration_minutes: 30,
+          start_minutes: null, end_minutes: null,
           notes: null, deleted_at: null, created_at: '2026-05-09T00:00:00Z', updated_at: '2026-05-09T00:00:00Z',
         },
         error: null,

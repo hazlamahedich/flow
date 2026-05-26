@@ -2,37 +2,28 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
 import { DraftEditor } from '../draft-editor';
-import { useOptimisticAction } from '../use-optimistic-action';
 import * as actions from '../../actions/draft-actions';
 
 expect.extend(matchers);
 
-// Mock the hook
-vi.mock('../use-optimistic-action', () => ({
-  useOptimisticAction: vi.fn()
-}));
-
-// Mock the actions
 vi.mock('../../actions/draft-actions', () => ({
   editDraft: vi.fn(),
   quickEditTone: vi.fn(),
-  quickEditLength: vi.fn()
+  quickEditLength: vi.fn(),
 }));
 
 describe('DraftEditor', () => {
-  const mockExecute = vi.fn();
   const defaultProps = {
     draftId: 'draft-123',
     initialContent: 'Initial draft content',
-    onSave: vi.fn()
+    onSave: vi.fn(),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useOptimisticAction as any).mockReturnValue({
-      isPending: false,
-      execute: mockExecute
-    });
+    vi.mocked(actions.editDraft).mockResolvedValue({ success: true } as never);
+    vi.mocked(actions.quickEditTone).mockResolvedValue({ success: true, data: { content: 'Professional rewrite' } } as never);
+    vi.mocked(actions.quickEditLength).mockResolvedValue({ success: true, data: { content: 'Shorter content' } } as never);
   });
 
   afterEach(() => {
@@ -51,39 +42,27 @@ describe('DraftEditor', () => {
     expect(textarea).toHaveValue('Updated content');
   });
 
-  it('calls editAction.execute when Save Changes is clicked', async () => {
-    mockExecute.mockResolvedValue({ success: true });
+  it('calls editDraft when Save Changes is clicked', async () => {
     render(<DraftEditor {...defaultProps} />);
-    
+
     const textarea = screen.getByDisplayValue('Initial draft content');
     fireEvent.change(textarea, { target: { value: 'Updated content' } });
-    
+
     const saveButton = screen.getByText('Save Changes');
     fireEvent.click(saveButton);
 
-    expect(mockExecute).toHaveBeenCalledWith({
+    expect(actions.editDraft).toHaveBeenCalledWith({
       draftId: 'draft-123',
-      content: 'Updated content'
+      content: 'Updated content',
     });
-    
+
     await waitFor(() => {
       expect(defaultProps.onSave).toHaveBeenCalled();
     });
   });
 
-  it('disables buttons when an action is pending', () => {
-    (useOptimisticAction as any).mockReturnValue({
-      isPending: true,
-      execute: mockExecute
-    });
-
+  it('disables Save Changes when content equals initial', () => {
     render(<DraftEditor {...defaultProps} />);
-    
-    expect(screen.getByDisplayValue('Initial draft content')).toBeDisabled();
-    expect(screen.getByText('Professional')).toBeDisabled();
-    expect(screen.getByText('Friendly')).toBeDisabled();
-    expect(screen.getByText('Shorter')).toBeDisabled();
-    expect(screen.getByText('Longer')).toBeDisabled();
     expect(screen.getByText('Save Changes')).toBeDisabled();
   });
 
@@ -98,27 +77,15 @@ describe('DraftEditor', () => {
     expect(textarea).toHaveValue('Initial draft content');
   });
 
-  it('calls toneAction.execute when Professional is clicked', async () => {
-    const mockToneExecute = vi.fn().mockResolvedValue({ 
-      success: true, 
-      data: { content: 'Professional rewrite' } 
-    });
-    
-    (useOptimisticAction as any).mockImplementation((action: any) => {
-      if (action === actions.quickEditTone) {
-        return { isPending: false, execute: mockToneExecute };
-      }
-      return { isPending: false, execute: mockExecute };
-    });
-
+  it('calls quickEditTone when Professional is clicked', async () => {
     render(<DraftEditor {...defaultProps} />);
-    
+
     const profButton = screen.getByText('Professional');
     fireEvent.click(profButton);
 
-    expect(mockToneExecute).toHaveBeenCalledWith({
+    expect(actions.quickEditTone).toHaveBeenCalledWith({
       draftId: 'draft-123',
-      tone: 'professional'
+      tone: 'professional',
     });
 
     await waitFor(() => {

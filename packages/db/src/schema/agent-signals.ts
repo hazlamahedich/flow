@@ -22,6 +22,7 @@ export const agentSignals = pgTable(
     payload: jsonb('payload').notNull().default({}),
     targetAgent: agentIdTypeEnum('target_agent'),
     clientId: uuid('client_id'),
+    dedupKey: text('dedup_key'),
     workspaceId: uuid('workspace_id')
       .notNull()
       .references(() => workspaces.id, { onDelete: 'cascade' }),

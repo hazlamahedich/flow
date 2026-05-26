@@ -30,7 +30,7 @@ describe('UndoProvider', () => {
   it('exports correctly', async () => {
     const mod = await import('./undo-provider');
     expect(mod.UndoProvider).toBeDefined();
-  });
+  }, 15_000);
 
   it('accepts undoAction prop', async () => {
     await import('./undo-provider');

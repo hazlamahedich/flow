@@ -26,7 +26,15 @@ import { startTimerAction, stopTimerAction, getTimerStateAction } from '../timer
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, createTimeEntry, softDeleteTimeEntry, createProject, getTimerState, startTimer, stopTimerRpc } from '@flow/db';
 
-const mockSupabase = {};
+const clientSelectChain = {
+  eq: vi.fn().mockReturnThis(),
+  maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'c1' }, error: null }),
+};
+const mockSupabase = {
+  from: vi.fn().mockReturnValue({
+    select: vi.fn().mockReturnValue(clientSelectChain),
+  }),
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
