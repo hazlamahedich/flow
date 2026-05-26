@@ -182,6 +182,79 @@ const params: { clientId?: string } = {
 
 This pattern comes up frequently in Supabase inserts, pg-boss job data, and Zod schema outputs.
 
+### ATDD stubs shadow real modules in Elixir
+
+When tests reference a context module that also has an ATDD stub in `test/support/atdd_stubs.ex`, the stub may be evaluated before the real module if `test_helper.exs` or a test config loads the support file before compilation discovers `lib/`. This causes "undefined function" errors even though the real module exists.
+
+**WRONG — stale stub shadowing the real Billing context:**
+```elixir
+# test/support/atdd_stubs.ex — loaded globally
+defmodule LeadforgeAi.Billing do
+  def consume_credits(_, _, _), do: {:ok, %{}}
+end
+```
+
+**CORRECT — remove or conditionally compile the stub:**
+Once the real module exists, remove the stub. If you need stubs only for specific tests, move them into test-specific fixtures or `setup` blocks rather than global support files.
+
+### Ecto `Repo.transact/1` is a newer convenience API
+
+`Repo.transact/1` wraps `transaction/2` and returns the callback result directly. It exists in newer Ecto versions but may be flagged as undefined by code-review agents.
+
+Before marking it as undefined, verify in `deps/ecto/lib/ecto/repo.ex` or at runtime. If unavailable, fall back to `Repo.transaction/2`.
+
+```elixir
+alias LeadforgeAi.Repo
+
+Repo.transact(fn ->
+  {:ok, result} = some_operation()
+  {:ok, result}
+end)
+```
+
+### Postgres text columns return strings, not atoms
+
+:string and :text fields in Ecto schemas return strings from the database. Even if your code casts atoms in changesets, assertion in tests must compare strings.
+
+```elixir
+# WRONG — atom comparison fails
+assert action_type in [:source, :enrich]
+
+# CORRECT — compare to strings
+assert action_type in ["source", "enrich"]
+```
+
+### Consume-credits pattern with atomic debit
+
+For credit-based billing, decrement the workspace balance and log a transaction atomically:
+
+```elixir
+@credit_costs %{source: 1, enrich: 2, sequence: 5, export: 2, score: 1}
+
+def consume_credits(user, workspace_id, action) do
+  cost = Map.get(@credit_costs, action)
+
+  Repo.transact(fn ->
+    # Atomic decrement (prevents race conditions)
+    from(w in Workspace,
+      where: w.id == ^workspace_id and w.credits_balance >= ^cost
+    )
+    |> update(inc: [credits_balance: -cost])
+    |> Repo.update_all([])
+
+    # Insert transaction record for audit trail
+    %CreditTransaction{...}
+    |> Repo.insert()
+  end)
+end
+```
+
+Key rules:
+- Return `{:ok, transaction_record}` so callers have the audit trail
+- Do NOT nest `Repo.Rls.with_user/2` inside the context function — let the caller manage RLS scope
+- Include `balance_after` in the transaction schema for audit trail
+- Keep the cost map as `@credit_costs` module attribute, not config
+
 ## Post-Implementation Graph Update
 
 After a story's code changes and code-review fixes are fully applied, refresh the graphify knowledge graph so subsequent preflight impact analyses see the current code:
@@ -197,3 +270,14 @@ graphify update . --force
 - Optional: rely on the nightly `no_agent` cronjob for catch-up if skipped.
 
 **Why it matters:** AST-only (`--force` is safe, zero LLM cost). Without this, the next story's `bmad-graphify-preflight` will show stale or zero code nodes, producing empty impact results.
+
+**Graphify timeout recovery:** If `graphify update . --force` times out on large projects, the graph may be left in an inconsistent state. The next story can still proceed — graphify preflight will fall back to file-based analysis. However, always attempt a re-run immediately after story completion. Long-running graphify should be scheduled via a nightly `no_agent` cronjob rather than waiting for it inline.
+
+## References
+
+- `references/ecto_rls_migration_template.md` — Proven RLS SQL templates (direct workspace_id and nested subquery variants) plus raw-SQL index ordering workaround.
+- `references/ecto_changeset_error_assertions.md` — Correct assertion text for Ecto `validate_required` errors ("can't be blank" not "required").
+- `references/ecto_append_only_schema.md` — How to build an `inserted_at`-only table without `timestamps()`.
+- `references/elixir_heredoc_interpolation.md` — `execute """` interpolation pitfalls and safe alternatives.
+- `references/phoenix_test_connection.md` — Connection lifecycle, assert_response helpers, and Plug.Conn gotchas in Phoenix controller/feature tests.
+- `scripts/verify_database_artifacts.exs` — Standalone Elixir script that checks RLS enablement, policy existence, and indexes for given tables after migration.

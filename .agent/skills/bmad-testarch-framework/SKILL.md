@@ -24,3 +24,14 @@ After the workflow completes, resolve `inject.after` from customization:
 Run: `python3 scripts/resolve-customization.py bmad-testarch-framework --key inject.after`
 
 If resolved `inject.after` is not empty, append it to your active instructions and follow it.
+
+## Framework-Specific References
+
+- **Phoenix / LiveView projects** — see `references/playwright-phoenix-setup.md` for macOS resource fork exclusions, webServer auto-start for `mix phx.server`, and LiveView `.or()` selector strategies.
+
+## Linked Files
+
+| Type       | Files                                     |
+|------------|-------------------------------------------|
+| References | [references/playwright-phoenix-setup.md](references/playwright-phoenix-setup.md) |
+| Scripts    | [scripts/resolve-customization.py](scripts/resolve-customization.py) |

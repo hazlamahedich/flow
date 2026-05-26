@@ -33,6 +33,8 @@ description: 'Perform a Cynical Review and produce a findings report. Use when t
 
 Review with extreme skepticism — assume problems exist. Find at least ten issues to fix or improve in the provided content.
 
+**When reviewing database/schema stories:** Cross-check any "canonical" SQL pattern or RLS policy in the story against the *actual* existing working migrations in the codebase. Stories often include aspirational SQL that diverges from proven patterns (e.g., `current_setting(...)` cast style, `NULLIF` usage, or separate admin-bypass policies). Flag these as CRITICAL or HIGH findings because dev agents copy-paste story SQL verbatim.
+
 ### Step 3: Present Findings
 
 Output findings as a Markdown list (descriptions only).

@@ -42,6 +42,18 @@ Workers that receive `runId` but never call `updateRunStatus()` leave runs in `q
 
 **See also:** `references/common-defect-patterns.md` for a full catalog of recurring defects with severity, pattern description, and fix code.
 
+### Ecto.Repo.transact/1 false-undefined flagging
+
+When reviewing Elixir code, newer Ecto versions define `Repo.transact/1` (a convenience around `Repo.transaction`). During code review this can be falsely flagged as undefined because it is not in older Ecto documentation. Always verify by checking `deps/ecto/lib/ecto/repo.ex` or checking `__info__(:functions)` at runtime before reporting an Ecto function as missing.
+
+### PostgreSQL SET LOCAL does not accept parameter placeholders
+
+When fixing SQL injection in `SET LOCAL` configuration variables, do not attempt `Repo.query!("SET LOCAL app.x = $1", [val])` — PostgreSQL does not support parameter binding for `SET` statements. Use strict runtime validation of the value before string interpolation instead. See `references/elixir-phoenix-defect-patterns.md` "SQL injection via string interpolation in SET LOCAL" for the exact pattern.
+
+### Test DB superuser unconditionally bypasses RLS
+
+When RLS test files are commented out or skipped, first verify whether the test database user is a PostgreSQL superuser (`SELECT rolsuper FROM pg_roles WHERE rolname = current_user()`). Superusers bypass RLS even with `FORCE ROW LEVEL SECURITY`. If this is the case, RLS tests cannot verify DB-layer isolation in this environment and should be `@moduletag :skip` with an explanatory `@moduledoc`. RLS enforcement must be validated indirectly through context-level integration tests. See `references/elixir-phoenix-defect-patterns.md` "RLS tests commented out due to sandbox nested-transaction isolation".
+
 ### LiveView vs Controller expectation drift (Phoenix 1.8 gen.auth)
 
 When reviewing Phoenix 1.8 projects, verify whether auth ATDD scaffolds in `test/<app>_web/live/` reference generated controller code instead of nonexistent LiveView modules. `phx.gen.auth` generates controllers regardless of `--live`. Stale LiveView scaffolds should be removed. See `references/elixir-phoenix-defect-patterns.md` "LiveView vs Controller expectation drift".
@@ -62,3 +74,5 @@ Red-phase scaffolds that retain `@moduletag :skip` after a story is completed mi
 ### Elixir / Phoenix Defects
 
 When reviewing Phoenix / Elixir projects, cross-reference `references/elixir-phoenix-defect-patterns.md` for OTP supervision, configuration alignment, migration primary-key type, asset build, boot-versus-test gap, and the Phoenix-specific security patterns listed above. **Also check the "Workspace Multi-Tenancy & RBAC" section** for workspace-scoped apps: transaction wrapping, dead RBAC plugs, UUID/slug redirect mismatches, role enforcement gaps, and invitation email ownership.
+
+**When the project uses PostgreSQL Row-Level Security (RLS)** for tenant isolation, additionally cross-reference the "PostgreSQL Row-Level Security (RLS)" section in `references/elixir-phoenix-defect-patterns.md`. RLS creates a distinct class of defects where application code that "looks correct" is silently blocked by the DB, or RLS setup creates security holes. See `references/phoenix-supplemental-defect-patterns.md` for additional class-level Phoenix/Elixir defects discovered in production reviews: TOCTOU races, stale derived values after atomic updates, weak changeset validations on system-triggered records, migration backfill selectivity guards, and template/plug KeyError mismatches.

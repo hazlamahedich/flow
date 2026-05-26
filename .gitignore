@@ -14,3 +14,13 @@ test-results/
 playwright-report/
 playwright/.auth/
 graphify-out/
+*.bundled_*.mjs
+
+# Claude worktrees (per-machine, not part of repo)
+.claude/worktrees/
+.claude/settings.json
+
+# Root-level claude config (machine-specific)
+/CLAUDE.md
+
+
