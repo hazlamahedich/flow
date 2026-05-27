@@ -1,5 +1,7 @@
 export { getInvoices } from './get-invoices';
 export type { GetInvoicesParams, InvoiceListItem } from './get-invoices';
+export { getPaymentAttemptsByInvoice } from './get-payment-attempts';
+export type { PaymentAttempt } from './get-payment-attempts';
 export { getInvoiceDetail } from './get-invoice-detail';
 export type { InvoiceDetail } from './get-invoice-detail';
 export { getInvoiceWithBalance } from './get-invoice-with-balance';

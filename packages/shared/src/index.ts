@@ -68,3 +68,5 @@ export type {
   CadenceTier,
   TrustLevelColorSet,
 } from './constants/agent-identity';
+export { mapStripeDeclineCode, isRetryableDeclineCode } from './stripe-decline-codes';
+export type { DeclineCodeInfo } from './stripe-decline-codes';

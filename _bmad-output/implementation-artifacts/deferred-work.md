@@ -547,3 +547,12 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - D7-4-R-D3 — Void modal payment linkage wording may be inaccurate — says "will no longer be linked to this invoice" but payments remain in invoice_payments. Cosmetic copy issue. `ux-polish` `apps/web/app/(workspace)/invoices/[invoiceId]/components/void-invoice-button.tsx:60`
 - D7-4-R-D4 — Issue Credit Note button visible when maxCreditCents=0. Minor UX polish — should hide button when no credit can be issued. `ux-polish` `apps/web/app/(workspace)/invoices/[invoiceId]/page.tsx:92-98`
 - D7-4-R-D5 — `voidInvoiceViaRpc`/`issueCreditNoteViaRpc` query wrappers unused by actions (actions call supabase.rpc directly). Wrappers available for future non-action callers. `tech-debt` `packages/db/src/queries/invoices/void-invoice.ts`, `issue-credit-note.ts`
+
+## Deferred from: code review of 7-5-stripe-payment-failure-handling (2026-05-27)
+
+- D7-5-R-D1 — `checkout.session.completed` with missing metadata marked `processed` instead of `failed`. Story 9-3 owns success path side effects. `scope-deferred` `apps/web/app/api/webhooks/stripe/route.ts:108-124`
+- D7-5-R-D2 — No trace-level logging of full payloads per AC5. Not logging is safer than logging per PCI-DSS. `spec-deviation` `apps/web/app/api/webhooks/stripe/route.ts`
+- D7-5-R-D3 — No explicit 5-second handler timeout per NFR05. Spec prohibits `Promise.race` and no alternative enforcement exists. Design gap. `design-gap` `apps/web/app/api/webhooks/stripe/route.ts`
+- D7-5-R-D4 — Stuck `pending` webhook events past TTL never cleaned up. Cleanup only targets `processed`/`failed` rows. Need stale-pending sweeper. `tech-debt` `supabase/migrations/20260601000001_stripe_payment_failures.sql`
+- D7-5-R-D5 — `amountCents` can be `NaN` if Stripe sends non-numeric string. Outer catch handles it but error message is cryptic. `edge-case` `apps/web/app/api/webhooks/stripe/route.ts:145`
+- D7-5-R-D6 — Non-UUID metadata values cause FK violation on dedup insert → returns 500, Stripe retries event that will never succeed. Should validate UUID format and mark `failed` instead. `edge-case` `apps/web/app/api/webhooks/stripe/route.ts:86`

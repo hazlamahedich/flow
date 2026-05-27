@@ -7,3 +7,4 @@ export { getDeliveryStatusAction } from '@/lib/actions/invoices/get-delivery-sta
 export { recordPaymentAction } from '@/lib/actions/invoices/record-payment';
 export { voidInvoiceAction } from '@/lib/actions/invoices/void-invoice';
 export { issueCreditNoteAction } from '@/lib/actions/invoices/issue-credit-note';
+export { getPaymentAttemptsAction } from '@/lib/actions/invoices/get-payment-attempts';

@@ -19,6 +19,12 @@ const SCHEDULES: ScheduleEntry[] = [
     cron: '0 2 * * *',
     data: { type: 'sweep_trigger', trigger: 'time_integrity_daily' },
   },
+  {
+    // Story 7.5 — AC2: daily cleanup of expired stripe_webhook_events at 3am UTC
+    name: 'cleanup-expired-stripe-events',
+    cron: '0 3 * * *',
+    data: { type: 'sweep_trigger', trigger: 'stripe_webhook_cleanup' },
+  },
 ];
 
 export async function registerSchedules(boss: PgBoss): Promise<void> {

@@ -6,7 +6,7 @@ import { writeAuditLog } from '../shared/audit-writer';
 
 interface SweepTriggerPayload {
   type: 'sweep_trigger';
-  trigger: 'time_integrity_daily';
+  trigger: 'time_integrity_daily' | 'stripe_webhook_cleanup';
 }
 
 interface SweepJobPayload {
@@ -70,6 +70,31 @@ export async function registerSweepWorkers(boss: PgBoss, trustClient?: TrustClie
       action: 'sweep.trigger.enqueued',
       entityType: 'orchestrator',
       details: { workspacesEnqueued: enqueued, workspacesTotal: (configs ?? []).length, sweepDate: today },
+    });
+  });
+
+  // Handler: cleanup expired stripe webhook events (daily at 03:00 UTC)
+  await boss.work<SweepTriggerPayload>('cleanup-expired-stripe-events', async (_job) => {
+    const client = createServiceClient();
+    const { data, error } = await client.rpc('cleanup_expired_stripe_webhook_events');
+
+    if (error) {
+      writeAuditLog({
+        workspaceId: 'system',
+        agentId: 'stripe-webhook',
+        action: 'cleanup.error',
+        entityType: 'orchestrator',
+        details: { error: error.message },
+      });
+      throw error;
+    }
+
+    writeAuditLog({
+      workspaceId: 'system',
+      agentId: 'stripe-webhook',
+      action: 'cleanup.success',
+      entityType: 'orchestrator',
+      details: { deletedCount: data },
     });
   });
 

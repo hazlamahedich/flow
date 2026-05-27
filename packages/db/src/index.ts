@@ -184,6 +184,8 @@ export type { TimerStateWithNames, GetTimerStateInput, StartTimerInput, StopTime
 export { createProject, ProjectNameDuplicateError, listProjects } from './queries/projects';
 export type { Project, CreateProjectInput, ListProjectsInput } from './queries/projects';
 export { decryptCalendarTokens, encryptCalendarTokens, rotateCalendarTokens } from './vault/calendar-tokens';
+export { getPaymentAttemptsByInvoice } from './queries/invoices/get-payment-attempts';
+export type { PaymentAttempt } from './queries/invoices/get-payment-attempts';
 export {
   getInvoices,
   getInvoiceDetail,

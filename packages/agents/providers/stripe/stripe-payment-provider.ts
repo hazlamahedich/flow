@@ -1,3 +1,4 @@
+
 import type {
   PaymentProvider,
   PaymentCustomer,
@@ -10,6 +11,7 @@ import type {
   WebhookEvent,
   CheckoutSession,
 } from '../payment-provider.js';
+import crypto from 'node:crypto';
 
 const STRIPE_API_BASE = 'https://api.stripe.com/v1';
 
@@ -173,6 +175,7 @@ export class StripePaymentProvider implements PaymentProvider {
       success_url: params.successUrl,
       cancel_url: params.cancelUrl,
       metadata: params.metadata,
+      payment_intent_data: { metadata: params.metadata },
       ...(params.expiresAt ? { expires_at: params.expiresAt } : {}),
     }, params.idempotencyKey);
 
@@ -327,17 +330,67 @@ export class StripePaymentProvider implements PaymentProvider {
     _signature: string,
     _secret: string,
   ): Promise<WebhookEvent> {
-    throw new Error('Use constructWebhookEvent for Stripe webhook verification');
+    throw new Error('Deprecated: use constructWebhookEvent instead');
   }
 
   constructWebhookEvent(payload: string, signature: string, secret: string): WebhookEvent {
-    const timestamp = Date.now();
+    const parsed = parseStripeSignature(signature);
+    if (!parsed) {
+      throw new StripeApiError('Invalid Stripe-Signature header format', 400, 'webhook');
+    }
+    const { timestamp, signatures } = parsed;
+
+    // Reject if timestamp > 5 minutes old (Stripe spec tolerance)
+    const now = Math.floor(Date.now() / 1000);
+    if (now - timestamp > 300) {
+      throw new StripeApiError('Stripe-Signature timestamp expired', 400, 'webhook');
+    }
+
+    const expected = this.computeSignature(timestamp, payload, secret);
+    const matched = signatures.some((sig) => this.secureCompare(expected, sig));
+    if (!matched) {
+      throw new StripeApiError('Invalid webhook signature', 400, 'webhook');
+    }
+
+    // Parse payload as WebhookEvent
+    let event: Record<string, unknown>;
+    try {
+      event = JSON.parse(payload) as Record<string, unknown>;
+    } catch {
+      throw new StripeApiError('Invalid JSON payload', 400, 'webhook');
+    }
+
+    const id = typeof event.id === 'string' && event.id.length > 0 ? event.id : '';
+    const type = typeof event.type === 'string' ? event.type : '';
+    const created = typeof event.created === 'number' ? event.created : timestamp;
+
+    if (!id) {
+      throw new StripeApiError('Stripe event missing id field', 400, 'webhook');
+    }
+
     return {
-      id: `evt_spike_${timestamp}`,
-      type: 'spike.verify',
-      payload: { payload, signature, secret, note: 'Spike: replace with stripe webhook signature verification' },
-      createdAt: new Date(timestamp).toISOString(),
+      id,
+      type,
+      payload: event,
+      createdAt: new Date(created * 1000).toISOString(),
     };
+  }
+
+  private computeSignature(timestamp: number, payload: string, secret: string): string {
+    const signedPayload = `${timestamp}.${payload}`;
+    return crypto.createHmac('sha256', secret).update(signedPayload).digest('hex');
+  }
+
+  private secureCompare(a: string, b: string): boolean {
+    if (a.length !== b.length) return false;
+    try {
+      const bufA = Buffer.from(a, 'hex');
+      const bufB = Buffer.from(b, 'hex');
+      if (bufA.length !== bufB.length) return false;
+      return crypto.timingSafeEqual(bufA, bufB);
+    } catch {
+      return false;
+    }
   }
 }
 
@@ -447,4 +500,22 @@ function mapRefund(r: StripeRefund): Refund {
     reason: r.reason as Refund['reason'],
     status: r.status as Refund['status'],
   };
+}
+
+function parseStripeSignature(signature: string): { timestamp: number; signatures: string[] } | null {
+  const parts = signature.split(',').map((p) => p.trim());
+  let timestamp: number | null = null;
+  const signatures: string[] = [];
+  for (const part of parts) {
+    if (part.startsWith('t=')) {
+      const tVal = part.slice(2);
+      const parsed = Number.parseInt(tVal, 10);
+      if (Number.isNaN(parsed) || tVal !== String(parsed)) continue;
+      timestamp = parsed;
+    } else if (part.startsWith('v1=')) {
+      signatures.push(part.slice(3));
+    }
+  }
+  if (timestamp === null || signatures.length === 0) return null;
+  return { timestamp, signatures };
 }

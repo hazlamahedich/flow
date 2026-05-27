@@ -1,9 +1,10 @@
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { getInvoiceDetailAction } from './actions';
+import { getInvoiceDetailAction, getPaymentAttemptsAction } from './actions';
 import { SendInvoiceButtons } from './components/send-invoice-button';
 import { SummaryCard, StatusBadge } from './components/invoice-helpers';
+import { PaymentAttemptsSection } from './components/payment-attempts';
 import { formatCentsToDollar } from '@flow/shared';
 
 const RecordPaymentButton = dynamic(
@@ -22,20 +23,23 @@ const IssueCreditNoteButton = dynamic(
 );
 
 async function InvoiceDetail({ invoiceId }: { invoiceId: string }) {
-  const result = await getInvoiceDetailAction(invoiceId);
+  const [detailResult, attemptsResult] = await Promise.all([
+    getInvoiceDetailAction(invoiceId),
+    getPaymentAttemptsAction(invoiceId),
+  ]);
 
-  if (!result.success) {
+  if (!detailResult.success) {
     return (
       <div className="space-y-6">
         <Link href="/invoices" className="text-sm text-muted-foreground hover:underline">
           ← Back to invoices
         </Link>
-        <p className="text-sm text-destructive">{result.error.message}</p>
+        <p className="text-sm text-destructive">{detailResult.error.message}</p>
       </div>
     );
   }
 
-  if (!result.data) {
+  if (!detailResult.data) {
     return (
       <div className="space-y-6">
         <Link href="/invoices" className="text-sm text-muted-foreground hover:underline">
@@ -46,7 +50,8 @@ async function InvoiceDetail({ invoiceId }: { invoiceId: string }) {
     );
   }
 
-  const invoice = result.data;
+  const invoice = detailResult.data;
+  const attempts = attemptsResult.success ? (attemptsResult.data ?? []) : [];
   const isDraft = invoice.status === 'draft';
   const isVoided = invoice.status === 'voided';
   const isPaid = invoice.status === 'paid';
@@ -196,6 +201,15 @@ async function InvoiceDetail({ invoiceId }: { invoiceId: string }) {
           </table>
         )}
       </div>
+
+      <PaymentAttemptsSection
+        invoiceId={invoiceId}
+        invoiceNumber={invoice.invoiceNumber}
+        totalCents={invoice.totalCents}
+        amountPaidCents={invoice.amountPaidCents}
+        paymentUrl={invoice.paymentUrl}
+        attempts={attempts}
+      />
 
       {invoice.voidedAt && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4">

@@ -55,6 +55,16 @@ export {
 export { calendarBypassMetrics } from './calendar-bypass-metrics';
 export { calendarEventRelations } from './calendar-event-relations';
 export {
+  stripeWebhookEvents,
+  invoicePaymentAttempts,
+} from './stripe-webhooks';
+export type {
+  StripeWebhookEvent,
+  NewStripeWebhookEvent,
+  InvoicePaymentAttempt,
+  NewInvoicePaymentAttempt,
+} from './stripe-webhooks';
+export {
   invoices,
   invoiceLineItems,
   invoiceDeliveries,
