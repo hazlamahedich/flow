@@ -11,6 +11,16 @@ const RecordPaymentButton = dynamic(
   { ssr: false },
 );
 
+const VoidInvoiceButton = dynamic(
+  () => import('./components/void-invoice-button').then((m) => m.VoidInvoiceButton),
+  { ssr: false },
+);
+
+const IssueCreditNoteButton = dynamic(
+  () => import('./components/issue-credit-note-button').then((m) => m.IssueCreditNoteButton),
+  { ssr: false },
+);
+
 async function InvoiceDetail({ invoiceId }: { invoiceId: string }) {
   const result = await getInvoiceDetailAction(invoiceId);
 
@@ -38,7 +48,11 @@ async function InvoiceDetail({ invoiceId }: { invoiceId: string }) {
 
   const invoice = result.data;
   const isDraft = invoice.status === 'draft';
-  const canRecordPayment = !isDraft && !invoice.voidedAt;
+  const isVoided = invoice.status === 'voided';
+  const isPaid = invoice.status === 'paid';
+  const canRecordPayment = !isDraft && !isVoided && !isPaid;
+  const canVoid = !isVoided && !isPaid;
+  const canCreditNote = !isVoided && !isPaid;
 
   return (
     <div className="space-y-6">
@@ -46,7 +60,7 @@ async function InvoiceDetail({ invoiceId }: { invoiceId: string }) {
         <div className="flex items-center gap-4">
           <Link href="/invoices" className="text-sm text-muted-foreground hover:underline">← Back</Link>
           <h1 className="text-2xl font-semibold tracking-tight">{invoice.invoiceNumber}</h1>
-          <StatusBadge status={invoice.status} />
+          <StatusBadge status={invoice.status} creditBalanceCents={invoice.creditBalanceCents} amountPaidCents={invoice.amountPaidCents} voidReason={invoice.voidReason} />
         </div>
         <div className="flex gap-2">
           {isDraft && (
@@ -65,6 +79,21 @@ async function InvoiceDetail({ invoiceId }: { invoiceId: string }) {
             <RecordPaymentButton
               invoiceId={invoiceId} invoiceNumber={invoice.invoiceNumber}
               totalCents={invoice.totalCents} amountPaidCents={invoice.amountPaidCents}
+            />
+          )}
+          {canVoid && (
+            <VoidInvoiceButton
+              invoiceId={invoiceId}
+              invoiceNumber={invoice.invoiceNumber}
+              timeEntryCount={invoice.lineItems.filter((li) => li.sourceType === 'time_entry').length}
+              amountPaidCents={invoice.amountPaidCents}
+            />
+          )}
+          {canCreditNote && (
+            <IssueCreditNoteButton
+              invoiceId={invoiceId}
+              invoiceNumber={invoice.invoiceNumber}
+              maxCreditCents={invoice.totalCents - invoice.amountPaidCents - (invoice.creditBalanceCents ?? 0)}
             />
           )}
         </div>

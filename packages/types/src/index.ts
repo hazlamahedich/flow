@@ -48,10 +48,12 @@ export type { CalendarEvent as CalendarEventType2 } from './calendar';
 export {
   invoiceStatusEnum, invoiceLineItemSourceEnum, paymentMethodEnum, invoiceLineItemSchema,
   createInvoiceSchema, invoiceSchema, invoiceLineItemSchemaDb, updateInvoiceSchema, voidInvoiceSchema,
+  issueCreditNoteSchema, creditNoteSchema,
 } from './invoice';
 export type {
   InvoiceStatus, InvoiceLineItemSource, PaymentMethod, InvoiceLineItemInput, CreateInvoiceInput,
   Invoice, InvoiceLineItem, UpdateInvoiceInput, VoidInvoiceInput, DuplicateWarning,
+  IssueCreditNoteInput, CreditNote,
 } from './invoice';
 export {
   invoiceDeliveryStatusEnum, recordPaymentSchema, overpaymentWarningSchema, invoicePaymentSchema,

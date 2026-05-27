@@ -539,3 +539,11 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - D7-3a-R-D1 — Non-atomic delete-and-reinsert of line items in update-invoice. DELETE then INSERT without transaction. Concurrent read sees zero items. Pre-existing pattern from Story 7-1. `tech-debt` `apps/web/lib/actions/invoices/update-invoice.ts:192-213`
 - D7-3a-R-D2 — Audit log inserts removed from record-payment.ts without server-side replacement in RPC. Pre-existing regression from 7-3 idempotency refactor. `tech-debt` `apps/web/lib/actions/invoices/record-payment.ts`
 - D7-3a-R-D3 — Accessibility regression: `aria-describedby` removed from date input and error text emptied in record-payment-modal. Pre-existing from 7-3 patches. `tech-debt` `apps/web/app/(workspace)/invoices/[invoiceId]/components/record-payment-modal.tsx`
+
+## Deferred from: code review of 7-4-void-credit-note-time-reconciliation (2026-05-27)
+
+- D7-4-R-D1 — ATDD tests all `test.skip()` — no executable verification. Matches ATDD scaffold pattern used in other epics. `test-debt` `apps/web/__tests__/acceptance/epic-7/7-4-void-credit-note.spec.ts`
+- D7-4-R-D2 — `set_credit_notes_updated_at` trigger unreachable due to no UPDATE RLS policy. Harmless dead code. `tech-debt` `supabase/migrations/20260531000001_credit_notes.sql:26-29`
+- D7-4-R-D3 — Void modal payment linkage wording may be inaccurate — says "will no longer be linked to this invoice" but payments remain in invoice_payments. Cosmetic copy issue. `ux-polish` `apps/web/app/(workspace)/invoices/[invoiceId]/components/void-invoice-button.tsx:60`
+- D7-4-R-D4 — Issue Credit Note button visible when maxCreditCents=0. Minor UX polish — should hide button when no credit can be issued. `ux-polish` `apps/web/app/(workspace)/invoices/[invoiceId]/page.tsx:92-98`
+- D7-4-R-D5 — `voidInvoiceViaRpc`/`issueCreditNoteViaRpc` query wrappers unused by actions (actions call supabase.rpc directly). Wrappers available for future non-action callers. `tech-debt` `packages/db/src/queries/invoices/void-invoice.ts`, `issue-credit-note.ts`

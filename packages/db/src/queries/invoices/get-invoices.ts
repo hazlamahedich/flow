@@ -14,6 +14,7 @@ export interface InvoiceListItem {
   dueDate: string;
   totalCents: number;
   balanceCents: number;
+  creditBalanceCents: number;
   currency: string;
   clientId: string;
   clientName: string;
@@ -39,7 +40,7 @@ export async function getInvoices(
       .eq('workspace_id', params.workspaceId),
     client
       .from('invoices')
-      .select('id, invoice_number, status, issue_date, due_date, total_cents, amount_paid_cents, currency, client_id, created_at, clients(name)')
+      .select('id, invoice_number, status, issue_date, due_date, total_cents, amount_paid_cents, credit_balance_cents, currency, client_id, created_at, clients(name)')
       .eq('workspace_id', params.workspaceId)
       .order('created_at', { ascending: false })
       .range(from, to),
@@ -60,6 +61,7 @@ export async function getInvoices(
         dueDate: String(r.due_date),
         totalCents: total,
         balanceCents: Math.max(total - paid, 0),
+        creditBalanceCents: Number(r.credit_balance_cents ?? 0),
         currency: r.currency as string,
         clientId: r.client_id as string,
         clientName: ((r.clients as Record<string, unknown> | null)?.name ?? '') as string,

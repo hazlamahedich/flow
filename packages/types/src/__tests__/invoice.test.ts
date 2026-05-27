@@ -5,6 +5,7 @@ import {
   invoiceLineItemSchema,
   updateInvoiceSchema,
   voidInvoiceSchema,
+  issueCreditNoteSchema,
 } from '../invoice';
 
 describe('invoiceStatusEnum', () => {
@@ -236,8 +237,8 @@ describe('updateInvoiceSchema', () => {
 });
 
 describe('voidInvoiceSchema', () => {
-  it('accepts invoiceId only', () => {
-    expect(voidInvoiceSchema.safeParse({ invoiceId: '00000000-0000-0000-0000-000000000099' }).success).toBe(true);
+  it('rejects invoiceId without reason', () => {
+    expect(voidInvoiceSchema.safeParse({ invoiceId: '00000000-0000-0000-0000-000000000099' }).success).toBe(false);
   });
 
   it('accepts invoiceId with reason', () => {
@@ -247,5 +248,65 @@ describe('voidInvoiceSchema', () => {
         reason: 'Client requested cancellation',
       }).success,
     ).toBe(true);
+  });
+
+  it('rejects reason longer than 500 chars', () => {
+    expect(
+      voidInvoiceSchema.safeParse({
+        invoiceId: '00000000-0000-0000-0000-000000000099',
+        reason: 'a'.repeat(501),
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe('issueCreditNoteSchema', () => {
+  it('accepts valid credit note', () => {
+    expect(
+      issueCreditNoteSchema.safeParse({
+        invoiceId: '00000000-0000-0000-0000-000000000099',
+        amountCents: 5000,
+        reason: 'Overcharge correction',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects zero amount', () => {
+    expect(
+      issueCreditNoteSchema.safeParse({
+        invoiceId: '00000000-0000-0000-0000-000000000099',
+        amountCents: 0,
+        reason: 'Zero credit',
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects negative amount', () => {
+    expect(
+      issueCreditNoteSchema.safeParse({
+        invoiceId: '00000000-0000-0000-0000-000000000099',
+        amountCents: -100,
+        reason: 'Negative',
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects missing reason', () => {
+    expect(
+      issueCreditNoteSchema.safeParse({
+        invoiceId: '00000000-0000-0000-0000-000000000099',
+        amountCents: 1000,
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects reason longer than 500 chars', () => {
+    expect(
+      issueCreditNoteSchema.safeParse({
+        invoiceId: '00000000-0000-0000-0000-000000000099',
+        amountCents: 1000,
+        reason: 'a'.repeat(501),
+      }).success,
+    ).toBe(false);
   });
 });

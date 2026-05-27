@@ -15,6 +15,7 @@ export const invoiceLineItemSourceEnum = z.enum([
   'time_entry',
   'fixed_service',
   'retainer',
+  'credit_note',
 ]);
 export type InvoiceLineItemSource = z.infer<typeof invoiceLineItemSourceEnum>;
 
@@ -166,6 +167,25 @@ export type UpdateInvoiceInput = z.infer<typeof updateInvoiceSchema>;
 
 export const voidInvoiceSchema = z.object({
   invoiceId: z.string().uuid(),
-  reason: z.string().max(500).optional(),
+  reason: z.string().min(1).max(500),
 });
 export type VoidInvoiceInput = z.infer<typeof voidInvoiceSchema>;
+
+export const issueCreditNoteSchema = z.object({
+  invoiceId: z.string().uuid(),
+  amountCents: z.number().int().min(1).max(999999999999),
+  reason: z.string().min(1).max(500),
+});
+export type IssueCreditNoteInput = z.infer<typeof issueCreditNoteSchema>;
+
+export const creditNoteSchema = z.object({
+  id: z.string().uuid(),
+  invoiceId: z.string().uuid(),
+  workspaceId: z.string().uuid(),
+  amountCents: z.number(),
+  reason: z.string(),
+  createdBy: z.string().uuid().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type CreditNote = z.infer<typeof creditNoteSchema>;

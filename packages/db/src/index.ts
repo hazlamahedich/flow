@@ -190,15 +190,23 @@ export {
   getInvoiceWithBalance,
   getInvoicePayments,
   recordPaymentViaRpc,
+  resolveHourlyRate,
+  voidInvoiceViaRpc,
+  issueCreditNoteViaRpc,
+  getTimeEntryReconciliation,
+  getClientFinancialSummary,
 } from './queries/invoices';
-export { resolveHourlyRate } from './queries/invoices/resolve-hourly-rate';
-export type { ResolveHourlyRateResult } from './queries/invoices/resolve-hourly-rate';
 export type {
   GetInvoicesParams,
   InvoiceDetail,
   InvoiceWithPaymentsAndBalance,
   PaymentHistoryRecord,
   InvoicePaymentResult,
+  ResolveHourlyRateResult,
+  VoidInvoiceResult,
+  IssueCreditNoteResult,
+  TimeEntryReconciliationRow,
+  ClientFinancialSummary,
   InvoiceListItem,
 } from './queries/invoices';
 export { createInvoiceEditGuard } from './queries/invoices/invoice-edit-guard';

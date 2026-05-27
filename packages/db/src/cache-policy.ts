@@ -16,7 +16,8 @@ export type CacheEntity =
   | 'retainer_agreement'
   | 'invoice'
   | 'invoice_line_item'
-  | 'invoice_payment';
+  | 'invoice_payment'
+  | 'credit_note';
 
 export type CacheMutation = 'create' | 'update' | 'delete';
 
@@ -39,6 +40,7 @@ const ENTITY_TAG_MAP: Record<CacheEntity, string> = {
   invoice: 'invoices',
   invoice_line_item: 'invoices',
   invoice_payment: 'invoices',
+  credit_note: 'invoices',
 };
 
 export function cacheTag(
