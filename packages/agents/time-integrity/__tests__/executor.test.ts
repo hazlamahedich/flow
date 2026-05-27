@@ -275,7 +275,7 @@ describe('execute — time integrity sweep', () => {
 
       expect(result.success).toBe(true);
       expect(capturedPayload).not.toBeNull();
-      expect(capturedPayload?.resolved_at).toBeDefined();
+      expect(capturedPayload).toHaveProperty('resolved_at');
       expect(mockInsertRun).not.toHaveBeenCalled();
     });
   });

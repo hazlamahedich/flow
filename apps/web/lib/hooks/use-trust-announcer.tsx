@@ -9,7 +9,7 @@ interface TrustAnnouncement {
 
 export const trustAnnouncementAtom = atom<TrustAnnouncement | null>(null);
 
-let announceQueue: TrustAnnouncement[] = [];
+const announceQueue: TrustAnnouncement[] = [];
 let isFlushing = false;
 
 function flushQueue(setAnnouncement: (v: TrustAnnouncement | null) => void) {

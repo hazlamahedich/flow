@@ -7,7 +7,7 @@ import { GAP_THRESHOLD_MINUTES, LOW_HOURS_TARGET, type TimeIntegrityInput, type 
 import { buildProposalTitle, subtractDays, PROPOSAL_REASONING } from './executor-helpers';
 
 export interface SweepDeps {
-  trustClient?: TrustClient;
+  trustClient?: TrustClient | undefined;
 }
 
 export function mapRawEntryToDetection(r: Record<string, unknown>): TimeEntryForDetection {
@@ -79,7 +79,7 @@ export async function execute(
   if (fetchError) {
     return {
       success: false,
-      error: { code: 'DB_FETCH_ERROR', message: fetchError.message },
+      error: { status: 500, code: 'INTERNAL_ERROR', message: fetchError.message, category: 'system' },
     };
   }
 

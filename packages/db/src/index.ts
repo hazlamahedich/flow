@@ -1,7 +1,7 @@
 export { createServerClient, createBrowserClient, createServiceClient } from './client';
 export { createAdminSupabase } from './admin-client';
-export {
-  requireTenantContext,
+export type { SupabaseClient } from '@supabase/supabase-js';
+export {  requireTenantContext,
   setTenantContext,
   createFlowError,
 } from './rls-helpers';

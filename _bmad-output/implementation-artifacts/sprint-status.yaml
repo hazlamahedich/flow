@@ -73,14 +73,14 @@ development_status:
   6-4-bypass-detection-cascade-rescheduling: done
   epic-6-retrospective: done
 
-  epic-7: in-progress
-  7-1-invoice-data-model-creation: review
-  7-2-invoice-delivery-payment-link: ready-for-dev
+  epic-7: done
+  7-1-invoice-data-model-creation: done
+  7-2-invoice-delivery-payment-link: done
   7-3-partial-payments-balance-tracking: done
-  7-3a-time-entry-billing-computation: in-progress
-  7-4-void-credit-note-time-reconciliation: review
+  7-3a-time-entry-billing-computation: done
+  7-4-void-credit-note-time-reconciliation: done
   7-5-stripe-payment-failure-handling: done
-  epic-7-retrospective: optional
+  epic-7-retrospective: done
 
   epic-8: backlog
   8-1-weekly-client-reports: backlog

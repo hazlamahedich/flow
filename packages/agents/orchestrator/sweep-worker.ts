@@ -2,6 +2,7 @@ import { createServiceClient } from '@flow/db';
 import type { PgBoss } from 'pg-boss';
 import type { TrustClient } from '@flow/trust';
 import { execute } from '../time-integrity/executor';
+import type { SweepDeps } from '../time-integrity/executor';
 import { writeAuditLog } from '../shared/audit-writer';
 
 interface SweepTriggerPayload {
@@ -19,8 +20,8 @@ interface SweepJobPayload {
  * and the sweep job handler (per-workspace execution).
  */
 export async function registerSweepWorkers(boss: PgBoss, trustClient?: TrustClient): Promise<void> {
-  // Handler: receives the daily trigger and fans out one job per active workspace
-  await boss.work<SweepTriggerPayload>('time-integrity-sweep-trigger', async (_job) => {
+    // Handler: receives the daily trigger and fans out one job per active workspace
+  await boss.work<SweepTriggerPayload>('time-integrity-sweep-trigger', async (_jobs) => {
     const client = createServiceClient();
 
     const { data: configs, error } = await client
@@ -46,7 +47,7 @@ export async function registerSweepWorkers(boss: PgBoss, trustClient?: TrustClie
     // P5: isolate per-workspace enqueue failures so one bad workspace cannot abort all others
     for (const cfg of configs ?? []) {
       try {
-        await boss.send<SweepJobPayload>(
+        await boss.send(
           'agent:time-integrity:sweep',
           { workspaceId: cfg.workspace_id as string, sweepDate: today },
           { retryLimit: 2, retryDelay: 60 },
@@ -99,14 +100,19 @@ export async function registerSweepWorkers(boss: PgBoss, trustClient?: TrustClie
   });
 
   // Handler: processes the sweep for a single workspace
-  await boss.work<SweepJobPayload>('agent:time-integrity:sweep', async (job) => {
+  await boss.work<SweepJobPayload>('agent:time-integrity:sweep', async (jobs) => {
+    const job = jobs[0];
+    if (!job) {
+      throw new Error('agent:time-integrity:sweep — no job in batch');
+    }
     const { workspaceId, sweepDate } = job.data;
 
     if (!workspaceId) {
       throw new Error('agent:time-integrity:sweep — workspaceId missing in job payload');
     }
 
-    const result = await execute({ workspaceId, sweepDate }, { trustClient });
+    const deps: SweepDeps = { trustClient };
+    const result = await execute({ workspaceId, sweepDate }, deps);
 
     if (!result.success) {
       writeAuditLog({

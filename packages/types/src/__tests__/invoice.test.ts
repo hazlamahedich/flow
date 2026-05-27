@@ -188,8 +188,8 @@ describe('createInvoiceSchema', () => {
   });
 
   it('accepts time_entry line items without amountCents', () => {
-    // NOTE: time_entry line items are now allowed in Zod schema (unblocked in Story 7-3)
-    // but rejected by Server Action with NOT_IMPLEMENTED. See Story 7-3a.
+    // NOTE: time_entry line items are now fully supported in Zod schema (unblocked in Story 7-3a).
+    // Server Actions compute amount from duration × hourly rate. No NOT_IMPLEMENTED guard.
     const input = {
       ...validBase,
       lineItems: [

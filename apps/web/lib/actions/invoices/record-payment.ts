@@ -4,13 +4,18 @@ import { revalidateTag } from 'next/cache';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, createFlowError, cacheTag, invalidateAfterMutation } from '@flow/db';
 import { recordPaymentSchema } from '@flow/types';
-import type { ActionResult, InvoicePayment, OverpaymentWarning, InvoiceWithBalance } from '@flow/types';
+import type { ActionResult, InvoicePayment, InvoiceWithBalance } from '@flow/types';
 import {
-  checkIdempotencyKey,
   fetchInvoiceForPayment,
   callPaymentRpcWithRetry,
 } from './record-payment-helpers';
-import type { RecordPaymentResult } from './record-payment-helpers';
+import { checkIdempotencyKey } from './idempotency';
+
+interface RecordPaymentResult {
+  payment: InvoicePayment;
+  invoice: InvoiceWithBalance & { payments: InvoicePayment[] };
+  warning?: { type: 'OVERPAYMENT_CREDIT'; excessAmountCents: number; creditBalanceCents: number };
+}
 
 export async function recordPaymentAction(
   input: unknown,
@@ -30,7 +35,7 @@ export async function recordPaymentAction(
 
   const { invoiceId, amountCents, paymentDate, paymentMethod, notes, idempotencyKey, confirmOverpayment } = parsed.data;
 
-  const idempotencyResult = await checkIdempotencyKey(supabase, ctx.workspaceId, invoiceId, idempotencyKey);
+  const idempotencyResult = await checkIdempotencyKey<RecordPaymentResult>(supabase, ctx.workspaceId, invoiceId, idempotencyKey);
   if (idempotencyResult) return idempotencyResult;
 
   const invoice = await fetchInvoiceForPayment(supabase, invoiceId, ctx.workspaceId);

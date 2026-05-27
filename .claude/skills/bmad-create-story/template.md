@@ -15,6 +15,17 @@ so that {{benefit}}.
 0. **[AC0 — Test-First]** Unit test stubs exist and are red before implementation begins. Story cannot be marked `in-progress` until test file with failing tests is created.
 1. [Add acceptance criteria from epics/PRD]
 
+### Edge Case Matrix (Epic 7 Retro: mandatory for financial/complex state stories)
+
+| Case | Input / Condition | Expected Behavior | AC Ref |
+|------|-------------------|-------------------|--------|
+| EC1 | [status + null field combination] | [expected] | AC# |
+| EC2 | [overpayment/underpayment/zero] | [expected] | AC# |
+| EC3 | [concurrent access / race] | [expected] | AC# |
+| EC4 | [invalid state transition] | [expected] | AC# |
+
+> Remove this section for simple CRUD stories. Mandatory for: financial mutations, status machines, multi-step flows, background jobs.
+
 ## Pre-Dev Dependency Scan
 
 - [ ] Graphify query run — key dependencies listed below

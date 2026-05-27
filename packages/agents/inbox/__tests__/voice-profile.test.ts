@@ -118,7 +118,7 @@ describe('voice-profile', () => {
     };
 
     const actions = [
-      { type: 'reply', description: 'Confirm meeting time', confidence: 0.9 },
+      { actionType: 'reply', description: 'Confirm meeting time', confidence: 0.9 },
     ];
 
     const prompt = buildDraftPrompt(context, 'When is our meeting?', 'Meeting?', actions);

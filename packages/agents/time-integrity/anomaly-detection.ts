@@ -47,9 +47,9 @@ export function detectGaps(
 
     const sorted = [...withTimes].sort((a, b) => a.startMinutes - b.startMinutes);
     for (let i = 0; i < sorted.length - 1; i++) {
-      const gapMinutes = sorted[i + 1].startMinutes - sorted[i].endMinutes;
+      const gapMinutes = sorted[i + 1]!.startMinutes - sorted[i]!.endMinutes;
       if (gapMinutes > thresholdMinutes) {
-        const ids = [sorted[i].id, sorted[i + 1].id];
+        const ids = [sorted[i]!.id, sorted[i + 1]!.id];
         signals.push({
           anomalyType: 'gap',
           affectedEntryIds: [...ids].sort(),
@@ -80,8 +80,8 @@ export function detectOverlaps(entries: TimeEntryForDetection[]): AnomalySignal[
 
     for (let i = 0; i < withTimes.length; i++) {
       for (let j = i + 1; j < withTimes.length; j++) {
-        const a = withTimes[i];
-        const b = withTimes[j];
+        const a = withTimes[i]!;
+        const b = withTimes[j]!;
         const overlaps = a.endMinutes > b.startMinutes && b.endMinutes > a.startMinutes;
         if (!overlaps) continue;
 

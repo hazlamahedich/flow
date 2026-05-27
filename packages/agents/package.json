@@ -20,9 +20,17 @@
       "types": "./calendar/index.ts",
       "default": "./dist/calendar/index.js"
     },
-    "./inbox/initial-sync": {
-      "types": "./inbox/initial-sync.ts",
-      "default": "./dist/inbox/initial-sync.js"
+    "./orchestrator": {
+      "types": "./orchestrator/index.ts",
+      "default": "./dist/orchestrator/index.js"
+    },
+    "./orchestrator/pg-boss-producer": {
+      "types": "./orchestrator/pg-boss-producer.ts",
+      "default": "./dist/orchestrator/pg-boss-producer.js"
+    },
+    "./orchestrator/types": {
+      "types": "./orchestrator/types.ts",
+      "default": "./dist/orchestrator/types.js"
     }
   },
   "scripts": {

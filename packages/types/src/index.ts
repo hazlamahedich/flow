@@ -44,7 +44,7 @@ export {
   calendarAccessTypeEnum, calendarProviderEnum, calendarSyncStatusEnum, calendarEventTypeEnum,
   calendarEventSourceEnum, connectCalendarInputSchema, calendarOAuthStateCookieSchema, clientCalendarSchema, calendarEventSchema,
 } from './calendar';
-export type { CalendarEvent as CalendarEventType2 } from './calendar';
+export type { CalendarAccessType, CalendarProviderName, CalendarSyncStatus, CalendarEventType, CalendarEventSource, CalendarEvent as CalendarEventType2 } from './calendar';
 export {
   invoiceStatusEnum, invoiceLineItemSourceEnum, paymentMethodEnum, invoiceLineItemSchema,
   createInvoiceSchema, invoiceSchema, invoiceLineItemSchemaDb, updateInvoiceSchema, voidInvoiceSchema,

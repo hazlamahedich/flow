@@ -9,55 +9,9 @@ import {
   invalidateAfterMutation,
 } from '@flow/db';
 import { sendInvoiceSchema } from '@flow/types';
-import type { ActionResult, InvoiceDelivery } from '@flow/types';
+import type { ActionResult } from '@flow/types';
 import { getPaymentProvider, getTransactionalEmailProvider, signDeliveryToken } from '@flow/agents/providers';
-import { formatCentsToDollar } from '@flow/shared';
-
-interface SendInvoicePayload {
-  invoiceId: string;
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function buildEmailPayload(args: {
-  to: string;
-  invoiceNumber: string;
-  totalCents: number;
-  currency: string;
-  clientName: string;
-  paymentUrl: string;
-  workspaceName: string;
-  metadata: Record<string, string>;
-}) {
-  const totalDollars = formatCentsToDollar(args.totalCents);
-  return {
-    to: args.to,
-    subject: `Invoice ${args.invoiceNumber} from ${args.workspaceName}`,
-    htmlBody: `<!DOCTYPE html>
-<html><body>
-  <p>Dear ${escapeHtml(args.clientName)},\u003c/p>
-  <p>Here is your invoice \u003cstrong>${escapeHtml(args.invoiceNumber)}\u003c/strong> for ${args.currency.toUpperCase()} ${totalDollars}.\u003c/p>
-  <p>\u003ca href="${encodeURI(args.paymentUrl)}" style="display:inline-block;padding:10px 16px;background:#0f172a;color:#fff;text-decoration:none;border-radius:4px;">Pay Invoice\u003c/a>\u003c/p>
-  <p style="color:#666;font-size:12px;">If the button doesn't work, copy this link: ${encodeURI(args.paymentUrl)}\u003c/p>
-</body></html>`,
-    textBody: `Dear ${args.clientName},
-
-Here is your invoice ${args.invoiceNumber} for ${args.currency.toUpperCase()} ${totalDollars}.
-
-Pay here: ${args.paymentUrl}
-
-- Flow OS`,
-    metadata: args.metadata,
-  };
-}
-
-function plainLanguageError(stripeError?: boolean, resendError?: boolean): string {
-  if (stripeError) return "We couldn't connect to the payment processor — please try again.";
-  if (resendError) return "We couldn't send the email — check the client's email address.";
-  return "Something went wrong — please copy the payment link and send it manually.";
-}
+import { buildSendInvoiceEmailPayload, plainLanguageError } from './send-invoice-email';
 
 export async function sendInvoiceAction(
   input: unknown,
@@ -118,7 +72,6 @@ export async function sendInvoiceAction(
 
   const token = await signDeliveryToken({ invoiceId: invoice.id, workspaceId: ctx.workspaceId });
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.flow.app';
-  const redirectUrl = `${appUrl}/api/redirect/pay/${encodeURIComponent(token)}`;
   const successUrl = `${appUrl}/invoices/paid?token=${encodeURIComponent(token)}&status=success`;
   const cancelUrl = `${appUrl}/invoices/paid?token=${encodeURIComponent(token)}&status=cancelled`;
 
@@ -181,7 +134,7 @@ export async function sendInvoiceAction(
   let messageId: string | undefined;
   try {
     const result = await emailProvider.send(
-      buildEmailPayload({
+      buildSendInvoiceEmailPayload({
         to: clientEmail,
         invoiceNumber,
         totalCents,

@@ -8,8 +8,8 @@ describe('pii-tokenizer', () => {
       const result = tokenizePII(input, 'ws-1');
 
       expect(result.tokens).toHaveLength(1);
-      expect(result.tokens[0].type).toBe('email');
-      expect(result.tokens[0].original).toBe('john.doe@example.com');
+      expect(result.tokens[0]!.type).toBe('email');
+      expect(result.tokens[0]!.original).toBe('john.doe@example.com');
       expect(result.text).not.toContain('john.doe@example.com');
       expect(result.text).toContain('[EMAIL_1]');
     });
@@ -63,7 +63,7 @@ describe('pii-tokenizer', () => {
 
       const emailTokens = result.tokens.filter(t => t.type === 'email');
       expect(emailTokens).toHaveLength(1);
-      const occurrences = result.text.match(new RegExp(emailTokens[0].token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'));
+      const occurrences = result.text.match(new RegExp(emailTokens[0]!.token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'));
       expect(occurrences).toHaveLength(2);
     });
   });

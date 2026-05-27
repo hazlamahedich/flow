@@ -1,6 +1,6 @@
 'use server';
 
-import { requireTenantContext, createServiceClient } from '@flow/db';
+import { requireTenantContext, createServiceClient, createFlowError } from '@flow/db';
 import { revalidateTag } from 'next/cache';
 import type { ActionResult } from '@flow/types';
 import { z } from 'zod';
@@ -35,7 +35,7 @@ export async function dismissIntegritySignal(
   if (!parsed.success) {
     return {
       success: false,
-      error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message ?? 'Invalid input' },
+      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
     };
   }
 
@@ -54,14 +54,14 @@ export async function dismissIntegritySignal(
   if (sigError) {
     return {
       success: false,
-      error: { code: 'DB_ERROR', message: sigError.message },
+      error: createFlowError(500, 'INTERNAL_ERROR', sigError.message, 'system'),
     };
   }
 
   if (count === 0) {
     return {
       success: false,
-      error: { code: 'NOT_FOUND', message: 'Signal not found, already dismissed, or not in your workspace' },
+      error: createFlowError(404, 'NOT_FOUND', 'Signal not found, already dismissed, or not in your workspace', 'validation'),
     };
   }
 
@@ -114,7 +114,7 @@ export async function getPendingIntegritySignals(): Promise<ActionResult<Integri
     .limit(50);
 
   if (error) {
-    return { success: false, error: { code: 'DB_ERROR', message: error.message } };
+    return { success: false, error: createFlowError(500, 'INTERNAL_ERROR', error.message, 'system') };
   }
 
   return {

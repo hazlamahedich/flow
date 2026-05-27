@@ -1,81 +1,9 @@
 import crypto from 'node:crypto';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { createFlowError } from '@flow/db';
-import type { ActionResult, InvoicePayment, OverpaymentWarning, InvoiceWithBalance } from '@flow/types';
 
-export interface RecordPaymentResult {
-  payment: InvoicePayment;
-  invoice: InvoiceWithBalance;
-  warning?: OverpaymentWarning;
-}
-
-export const sleep = (ms: number): Promise<void> => new Promise((res) => setTimeout(res, ms));
-
-export function hashIdempotencyKey(invoiceId: string, key: string): string {
-  return crypto.createHash('sha256').update(`${invoiceId}::${key}`).digest('hex');
-}
-
-export function buildScope(workspaceId: string, invoiceId: string): string {
-  return `${workspaceId}:${invoiceId}`;
-}
 
 type SupabaseClient = Awaited<ReturnType<typeof getServerSupabase>>;
-
-export async function checkIdempotencyKey(
-  supabase: SupabaseClient,
-  workspaceId: string,
-  invoiceId: string,
-  idempotencyKey: string | undefined,
-): Promise<ActionResult<RecordPaymentResult> | null> {
-  if (!idempotencyKey) return null;
-
-  const hash = hashIdempotencyKey(invoiceId, idempotencyKey);
-  const scope = buildScope(workspaceId, invoiceId);
-
-  const { data: existing } = await supabase
-    .from('idempotency_keys')
-    .select('response_json')
-    .eq('key_hash', hash)
-    .eq('scope', scope)
-    .gt('expires_at', new Date().toISOString())
-    .maybeSingle();
-
-  if (existing) {
-    const response = (existing as Record<string, unknown>).response_json as Record<string, unknown> | undefined;
-    if (response) {
-      return { success: true, data: response as unknown as RecordPaymentResult };
-    }
-  }
-
-  return null;
-}
-
-export async function storeIdempotencyKey(
-  supabase: SupabaseClient,
-  workspaceId: string,
-  invoiceId: string,
-  idempotencyKey: string | undefined,
-  response: RecordPaymentResult,
-): Promise<void> {
-  if (!idempotencyKey) return;
-
-  const hash = hashIdempotencyKey(invoiceId, idempotencyKey);
-  const scope = buildScope(workspaceId, invoiceId);
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-
-  const { error: idemError } = await supabase.from('idempotency_keys').insert({
-    key_hash: hash,
-    scope,
-    invoice_id: invoiceId,
-    workspace_id: workspaceId,
-    response_json: response as unknown as Record<string, unknown>,
-    expires_at: expiresAt,
-  });
-
-  if (idemError) {
-    console.error('Idempotency key insert failed:', idemError.message);
-  }
-}
 
 export interface InvoiceForPayment {
   status: string;
@@ -145,6 +73,7 @@ export async function fetchInvoiceForPayment(
 
 const TRANSIENT_RETRY_COUNT = 2;
 const TRANSIENT_BACKOFFS = [100, 400];
+const sleep = (ms: number): Promise<void> => new Promise((res) => setTimeout(res, ms));
 
 export async function callPaymentRpcWithRetry(
   supabase: SupabaseClient,
@@ -165,12 +94,7 @@ export async function callPaymentRpcWithRetry(
   newCreditBalance: number;
 } | { error: ReturnType<typeof createFlowError> }> {
   for (let attempt = 0; attempt <= TRANSIENT_RETRY_COUNT; attempt++) {
-    if (attempt > 0) {
-      await sleep(TRANSIENT_BACKOFFS[attempt - 1] ?? 400);
-    }
-
-    const keyHash = params.idempotencyKey ? hashIdempotencyKey(params.invoiceId, params.idempotencyKey) : null;
-    const scope = params.idempotencyKey ? buildScope(params.workspaceId, params.invoiceId) : null;
+    if (attempt > 0) await sleep(TRANSIENT_BACKOFFS[attempt - 1] ?? 400);
 
     const { data: rpcResult, error: rpcError } = await supabase
       .rpc('record_payment_with_concurrency', {
@@ -182,8 +106,8 @@ export async function callPaymentRpcWithRetry(
         p_notes: params.notes ?? null,
         p_stripe_payment_intent_id: null,
         p_created_by: params.createdBy,
-        p_key_hash: keyHash,
-        p_key_scope: scope,
+        p_key_hash: params.idempotencyKey ? crypto.createHash('sha256').update(`${params.invoiceId}::${params.idempotencyKey}`).digest('hex') : null,
+        p_key_scope: params.idempotencyKey ? `${params.workspaceId}:${params.invoiceId}` : null,
       });
 
     if (rpcError) {
@@ -199,8 +123,7 @@ export async function callPaymentRpcWithRetry(
     const result = rpcResult as Record<string, unknown>;
 
     if (result.error) {
-      const errCode = result.error as string;
-      const businessError = handleRpcResultError(errCode);
+      const businessError = handleRpcResultError(result.error as string);
       if (businessError) return { error: businessError };
       continue;
     }
@@ -221,13 +144,13 @@ export async function callPaymentRpcWithRetry(
 function handleRpcError(rpcError: { message?: string; code?: string } & Record<string, unknown>): ReturnType<typeof createFlowError> | null {
   const msg = rpcError.message ?? '';
   const code = (rpcError as unknown as Record<string, unknown>).code as string | undefined;
-  const checks: [string, string, string][] = [
-    ['INVOICE_VOIDED', '400', 'Cannot record payment on a voided invoice.'],
-    ['INVOICE_ALREADY_PAID', '400', 'Invoice is already paid.'],
-    ['INVOICE_DRAFT', '400', 'Cannot record payment on a draft invoice.'],
-    ['INVALID_AMOUNT', '400', 'Payment amount must be greater than zero.'],
+  const checks: [string, string][] = [
+    ['INVOICE_VOIDED', 'Cannot record payment on a voided invoice.'],
+    ['INVOICE_ALREADY_PAID', 'Invoice is already paid.'],
+    ['INVOICE_DRAFT', 'Cannot record payment on a draft invoice.'],
+    ['INVALID_AMOUNT', 'Payment amount must be greater than zero.'],
   ];
-  for (const [errCode, , msgText] of checks) {
+  for (const [errCode, msgText] of checks) {
     if (msg.includes(errCode) || code === errCode) {
       return createFlowError(400, errCode as 'INVOICE_VOIDED', msgText, 'financial');
     }
