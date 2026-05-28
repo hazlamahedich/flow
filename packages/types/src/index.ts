@@ -32,6 +32,14 @@ export { retainerTypeEnum, createRetainerSchema, updateRetainerSchema, cancelRet
 export type { RetainerType, CreateRetainerInput, UpdateRetainerInput, CancelRetainerInput, Retainer, ScopeCreepAlert, UtilizationState } from './retainer';
 export type { PaginatedResult, PaginationInput } from './pagination';
 export {
+  reportStatusEnum, sectionTypeEnum, generateWeeklyReportSchema,
+  weeklyReportSchema, weeklyReportSectionSchema, reportTemplateSchema, reportListItemSchema,
+} from './reports';
+export type {
+  ReportStatus, SectionType, GenerateWeeklyReportInput,
+  WeeklyReport, WeeklyReportSection, ReportTemplate, ReportListItem,
+} from './reports';
+export {
   inboxAccessTypeEnum, syncStatusEnum, oauthTokensSchema, oauthStateEncryptedSchema, oauthStateCookieSchema,
   connectInboxInputSchema, clientInboxSchema, inboxStatusResponseSchema, gmailPubSubMessageSchema,
 } from './inbox';

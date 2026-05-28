@@ -22,6 +22,19 @@ export {
   trustAudits,
   trustMilestones,
 } from './trust';
+export {
+  reportTemplates,
+  weeklyReports,
+  weeklyReportSections,
+} from './weekly-reports';
+export type {
+  ReportTemplate,
+  NewReportTemplate,
+  WeeklyReport,
+  NewWeeklyReport,
+  WeeklyReportSection,
+  NewWeeklyReportSection,
+} from './weekly-reports';
 export { clientCalendars } from './client-calendars';
 export { calendarEvents } from './calendar-events';
 export { clientInboxes } from './client-inboxes';
