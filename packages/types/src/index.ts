@@ -34,10 +34,14 @@ export type { PaginatedResult, PaginationInput } from './pagination';
 export {
   reportStatusEnum, sectionTypeEnum, generateWeeklyReportSchema,
   weeklyReportSchema, weeklyReportSectionSchema, reportTemplateSchema, reportListItemSchema,
+  accentColorSchema,
+  templateSectionsConfigSchema, saveReportTemplateSchema, deleteReportTemplateSchema, templateListItemSchema,
 } from './reports';
 export type {
   ReportStatus, SectionType, GenerateWeeklyReportInput,
   WeeklyReport, WeeklyReportSection, ReportTemplate, ReportListItem,
+  TemplateSectionsConfig, SaveReportTemplateInput, DeleteReportTemplateInput, TemplateListItem,
+  ReportTemplateDetail, BrandingInput,
 } from './reports';
 export {
   inboxAccessTypeEnum, syncStatusEnum, oauthTokensSchema, oauthStateEncryptedSchema, oauthStateCookieSchema,

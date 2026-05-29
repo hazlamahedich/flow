@@ -556,3 +556,12 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - D7-5-R-D4 — Stuck `pending` webhook events past TTL never cleaned up. Cleanup only targets `processed`/`failed` rows. Need stale-pending sweeper. `tech-debt` `supabase/migrations/20260601000001_stripe_payment_failures.sql`
 - D7-5-R-D5 — `amountCents` can be `NaN` if Stripe sends non-numeric string. Outer catch handles it but error message is cryptic. `edge-case` `apps/web/app/api/webhooks/stripe/route.ts:145`
 - D7-5-R-D6 — Non-UUID metadata values cause FK violation on dedup insert → returns 500, Stripe retries event that will never succeed. Should validate UUID format and mark `failed` instead. `edge-case` `apps/web/app/api/webhooks/stripe/route.ts:86`
+
+## Deferred from: code review of 8-1b-report-templates (2026-05-29)
+
+- D8-1b-R-D1 — Missing Zod validation at DB result boundaries (getReportTemplatesForWorkspaceAction, page.tsx cast raw Supabase rows without .safeParse()). Systemic pattern across all report actions. `tech-debt` `apps/web/lib/actions/reports/get-report-templates.ts`, `apps/web/app/(workspace)/reports/templates/page.tsx`
+- D8-1b-R-D2 — safeStr produces invalid datetime strings in generateWeeklyReportAction (empty string on null). Pre-existing 8-1a code. `edge-case` `apps/web/lib/actions/reports/generate-weekly-report.ts`
+- D8-1b-R-D3 — No acceptance test for cross-workspace template access. Test gap. `test-gap`
+- D8-1b-R-D4 — No pagination on getReportTemplatesForWorkspaceAction. Acceptable for MVP, re-evaluate at scale. `scalability` `apps/web/lib/actions/reports/get-report-templates.ts`
+- D8-1b-R-D5 — safeNum doesn't exclude negative financial values in generateWeeklyReportAction. Pre-existing 8-1a code. `edge-case` `apps/web/lib/actions/reports/generate-weekly-report.ts`
+- D8-1b-R-D6 — updated_at trigger missing on report_templates table (foundation migration). Save action manually sets it. Add trigger at schema revision. `tech-debt` `supabase/migrations/20260528074359_weekly_reports_foundation.sql`

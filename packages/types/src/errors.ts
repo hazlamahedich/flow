@@ -80,6 +80,10 @@ export type FlowErrorCode =
   | 'NO_HOURLY_RATE'
   | 'INVOICE_VOIDED'
   | 'INVALID_AMOUNT'
+  | 'SECTION_COUNT_MIN'
+  | 'DEFAULT_TEMPLATE_REQUIRED'
+  | 'PERIOD_TOO_LONG'
+  | 'INVALID_DATE_RANGE'
 
 export type AgentErrorCode =
   | 'AGENT_ERROR'

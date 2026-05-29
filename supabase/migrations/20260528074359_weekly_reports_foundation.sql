@@ -349,7 +349,7 @@ SELECT
     'agent_activity', jsonb_build_object('enabled', true, 'sort_order', 3),
     'invoice_summary', jsonb_build_object('enabled', true, 'sort_order', 4)
   ) AS sections_config,
-  jsonb_build_object('accent_color', '#6366f1', 'logo_url', null) AS branding
+  jsonb_build_object('accentColor', '#6366f1', 'logoUrl', null) AS branding
 FROM workspaces w
 WHERE NOT EXISTS (
   SELECT 1 FROM report_templates rt

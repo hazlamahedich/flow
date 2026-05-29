@@ -41,7 +41,7 @@ BEGIN
       'agent_activity', jsonb_build_object('enabled', true, 'sort_order', 3),
       'invoice_summary', jsonb_build_object('enabled', true, 'sort_order', 4)
     ),
-    jsonb_build_object('accent_color', '#6366f1', 'logo_url', null)
+    jsonb_build_object('accentColor', '#6366f1', 'logoUrl', null)
   );
 
   RETURN QUERY

@@ -1,6 +1,6 @@
 # Story 8.1b: Weekly Client Reports — Templates (Customization & Defaults)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -78,29 +78,29 @@ Builds on 8-1a by adding template CRUD and enabling section customization.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Template CRUD Server Actions (AC: 1, 2)
-  - [ ] Subtask 1.1: `saveReportTemplateAction` — upsert with validation
-  - [ ] Subtask 1.2: `deleteReportTemplateAction` — with "default replacement" guard
-  - [ ] Subtask 1.3: `getReportTemplatesForWorkspaceAction` — list default + overrides
-  - [ ] Subtask 1.4: Zod schemas: `saveReportTemplateSchema`, `deleteReportTemplateSchema`
+- [x] Task 1 — Template CRUD Server Actions (AC: 1, 2)
+  - [x] Subtask 1.1: `saveReportTemplateAction` — upsert with validation
+  - [x] Subtask 1.2: `deleteReportTemplateAction` — with "default replacement" guard
+  - [x] Subtask 1.3: `getReportTemplatesForWorkspaceAction` — list default + overrides
+  - [x] Subtask 1.4: Zod schemas: `saveReportTemplateSchema`, `deleteReportTemplateSchema`
 
-- [ ] Task 2 — Template UI (AC: 1, 2)
-  - [ ] Subtask 2.1: `apps/web/app/(workspace)/reports/templates/page.tsx`
-  - [ ] Subtask 2.2: `apps/web/app/(workspace)/reports/templates/components/TemplateCard.tsx`
-  - [ ] Subtask 2.3: `apps/web/app/(workspace)/reports/templates/components/TemplateForm.tsx`
-  - [ ] Subtask 2.4: Section toggle + sort_order inputs
-  - [ ] Subtask 2.5: Color picker (design system palette constraint)
+- [x] Task 2 — Template UI (AC: 1, 2)
+  - [x] Subtask 2.1: `apps/web/app/(workspace)/reports/templates/page.tsx`
+  - [x] Subtask 2.2: `apps/web/app/(workspace)/reports/templates/components/TemplateCard.tsx`
+  - [x] Subtask 2.3: `apps/web/app/(workspace)/reports/templates/components/TemplateForm.tsx`
+  - [x] Subtask 2.4: Section toggle + sort_order inputs
+  - [x] Subtask 2.5: Color picker (design system palette constraint)
 
-- [ ] Task 3 — Wire templates into generation (AC: 3)
-  - [ ] Subtask 3.1: Update `generateWeeklyReportAction` to resolve template (client → default → fallback)
-  - [ ] Subtask 3.2: Filter sections by template `enabled` flags
-  - [ ] Subtask 3.3: Store `template_snapshot` on report row at generation time
+- [x] Task 3 — Wire templates into generation (AC: 3)
+  - [x] Subtask 3.1: Update `generateWeeklyReportAction` to resolve template (client → default → fallback)
+  - [x] Subtask 3.2: Filter sections by template `enabled` flags
+  - [x] Subtask 3.3: Store `template_snapshot` on report row at generation time
 
-- [ ] Task 4 — Default template backfill migration
-  - [ ] Subtask 4.1: Migration seeds default template for all existing workspaces
+- [x] Task 4 — Default template backfill migration
+  - [x] Subtask 4.1: Migration seeds default template for all existing workspaces
 
-- [ ] Task 5 — ATDD red-phase
-  - [ ] Subtask 5.1: `apps/web/__tests__/acceptance/epic-8/8-1b-report-templates.spec.ts`
+- [x] Task 5 — ATDD red-phase
+  - [x] Subtask 5.1: `apps/web/__tests__/acceptance/epic-8/8-1b-report-templates.spec.ts`
 
 ## Dev Notes
 
@@ -153,3 +153,26 @@ Builds on 8-1a by adding template CRUD and enabling section customization.
 ### File List
 
 _(to be filled at implementation time)_
+
+### Review Findings
+
+**Resolved (2026-05-29):**
+
+- [x] [Review][Decision→Patch] accentColor vs accent_color JSONB key mismatch — fixed: standardized to camelCase in foundation migration + RPC
+- [x] [Review][Decision→Patch] explicit templateId not scoped to client in generation — fixed: added `.or()` filter for client_id match
+- [x] [Review][Patch] Delete redundant 8-1b migration (wrong timestamp, duplicates foundation seed) [supabase/migrations/20260528000001_8_1b_report_templates.sql]
+- [x] [Review][Patch] Remove duplicate DESIGN_SYSTEM_PALETTE + re-validation from save action [save-report-template.ts:13-17,62-77]
+- [x] [Review][Patch] TemplateCard reads sortOrder instead of sort_order [TemplateCard.tsx:12,15]
+- [x] [Review][Patch] Server action errors silently swallowed in UI [ClientTemplatePage.tsx:21,54]
+- [x] [Review][Patch] TemplateForm stale data on cancel (added key prop) [ClientTemplatePage.tsx:102]
+- [x] [Review][Patch] No workspace-scoped clientId validation on save [save-report-template.ts:60]
+- [x] [Review][Patch] TemplateCard invalid date guard [TemplateCard.tsx:86]
+
+**Deferred:**
+
+- [x] [Review][Defer] Missing Zod validation at DB result boundaries (systemic pattern) — deferred, pre-existing
+- [x] [Review][Defer] safeStr produces invalid datetime strings in generateWeeklyReportAction — deferred, 8-1a code
+- [x] [Review][Defer] No cross-workspace template access test — deferred, test gap
+- [x] [Review][Defer] No pagination on getReportTemplatesForWorkspaceAction — deferred, MVP scope
+- [x] [Review][Defer] safeNum doesn't exclude negative financial values — deferred, 8-1a code
+- [x] [Review][Defer] updated_at trigger missing on report_templates — deferred, 8-1a schema, save action sets manually

@@ -2,22 +2,22 @@
 
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, createFlowError } from '@flow/db';
-import { generateWeeklyReportSchema, weeklyReportSchema, weeklyReportSectionSchema } from '@flow/types';
+import { generateWeeklyReportSchema } from '@flow/types';
 import type { ActionResult } from '@flow/types';
 import type { WeeklyReport, WeeklyReportSection } from '@flow/types';
-import type { PostgrestSingleResponse } from '@supabase/supabase-js';
+
 
 interface GenerateReportResult {
   report: WeeklyReport;
   sections: WeeklyReportSection[];
 }
 
-const SECTION_ORDER: Array<{ type: string; title: string }> = [
-  { type: 'time_summary', title: 'Time Summary' },
-  { type: 'task_log', title: 'Task Log' },
-  { type: 'agent_activity', title: 'Agent Activity' },
-  { type: 'invoice_summary', title: 'Invoice Summary' },
-];
+  const SECTION_ORDER: Array<{ type: string; title: string }> = [
+    { type: 'time_summary', title: 'Time Summary' },
+    { type: 'task_log', title: 'Task Log' },
+    { type: 'agent_activity', title: 'Agent Activity' },
+    { type: 'invoice_summary', title: 'Invoice Summary' },
+  ];
 
 function validateResult<T>(result: { data: T | null; error: unknown }): result is { data: T; error: null } {
   return result.error === null && result.data !== null;
@@ -115,6 +115,7 @@ export async function generateWeeklyReportAction(
       .select('id, sections_config, branding')
       .eq('id', resolvedTemplateId)
       .eq('workspace_id', ctx.workspaceId)
+      .or(`client_id.eq.${clientId},client_id.is.null`)
       .maybeSingle();
     if (tplResult.data) {
       templateSnapshot = {
@@ -127,6 +128,24 @@ export async function generateWeeklyReportAction(
   }
 
   if (!resolvedTemplateId) {
+    // Try per-client template first
+    const clientTplResult = await supabase
+      .from('report_templates')
+      .select('id, sections_config, branding')
+      .eq('workspace_id', ctx.workspaceId)
+      .eq('client_id', clientId)
+      .maybeSingle();
+    if (clientTplResult.data) {
+      resolvedTemplateId = clientTplResult.data.id;
+      templateSnapshot = {
+        sections_config: clientTplResult.data.sections_config ?? {},
+        branding: clientTplResult.data.branding ?? {},
+      };
+    }
+  }
+
+  if (!resolvedTemplateId) {
+    // Fall back to workspace default
     const defaultResult = await supabase
       .from('report_templates')
       .select('id, sections_config, branding')
@@ -140,6 +159,25 @@ export async function generateWeeklyReportAction(
         branding: defaultResult.data.branding ?? {},
       };
     }
+  }
+
+  // Hardcoded fallback if absolutely nothing
+  const sectionsConfig = (templateSnapshot.sections_config as Record<string, { enabled?: boolean; sort_order?: number }> | undefined) ?? {};
+  const fallbackOrder = ['time_summary', 'task_log', 'agent_activity', 'invoice_summary'] as const;
+  const hasEnabledConfig = Object.keys(sectionsConfig).length > 0;
+
+  // Build ordered section list respecting enabled flags
+  const orderedSections = hasEnabledConfig
+    ? (Object.entries(sectionsConfig)
+        .filter(([, cfg]) => cfg?.enabled)
+        .sort(([, a], [, b]) => (a?.sort_order ?? 0) - (b?.sort_order ?? 0))
+        .map(([type]) => type))
+    : fallbackOrder.map((t) => t);
+
+  // Preserve sort_order in payload for each section
+  const sectionOrderMap = new Map<string, number>();
+  for (const [type, cfg] of Object.entries(sectionsConfig)) {
+    sectionOrderMap.set(type, cfg?.sort_order ?? 0);
   }
 
   const [timeResult, invResult, agentResult] = await Promise.all([
@@ -206,15 +244,16 @@ export async function generateWeeklyReportAction(
 
   const sectionsPayload: Array<Record<string, unknown>> = [];
 
-  for (const sec of SECTION_ORDER) {
+  for (const secType of orderedSections) {
+    const sectionDef = SECTION_ORDER.find((s) => s.type === secType)!;
     let content: Record<string, unknown> = {};
-    if (sec.type === 'time_summary') {
+    if (secType === 'time_summary') {
       content = { totalMinutes };
-    } else if (sec.type === 'task_log') {
+    } else if (secType === 'task_log') {
       const projectMap = new Map<string, { projectName: string; entries: Array<{ date: string; durationMinutes: number; notes: string }> }>();
       for (const r of timeRows) {
         const pid = safeStr(r.project_id);
-        const pname = ((r.projects as Record<string, unknown> | null)?.name as string | undefined) ?? '';
+        const pname = (((r.projects as unknown) as { name?: string } | null)?.name) ?? '';
         if (!projectMap.has(pid)) {
           projectMap.set(pid, { projectName: pname, entries: [] });
         }
@@ -227,7 +266,7 @@ export async function generateWeeklyReportAction(
       content = {
         projects: Array.from(projectMap.values()),
       };
-    } else if (sec.type === 'agent_activity') {
+    } else if (secType === 'agent_activity') {
       const counts = new Map<string, { actionType: string; status: string; count: number }>();
       for (const r of agentRows) {
         const actionType = (r.action_type as string) ?? '';
@@ -241,7 +280,7 @@ export async function generateWeeklyReportAction(
       content = {
         runs: Array.from(counts.values()),
       };
-    } else if (sec.type === 'invoice_summary') {
+    } else if (secType === 'invoice_summary') {
       content = {
         totalCents: totalInvoiceCents,
         amountPaidCents: totalPaidCents,
@@ -250,8 +289,9 @@ export async function generateWeeklyReportAction(
     }
 
     sectionsPayload.push({
-      section_type: sec.type,
-      title: sec.title,
+      section_type: secType,
+      title: sectionDef.title,
+      sort_order: sectionOrderMap.get(secType) ?? 0,
       content,
     });
   }

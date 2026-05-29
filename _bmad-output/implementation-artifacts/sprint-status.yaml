@@ -87,7 +87,7 @@ development_status:
   epic-8: in-progress
   8-1-weekly-client-reports: deprecated  # SPLIT — replaced by 8-1a, 8-1b, 8-1c
   8-1a-weekly-reports-foundation: done    # Generation + persistence + list/detail UI
-  8-1b-report-templates: ready-for-dev            # Template CRUD + customization
+  8-1b-report-templates: done                     # Template CRUD + customization
   8-1c-report-regeneration: ready-for-dev         # Re-generation + versioning
   8-2-weekly-report-agent-auto-drafts: backlog
   8-3-client-health-agent-usage-analytics: backlog
@@ -128,5 +128,7 @@ test_metrics:
   epic-8-atdd:
     last_measured: 2026-05-28
     total: 39
-    note: "Story 8-1 re-sliced into 8-1a (18 tests), 8-1b (12 tests), 8-1c (10 tests). All red-phase scaffolds written."
+    passing: 17  # 8-1b: 17/17 passing
+    skipped: 0
+    note: "8-1b (17 tests) all green. 8-1a and 8-1c remaining in backlog."
     target_pass_rate: "100% of P0 tests"
