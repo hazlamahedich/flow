@@ -26,11 +26,18 @@ export interface FridayFeelingResult {
   headline: string;
 }
 
+const trustTransitionSchema = z.object({
+  agent_type: z.string(),
+  from_level: z.string(),
+  to_level: z.string(),
+  reached_at: z.string(),
+});
+
 export const fridayFeelingResultSchema = z.object({
   summaryId: z.string().uuid(),
   tasksHandled: z.number().int().min(0),
   timeSavedMinutes: z.number().int().min(0),
-  trustMilestones: z.array(z.record(z.unknown())),
+  trustMilestones: z.array(trustTransitionSchema),
   headline: z.string(),
 });
 

@@ -3,7 +3,7 @@ story_id: "8.4"
 epic: 8
 epic_title: Reporting & Client Health
 story_key: 8-4-friday-feeling-ritual
-status: review
+status: done
 created: 2026-05-29
 author: BMad Story Agent
 input_documents:
@@ -16,7 +16,7 @@ input_documents:
 
 # Story 8.4: Friday Feeling Ritual
 
-Status: review
+Status: done
 
 ## Story
 
@@ -311,16 +311,29 @@ glm-5.1 (zai-coding-plan/glm-5.1)
 ## Change Log
 
 - **2026-05-29**: Story 8-4 implementation complete — Friday Feeling Agent, Wednesday Affirmations, ExhaleScreen UI, inbox integration, 18 tests passing.
+- **2026-05-29**: Code review patches applied (8 findings closed — see Post-Dev Code Review below).
 
 ## QA Results
 *(To be filled by QA/Testing agent)*
 
 ## Post-Dev Code Review
-*(To be filled after code-review skill run)*
 
-**Reviewer:** *(pending)*
-**Date:** *(pending)*
-**Verdict:** *(pending)*
+**Reviewer:** Claude Code (/code-review)
+**Date:** 2026-05-29
+**Verdict:** Changes applied — all 8 findings closed
+
+### Findings & Patches
+
+| # | Severity | Finding | File(s) | Resolution |
+|---|----------|---------|---------|------------|
+| 1 | 🔴 Critical | UPDATE RLS policy allowed any workspace member to overwrite all columns (headline, tasks_handled, etc.) — not just `dismissed_at` | `migrations/20260605000001` | New migration `20260605000002` adds column-level `GRANT UPDATE (dismissed_at)` on both tables; revokes full UPDATE from `authenticated` |
+| 2 | 🟡 Medium | pre-checks test re-implemented `preCheck` inline instead of importing the real function — tests validated a copy, not production code | `friday-feeling/__tests__/pre-checks.test.ts` | Removed local reimplementation; test now imports and exercises `../src/pre-checks` directly |
+| 3 | 🟡 Medium | `ExhaleScreen` rendered `summary.headline` twice in the empty-state branch (once in `<h2>`, again in `<p>`) | `exhale-screen.tsx` | Replaced redundant `<p>` with a static fallback message |
+| 4 | 🟡 Medium | `fridayFeelingResultSchema.trustMilestones` typed as `z.array(z.record(z.unknown()))` — too loose, doesn't match `TrustTransition` interface | `friday-feeling/src/schemas.ts` | Added `trustTransitionSchema` with all four required fields; `fridayFeelingResultSchema` now uses it |
+| 5 | 🟡 Medium | `trust_transitions` queried without `ORDER BY` — `memberTransitions[last]` could pick an arbitrary row | `wednesday-affirmation.ts` | Added `.order('created_at', { ascending: true })` |
+| 6 | Performance | Wednesday affirmation inserts were one-at-a-time in a loop — O(n) round-trips per workspace | `wednesday-affirmation.ts` | Batched all rows into a single `.insert([...rows]).select('id')` call |
+| 7 | Type Safety | `null as unknown as FridayFeelingData` escape hatch in two server actions | `get-friday-feeling.ts`, `get-wednesday-affirmation.ts` | Changed return type to `ActionResult<T \| null>` and returned `{ success: true, data: null }` |
+| 8 | 🟡 Medium | `daysSinceMonday` computed but unused in sweep worker; week window was `yesterday−7d` instead of Mon→Fri | `sweep-worker.ts` | Used `daysSinceMonday` to anchor `weekStart` to this Monday; `weekEnd` is now `now` (Friday) |
 
 ---
 

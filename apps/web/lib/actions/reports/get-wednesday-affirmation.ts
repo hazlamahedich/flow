@@ -13,7 +13,7 @@ export interface WednesdayAffirmationData {
   dismissedAt: string | null;
 }
 
-export async function getWednesdayAffirmationAction(): Promise<ActionResult<WednesdayAffirmationData>> {
+export async function getWednesdayAffirmationAction(): Promise<ActionResult<WednesdayAffirmationData | null>> {
   const supabase = await getServerSupabase();
   let ctx;
   try {
@@ -34,10 +34,7 @@ export async function getWednesdayAffirmationAction(): Promise<ActionResult<Wedn
 
   const row = await getActiveWednesdayAffirmation(supabase, ctx.workspaceId);
   if (!row) {
-    return {
-      success: true,
-      data: null as unknown as WednesdayAffirmationData,
-    };
+    return { success: true, data: null };
   }
 
   return {

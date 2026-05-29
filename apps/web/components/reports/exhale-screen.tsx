@@ -78,7 +78,9 @@ export function ExhaleScreen({ summary }: { summary: FridayFeelingData }) {
           )}
         </>
       ) : (
-        <p className="text-gray-600 leading-relaxed">{summary.headline}</p>
+        <p className="text-gray-600 leading-relaxed">
+          Your agents are fully charged and ready for next week.
+        </p>
       )}
     </div>
   );

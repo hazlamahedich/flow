@@ -16,7 +16,7 @@ export interface FridayFeelingData {
   dismissedAt: string | null;
 }
 
-export async function getFridayFeelingAction(): Promise<ActionResult<FridayFeelingData>> {
+export async function getFridayFeelingAction(): Promise<ActionResult<FridayFeelingData | null>> {
   const supabase = await getServerSupabase();
   let ctx;
   try {
@@ -30,10 +30,7 @@ export async function getFridayFeelingAction(): Promise<ActionResult<FridayFeeli
 
   const row = await getActiveFridayFeeling(supabase, ctx.workspaceId);
   if (!row) {
-    return {
-      success: true,
-      data: null as unknown as FridayFeelingData,
-    };
+    return { success: true, data: null };
   }
 
   return {

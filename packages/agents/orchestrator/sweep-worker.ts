@@ -639,8 +639,8 @@ export async function registerSweepWorkers(boss: PgBoss, trustClient?: TrustClie
     const now = new Date();
     const currentDay = now.getDay();
     const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
-    const weekEnd = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
-    const weekStart = new Date(weekEnd.getTime() - 6 * 24 * 60 * 60 * 1000);
+    const weekStart = new Date(now.getTime() - daysSinceMonday * 24 * 60 * 60 * 1000);
+    const weekEnd = now;
 
     const fmt = (d: Date) => d.toISOString().slice(0, 10);
     const weekStartStr = fmt(weekStart);

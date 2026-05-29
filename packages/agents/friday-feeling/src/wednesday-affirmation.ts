@@ -34,7 +34,8 @@ export async function executeWednesdayAffirmation(
     .from('trust_transitions')
     .select('workspace_id, user_id, agent_id, from_level, to_level, created_at')
     .eq('workspace_id', workspaceId)
-    .gte('created_at', since);
+    .gte('created_at', since)
+    .order('created_at', { ascending: true });
 
   if (!transitions || transitions.length === 0) {
     return { affirmationIds: [], generated: 0 };
@@ -53,8 +54,14 @@ export async function executeWednesdayAffirmation(
     memberMap.set(m.id as string, meta?.full_name ?? 'A team member');
   }
 
-  const affirmationIds: string[] = [];
-  let generated = 0;
+  type AffirmationRow = {
+    workspace_id: string;
+    team_member_id: string;
+    story: string;
+    milestone: { agent_type: string; trust_level: string };
+  };
+
+  const rows: AffirmationRow[] = [];
 
   for (const userId of userIds) {
     const memberTransitions = transitions.filter(
@@ -62,34 +69,34 @@ export async function executeWednesdayAffirmation(
     );
     if (memberTransitions.length === 0) continue;
 
+    // Transitions are ordered ascending; last element is the most recent.
     const latest = memberTransitions[memberTransitions.length - 1] as TrustTransitionRow;
     const name = memberMap.get(userId) ?? 'A team member';
     const agentName = formatAgentName(latest.agent_id);
 
-    const story = `${name} reached ${latest.to_level} trust level for the ${agentName} this week.`;
-    const milestone = {
-      agent_type: latest.agent_id,
-      trust_level: latest.to_level,
-    };
-
-    const { data: inserted, error } = await supabase
-      .from('wednesday_affirmations')
-      .insert({
-        workspace_id: workspaceId,
-        team_member_id: userId,
-        story,
-        milestone,
-      })
-      .select('id')
-      .single();
-
-    if (!error && inserted) {
-      affirmationIds.push(inserted.id);
-      generated++;
-    }
+    rows.push({
+      workspace_id: workspaceId,
+      team_member_id: userId,
+      story: `${name} reached ${latest.to_level} trust level for the ${agentName} this week.`,
+      milestone: { agent_type: latest.agent_id, trust_level: latest.to_level },
+    });
   }
 
-  return { affirmationIds, generated };
+  if (rows.length === 0) {
+    return { affirmationIds: [], generated: 0 };
+  }
+
+  const { data: inserted, error } = await supabase
+    .from('wednesday_affirmations')
+    .insert(rows)
+    .select('id');
+
+  if (error || !inserted) {
+    return { affirmationIds: [], generated: 0 };
+  }
+
+  const affirmationIds = inserted.map((r: { id: string }) => r.id);
+  return { affirmationIds, generated: affirmationIds.length };
 }
 
 function formatAgentName(agentId: string): string {
