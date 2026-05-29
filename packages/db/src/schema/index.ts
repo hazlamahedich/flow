@@ -96,3 +96,13 @@ export type {
   IdempotencyKey,
   NewIdempotencyKey,
 } from './invoices';
+export {
+  fridayFeelingSummaries,
+  wednesdayAffirmations,
+} from './friday-feeling';
+export type {
+  FridayFeelingSummary,
+  NewFridayFeelingSummary,
+  WednesdayAffirmation,
+  NewWednesdayAffirmation,
+} from './friday-feeling';

@@ -28,6 +28,10 @@
       "types": "./client-health/index.ts",
       "default": "./dist/client-health/index.js"
     },
+    "./friday-feeling": {
+      "types": "./friday-feeling/index.ts",
+      "default": "./dist/friday-feeling/index.js"
+    },
     "./orchestrator": {
       "types": "./orchestrator/index.ts",
       "default": "./dist/orchestrator/index.js"

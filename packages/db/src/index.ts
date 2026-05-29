@@ -220,3 +220,13 @@ export { getValidationMetrics, recordValidationMetric } from './queries/analytic
 export type { ValidationMetric } from './queries/analytics/get-validation-metrics';
 export { getClientHealthSnapshots } from './queries/clients/health-snapshots';
 export type { ClientHealthSnapshot } from './queries/clients/health-snapshots';
+export {
+  getActiveFridayFeeling,
+  dismissFridayFeeling,
+  getActiveWednesdayAffirmation,
+  dismissWednesdayAffirmation,
+} from './queries/reports/friday-feeling';
+export type {
+  FridayFeelingRow,
+  WednesdayAffirmationRow,
+} from './queries/reports/friday-feeling';

@@ -91,7 +91,7 @@ development_status:
   8-1c-report-regeneration: done                # Re-generation + versioning
   8-2-weekly-report-agent-auto-drafts: in-progress
   8-3-client-health-agent-usage-analytics: review
-  8-4-friday-feeling-ritual: backlog
+  8-4-friday-feeling-ritual: review
   epic-8-retrospective: optional
 
   epic-9: backlog

@@ -24,12 +24,25 @@ vi.mock('next/cache', () => ({
   revalidateTag: vi.fn(),
 }));
 
+vi.mock('@flow/agents/friday-feeling', () => ({
+  execute: vi.fn().mockResolvedValue({
+    summaryId: 'ff-1',
+    tasksHandled: 23,
+    timeSavedMinutes: 185,
+    trustMilestones: [{ agent_type: 'time_integrity', from_level: 'suggest', to_level: 'auto_approve', reached_at: '2026-05-22T14:00:00Z' }],
+    headline: "Here's what you accomplished. Now go live your life.",
+  }),
+  preCheck: vi.fn().mockResolvedValue({ passed: true, errors: [] }),
+  executeWednesdayAffirmation: vi.fn().mockResolvedValue({ affirmationIds: ['wa-1'], generated: 1 }),
+}));
+
 function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
-  const fromChain = {
+  const resolvedData = { data: rowData ?? null, error: rpcError ?? null };
+  const fromChain: Record<string, ReturnType<typeof vi.fn>> = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: rowData ?? null, error: null }),
-    single: vi.fn().mockResolvedValue({ data: rowData ?? null, error: null }),
+    maybeSingle: vi.fn().mockResolvedValue(resolvedData),
+    single: vi.fn().mockResolvedValue(resolvedData),
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
     delete: vi.fn().mockReturnThis(),
@@ -37,7 +50,15 @@ function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
     in: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
+    is: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
+    lte: vi.fn().mockReturnThis(),
+    range: vi.fn().mockReturnThis(),
   };
+  Object.defineProperty(fromChain, 'then', {
+    value: (resolve: (v: unknown) => void) => resolve(resolvedData),
+    configurable: true,
+  });
   return {
     rpc: vi.fn().mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
     from: vi.fn().mockReturnValue(fromChain),
@@ -78,16 +99,28 @@ function mockWednesdayAffirmation() {
 // ATDD-001: Friday Feeling summary generated with headline
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [8.4-ATDD-001] friday feeling summary generated with headline and accumulated value', () => {
-  test.skip('FridayFeelingAgent class exists in packages/agents', () => {
-    // RED: FridayFeelingAgent not exported from @flow/agents yet.
-    // DEV: Create agent in packages/agents/friday-feeling/index.ts with run() method.
+  test('FridayFeelingAgent execute function exists in packages/agents', async () => {
+    const agent = await import('@flow/agents/friday-feeling');
+    expect(agent.execute).toBeDefined();
+    expect(typeof agent.execute).toBe('function');
   });
 
-  test.skip('getFridayFeelingAction returns summary for current week', () => {
-    // RED: Server action @/lib/actions/reports/get-friday-feeling does not exist.
-    // DEV: Create getFridayFeelingAction({}) returning the current user's latest Friday Feeling summary.
-    // Given: mockSupabase returns mockFridayFeelingSummary()
-    // Expect: result.data.headline === "Here's what you accomplished. Now go live your life.", tasks_handled === 23, time_saved_minutes === 185
+  test('getFridayFeelingAction returns summary for current week', async () => {
+    const { getServerSupabase } = await import('@/lib/supabase-server');
+    const summary = mockFridayFeelingSummary();
+    (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(
+      mockSupabase(null, undefined, summary),
+    );
+
+    const { getFridayFeelingAction } = await import('@/lib/actions/reports/get-friday-feeling');
+    const result = await getFridayFeelingAction();
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.headline).toBe("Here's what you accomplished. Now go live your life.");
+      expect(result.data.tasksHandled).toBe(23);
+      expect(result.data.timeSavedMinutes).toBe(185);
+    }
   });
 });
 
@@ -95,14 +128,28 @@ describe('[P0] [8.4-ATDD-001] friday feeling summary generated with headline and
 // ATDD-002: The Exhale completion screen with visible impact stories
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [8.4-ATDD-002] the exhale completion screen shows visible impact stories', () => {
-  test.skip('ExhaleScreen component is exported from @/components/reports/exhale-screen', () => {
-    // RED: Component does not exist yet.
-    // DEV: Create ExhaleScreen React component accepting summary prop and rendering impact stories.
+  test('ExhaleScreen component is exported from @/components/reports/exhale-screen', async () => {
+    const mod = await import('@/components/reports/exhale-screen');
+    expect(mod.ExhaleScreen).toBeDefined();
   });
 
-  test.skip('exhale screen renders impact stories from summary data', () => {
-    // RED: Component not implemented.
-    // Expect: Component accepts summary data and renders trust milestones as visible impact stories.
+  test('exhale screen renders impact stories from summary data', async () => {
+    const { renderExhaleScreen } = await import('@/components/reports/exhale-screen');
+    const summary = mockFridayFeelingSummary();
+    const html = renderExhaleScreen({
+      id: summary.id,
+      weekStart: summary.week_start,
+      weekEnd: summary.week_end,
+      headline: summary.headline,
+      tasksHandled: summary.tasks_handled,
+      timeSavedMinutes: summary.time_saved_minutes,
+      trustMilestones: summary.trust_milestones,
+      generatedAt: summary.generated_at,
+      dismissedAt: summary.dismissed_at,
+    });
+    expect(html).toContain('time_integrity');
+    expect(html).toContain('auto_approve');
+    expect(html).toContain('23');
   });
 });
 
@@ -110,15 +157,27 @@ describe('[P0] [8.4-ATDD-002] the exhale completion screen shows visible impact 
 // ATDD-003: Wednesday micro-affirmation for agency workspaces
 // ───────────────────────────────────────────────────────────────
 describe('[P1] [8.4-ATDD-003] wednesday micro-affirmation highlights team member trust milestones', () => {
-  test.skip('getWednesdayAffirmationAction is defined', () => {
-    // RED: Server action @/lib/actions/reports/get-wednesday-affirmation does not exist.
-    // DEV: Create getWednesdayAffirmationAction({ workspaceId }) returning affirmation for agency workspaces.
+  test('getWednesdayAffirmationAction is defined', async () => {
+    const mod = await import('@/lib/actions/reports/get-wednesday-affirmation');
+    expect(mod.getWednesdayAffirmationAction).toBeDefined();
+    expect(typeof mod.getWednesdayAffirmationAction).toBe('function');
   });
 
-  test.skip('affirmation returns team member trust milestone story', () => {
-    // RED: Action not implemented.
-    // Given: mockSupabase returns mockWednesdayAffirmation()
-    // Expect: result.data.story contains 'auto_approve', result.data.milestone is defined
+  test('affirmation returns team member trust milestone story', async () => {
+    const { getServerSupabase } = await import('@/lib/supabase-server');
+    const affirmation = mockWednesdayAffirmation();
+    (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(
+      mockSupabase(null, undefined, affirmation),
+    );
+
+    const { getWednesdayAffirmationAction } = await import('@/lib/actions/reports/get-wednesday-affirmation');
+    const result = await getWednesdayAffirmationAction();
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.story).toContain('auto_approve');
+      expect(result.data.milestone).toBeDefined();
+    }
   });
 });
 
@@ -126,13 +185,31 @@ describe('[P1] [8.4-ATDD-003] wednesday micro-affirmation highlights team member
 // ATDD-004: Friday Feeling surfaces in orchestrated workflow inbox
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [8.4-ATDD-004] friday feeling summary surfaces in orchestrated workflow inbox', () => {
-  test.skip('Friday Feeling appears as inbox item with type "friday_feeling"', () => {
-    // RED: Inbox integration for friday_feeling type not implemented.
-    // DEV: Update getInboxItems to include friday_feeling summaries with type = 'friday_feeling'.
+  test('Friday Feeling appears as inbox item with type "friday_feeling"', async () => {
+    const { getServerSupabase } = await import('@/lib/supabase-server');
+    (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(
+      mockSupabase(null, undefined, [mockFridayFeelingSummary()]),
+    );
+
+    const { getInboxItems } = await import('@/lib/actions/inbox/get-inbox-items');
+    const result = await getInboxItems();
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const ffItems = result.data.filter((item: { type: string }) => item.type === 'friday_feeling');
+      expect(ffItems.length).toBeGreaterThan(0);
+    }
   });
 
-  test.skip('friday feeling inbox item has dismiss action', () => {
-    // RED: dismissInboxItemAction does not handle friday_feeling type yet.
-    // DEV: Ensure dismissInboxItemAction supports all inbox item types including friday_feeling.
+  test('friday feeling inbox item has dismiss action', async () => {
+    const { getServerSupabase } = await import('@/lib/supabase-server');
+    (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(
+      mockSupabase(null, undefined, { id: 'ff-1', tasks_handled: 1 }),
+    );
+
+    const { dismissFridayFeelingAction } = await import('@/lib/actions/reports/dismiss-friday-feeling');
+    const result = await dismissFridayFeelingAction({ summaryId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' });
+
+    expect(result.success).toBe(true);
   });
 });

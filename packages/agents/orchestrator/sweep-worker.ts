@@ -8,7 +8,7 @@ import { PgBossProducer } from './pg-boss-producer';
 
 interface SweepTriggerPayload {
   type: 'sweep_trigger';
-  trigger: 'time_integrity_daily' | 'stripe_webhook_cleanup' | 'weekly_report_hourly' | 'client_health_hourly';
+  trigger: 'time_integrity_daily' | 'stripe_webhook_cleanup' | 'weekly_report_hourly' | 'client_health_hourly' | 'friday_feeling_friday' | 'wednesday_affirmation';
 }
 
 interface SweepJobPayload {
@@ -547,6 +547,182 @@ export async function registerSweepWorkers(boss: PgBoss, trustClient?: TrustClie
         signalEmitted: result.signalEmitted,
         snapshotDate,
       },
+    });
+  });
+
+  // Story 8-4: Friday Feeling sweep trigger — every Friday 21:00 UTC (4 PM EST)
+  await boss.work<SweepTriggerPayload>('friday-feeling-sweep-trigger', async (_jobs) => {
+    const client = createServiceClient();
+
+    const { data: configs, error } = await client
+      .from('agent_configurations')
+      .select('workspace_id')
+      .eq('agent_id', 'friday-feeling')
+      .eq('status', 'active');
+
+    if (error) {
+      writeAuditLog({
+        workspaceId: 'system',
+        agentId: 'friday-feeling',
+        action: 'sweep.trigger.fetch_error',
+        entityType: 'orchestrator',
+        details: { error: error.message },
+      });
+      throw error;
+    }
+
+    let enqueued = 0;
+
+    for (const cfg of configs ?? []) {
+      try {
+        await boss.send(
+          'agent:friday-feeling:workspace-sweep',
+          { workspaceId: cfg.workspace_id as string },
+          { retryLimit: 2, retryDelay: 60 },
+        );
+        enqueued++;
+      } catch (sendErr: unknown) {
+        writeAuditLog({
+          workspaceId: cfg.workspace_id as string,
+          agentId: 'friday-feeling',
+          action: 'sweep.trigger.enqueue_error',
+          entityType: 'workspace',
+          entityId: cfg.workspace_id as string,
+          details: { error: String(sendErr) },
+        });
+      }
+    }
+
+    writeAuditLog({
+      workspaceId: 'system',
+      agentId: 'friday-feeling',
+      action: 'sweep.trigger.enqueued',
+      entityType: 'orchestrator',
+      details: { workspacesEnqueued: enqueued, workspacesTotal: (configs ?? []).length },
+    });
+  });
+
+  // Story 8-4: Friday Feeling workspace sweep — computes summary for each workspace
+  await boss.work<{ workspaceId: string }>('agent:friday-feeling:workspace-sweep', async (jobs) => {
+    const job = jobs[0];
+    if (!job) {
+      throw new Error('agent:friday-feeling:workspace-sweep — no job in batch');
+    }
+    const { workspaceId } = job.data;
+    if (!workspaceId) {
+      throw new Error('agent:friday-feeling:workspace-sweep — workspaceId missing in payload');
+    }
+
+    const client = createServiceClient();
+
+    const { data: owner } = await client
+      .from('workspace_members')
+      .select('user_id')
+      .eq('workspace_id', workspaceId)
+      .eq('role', 'owner')
+      .limit(1)
+      .maybeSingle();
+
+    const ownerId = (owner as { user_id: string } | null)?.user_id;
+    if (!ownerId) {
+      writeAuditLog({
+        workspaceId,
+        agentId: 'friday-feeling',
+        action: 'sweep.workspace.no_owner',
+        entityType: 'workspace',
+        entityId: workspaceId,
+        details: { reason: 'no_owner_found' },
+      });
+      return;
+    }
+
+    const now = new Date();
+    const currentDay = now.getDay();
+    const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
+    const weekEnd = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+    const weekStart = new Date(weekEnd.getTime() - 6 * 24 * 60 * 60 * 1000);
+
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    const weekStartStr = fmt(weekStart);
+    const weekEndStr = fmt(weekEnd);
+
+    const runId = crypto.randomUUID();
+
+    const { execute: fridayExecute } = await import('../friday-feeling/src/executor');
+    const result = await fridayExecute({
+      workspaceId,
+      userId: ownerId,
+      weekStart: weekStartStr,
+      weekEnd: weekEndStr,
+      agentRunId: runId,
+      trigger: 'cron',
+    });
+
+    writeAuditLog({
+      workspaceId,
+      agentId: 'friday-feeling',
+      action: 'sweep.workspace.success',
+      entityType: 'workspace',
+      entityId: workspaceId,
+      details: {
+        summaryId: result.summaryId,
+        tasksHandled: result.tasksHandled,
+        timeSavedMinutes: result.timeSavedMinutes,
+        trustMilestones: result.trustMilestones.length,
+      },
+    });
+  });
+
+  // Story 8-4: Wednesday Affirmation sweep trigger — every Wednesday 14:00 UTC (9 AM EST)
+  await boss.work<SweepTriggerPayload>('wednesday-affirmation-sweep-trigger', async (_jobs) => {
+    const client = createServiceClient();
+
+    const { data: agencyWorkspaces, error } = await client
+      .from('workspaces')
+      .select('id')
+      .eq('is_agency', true);
+
+    if (error) {
+      writeAuditLog({
+        workspaceId: 'system',
+        agentId: 'friday-feeling',
+        action: 'sweep.wednesday.fetch_error',
+        entityType: 'orchestrator',
+        details: { error: error.message },
+      });
+      throw error;
+    }
+
+    let enqueued = 0;
+
+    for (const ws of agencyWorkspaces ?? []) {
+      try {
+        const runId = crypto.randomUUID();
+        const { executeWednesdayAffirmation } = await import('../friday-feeling/src/wednesday-affirmation');
+        await executeWednesdayAffirmation({
+          workspaceId: ws.id,
+          agentRunId: runId,
+          trigger: 'cron',
+        });
+        enqueued++;
+      } catch (sendErr: unknown) {
+        writeAuditLog({
+          workspaceId: ws.id,
+          agentId: 'friday-feeling',
+          action: 'sweep.wednesday.error',
+          entityType: 'workspace',
+          entityId: ws.id,
+          details: { error: String(sendErr) },
+        });
+      }
+    }
+
+    writeAuditLog({
+      workspaceId: 'system',
+      agentId: 'friday-feeling',
+      action: 'sweep.wednesday.enqueued',
+      entityType: 'orchestrator',
+      details: { workspacesProcessed: enqueued, workspacesTotal: (agencyWorkspaces ?? []).length },
     });
   });
 }

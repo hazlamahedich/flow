@@ -37,6 +37,18 @@ const SCHEDULES: ScheduleEntry[] = [
     cron: '0 3 * * *',
     data: { type: 'sweep_trigger', trigger: 'stripe_webhook_cleanup' },
   },
+  {
+    // Story 8-4: Friday 4:00 PM EST (21:00 UTC) — Friday Feeling sweep
+    name: 'friday-feeling-sweep-trigger',
+    cron: '0 21 * * 5',
+    data: { type: 'sweep_trigger', trigger: 'friday_feeling_friday' },
+  },
+  {
+    // Story 8-4: Wednesday 9:00 AM EST (14:00 UTC) — Wednesday affirmation sweep
+    name: 'wednesday-affirmation-sweep-trigger',
+    cron: '0 14 * * 3',
+    data: { type: 'sweep_trigger', trigger: 'wednesday_affirmation' },
+  },
 ];
 
 export async function registerSchedules(boss: PgBoss): Promise<void> {

@@ -35,6 +35,8 @@ export default defineConfig({
       { find: /^@flow\/agents\/calendar\/(.+)$/, replacement: path.resolve(__dirname, '../../packages/agents/calendar/$1') },
       { find: /^@flow\/agents\/weekly-report$/, replacement: path.resolve(__dirname, '../../packages/agents/weekly-report/index.ts') },
       { find: /^@flow\/agents\/weekly-report\/(.+)$/, replacement: path.resolve(__dirname, '../../packages/agents/weekly-report/$1') },
+      { find: /^@flow\/agents\/friday-feeling$/, replacement: path.resolve(__dirname, '../../packages/agents/friday-feeling/index.ts') },
+      { find: /^@flow\/agents\/friday-feeling\/(.+)$/, replacement: path.resolve(__dirname, '../../packages/agents/friday-feeling/$1') },
       { find: /^@flow\/agents\/orchestrator\/(.+)$/, replacement: path.resolve(__dirname, '../../packages/agents/orchestrator/$1') },
       { find: /^@flow\/agents\/shared\/(.+)$/, replacement: path.resolve(__dirname, '../../packages/agents/shared/$1') },
       { find: /^@flow\/agents$/, replacement: path.resolve(__dirname, '../../packages/agents/index.ts') },

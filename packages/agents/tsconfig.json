@@ -4,6 +4,6 @@
     "outDir": "./dist",
     "rootDir": "."
   },
-  "include": ["*.ts", "orchestrator/**/*.ts", "shared/**/*.ts", "inbox/**/*.ts", "calendar/**/*.ts", "ar-collection/**/*.ts", "weekly-report/**/*.ts", "client-health/**/*.ts", "time-integrity/**/*.ts", "__tests__/**/*.ts"],
+  "include": ["*.ts", "orchestrator/**/*.ts", "shared/**/*.ts", "inbox/**/*.ts", "calendar/**/*.ts", "ar-collection/**/*.ts", "weekly-report/**/*.ts", "client-health/**/*.ts", "friday-feeling/**/*.ts", "time-integrity/**/*.ts", "__tests__/**/*.ts"],
   "exclude": ["dist", "node_modules"]
 }
