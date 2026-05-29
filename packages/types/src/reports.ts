@@ -27,6 +27,7 @@ export const reportStatusEnum = z.enum([
   'sent',
   'viewed',
   'approved',
+  'rejected',
 ]);
 export type ReportStatus = z.infer<typeof reportStatusEnum>;
 
@@ -35,16 +36,18 @@ export const sectionTypeEnum = z.enum([
   'task_log',
   'agent_activity',
   'invoice_summary',
+  'stalled_items',
+  'highlights',
 ]);
 export type SectionType = z.infer<typeof sectionTypeEnum>;
 
 const sectionConfigEntrySchema = z.object({
   enabled: z.boolean(),
-  sort_order: z.number().int().min(1).max(4),
+  sort_order: z.number().int().min(1).max(6),
 });
 
 function buildSectionsConfigSchema() {
-  const keys: [string, string, string, string] = ['time_summary', 'task_log', 'agent_activity', 'invoice_summary'];
+  const keys = ['time_summary', 'task_log', 'agent_activity', 'invoice_summary', 'stalled_items', 'highlights'] as const;
   const shape: Record<string, z.ZodType<unknown>> = {};
   for (const k of keys) {
     shape[k] = sectionConfigEntrySchema;
@@ -114,6 +117,7 @@ export const weeklyReportSchema = z.object({
   sentAt: z.string().datetime().nullable(),
   version: z.number(),
   parentReportId: z.string().uuid().nullable(),
+  versionGroupId: z.string().uuid().nullable(),
   templateSnapshot: z.record(z.unknown()),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

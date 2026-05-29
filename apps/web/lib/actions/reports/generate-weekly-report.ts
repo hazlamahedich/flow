@@ -349,6 +349,7 @@ export async function generateWeeklyReportAction(
     sentAt: nullSafeStr(reportRow.sent_at),
     version: safeNum(reportRow.version),
     parentReportId: (reportRow.parent_report_id as string | null) ?? null,
+    versionGroupId: (reportRow.version_group_id as string | null) ?? null,
     templateSnapshot: (reportRow.template_snapshot as Record<string, unknown>) ?? {},
     createdAt: nullSafeStr(reportRow.created_at) ?? '',
     updatedAt: nullSafeStr(reportRow.updated_at) ?? '',

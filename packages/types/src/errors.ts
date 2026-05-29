@@ -84,6 +84,7 @@ export type FlowErrorCode =
   | 'DEFAULT_TEMPLATE_REQUIRED'
   | 'PERIOD_TOO_LONG'
   | 'INVALID_DATE_RANGE'
+  | 'CONCURRENT_MODIFICATION'
 
 export type AgentErrorCode =
   | 'AGENT_ERROR'

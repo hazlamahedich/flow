@@ -20,6 +20,10 @@
       "types": "./calendar/index.ts",
       "default": "./dist/calendar/index.js"
     },
+    "./weekly-report": {
+      "types": "./weekly-report/index.ts",
+      "default": "./dist/weekly-report/index.js"
+    },
     "./orchestrator": {
       "types": "./orchestrator/index.ts",
       "default": "./dist/orchestrator/index.js"

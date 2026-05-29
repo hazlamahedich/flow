@@ -1,7 +1,10 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { getWeeklyReportByIdAction } from './actions';
+import { getReportVersions } from '@/lib/actions/reports/get-report-versions';
 import { StatusBadge } from '../components/StatusBadge';
+import { VersionBadge } from '../components/VersionBadge';
+import { RegenerateButton } from '../components/RegenerateButton';
 import { TimeSummarySection } from '../components/TimeSummarySection';
 import {
   TaskLogSection,
@@ -24,9 +27,13 @@ async function ReportDetail({ reportId }: { reportId: string }) {
     );
   }
 
-  const { report, sections } = result.data;
+  const { report, sections, role } = result.data;
 
   const sectionMap = new Map(sections.map((s) => [s.sectionType, s]));
+
+  const totalVersions = report.versionGroupId
+    ? (await getReportVersions({ versionGroupId: report.versionGroupId })).length || 1
+    : 1;
 
   return (
     <div className="space-y-6">
@@ -39,7 +46,20 @@ async function ReportDetail({ reportId }: { reportId: string }) {
             Weekly Report
           </h1>
         </div>
-        <StatusBadge status={report.status} />
+        <div className="flex items-center gap-3">
+          <VersionBadge
+            version={report.version}
+            versionGroupId={report.versionGroupId}
+            totalVersions={totalVersions}
+          />
+          <StatusBadge status={report.status} />
+          <RegenerateButton
+            reportId={report.id}
+            expectedVersion={report.version}
+            role={role}
+            status={report.status}
+          />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -50,13 +70,12 @@ async function ReportDetail({ reportId }: { reportId: string }) {
           </p>
         </div>
         <div className="rounded-md border p-4 space-y-2">
-          <p className="text-sm text-muted-foreground">Version</p>
-          <p className="font-medium">{report.version}</p>
+          <p className="text-sm text-muted-foreground">Generated</p>
+          <p className="font-medium">{report.generatedAt.split('T')[0]}</p>
         </div>
       </div>
 
-      <div className="space-y-8"
-      >
+      <div className="space-y-8">
         {(['time_summary', 'task_log', 'agent_activity', 'invoice_summary'] as const).map((type) => {
           const sec = sectionMap.get(type);
           if (!sec) return null;
@@ -70,7 +89,9 @@ async function ReportDetail({ reportId }: { reportId: string }) {
           if (type === 'agent_activity') {
             return <AgentActivitySection key={sec.id} content={sec.content as { runs?: Array<{ actionType: string; status: string; count: number }> }} />;
           }
-          return <InvoiceSummarySection key={sec.id} content={sec.content as { totalCents: number; amountPaidCents: number; invoiceCount: number }} />;
+          if (type === 'invoice_summary') {
+            return <InvoiceSummarySection key={sec.id} content={sec.content as { totalCents: number; amountPaidCents: number; invoiceCount: number }} />;
+          }
         })}
       </div>
     </div>

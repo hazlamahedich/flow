@@ -17,9 +17,9 @@ vi.mock('@flow/db', async () => {
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext } from '@flow/db';
 
-function createMockChain(initialData?: { data?: unknown; error?: unknown | null }) {
+function createMockChain(initialData?: { data?: unknown; error?: { message: string } | null }) {
   let currentData = initialData?.data;
-  let currentError = initialData?.error ?? null;
+  let currentError: { message: string } | null = initialData?.error ?? null;
   const chain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
@@ -34,7 +34,7 @@ function createMockChain(initialData?: { data?: unknown; error?: unknown | null 
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
   };
-  return { chain, setData: (d: unknown) => { currentData = d; }, setError: (e: unknown) => { currentError = e; } };
+  return { chain, setData: (d: unknown) => { currentData = d; }, setError: (e: { message: string } | null) => { currentError = e; } };
 }
 
 function mockSupabase(rpcResult?: unknown, rpcError?: { message: string }) {
@@ -62,7 +62,7 @@ describe('generateWeeklyReportAction', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.code).toBe('VALIDATION_ERROR');
+      expect(result.error.code).toBe('INVALID_DATE_RANGE');
     }
   });
 
@@ -78,7 +78,7 @@ describe('generateWeeklyReportAction', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.code).toBe('VALIDATION_ERROR');
+      expect(result.error.code).toBe('PERIOD_TOO_LONG');
       expect(result.error.message).toContain('31 days');
     }
   });

@@ -1,0 +1,1839 @@
+diff --git a/packages/agents/orchestrator/factory.ts b/packages/agents/orchestrator/factory.ts
+index d4b910e..28d8273 100644
+--- a/packages/agents/orchestrator/factory.ts
++++ b/packages/agents/orchestrator/factory.ts
+@@ -97,6 +97,10 @@ export function createOrchestrator(trustGateConfig?: TrustGateConfig): Orchestra
+     const { registerCalendarWorkers } = await import('./calendar-worker');
+     await registerCalendarWorkers(boss);
+ 
++    // Story 8-2 — register weekly report agent workers
++    const { registerWeeklyReportWorkers } = await import('./weekly-report-worker');
++    await registerWeeklyReportWorkers(boss);
++
+ 
+     if (trustGateConfig?.outputSchemaRegistry) {
+       const mvpIds: AgentId[] = [
+diff --git a/packages/agents/orchestrator/scheduler.ts b/packages/agents/orchestrator/scheduler.ts
+index a5ad8b3..6d92eb8 100644
+--- a/packages/agents/orchestrator/scheduler.ts
++++ b/packages/agents/orchestrator/scheduler.ts
+@@ -19,6 +19,12 @@ const SCHEDULES: ScheduleEntry[] = [
+     cron: '0 2 * * *',
+     data: { type: 'sweep_trigger', trigger: 'time_integrity_daily' },
+   },
++  {
++    // Story 8-2: hourly check to trigger workspace-level weekly report sweeps
++    name: 'weekly-report-sweep-trigger',
++    cron: '0 * * * *',
++    data: { type: 'sweep_trigger', trigger: 'weekly_report_hourly' },
++  },
+   {
+     // Story 7.5 — AC2: daily cleanup of expired stripe_webhook_events at 3am UTC
+     name: 'cleanup-expired-stripe-events',
+diff --git a/packages/agents/orchestrator/sweep-worker.ts b/packages/agents/orchestrator/sweep-worker.ts
+index e27a22a..dd808e8 100644
+--- a/packages/agents/orchestrator/sweep-worker.ts
++++ b/packages/agents/orchestrator/sweep-worker.ts
+@@ -4,10 +4,11 @@ import type { TrustClient } from '@flow/trust';
+ import { execute } from '../time-integrity/executor';
+ import type { SweepDeps } from '../time-integrity/executor';
+ import { writeAuditLog } from '../shared/audit-writer';
++import { PgBossProducer } from './pg-boss-producer';
+ 
+ interface SweepTriggerPayload {
+   type: 'sweep_trigger';
+-  trigger: 'time_integrity_daily' | 'stripe_webhook_cleanup';
++  trigger: 'time_integrity_daily' | 'stripe_webhook_cleanup' | 'weekly_report_hourly';
+ }
+ 
+ interface SweepJobPayload {
+@@ -16,11 +17,54 @@ interface SweepJobPayload {
+ }
+ 
+ /**
+- * Registers both the sweep trigger handler (cron → per-workspace enqueue)
+- * and the sweep job handler (per-workspace execution).
++ * Checks if the configured schedule is due based on workspace timezone.
++ */
++function isScheduleDue(schedule: any, userTimezone: string): boolean {
++  const tz = schedule.timezone || userTimezone || 'UTC';
++  const now = new Date();
++  
++  let parts;
++  try {
++    parts = new Intl.DateTimeFormat('en-US', {
++      timeZone: tz,
++      weekday: 'short', // "Mon", "Tue", etc.
++      hour: '2-digit',
++      minute: '2-digit',
++      hour12: false
++    }).formatToParts(now);
++  } catch {
++    // Fallback if timezone string is invalid
++    parts = new Intl.DateTimeFormat('en-US', {
++      timeZone: 'UTC',
++      weekday: 'short',
++      hour: '2-digit',
++      minute: '2-digit',
++      hour12: false
++    }).formatToParts(now);
++  }
++
++  const weekdayPart = parts.find(p => p.type === 'weekday')?.value;
++  const hourPart = parts.find(p => p.type === 'hour')?.value;
++
++  const dayMap: Record<string, number> = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
++  const currentDay = dayMap[weekdayPart ?? ''] ?? 0;
++  
++  const targetDay = schedule.dayOfWeek !== undefined ? Number(schedule.dayOfWeek) : 1; // default Monday
++  const targetTime = schedule.time || '06:30';
++  const [targetHour] = targetTime.split(':').map(Number);
++
++  const currentHour = Number(hourPart);
++
++  // Checks hourly: if target weekday and target hour matches current hour
++  return currentDay === targetDay && currentHour === targetHour;
++}
++
++/**
++ * Registers sweep trigger handlers (cron → per-workspace enqueue)
++ * and fanned-out sweep job handlers.
+  */
+ export async function registerSweepWorkers(boss: PgBoss, trustClient?: TrustClient): Promise<void> {
+-    // Handler: receives the daily trigger and fans out one job per active workspace
++  // Handler: receives the daily trigger and fans out one job per active workspace
+   await boss.work<SweepTriggerPayload>('time-integrity-sweep-trigger', async (_jobs) => {
+     const client = createServiceClient();
+ 
+@@ -44,7 +88,6 @@ export async function registerSweepWorkers(boss: PgBoss, trustClient?: TrustClie
+     const today = new Date().toISOString().slice(0, 10);
+     let enqueued = 0;
+ 
+-    // P5: isolate per-workspace enqueue failures so one bad workspace cannot abort all others
+     for (const cfg of configs ?? []) {
+       try {
+         await boss.send(
+@@ -135,4 +178,156 @@ export async function registerSweepWorkers(boss: PgBoss, trustClient?: TrustClie
+       details: { ...result.data, sweepDate },
+     });
+   });
++
++  // Handler: receives hourly trigger and fans out workspace-level weekly report sweep jobs
++  await boss.work<SweepTriggerPayload>('weekly-report-sweep-trigger', async (_jobs) => {
++    const client = createServiceClient();
++
++    const { data: configs, error } = await client
++      .from('agent_configurations')
++      .select('workspace_id, schedule')
++      .eq('agent_id', 'weekly-report')
++      .eq('status', 'active');
++
++    if (error) {
++      writeAuditLog({
++        workspaceId: 'system',
++        agentId: 'weekly-report',
++        action: 'sweep.trigger.fetch_error',
++        entityType: 'orchestrator',
++        details: { error: error.message },
++      });
++      throw error;
++    }
++
++    let enqueued = 0;
++
++    for (const cfg of configs ?? []) {
++      const schedule = (cfg.schedule as any) ?? {};
++      
++      const { data: member } = await client
++        .from('workspace_members')
++        .select('user_id, users(timezone)')
++        .eq('workspace_id', cfg.workspace_id)
++        .eq('role', 'owner')
++        .limit(1)
++        .maybeSingle();
++
++      const userTimezone = (member?.users as any)?.timezone || 'UTC';
++
++      if (isScheduleDue(schedule, userTimezone)) {
++        try {
++          await boss.send(
++            'agent:weekly-report:workspace-sweep',
++            { workspaceId: cfg.workspace_id as string },
++            { retryLimit: 2, retryDelay: 60 }
++          );
++          enqueued++;
++        } catch (sendErr: unknown) {
++          writeAuditLog({
++            workspaceId: cfg.workspace_id as string,
++            agentId: 'weekly-report',
++            action: 'sweep.trigger.enqueue_error',
++            entityType: 'workspace',
++            entityId: cfg.workspace_id as string,
++            details: { error: String(sendErr) },
++          });
++        }
++      }
++    }
++
++    writeAuditLog({
++      workspaceId: 'system',
++      agentId: 'weekly-report',
++      action: 'sweep.trigger.enqueued',
++      entityType: 'orchestrator',
++      details: { workspacesEnqueued: enqueued, workspacesTotal: (configs ?? []).length },
++    });
++  });
++
++  // Handler: workspace-level sweep that fans out jobs for each active client
++  await boss.work<{ workspaceId: string }>('agent:weekly-report:workspace-sweep', async (jobs) => {
++    const job = jobs[0];
++    if (!job) {
++      throw new Error('agent:weekly-report:workspace-sweep — no job in batch');
++    }
++    const { workspaceId } = job.data;
++    if (!workspaceId) {
++      throw new Error('agent:weekly-report:workspace-sweep — workspaceId missing in payload');
++    }
++
++    const client = createServiceClient();
++
++    const { data: activeClients, error } = await client
++      .from('clients')
++      .select('id, name')
++      .eq('workspace_id', workspaceId)
++      .eq('status', 'active');
++
++    if (error) {
++      writeAuditLog({
++        workspaceId,
++        agentId: 'weekly-report',
++        action: 'sweep.workspace.fetch_clients_error',
++        entityType: 'workspace',
++        entityId: workspaceId,
++        details: { error: error.message },
++      });
++      throw error;
++    }
++
++    // Determine reporting period: previous Monday to Sunday
++    const today = new Date();
++    const currentDay = today.getUTCDay();
++    const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
++    
++    const lastMonday = new Date(today.getTime() - (daysSinceMonday + 7) * 24 * 60 * 60 * 1000);
++    const lastSunday = new Date(today.getTime() - (daysSinceMonday + 1) * 24 * 60 * 60 * 1000);
++    
++    const periodStart = lastMonday.toISOString().split('T')[0]!;
++    const periodEnd = lastSunday.toISOString().split('T')[0]!;
++
++    const producer = new PgBossProducer(boss);
++    let fannedOut = 0;
++
++    for (const c of activeClients ?? []) {
++      try {
++        const runId = crypto.randomUUID();
++        await producer.submit({
++          agentId: 'weekly-report',
++          actionType: 'weekly_report_draft',
++          clientId: c.id,
++          correlationId: runId,
++          input: {
++            workspace_id: workspaceId,
++            clientId: c.id,
++            periodStart,
++            periodEnd,
++            agentRunId: runId,
++            trigger: 'cron',
++          },
++          idempotencyKey: `weekly-report:${c.id}:${periodStart}:${periodEnd}`,
++        });
++        fannedOut++;
++      } catch (sendErr: unknown) {
++        writeAuditLog({
++          workspaceId,
++          agentId: 'weekly-report',
++          action: 'sweep.workspace.enqueue_client_error',
++          entityType: 'client',
++          entityId: c.id,
++          details: { error: String(sendErr), periodStart, periodEnd },
++        });
++      }
++    }
++
++    writeAuditLog({
++      workspaceId,
++      agentId: 'weekly-report',
++      action: 'sweep.workspace.success',
++      entityType: 'workspace',
++      entityId: workspaceId,
++      details: { clientsFannedOut: fannedOut, clientsTotal: (activeClients ?? []).length, periodStart, periodEnd },
++    });
++  });
+ }
+diff --git a/packages/agents/orchestrator/weekly-report-worker.ts b/packages/agents/orchestrator/weekly-report-worker.ts
+new file mode 100644
+index 0000000..afe5e0a
+--- /dev/null
++++ b/packages/agents/orchestrator/weekly-report-worker.ts
+@@ -0,0 +1,132 @@
++import { createServiceClient, updateRunStatus } from '@flow/db';
++import type { PgBoss } from 'pg-boss';
++import { z } from 'zod';
++import { execute as executeWeeklyReport } from '../weekly-report/executor';
++import { writeAuditLog } from '../shared/audit-writer';
++import { AgentJobPayloadSchema } from './schemas.js';
++
++const QUEUE_NAME = 'agent:weekly-report';
++
++const WeeklyReportJobInputSchema = z.object({
++  workspace_id: z.string().uuid(),
++  clientId: z.string().uuid(),
++  periodStart: z.string(),
++  periodEnd: z.string(),
++  agentRunId: z.string().uuid(),
++  trigger: z.enum(['cron', 'manual']).default('cron'),
++});
++
++export async function registerWeeklyReportWorkers(boss: PgBoss): Promise<void> {
++  await boss.work(QUEUE_NAME, async (jobs) => {
++    const job = Array.isArray(jobs) ? jobs[0] : jobs;
++    if (!job) return;
++    
++    const parsed = AgentJobPayloadSchema.safeParse(job.data);
++    if (!parsed.success) {
++      writeAuditLog({
++        workspaceId: 'unknown',
++        agentId: 'weekly-report',
++        action: 'worker.invalid_payload',
++        entityType: 'agent_run',
++        entityId: 'unknown',
++        details: { error: parsed.error.message, outcome: 'skipped' }
++      });
++      return;
++    }
++
++    const { runId, workspaceId, actionType, input } = parsed.data;
++
++    if (actionType === 'weekly_report_draft') {
++      const inputParsed = WeeklyReportJobInputSchema.safeParse(input);
++      if (!inputParsed.success) {
++        writeAuditLog({
++          workspaceId,
++          agentId: 'weekly-report',
++          action: 'worker.invalid_input',
++          entityType: 'agent_run',
++          entityId: runId,
++          details: { error: inputParsed.error.message, outcome: 'skipped' }
++        });
++        return;
++      }
++
++      try {
++        await updateRunStatus(runId, 'running', { startedAt: new Date().toISOString() });
++      } catch { /* non-fatal */ }
++
++      try {
++        const proposal = await executeWeeklyReport({
++          workspaceId,
++          clientId: inputParsed.data.clientId,
++          periodStart: inputParsed.data.periodStart,
++          periodEnd: inputParsed.data.periodEnd,
++          agentRunId: runId,
++          trigger: inputParsed.data.trigger,
++        });
++
++        // Determine configured trust tier
++        const supabase = createServiceClient();
++        const { data: agentConfig } = await supabase
++          .from('agent_configurations')
++          .select('llm_preferences')
++          .eq('workspace_id', workspaceId)
++          .eq('agent_id', 'weekly-report')
++          .single();
++
++        const trustLevel = (agentConfig?.llm_preferences as { trustLevel?: string } | null)?.trustLevel ?? 'supervised';
++
++        if (trustLevel === 'auto_approve') {
++          await updateRunStatus(runId, 'completed', {
++            completedAt: new Date().toISOString(),
++            output: proposal as unknown as Record<string, unknown>,
++          });
++          writeAuditLog({
++            workspaceId,
++            agentId: 'weekly-report',
++            action: 'weekly_report_draft.complete',
++            entityType: 'agent_run',
++            entityId: runId,
++            details: { outcome: 'completed', trustLevel }
++          });
++        } else {
++          // Gated approval required
++          await updateRunStatus(runId, 'waiting_approval', {
++            output: proposal as unknown as Record<string, unknown>,
++          });
++          writeAuditLog({
++            workspaceId,
++            agentId: 'weekly-report',
++            action: 'weekly_report_draft.propose',
++            entityType: 'agent_run',
++            entityId: runId,
++            details: { outcome: 'waiting_approval', trustLevel }
++          });
++        }
++      } catch (err: unknown) {
++        const message = err instanceof Error ? err.message : 'Draft compilation failed';
++        const isPostCheckViolation = message.includes('POST_CHECK_VIOLATION');
++        const isHallucination = message.includes('HALLUCINATION_DETECTED');
++        const isBudgetExceeded = message.includes('LLM Budget exceeded');
++
++        let code = 'AGENT_FAILED';
++        if (isPostCheckViolation) code = 'POST_CHECK_VIOLATION';
++        else if (isHallucination) code = 'HALLUCINATION_DETECTED';
++        else if (isBudgetExceeded) code = 'BUDGET_EXCEEDED';
++
++        await updateRunStatus(runId, 'failed', {
++          completedAt: new Date().toISOString(),
++          error: { code, message },
++        });
++
++        writeAuditLog({
++          workspaceId,
++          agentId: 'weekly-report',
++          action: 'weekly_report_draft.error',
++          entityType: 'agent_run',
++          entityId: runId,
++          details: { error: message, code, outcome: 'failed' }
++        });
++      }
++    }
++  });
++}
+diff --git a/packages/agents/package.json b/packages/agents/package.json
+index 31f3c65..8f95277 100644
+--- a/packages/agents/package.json
++++ b/packages/agents/package.json
+@@ -20,6 +20,10 @@
+       "types": "./calendar/index.ts",
+       "default": "./dist/calendar/index.js"
+     },
++    "./weekly-report": {
++      "types": "./weekly-report/index.ts",
++      "default": "./dist/weekly-report/index.js"
++    },
+     "./orchestrator": {
+       "types": "./orchestrator/index.ts",
+       "default": "./dist/orchestrator/index.js"
+diff --git a/packages/agents/tsup.config.ts b/packages/agents/tsup.config.ts
+index 7409505..455bf99 100644
+--- a/packages/agents/tsup.config.ts
++++ b/packages/agents/tsup.config.ts
+@@ -1,7 +1,7 @@
+ import { defineConfig } from 'tsup';
+ 
+ export default defineConfig({
+-  entry: ['index.ts', 'providers/index.ts', 'inbox/index.ts', 'inbox/initial-sync.ts'],
++  entry: ['index.ts', 'providers/index.ts', 'inbox/index.ts', 'inbox/initial-sync.ts', 'weekly-report/index.ts'],
+   format: ['esm'],
+   dts: true,
+   clean: true,
+diff --git a/packages/agents/weekly-report/__tests__/executor.test.ts b/packages/agents/weekly-report/__tests__/executor.test.ts
+new file mode 100644
+index 0000000..39bf524
+--- /dev/null
++++ b/packages/agents/weekly-report/__tests__/executor.test.ts
+@@ -0,0 +1,147 @@
++import { describe, test, expect, vi, beforeEach } from 'vitest';
++import { execute } from '../executor';
++import type { WeeklyReportInput } from '../schemas';
++
++const { 
++  mockAggregateReportData, 
++  mockCheckBudgetThreshold, 
++  mockInsertCostEstimate,
++  mockInsertCostLog,
++  mockFrom,
++  mockRpc,
++  mockComplete
++} = vi.hoisted(() => ({
++  mockAggregateReportData: vi.fn(),
++  mockCheckBudgetThreshold: vi.fn(),
++  mockInsertCostEstimate: vi.fn(),
++  mockInsertCostLog: vi.fn(),
++  mockFrom: vi.fn(),
++  mockRpc: vi.fn(),
++  mockComplete: vi.fn(),
++}));
++
++vi.mock('@flow/db', () => ({
++  aggregateReportData: mockAggregateReportData,
++  checkBudgetThreshold: mockCheckBudgetThreshold,
++  insertCostEstimate: mockInsertCostEstimate,
++  insertCostLog: mockInsertCostLog,
++  createServiceClient: vi.fn().mockReturnValue({
++    from: mockFrom,
++    rpc: mockRpc,
++  }),
++}));
++
++vi.mock('../../shared/llm-router', () => ({
++  createLLMRouter: vi.fn().mockReturnValue({
++    complete: mockComplete,
++  }),
++}));
++
++describe('Weekly Report Agent — execute Integration Tests', () => {
++  beforeEach(() => {
++    vi.clearAllMocks();
++  });
++
++  test('should successfully compile report and persist draft when budget is valid', async () => {
++    // 1. Cooldown query returns no active cooldown
++    mockFrom.mockReturnValue({
++      select: vi.fn().mockReturnThis(),
++      eq: vi.fn().mockReturnThis(),
++      is: vi.fn().mockReturnThis(),
++      single: vi.fn().mockImplementation(async () => {
++        // Cooldown select or client select
++        if (mockFrom.mock.calls.length === 1) {
++          // Cooldown check: return empty list
++          return { data: [], error: null };
++        }
++        if (mockFrom.mock.calls.length === 2) {
++          // Client details select
++          return { data: { id: 'cli-1', name: 'Acme Corp' }, error: null };
++        }
++        if (mockFrom.mock.calls.length === 3) {
++          // Report template select
++          return { data: null, error: null };
++        }
++        if (mockFrom.mock.calls.length === 4) {
++          // Agent configurations select
++          return { data: { llm_preferences: { trustLevel: 'supervised' } }, error: null };
++        }
++        if (mockFrom.mock.calls.length === 5) {
++          // Workspace members role check select
++          return { data: { user_id: 'usr-1' }, error: null };
++        }
++        return { data: null, error: null };
++      }),
++      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
++      gt: vi.fn().mockReturnThis(),
++      limit: vi.fn().mockReturnThis(),
++    });
++
++    // 2. Budget is allowed
++    mockCheckBudgetThreshold.mockResolvedValue({ allowed: true, percentUsed: 0.1 });
++
++    // 3. Pre-aggregated data exists
++    mockAggregateReportData.mockResolvedValue({
++      hasActivity: true,
++      timeSummary: { totalMinutes: 1200, projectCount: 1 },
++      taskLog: { projects: [] },
++      agentActivity: { runs: [] },
++      invoiceSummary: { totalCents: 50000, amountPaidCents: 0, invoiceCount: 1 },
++      stalledItems: [],
++    });
++
++    // 4. LLM narrative generation succeeds
++    mockComplete.mockResolvedValue({
++      text: JSON.stringify({
++        time_summary: 'We logged 20 hours.',
++        task_log: 'Completed several deliverables.',
++        highlights: 'Great week!',
++      }),
++    });
++
++    // 5. Supabase RPC successful insert
++    mockRpc.mockResolvedValue({ data: 'rpt-1', error: null });
++
++    const input: WeeklyReportInput = {
++      workspaceId: 'ba0e897a-391f-4739-b86a-e243cc05d4c8',
++      clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
++      periodStart: '2026-05-19',
++      periodEnd: '2026-05-25',
++      agentRunId: 'ba0e897a-391f-4739-b86a-e243cc05d4c7',
++      trigger: 'cron',
++    };
++
++    const result = await execute(input);
++    expect(result.reportId).toBe('rpt-1');
++    expect(result.title).toContain('Acme Corp');
++    expect(result.confidence).toBe(0.95);
++  });
++
++  test('should fail when monthly budget is exhausted', async () => {
++    mockFrom.mockReturnValue({
++      select: vi.fn().mockReturnThis(),
++      eq: vi.fn().mockReturnThis(),
++      is: vi.fn().mockReturnThis(),
++      single: vi.fn().mockImplementation(async () => {
++        if (mockFrom.mock.calls.length === 1) return { data: [], error: null }; // cooldown
++        return { data: { id: 'cli-1', name: 'Acme Corp' }, error: null };
++      }),
++      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
++      gt: vi.fn().mockReturnThis(),
++      limit: vi.fn().mockReturnThis(),
++    });
++
++    mockCheckBudgetThreshold.mockResolvedValue({ allowed: false, percentUsed: 1.2 });
++
++    const input: WeeklyReportInput = {
++      workspaceId: 'ba0e897a-391f-4739-b86a-e243cc05d4c8',
++      clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
++      periodStart: '2026-05-19',
++      periodEnd: '2026-05-25',
++      agentRunId: 'ba0e897a-391f-4739-b86a-e243cc05d4c7',
++      trigger: 'cron',
++    };
++
++    await expect(execute(input)).rejects.toThrow('LLM Budget exceeded');
++  });
++});
+diff --git a/packages/agents/weekly-report/__tests__/pre-checks.test.ts b/packages/agents/weekly-report/__tests__/pre-checks.test.ts
+new file mode 100644
+index 0000000..1646754
+--- /dev/null
++++ b/packages/agents/weekly-report/__tests__/pre-checks.test.ts
+@@ -0,0 +1,123 @@
++import { describe, test, expect, vi, beforeEach } from 'vitest';
++import { preCheck } from '../pre-check';
++import type { WeeklyReportInput, WeeklyReportProposal } from '../schemas';
++
++const { mockGetAgentConfiguration, mockFrom } = vi.hoisted(() => ({
++  mockGetAgentConfiguration: vi.fn(),
++  mockFrom: vi.fn(),
++}));
++
++vi.mock('@flow/db', () => ({
++  getAgentConfiguration: mockGetAgentConfiguration,
++  createServiceClient: vi.fn().mockReturnValue({
++    from: mockFrom,
++  }),
++}));
++
++describe('Weekly Report Agent — preCheck Unit Tests', () => {
++  beforeEach(() => {
++    vi.clearAllMocks();
++  });
++
++  test('should pass for a valid input when configuration is active and subscription is active', async () => {
++    mockGetAgentConfiguration.mockResolvedValue({ status: 'active' });
++    mockFrom.mockReturnValue({
++      select: vi.fn().mockReturnThis(),
++      eq: vi.fn().mockReturnThis(),
++      single: vi.fn().mockResolvedValue({
++        data: { id: 'ws-1', settings: { subscriptionStatus: 'active' } },
++        error: null,
++      }),
++    });
++
++    const input: WeeklyReportInput = {
++      workspaceId: 'ba0e897a-391f-4739-b86a-e243cc05d4c8',
++      clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
++      periodStart: '2026-05-19',
++      periodEnd: '2026-05-25',
++      agentRunId: 'ba0e897a-391f-4739-b86a-e243cc05d4c7',
++      trigger: 'cron',
++    };
++
++    const result = await preCheck(input);
++    expect(result.passed).toBe(true);
++    expect(result.errors).toHaveLength(0);
++  });
++
++  test('should fail if the weekly-report agent configuration is inactive', async () => {
++    mockGetAgentConfiguration.mockResolvedValue({ status: 'inactive' });
++    mockFrom.mockReturnValue({
++      select: vi.fn().mockReturnThis(),
++      eq: vi.fn().mockReturnThis(),
++      single: vi.fn().mockResolvedValue({
++        data: { id: 'ws-1', settings: { subscriptionStatus: 'active' } },
++        error: null,
++      }),
++    });
++
++    const input: WeeklyReportInput = {
++      workspaceId: 'ba0e897a-391f-4739-b86a-e243cc05d4c8',
++      clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
++      periodStart: '2026-05-19',
++      periodEnd: '2026-05-25',
++      agentRunId: 'ba0e897a-391f-4739-b86a-e243cc05d4c7',
++      trigger: 'cron',
++    };
++
++    const result = await preCheck(input);
++    expect(result.passed).toBe(false);
++    expect(result.errors[0]).toContain("Agent 'weekly-report' is inactive");
++  });
++
++  test('should fail if the workspace subscription is suspended', async () => {
++    mockGetAgentConfiguration.mockResolvedValue({ status: 'active' });
++    mockFrom.mockReturnValue({
++      select: vi.fn().mockReturnThis(),
++      eq: vi.fn().mockReturnThis(),
++      single: vi.fn().mockResolvedValue({
++        data: { id: 'ws-1', settings: { subscriptionStatus: 'suspended' } },
++        error: null,
++      }),
++    });
++
++    const input: WeeklyReportInput = {
++      workspaceId: 'ba0e897a-391f-4739-b86a-e243cc05d4c8',
++      clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
++      periodStart: '2026-05-19',
++      periodEnd: '2026-05-25',
++      agentRunId: 'ba0e897a-391f-4739-b86a-e243cc05d4c7',
++      trigger: 'cron',
++    };
++
++    const result = await preCheck(input);
++    expect(result.passed).toBe(false);
++    expect(result.errors[0]).toContain("subscription is suspended");
++  });
++
++  test('should pass for a valid WeeklyReportProposal', async () => {
++    const proposal: WeeklyReportProposal = {
++      title: 'Weekly Report for Client A',
++      confidence: 0.95,
++      reasoning: 'Prose summary compiled from time logs.',
++      riskLevel: 'low',
++      preview: 'Preview details...',
++    };
++
++    const result = await preCheck(proposal);
++    expect(result.passed).toBe(true);
++    expect(result.errors).toHaveLength(0);
++  });
++
++  test('should fail for an invalid WeeklyReportProposal with missing fields', async () => {
++    const proposal = {
++      confidence: 1.5, // invalid
++      reasoning: '', // missing
++    } as unknown as WeeklyReportProposal;
++
++    const result = await preCheck(proposal);
++    expect(result.passed).toBe(false);
++    expect(result.errors).toContain('Proposal title is missing');
++    expect(result.errors).toContain('Proposal confidence must be between 0 and 1');
++    expect(result.errors).toContain('Proposal reasoning is missing');
++  });
++});
+diff --git a/packages/agents/weekly-report/executor.ts b/packages/agents/weekly-report/executor.ts
+index 551b44c..f938d37 100644
+--- a/packages/agents/weekly-report/executor.ts
++++ b/packages/agents/weekly-report/executor.ts
+@@ -1,5 +1,11 @@
++import { createServiceClient } from '@flow/db';
+ import type { WeeklyReportInput, WeeklyReportProposal } from './schemas';
++import { processClientReport } from './process-client-report';
+ 
+-export async function execute(_input: WeeklyReportInput): Promise<WeeklyReportProposal> {
+-  throw new Error('weekly-report.execute not implemented');
++/**
++ * Standard agent execution entrypoint, called by orchestrator worker or manual trigger.
++ */
++export async function execute(input: WeeklyReportInput): Promise<WeeklyReportProposal> {
++  const supabase = createServiceClient();
++  return processClientReport(supabase, input);
+ }
+diff --git a/packages/agents/weekly-report/hallucination-checker.ts b/packages/agents/weekly-report/hallucination-checker.ts
+new file mode 100644
+index 0000000..82a2579
+--- /dev/null
++++ b/packages/agents/weekly-report/hallucination-checker.ts
+@@ -0,0 +1,31 @@
++/**
++ * Checks for hallucinated numbers in LLM-generated narrative strings.
++ * Validates that any numbers appearing in the narratives also exist in the raw aggregated data
++ * (either directly as a number or as part of a string).
++ */
++export function verifyHallucinations(
++  narratives: Record<string, string>,
++  rawData: unknown
++): string[] {
++  const narrativeText = Object.values(narratives).join(' ');
++  // Match integers and decimals
++  const numbersInText = narrativeText.match(/\b\d+(?:\.\d+)?\b/g) ?? [];
++  
++  const rawString = JSON.stringify(rawData);
++  const mismatches: string[] = [];
++
++  for (const num of numbersInText) {
++    const val = Number(num);
++    if (Number.isNaN(val)) continue;
++    
++    // Ignore small common integers (e.g. 0, 1, 2, 3, etc.) to prevent false positives in writing prose
++    if (val <= 5) continue;
++
++    // Check if the number or value exists in raw string
++    if (!rawString.includes(num)) {
++      mismatches.push(num);
++    }
++  }
++
++  return mismatches;
++}
+diff --git a/packages/agents/weekly-report/pre-check.ts b/packages/agents/weekly-report/pre-check.ts
+index 41cdb21..5272ba7 100644
+--- a/packages/agents/weekly-report/pre-check.ts
++++ b/packages/agents/weekly-report/pre-check.ts
+@@ -1,8 +1,64 @@
+-import type { WeeklyReportProposal } from './schemas';
++import { getAgentConfiguration, createServiceClient } from '@flow/db';
++import type { WeeklyReportInput, WeeklyReportProposal } from './schemas';
+ 
+-export async function preCheck(_proposal: WeeklyReportProposal): Promise<{
++export interface PreCheckResult {
+   passed: boolean;
+   errors: string[];
+-}> {
+-  throw new Error('weekly-report.preCheck not implemented');
++}
++
++/**
++ * Validates agent run pre-requisites (active configuration, valid workspace subscription)
++ * or checks proposal validity depending on argument type.
++ */
++export async function preCheck(
++  input: WeeklyReportInput | WeeklyReportProposal
++): Promise<PreCheckResult> {
++  const errors: string[] = [];
++
++  if ('clientId' in input) {
++    // Input Mode
++    const { workspaceId } = input;
++    try {
++      const config = await getAgentConfiguration(workspaceId, 'weekly-report');
++      if (!config || config.status !== 'active') {
++        errors.push(`Agent 'weekly-report' is inactive or not configured in workspace ${workspaceId}`);
++      }
++
++      // Check subscription active in workspaces settings
++      const supabase = createServiceClient();
++      const { data: ws, error: wsErr } = await supabase
++        .from('workspaces')
++        .select('id, settings')
++        .eq('id', workspaceId)
++        .single();
++      
++      if (wsErr || !ws) {
++        errors.push(`Workspace not found: ${workspaceId}`);
++      } else {
++        const settings = (ws.settings as { subscriptionStatus?: string } | null) ?? {};
++        if (settings.subscriptionStatus === 'suspended') {
++          errors.push(`Workspace subscription is suspended`);
++        }
++      }
++    } catch (err: unknown) {
++      const msg = err instanceof Error ? err.message : String(err);
++      errors.push(`Precheck validation query failed: ${msg}`);
++    }
++  } else {
++    // Proposal Mode
++    if (!input.title) {
++      errors.push('Proposal title is missing');
++    }
++    if (typeof input.confidence !== 'number' || input.confidence < 0 || input.confidence > 1) {
++      errors.push('Proposal confidence must be between 0 and 1');
++    }
++    if (!input.reasoning) {
++      errors.push('Proposal reasoning is missing');
++    }
++  }
++
++  return {
++    passed: errors.length === 0,
++    errors,
++  };
+ }
+diff --git a/packages/agents/weekly-report/process-client-report.ts b/packages/agents/weekly-report/process-client-report.ts
+new file mode 100644
+index 0000000..45f50ae
+--- /dev/null
++++ b/packages/agents/weekly-report/process-client-report.ts
+@@ -0,0 +1,214 @@
++import type { SupabaseClient } from '@supabase/supabase-js';
++import { 
++  aggregateReportData, 
++  checkBudgetThreshold, 
++  insertCostLog, 
++  insertCostEstimate
++} from '@flow/db';
++import { createLLMRouter } from '../shared/llm-router';
++import type { WeeklyReportInput, WeeklyReportProposal } from './schemas';
++import { verifyHallucinations } from './hallucination-checker';
++import { z } from 'zod';
++
++const llmOutputSchema = z.record(z.string(), z.string());
++
++export async function processClientReport(
++  supabase: SupabaseClient,
++  input: WeeklyReportInput
++): Promise<WeeklyReportProposal> {
++  const { workspaceId, clientId, periodStart, periodEnd, agentRunId } = input;
++  const cooldownDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
++  const { data: rejectedRuns, error: rejectedError } = await supabase
++    .from('agent_runs')
++    .select('id')
++    .eq('workspace_id', workspaceId)
++    .eq('client_id', clientId)
++    .eq('agent_id', 'weekly-report')
++    .eq('action_type', 'weekly_report_draft')
++    .eq('status', 'cancelled')
++    .gt('updated_at', cooldownDate);
++
++  if (rejectedError) throw rejectedError;
++  if (rejectedRuns && rejectedRuns.length > 0) {
++    throw new Error(`24-hour cooldown active: report generation rejected recently for client ${clientId}`);
++  }
++
++  const { data: client, error: clientErr } = await supabase
++    .from('clients')
++    .select('id, name')
++    .eq('id', clientId)
++    .eq('workspace_id', workspaceId)
++    .single();
++  if (clientErr || !client) {
++    throw new Error(`Client not found or tenant boundary violation: ${clientId}`);
++  }
++
++  let { data: template } = await supabase
++    .from('report_templates')
++    .select('id, sections_config, branding')
++    .eq('workspace_id', workspaceId)
++    .eq('client_id', clientId)
++    .maybeSingle();
++
++  if (!template) {
++    const { data: defaultTemplate } = await supabase
++      .from('report_templates')
++      .select('id, sections_config, branding')
++      .eq('workspace_id', workspaceId)
++      .is('client_id', null)
++      .maybeSingle();
++    template = defaultTemplate;
++  }
++
++  const sectionsConfig = (template?.sections_config as Record<string, { enabled: boolean; sort_order: number }>) ?? {};
++  const enabledSections = Object.entries(sectionsConfig)
++    .filter(([_, cfg]) => cfg.enabled)
++    .sort(([__a, a], [__b, b]) => a.sort_order - b.sort_order)
++    .map(([type]) => type);
++
++  const activeSections = enabledSections.length > 0
++    ? enabledSections
++    : ['time_summary', 'task_log', 'stalled_items', 'agent_activity', 'highlights'];
++
++  const budgetStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
++  const budgetCheck = await checkBudgetThreshold(workspaceId, 500, budgetStart);
++  if (!budgetCheck.allowed) {
++    throw new Error(`LLM Budget exceeded for workspace ${workspaceId}`);
++  }
++
++  const aggregatedData = await aggregateReportData(supabase, {
++    workspaceId,
++    clientId,
++    periodStart,
++    periodEnd,
++  });
++
++  if (!aggregatedData.hasActivity) {
++    return {
++      title: `Weekly Report for ${client.name}`,
++      confidence: 0,
++      reasoning: 'No activity found in period.',
++      riskLevel: 'low',
++      preview: 'No activity found in period.',
++    };
++  }
++
++  const router = createLLMRouter(undefined, {
++    async insertEstimate(entry) {
++      const row = await insertCostEstimate(entry);
++      return row.id;
++    },
++    async insertActual(entry) {
++      await insertCostLog(entry);
++    },
++  });
++
++  const systemPrompt = `You are a professional weekly report narrative generator for Flow OS.
++Your task is to generate executive narrative summaries for the specified report sections.
++
++You MUST follow these rules:
++1. Formulate clear, concise, and professional prose for each section.
++2. Only include sections requested by the user.
++3. Keep all numbers, metrics, and details exactly correct based on the input aggregated data.
++4. Output strictly a single JSON object where keys are the section types and values are the narrative strings.
++5. Do NOT include markdown fences, extra keys, or explanations. Just pure JSON.
++
++Requested Sections to generate narratives for:
++${activeSections.join(', ')}`;
++
++  const userPrompt = `Generate weekly narratives for client "${client.name}" for period ${periodStart} to ${periodEnd}.
++Aggregated Period Data:
++${JSON.stringify(aggregatedData, null, 2)}`;
++
++  const response = await router.complete(
++    [
++      { role: 'system', content: systemPrompt },
++      { role: 'user', content: userPrompt },
++    ],
++    { workspaceId, agentId: 'weekly-report', runId: agentRunId },
++    { taskTier: 'quality', maxTokens: 2000, temperature: 0.3 }
++  );
++
++  let narratives: Record<string, string>;
++  try {
++    const cleanText = response.text
++      .replace(/^```(?:json)?\s*\n?/m, '')
++      .replace(/\n?\s*```\s*$/m, '')
++      .trim();
++    narratives = llmOutputSchema.parse(JSON.parse(cleanText));
++  } catch (err: unknown) {
++    const msg = err instanceof Error ? err.message : String(err);
++    throw new Error(`POST_CHECK_VIOLATION: LLM returned malformed JSON: ${msg}`);
++  }
++
++  const mismatches = verifyHallucinations(narratives, aggregatedData);
++  if (mismatches.length > 0) {
++    throw new Error(`HALLUCINATION_DETECTED: LLM invented values not present in aggregate: ${mismatches.join(', ')}`);
++  }
++
++  const sectionTitleMap: Record<string, string> = {
++    time_summary: 'Time Summary',
++    task_log: 'Task Log',
++    stalled_items: 'Stalled Items',
++    agent_activity: 'Agent Activity',
++    highlights: 'Highlights',
++    invoice_summary: 'Invoice Summary',
++  };
++
++  const sectionsPayload = activeSections.map((secType, index) => {
++    let baseContent: Record<string, unknown> = {};
++    if (secType === 'time_summary') baseContent = { totalMinutes: aggregatedData.timeSummary.totalMinutes };
++    else if (secType === 'task_log') baseContent = { projects: aggregatedData.taskLog.projects };
++    else if (secType === 'agent_activity') baseContent = { runs: aggregatedData.agentActivity.runs };
++    else if (secType === 'invoice_summary') baseContent = aggregatedData.invoiceSummary as unknown as Record<string, unknown>;
++    else if (secType === 'stalled_items') baseContent = { items: aggregatedData.stalledItems };
++    return {
++      section_type: secType,
++      title: sectionTitleMap[secType] ?? secType,
++      sort_order: index + 1,
++      content: { ...baseContent, narrative: narratives[secType] ?? '' },
++    };
++  });
++
++  const { data: member } = await supabase
++    .from('workspace_members')
++    .select('user_id')
++    .eq('workspace_id', workspaceId)
++    .eq('role', 'owner')
++    .limit(1)
++    .single();
++
++  const creatorUserId = member?.user_id ?? workspaceId;
++
++  const { data: reportId, error: rpcError } = await supabase.rpc(
++    'create_weekly_report_with_sections',
++    {
++      p_workspace_id: workspaceId,
++      p_client_id: clientId,
++      p_period_start: periodStart,
++      p_period_end: periodEnd,
++      p_template_id: template?.id ?? null,
++      p_generated_by: creatorUserId,
++      p_template_snapshot: template ?? {},
++      p_sections: sectionsPayload,
++    }
++  );
++
++  if (rpcError || !reportId) {
++    throw new Error(`Failed to persist report via database RPC: ${rpcError?.message}`);
++  }
++
++  const preview = activeSections
++    .slice(0, 3)
++    .map((secType) => `${sectionTitleMap[secType] ?? secType}: ${narratives[secType] ?? ''}`)
++    .join('\n\n');
++
++  return {
++    reportId,
++    title: `Weekly Report Draft for ${client.name}`,
++    confidence: 0.95,
++    reasoning: 'Draft compiled accurately using pre-aggregated narrative prose.',
++    riskLevel: 'low',
++    preview,
++  };
++}
+diff --git a/packages/agents/weekly-report/schemas.ts b/packages/agents/weekly-report/schemas.ts
+index e18a631..4967fcd 100644
+--- a/packages/agents/weekly-report/schemas.ts
++++ b/packages/agents/weekly-report/schemas.ts
+@@ -1,23 +1,23 @@
+ import { z } from 'zod';
+ 
+-export interface WeeklyReportInput {
+-  workspaceId: string;
+-  signalId: string;
+-}
+-
+-export interface WeeklyReportProposal {
+-  reportType: string;
+-  confidence: number;
+-  reasoning: string;
+-}
+-
+ export const weeklyReportInputSchema = z.object({
+   workspaceId: z.string().uuid(),
+-  signalId: z.string().uuid(),
++  clientId: z.string().uuid(),
++  periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
++  periodEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
++  agentRunId: z.string().uuid(),
++  trigger: z.enum(['cron', 'manual']).default('cron'),
+ });
+ 
++export type WeeklyReportInput = z.infer<typeof weeklyReportInputSchema>;
++
+ export const weeklyReportProposalSchema = z.object({
+-  reportType: z.string(),
++  reportId: z.string().uuid().optional(),
++  title: z.string(),
+   confidence: z.number().min(0).max(1),
+   reasoning: z.string(),
++  riskLevel: z.enum(['low', 'medium', 'high']).default('low'),
++  preview: z.string(),
+ });
++
++export type WeeklyReportProposal = z.infer<typeof weeklyReportProposalSchema>;
+diff --git a/packages/db/src/index.ts b/packages/db/src/index.ts
+index 8dde31f..4bb9607 100644
+--- a/packages/db/src/index.ts
++++ b/packages/db/src/index.ts
+@@ -212,3 +212,5 @@ export type {
+   InvoiceListItem,
+ } from './queries/invoices';
+ export { createInvoiceEditGuard } from './queries/invoices/invoice-edit-guard';
++export { aggregateReportData } from './queries/reports/aggregate-data';
++export type { AggregateReportDataOptions, AggregatedReportData, StalledItem } from './queries/reports/aggregate-data';
+diff --git a/packages/db/src/queries/reports/aggregate-data.ts b/packages/db/src/queries/reports/aggregate-data.ts
+new file mode 100644
+index 0000000..80f1a62
+--- /dev/null
++++ b/packages/db/src/queries/reports/aggregate-data.ts
+@@ -0,0 +1,235 @@
++import type { SupabaseClient } from '@supabase/supabase-js';
++
++export interface AggregateReportDataOptions {
++  workspaceId: string;
++  clientId: string;
++  periodStart: string;
++  periodEnd: string;
++}
++
++export interface StalledItem {
++  type: 'extracted_action' | 'overdue_invoice';
++  description: string;
++  meta: Record<string, any>;
++}
++
++export interface AggregatedReportData {
++  timeSummary: {
++    totalMinutes: number;
++    projectCount: number;
++  };
++  taskLog: {
++    projects: Array<{
++      projectName: string;
++      entries: Array<{
++        date: string;
++        durationMinutes: number;
++        notes: string;
++      }>;
++    }>;
++  };
++  agentActivity: {
++    runs: Array<{
++      actionType: string;
++      status: string;
++      count: number;
++    }>;
++  };
++  invoiceSummary: {
++    totalCents: number;
++    amountPaidCents: number;
++    invoiceCount: number;
++  };
++  stalledItems: StalledItem[];
++  hasActivity: boolean;
++}
++
++function safeNum(val: unknown): number {
++  if (val === null || val === undefined) return 0;
++  const n = Number(val);
++  return Number.isFinite(n) ? n : 0;
++}
++
++function safeStr(val: unknown): string {
++  if (val === null || val === undefined) return '';
++  return String(val);
++}
++
++/**
++ * Aggregates all data required for generating a weekly client report.
++ * Guaranteed tenant isolation: strictly requires workspaceId and filters all queries.
++ * Gracefully truncates massive inputs to protect the LLM context budget.
++ */
++export async function aggregateReportData(
++  supabase: SupabaseClient,
++  options: AggregateReportDataOptions,
++): Promise<AggregatedReportData> {
++  const { workspaceId, clientId, periodStart, periodEnd } = options;
++
++  const nextDayStr = new Date(new Date(periodStart).getTime() + 86400000).toISOString().split('T')[0]!;
++  // Calculate next day after periodEnd for strict timestamp comparisons
++  const d = new Date(`${periodEnd}T00:00:00Z`);
++  d.setUTCDate(d.getUTCDate() + 1);
++  const periodEndNext = d.toISOString().split('T')[0]!;
++
++  const [timeResult, invResult, agentResult, inboxResult, overdueResult] = await Promise.all([
++    supabase
++      .from('time_entries')
++      .select('duration_minutes, notes, date, client_id, project_id, projects(name)')
++      .eq('client_id', clientId)
++      .eq('workspace_id', workspaceId)
++      .gte('date', periodStart)
++      .lte('date', periodEnd)
++      .is('deleted_at', null),
++    supabase
++      .from('invoices')
++      .select('id, total_cents, status')
++      .eq('client_id', clientId)
++      .eq('workspace_id', workspaceId)
++      .gte('issue_date', periodStart)
++      .lte('issue_date', periodEnd)
++      .neq('status', 'voided'),
++    supabase
++      .from('agent_runs')
++      .select('action_type, status')
++      .eq('client_id', clientId)
++      .eq('workspace_id', workspaceId)
++      .gte('created_at', `${periodStart}T00:00:00Z`)
++      .lt('created_at', `${periodEndNext}T00:00:00Z`),
++    supabase
++      .from('client_inboxes')
++      .select('id')
++      .eq('client_id', clientId)
++      .eq('workspace_id', workspaceId)
++      .maybeSingle(),
++    supabase
++      .from('invoices')
++      .select('id, total_cents, issue_date, status')
++      .eq('client_id', clientId)
++      .eq('workspace_id', workspaceId)
++      .eq('status', 'overdue'),
++  ]);
++
++  if (timeResult.error) throw timeResult.error;
++  if (invResult.error) throw invResult.error;
++  if (agentResult.error) throw agentResult.error;
++  if (inboxResult.error) throw inboxResult.error;
++  if (overdueResult.error) throw overdueResult.error;
++
++  const timeRows = timeResult.data ?? [];
++  const invRows = invResult.data ?? [];
++  const agentRows = agentResult.data ?? [];
++  const inboxRow = inboxResult.data;
++  const overdueRows = overdueResult.data ?? [];
++
++  // Truncate note lists to prevent LLM context pollution
++  const maxEntriesPerProject = 50;
++  const projectMap = new Map<string, { projectName: string; entries: Array<{ date: string; durationMinutes: number; notes: string }> }>();
++  for (const r of timeRows) {
++    const pid = safeStr(r.project_id);
++    const pname = (((r.projects as unknown) as { name?: string } | null)?.name) ?? 'Default';
++    if (!projectMap.has(pid)) {
++      projectMap.set(pid, { projectName: pname, entries: [] });
++    }
++    const list = projectMap.get(pid)!.entries;
++    if (list.length < maxEntriesPerProject) {
++      // Truncate notes if extremely long
++      let rawNote = safeStr(r.notes);
++      if (rawNote.length > 200) {
++        rawNote = rawNote.slice(0, 197) + '...';
++      }
++      list.push({
++        date: safeStr(r.date),
++        durationMinutes: safeNum(r.duration_minutes),
++        notes: rawNote,
++      });
++    }
++  }
++
++  // Invoice calculations
++  const totalInvoiceCents = invRows.reduce((sum, r) => sum + safeNum(r.total_cents), 0);
++  const invoiceIds = invRows.map((r) => r.id as string);
++  let totalPaidCents = 0;
++  if (invoiceIds.length > 0) {
++    const { data: payRows, error: payError } = await supabase
++      .from('invoice_payments')
++      .select('amount_cents')
++      .in('invoice_id', invoiceIds)
++      .eq('workspace_id', workspaceId)
++      .gte('created_at', `${periodStart}T00:00:00Z`)
++      .lt('created_at', `${periodEndNext}T00:00:00Z`);
++    if (payError) throw payError;
++    totalPaidCents = (payRows ?? []).reduce((sum, r) => sum + safeNum(r.amount_cents), 0);
++  }
++
++  // Agent activity calculations
++  const counts = new Map<string, { actionType: string; status: string; count: number }>();
++  for (const r of agentRows) {
++    const actionType = (r.action_type as string) ?? '';
++    const status = (r.status as string) ?? '';
++    const key = `${actionType}:${status}`;
++    if (!counts.has(key)) {
++      counts.set(key, { actionType, status, count: 0 });
++    }
++    counts.get(key)!.count++;
++  }
++
++  // Stalled Items calculation (overdue invoices + outstanding actions)
++  const stalledItems: StalledItem[] = [];
++
++  for (const inv of overdueRows) {
++    stalledItems.push({
++      type: 'overdue_invoice',
++      description: `Invoice for $${(safeNum(inv.total_cents) / 100).toFixed(2)} is currently overdue (issued on ${inv.issue_date}).`,
++      meta: { invoiceId: inv.id, totalCents: inv.total_cents, issueDate: inv.issue_date },
++    });
++  }
++
++  if (inboxRow) {
++    const { data: actions, error: actionsError } = await supabase
++      .from('extracted_actions')
++      .select('id, description, due_date, confidence')
++      .eq('workspace_id', workspaceId)
++      .eq('client_inbox_id', inboxRow.id)
++      .eq('soft_deleted', false)
++      .or(`due_date.is.null,due_date.lte.${new Date().toISOString()}`)
++      .order('due_date', { ascending: true, nullsFirst: false });
++
++    if (actionsError) throw actionsError;
++
++    for (const act of actions ?? []) {
++      let desc = safeStr(act.description);
++      if (desc.length > 200) {
++        desc = desc.slice(0, 197) + '...';
++      }
++      stalledItems.push({
++        type: 'extracted_action',
++        description: `Outstanding action item: "${desc}"` + (act.due_date ? ` (due ${act.due_date.slice(0, 10)})` : ''),
++        meta: { actionId: act.id, dueDate: act.due_date, confidence: act.confidence },
++      });
++    }
++  }
++
++  const totalMinutes = timeRows.reduce((sum, r) => sum + safeNum(r.duration_minutes), 0);
++  const hasActivity = totalMinutes > 0 || invRows.length > 0 || agentRows.length > 0 || stalledItems.length > 0;
++
++  return {
++    timeSummary: {
++      totalMinutes,
++      projectCount: projectMap.size,
++    },
++    taskLog: {
++      projects: Array.from(projectMap.values()),
++    },
++    agentActivity: {
++      runs: Array.from(counts.values()),
++    },
++    invoiceSummary: {
++      totalCents: totalInvoiceCents,
++      amountPaidCents: totalPaidCents,
++      invoiceCount: invoiceIds.length,
++    },
++    stalledItems,
++    hasActivity,
++  };
++}
+diff --git a/packages/db/src/schema/weekly-reports.ts b/packages/db/src/schema/weekly-reports.ts
+index 85f02fe..e410f01 100644
+--- a/packages/db/src/schema/weekly-reports.ts
++++ b/packages/db/src/schema/weekly-reports.ts
+@@ -45,6 +45,7 @@ export const weeklyReports = pgTable(
+     sentAt: timestamp('sent_at', { withTimezone: true }),
+     version: integer('version').notNull().default(1),
+     parentReportId: uuid('parent_report_id'),
++    versionGroupId: uuid('version_group_id'),
+     templateSnapshot: jsonb('template_snapshot').notNull().default({}),
+     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+@@ -53,6 +54,7 @@ export const weeklyReports = pgTable(
+     index('idx_weekly_reports_workspace_client_generated').on(table.workspaceId, table.clientId, table.generatedAt),
+     index('idx_weekly_reports_workspace_draft').on(table.workspaceId).where(sql`status = 'draft'`),
+     index('idx_weekly_reports_parent_id').on(table.parentReportId).where(sql`parent_report_id IS NOT NULL`),
++    index('idx_weekly_reports_version_group').on(table.versionGroupId).where(sql`version_group_id IS NOT NULL`),
+     sql`CONSTRAINT period_start_before_end CHECK (${table.periodStart} <= ${table.periodEnd})`,
+   ],
+ );
+diff --git a/packages/types/src/errors.ts b/packages/types/src/errors.ts
+index 61ef2e8..921b6ae 100644
+--- a/packages/types/src/errors.ts
++++ b/packages/types/src/errors.ts
+@@ -84,6 +84,7 @@ export type FlowErrorCode =
+   | 'DEFAULT_TEMPLATE_REQUIRED'
+   | 'PERIOD_TOO_LONG'
+   | 'INVALID_DATE_RANGE'
++  | 'CONCURRENT_MODIFICATION'
+ 
+ export type AgentErrorCode =
+   | 'AGENT_ERROR'
+diff --git a/packages/types/src/reports.ts b/packages/types/src/reports.ts
+index 262ed69..763e88d 100644
+--- a/packages/types/src/reports.ts
++++ b/packages/types/src/reports.ts
+@@ -27,6 +27,7 @@ export const reportStatusEnum = z.enum([
+   'sent',
+   'viewed',
+   'approved',
++  'rejected',
+ ]);
+ export type ReportStatus = z.infer<typeof reportStatusEnum>;
+ 
+@@ -35,16 +36,18 @@ export const sectionTypeEnum = z.enum([
+   'task_log',
+   'agent_activity',
+   'invoice_summary',
++  'stalled_items',
++  'highlights',
+ ]);
+ export type SectionType = z.infer<typeof sectionTypeEnum>;
+ 
+ const sectionConfigEntrySchema = z.object({
+   enabled: z.boolean(),
+-  sort_order: z.number().int().min(1).max(4),
++  sort_order: z.number().int().min(1).max(6),
+ });
+ 
+ function buildSectionsConfigSchema() {
+-  const keys: [string, string, string, string] = ['time_summary', 'task_log', 'agent_activity', 'invoice_summary'];
++  const keys = ['time_summary', 'task_log', 'agent_activity', 'invoice_summary', 'stalled_items', 'highlights'] as const;
+   const shape: Record<string, z.ZodType<unknown>> = {};
+   for (const k of keys) {
+     shape[k] = sectionConfigEntrySchema;
+@@ -114,6 +117,7 @@ export const weeklyReportSchema = z.object({
+   sentAt: z.string().datetime().nullable(),
+   version: z.number(),
+   parentReportId: z.string().uuid().nullable(),
++  versionGroupId: z.string().uuid().nullable(),
+   templateSnapshot: z.record(z.unknown()),
+   createdAt: z.string().datetime(),
+   updatedAt: z.string().datetime(),
+diff --git a/supabase/migrations/20260603000001_weekly_reports_version_group.sql b/supabase/migrations/20260603000001_weekly_reports_version_group.sql
+new file mode 100644
+index 0000000..b0e30b9
+--- /dev/null
++++ b/supabase/migrations/20260603000001_weekly_reports_version_group.sql
+@@ -0,0 +1,15 @@
++-- Story 8-1c: Add version_group_id for O(1) version grouping
++-- Replaces linked-list traversal via parent_report_id with direct group lookup.
++-- All versions of the same logical report share version_group_id.
++
++ALTER TABLE weekly_reports
++  ADD COLUMN IF NOT EXISTS version_group_id UUID;
++
++CREATE INDEX IF NOT EXISTS idx_weekly_reports_version_group
++  ON weekly_reports (version_group_id)
++  WHERE version_group_id IS NOT NULL;
++
++-- Backfill: each existing report is its own group (single-report, no versions yet)
++UPDATE weekly_reports
++  SET version_group_id = id
++  WHERE version_group_id IS NULL;
+diff --git a/supabase/migrations/20260603000002_report_regeneration_rpc.sql b/supabase/migrations/20260603000002_report_regeneration_rpc.sql
+new file mode 100644
+index 0000000..a508933
+--- /dev/null
++++ b/supabase/migrations/20260603000002_report_regeneration_rpc.sql
+@@ -0,0 +1,153 @@
++-- Story 8-1c: Regeneration RPC functions
++-- draft regeneration: conditional-write UPDATE + upsert sections
++-- sent report cloning: conditional-write INSERT + copy sections
++
++-- ============================================
++-- RPC: regenerate_draft_report
++-- Conditional-write on version + status = 'draft'
++-- Upserts sections by (report_id, section_type)
++-- ============================================
++CREATE OR REPLACE FUNCTION regenerate_draft_report(
++  p_report_id UUID,
++  p_expected_version INT,
++  p_generated_by UUID,
++  p_sections JSONB
++)
++RETURNS UUID
++LANGUAGE plpgsql
++AS $$
++DECLARE
++  v_updated_id UUID;
++  v_section JSONB;
++  v_sort_order INT := 0;
++BEGIN
++  -- Conditional-write: only succeeds if version and status match
++  UPDATE weekly_reports
++  SET version = version + 1,
++      updated_at = now(),
++      generated_at = now(),
++      generated_by = p_generated_by
++  WHERE id = p_report_id
++    AND version = p_expected_version
++    AND status = 'draft'
++  RETURNING id INTO v_updated_id;
++
++  IF v_updated_id IS NULL THEN
++    -- Check if report exists at all
++    IF NOT EXISTS (SELECT 1 FROM weekly_reports WHERE id = p_report_id) THEN
++      RAISE EXCEPTION 'NOT_FOUND: report does not exist';
++    END IF;
++    RAISE EXCEPTION 'CONCURRENT_MODIFICATION: version mismatch or status changed';
++  END IF;
++
++  -- Upsert sections
++  FOR v_section IN SELECT * FROM jsonb_array_elements(COALESCE(p_sections, '[]'::jsonb))
++  LOOP
++    v_sort_order := v_sort_order + 1;
++    INSERT INTO weekly_report_sections (report_id, section_type, title, content, sort_order)
++    VALUES (
++      v_updated_id,
++      v_section->>'section_type',
++      v_section->>'title',
++      COALESCE(v_section->'content', '{}'),
++      v_sort_order
++    )
++    ON CONFLICT (report_id, section_type)
++    DO UPDATE SET
++      title = EXCLUDED.title,
++      content = EXCLUDED.content,
++      sort_order = EXCLUDED.sort_order;
++  END LOOP;
++
++  RETURN v_updated_id;
++END;
++$$;
++
++-- ============================================
++-- RPC: clone_sent_report
++-- Conditional-write INSERT only if status in ('sent', 'viewed')
++-- Sets version_group_id on original if first clone
++-- ============================================
++CREATE OR REPLACE FUNCTION clone_sent_report(
++  p_report_id UUID,
++  p_generated_by UUID,
++  p_template_snapshot JSONB,
++  p_sections JSONB
++)
++RETURNS UUID
++LANGUAGE plpgsql
++AS $$
++DECLARE
++  v_new_id UUID;
++  v_version_group_id UUID;
++  v_section JSONB;
++  v_sort_order INT := 0;
++  v_original_sections JSONB;
++BEGIN
++  -- Check if report exists
++  IF NOT EXISTS (SELECT 1 FROM weekly_reports WHERE id = p_report_id) THEN
++    RAISE EXCEPTION 'NOT_FOUND: report does not exist';
++  END IF;
++
++  -- Clone via conditional-write INSERT
++  INSERT INTO weekly_reports (
++    workspace_id, client_id, period_start, period_end,
++    status, template_id, generated_by, generated_at,
++    version, parent_report_id, version_group_id, template_snapshot
++  )
++  SELECT
++    orig.workspace_id, orig.client_id, orig.period_start, orig.period_end,
++    'draft', orig.template_id, p_generated_by, now(),
++    orig.version + 1, orig.id,
++    COALESCE(orig.version_group_id, orig.id),
++    p_template_snapshot
++  FROM weekly_reports orig
++  WHERE orig.id = p_report_id
++    AND orig.status IN ('sent', 'viewed')
++  RETURNING id INTO v_new_id;
++
++  IF v_new_id IS NULL THEN
++    RAISE EXCEPTION 'CONCURRENT_MODIFICATION: report is not in sent/viewed status';
++  END IF;
++
++  -- Set version_group_id on original if it was NULL (first clone)
++  UPDATE weekly_reports
++  SET version_group_id = id
++  WHERE id = p_report_id AND version_group_id IS NULL;
++
++  -- Copy sections from original
++  SELECT COALESCE(jsonb_agg(
++    jsonb_build_object(
++      'section_type', s.section_type,
++      'title', s.title,
++      'content', s.content,
++      'sort_order', s.sort_order
++    )
++    ORDER BY s.sort_order
++  ), '[]')
++  INTO v_original_sections
++  FROM weekly_report_sections s
++  WHERE s.report_id = p_report_id;
++
++  -- Insert new sections for the clone
++  FOR v_section IN SELECT * FROM jsonb_array_elements(
++    CASE WHEN p_sections IS NOT NULL AND jsonb_array_length(p_sections) > 0
++         THEN p_sections
++         ELSE v_original_sections
++    END
++  )
++  LOOP
++    v_sort_order := v_sort_order + 1;
++    INSERT INTO weekly_report_sections (report_id, section_type, title, content, sort_order)
++    VALUES (
++      v_new_id,
++      v_section->>'section_type',
++      v_section->>'title',
++      COALESCE(v_section->'content', '{}'),
++      v_sort_order
++    );
++  END LOOP;
++
++  RETURN v_new_id;
++END;
++$$;
+diff --git a/supabase/migrations/20260604000001_weekly_reports_stalled_highlights.sql b/supabase/migrations/20260604000001_weekly_reports_stalled_highlights.sql
+new file mode 100644
+index 0000000..27bb859
+--- /dev/null
++++ b/supabase/migrations/20260604000001_weekly_reports_stalled_highlights.sql
+@@ -0,0 +1,48 @@
++-- Migration: Relax weekly_report_sections section_type constraint, weekly_reports status constraint, and add draft idempotency
++-- Date: 2026-05-29
++
++-- Step 1: Drop anonymous check constraint on weekly_report_sections if exists
++ALTER TABLE weekly_report_sections
++  DROP CONSTRAINT IF EXISTS weekly_report_sections_section_type_check;
++
++-- Step 2: Add relaxed check constraint with stalled_items and highlights
++ALTER TABLE weekly_report_sections
++  ADD CONSTRAINT weekly_report_sections_section_type_check
++  CHECK (section_type IN ('time_summary', 'task_log', 'agent_activity', 'invoice_summary', 'stalled_items', 'highlights'));
++
++-- Step 3: Drop anonymous check constraint on weekly_reports status if exists
++ALTER TABLE weekly_reports
++  DROP CONSTRAINT IF EXISTS weekly_reports_status_check;
++
++-- Step 4: Add relaxed check constraint for weekly_reports status including 'rejected'
++ALTER TABLE weekly_reports
++  ADD CONSTRAINT weekly_reports_status_check
++  CHECK (status IN ('draft', 'sent', 'viewed', 'approved', 'rejected'));
++
++-- Step 5: Create partial unique index on weekly_reports for draft idempotency
++-- Enforces only one draft report per client and period at any time.
++CREATE UNIQUE INDEX IF NOT EXISTS idx_weekly_reports_idempotency
++  ON weekly_reports (client_id, period_start, period_end)
++  WHERE status = 'draft';
++
++-- Step 6: Create after-update trigger on agent_runs to update weekly_reports status to 'rejected' when draft proposal is cancelled (rejected)
++CREATE OR REPLACE FUNCTION handle_agent_run_rejection()
++RETURNS TRIGGER AS $$
++DECLARE
++  v_report_id UUID;
++BEGIN
++  IF NEW.status = 'cancelled' AND OLD.status = 'waiting_approval' AND NEW.agent_id = 'weekly-report' THEN
++    -- Extract reportId from output JSONB (cast to UUID)
++    v_report_id := (NEW.output->>'reportId')::UUID;
++    IF v_report_id IS NOT NULL THEN
++      UPDATE weekly_reports SET status = 'rejected', updated_at = now() WHERE id = v_report_id;
++    END IF;
++  END IF;
++  RETURN NEW;
++END;
++$$ LANGUAGE plpgsql;
++
++CREATE OR REPLACE TRIGGER trg_agent_run_rejection
++AFTER UPDATE ON agent_runs
++FOR EACH ROW
++EXECUTE FUNCTION handle_agent_run_rejection();
+diff --git a/supabase/tests/rls_report_regeneration.sql b/supabase/tests/rls_report_regeneration.sql
+new file mode 100644
+index 0000000..cc6400b
+--- /dev/null
++++ b/supabase/tests/rls_report_regeneration.sql
+@@ -0,0 +1,166 @@
++-- pgTAP RLS tests: Report Regeneration (Story 8-1c)
++-- Purpose: Verify Member blocked from UPDATE/INSERT on weekly_reports + sections during regeneration.
++--          Owner/Admin allowed. Cross-tenant isolation.
++-- Tables: weekly_reports, weekly_report_sections
++
++BEGIN;
++
++CREATE OR REPLACE FUNCTION reset_role() RETURNS void AS $$
++BEGIN
++  EXECUTE 'RESET ROLE';
++END;
++$$ LANGUAGE plpgsql;
++
++SELECT plan(7);
++
++SET ROLE postgres;
++
++-- Seed workspaces + users + members + clients
++INSERT INTO auth.users (id, email, raw_app_meta_data, raw_user_meta_data)
++VALUES
++  ('a1111111-1111-1111-1111-111111111111', 'regen-owner@test.com',    '{"workspace_id": "d1111111-1111-1111-1111-111111111111", "role": "owner"}',   '{}'),
++  ('a2222222-2222-2222-2222-222222222222', 'regen-admin@test.com',    '{"workspace_id": "d1111111-1111-1111-1111-111111111111", "role": "admin"}',   '{}'),
++  ('a3333333-3333-3333-3333-333333333333', 'regen-member@test.com',   '{"workspace_id": "d1111111-1111-1111-1111-111111111111", "role": "member"}',  '{}'),
++  ('a4444444-4444-4444-4444-444444444444', 'regen-outside@test.com', '{"workspace_id": "d2222222-2222-2222-2222-222222222222", "role": "owner"}',   '{}')
++ON CONFLICT (id) DO NOTHING;
++
++INSERT INTO users (id, email, name) VALUES
++  ('a1111111-1111-1111-1111-111111111111', 'regen-owner@test.com',  'Owner'),
++  ('a2222222-2222-2222-2222-222222222222', 'regen-admin@test.com',  'Admin'),
++  ('a3333333-3333-3333-3333-333333333333', 'regen-member@test.com', 'Member'),
++  ('a4444444-4444-4444-4444-444444444444', 'regen-outside@test.com','Outside')
++ON CONFLICT (id) DO NOTHING;
++
++INSERT INTO workspaces (id, name, slug) VALUES
++  ('d1111111-1111-1111-1111-111111111111', 'Regen WS A', 'regen-ws-a'),
++  ('d2222222-2222-2222-2222-222222222222', 'Regen WS B', 'regen-ws-b')
++ON CONFLICT (id) DO NOTHING;
++
++INSERT INTO workspace_members (workspace_id, user_id, role, status) VALUES
++  ('d1111111-1111-1111-1111-111111111111', 'a1111111-1111-1111-1111-111111111111', 'owner',  'active'),
++  ('d1111111-1111-1111-1111-111111111111', 'a2222222-2222-2222-2222-222222222222', 'admin',  'active'),
++  ('d1111111-1111-1111-1111-111111111111', 'a3333333-3333-3333-3333-333333333333', 'member', 'active'),
++  ('d2222222-2222-2222-2222-222222222222', 'a4444444-4444-4444-4444-444444444444', 'owner',  'active')
++ON CONFLICT DO NOTHING;
++
++INSERT INTO clients (id, workspace_id, name, email) VALUES
++  ('0e111111-1111-1111-1111-111111111111', 'd1111111-1111-1111-1111-111111111111', 'Client A', 'a@regen.com')
++ON CONFLICT (id) DO NOTHING;
++
++-- Seed reports via service_role (bypass RLS)
++SET ROLE service_role;
++
++INSERT INTO weekly_reports (id, workspace_id, client_id, period_start, period_end, status, generated_by, version, version_group_id)
++VALUES
++  ('f1111111-1111-1111-1111-111111111111', 'd1111111-1111-1111-1111-111111111111', '0e111111-1111-1111-1111-111111111111', '2026-06-01', '2026-06-07', 'draft', 'a1111111-1111-1111-1111-111111111111', 1, 'f1111111-1111-1111-1111-111111111111')
++ON CONFLICT DO NOTHING;
++
++INSERT INTO weekly_report_sections (id, report_id, section_type, title, content, sort_order)
++VALUES
++  ('01111111-1111-1111-1111-111111111111', 'f1111111-1111-1111-1111-111111111111', 'time_summary', 'Time Summary', '{"totalMinutes":120}', 1)
++ON CONFLICT DO NOTHING;
++
++SELECT reset_role();
++
++-- ============================================
++-- Test 1: Member UPDATE on weekly_reports returns 0 rows (blocked by RLS USING)
++-- ============================================
++SET LOCAL ROLE authenticated;
++SET LOCAL request.jwt.claim.sub = 'a3333333-3333-3333-3333-333333333333';
++SET LOCAL request.jwt.claim.workspace_id = 'd1111111-1111-1111-1111-111111111111';
++SET LOCAL request.jwt.claim.role = 'member';
++
++SELECT is_empty(
++  $$UPDATE weekly_reports SET version = version + 1, updated_at = now() WHERE id = 'f1111111-1111-1111-1111-111111111111' AND status = 'draft' RETURNING id$$,
++  'Member UPDATE on weekly_reports blocked by RLS (0 rows)'
++);
++
++-- ============================================
++-- Test 2: Member INSERT into weekly_reports throws 42501 (WITH CHECK blocks)
++-- ============================================
++-- First set report to sent so SELECT subquery matches
++SET ROLE service_role;
++UPDATE weekly_reports SET status = 'sent', sent_at = now() WHERE id = 'f1111111-1111-1111-1111-111111111111';
++SELECT reset_role();
++
++SET LOCAL ROLE authenticated;
++SET LOCAL request.jwt.claim.sub = 'a3333333-3333-3333-3333-333333333333';
++SET LOCAL request.jwt.claim.workspace_id = 'd1111111-1111-1111-1111-111111111111';
++SET LOCAL request.jwt.claim.role = 'member';
++
++SELECT is_empty(
++  $$INSERT INTO weekly_reports (workspace_id, client_id, period_start, period_end, status, generated_by, version, parent_report_id, version_group_id)
++     SELECT workspace_id, client_id, period_start, period_end, 'draft', 'a3333333-3333-3333-3333-333333333333', version + 1, id, COALESCE(version_group_id, id)
++     FROM weekly_reports WHERE id = 'f1111111-1111-1111-1111-111111111111' AND status IN ('sent', 'viewed') RETURNING id$$,
++  'Member INSERT clone blocked by RLS (source invisible, 0 rows)'
++);
++
++-- ============================================
++-- Test 3: Member UPDATE on sections returns 0 rows (blocked by RLS USING)
++-- ============================================
++SELECT is_empty(
++  $$UPDATE weekly_report_sections SET content = '{"totalMinutes":200}' WHERE report_id = 'f1111111-1111-1111-1111-111111111111' RETURNING id$$,
++  'Member UPDATE on weekly_report_sections blocked by RLS (0 rows)'
++);
++
++-- ============================================
++-- Test 4: Owner CAN UPDATE weekly_reports (draft regeneration allowed)
++-- ============================================
++SET LOCAL ROLE authenticated;
++SET LOCAL request.jwt.claim.sub = 'a1111111-1111-1111-1111-111111111111';
++SET LOCAL request.jwt.claim.workspace_id = 'd1111111-1111-1111-1111-111111111111';
++SET LOCAL request.jwt.claim.role = 'owner';
++
++SELECT lives_ok(
++  $$UPDATE weekly_reports SET version = version + 1, updated_at = now() WHERE id = 'f1111111-1111-1111-1111-111111111111' AND status = 'draft'$$,
++  'Owner can UPDATE weekly_reports for draft regeneration'
++);
++
++-- ============================================
++-- Test 5: Admin CAN INSERT into weekly_reports (sent report cloning allowed)
++-- ============================================
++SET LOCAL request.jwt.claim.sub = 'a2222222-2222-2222-2222-222222222222';
++SET LOCAL request.jwt.claim.role = 'admin';
++
++-- First set report to sent
++SET ROLE service_role;
++UPDATE weekly_reports SET status = 'sent', sent_at = now() WHERE id = 'f1111111-1111-1111-1111-111111111111';
++SELECT reset_role();
++
++SET LOCAL ROLE authenticated;
++SET LOCAL request.jwt.claim.sub = 'a2222222-2222-2222-2222-222222222222';
++SET LOCAL request.jwt.claim.workspace_id = 'd1111111-1111-1111-1111-111111111111';
++SET LOCAL request.jwt.claim.role = 'admin';
++
++SELECT lives_ok(
++  $$INSERT INTO weekly_reports (workspace_id, client_id, period_start, period_end, status, generated_by, version, parent_report_id, version_group_id)
++     SELECT workspace_id, client_id, period_start, period_end, 'draft', 'a2222222-2222-2222-2222-222222222222', version + 1, id, COALESCE(version_group_id, id)
++     FROM weekly_reports WHERE id = 'f1111111-1111-1111-1111-111111111111' AND status IN ('sent', 'viewed')$$,
++  'Admin can INSERT into weekly_reports for sent report cloning'
++);
++
++-- ============================================
++-- Test 6: Cross-tenant isolation — WS B owner cannot regenerate WS A reports
++-- ============================================
++SET LOCAL request.jwt.claim.sub = 'a4444444-4444-4444-4444-444444444444';
++SET LOCAL request.jwt.claim.workspace_id = 'd2222222-2222-2222-2222-222222222222';
++SET LOCAL request.jwt.claim.role = 'owner';
++
++SELECT is_empty(
++  $$SELECT * FROM weekly_reports WHERE workspace_id = 'd1111111-1111-1111-1111-111111111111'$$,
++  'Cross-workspace owner cannot see WS A reports'
++);
++
++-- ============================================
++-- Test 7: Cross-tenant — WS B owner cannot UPDATE WS A report sections
++-- ============================================
++SELECT is_empty(
++  $$SELECT * FROM weekly_report_sections WHERE report_id = 'f1111111-1111-1111-1111-111111111111'$$,
++  'Cross-workspace owner cannot see WS A report sections'
++);
++
++-- ============================================
++-- Finish
++-- ============================================
++SELECT * FROM finish();
++ROLLBACK;

@@ -97,6 +97,10 @@ export function createOrchestrator(trustGateConfig?: TrustGateConfig): Orchestra
     const { registerCalendarWorkers } = await import('./calendar-worker');
     await registerCalendarWorkers(boss);
 
+    // Story 8-2 — register weekly report agent workers
+    const { registerWeeklyReportWorkers } = await import('./weekly-report-worker');
+    await registerWeeklyReportWorkers(boss);
+
 
     if (trustGateConfig?.outputSchemaRegistry) {
       const mvpIds: AgentId[] = [

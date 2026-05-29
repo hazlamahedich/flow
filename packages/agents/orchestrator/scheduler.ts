@@ -20,6 +20,12 @@ const SCHEDULES: ScheduleEntry[] = [
     data: { type: 'sweep_trigger', trigger: 'time_integrity_daily' },
   },
   {
+    // Story 8-2: hourly check to trigger workspace-level weekly report sweeps
+    name: 'weekly-report-sweep-trigger',
+    cron: '0 * * * *',
+    data: { type: 'sweep_trigger', trigger: 'weekly_report_hourly' },
+  },
+  {
     // Story 7.5 — AC2: daily cleanup of expired stripe_webhook_events at 3am UTC
     name: 'cleanup-expired-stripe-events',
     cron: '0 3 * * *',

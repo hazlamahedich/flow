@@ -212,3 +212,5 @@ export type {
   InvoiceListItem,
 } from './queries/invoices';
 export { createInvoiceEditGuard } from './queries/invoices/invoice-edit-guard';
+export { aggregateReportData } from './queries/reports/aggregate-data';
+export type { AggregateReportDataOptions, AggregatedReportData, StalledItem } from './queries/reports/aggregate-data';

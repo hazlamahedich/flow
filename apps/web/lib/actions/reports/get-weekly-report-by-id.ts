@@ -9,6 +9,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 interface ReportDetailResult {
   report: WeeklyReport;
   sections: WeeklyReportSection[];
+  role: string;
 }
 
 function safeStr(val: unknown): string {
@@ -95,6 +96,7 @@ export async function getWeeklyReportByIdAction(
     sentAt: nullSafeStr(reportRow.sent_at),
     version: safeNum(reportRow.version),
     parentReportId: (reportRow.parent_report_id as string | null) ?? null,
+    versionGroupId: (reportRow.version_group_id as string | null) ?? null,
     templateSnapshot: (reportRow.template_snapshot as Record<string, unknown>) ?? {},
     createdAt: nullSafeStr(reportRow.created_at) ?? '',
     updatedAt: nullSafeStr(reportRow.updated_at) ?? '',
@@ -112,6 +114,6 @@ export async function getWeeklyReportByIdAction(
 
   return {
     success: true,
-    data: { report, sections },
+    data: { report, sections, role: ctx.role },
   };
 }

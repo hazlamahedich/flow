@@ -565,3 +565,11 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - D8-1b-R-D4 — No pagination on getReportTemplatesForWorkspaceAction. Acceptable for MVP, re-evaluate at scale. `scalability` `apps/web/lib/actions/reports/get-report-templates.ts`
 - D8-1b-R-D5 — safeNum doesn't exclude negative financial values in generateWeeklyReportAction. Pre-existing 8-1a code. `edge-case` `apps/web/lib/actions/reports/generate-weekly-report.ts`
 - D8-1b-R-D6 — updated_at trigger missing on report_templates table (foundation migration). Save action manually sets it. Add trigger at schema revision. `tech-debt` `supabase/migrations/20260528074359_weekly_reports_foundation.sql`
+
+## Deferred from: code review of 8-1c-report-regeneration (2026-05-29)
+
+- D8-1c-R-D1 — Missing rate limiter integration in `regenerateWeeklyReportAction`. Toast notifications in `RegenerateButton.tsx` are prepared for rate limit errors, but no actual limiter plug or middleware is applied to the action. `tech-debt` `apps/web/lib/actions/reports/regenerate-weekly-report.ts`
+- D8-1c-R-D2 — Version History navigation dropdown (AC9) deferred. The page renders the `VersionBadge` showing "Version X of Y", but the interactive selector dropdown for version switching was split/deferred to Story 8-1d. `spec-gap` `apps/web/app/(workspace)/reports/[reportId]/page.tsx`
+
+## Deferred from: code review of 8-2-weekly-report-agent-auto-drafts.md (2026-05-29)
+- pgTAP Tests Bypass RPC Functions: Tests use raw UPDATE/INSERT. Deferred as tests exist but can be improved.

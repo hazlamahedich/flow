@@ -45,14 +45,17 @@ export const weeklyReports = pgTable(
     sentAt: timestamp('sent_at', { withTimezone: true }),
     version: integer('version').notNull().default(1),
     parentReportId: uuid('parent_report_id'),
+    versionGroupId: uuid('version_group_id'),
     templateSnapshot: jsonb('template_snapshot').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
+    uniqueIndex('idx_weekly_reports_idempotency').on(table.clientId, table.periodStart, table.periodEnd).where(sql`status = 'draft'`),
     index('idx_weekly_reports_workspace_client_generated').on(table.workspaceId, table.clientId, table.generatedAt),
     index('idx_weekly_reports_workspace_draft').on(table.workspaceId).where(sql`status = 'draft'`),
     index('idx_weekly_reports_parent_id').on(table.parentReportId).where(sql`parent_report_id IS NOT NULL`),
+    index('idx_weekly_reports_version_group').on(table.versionGroupId).where(sql`version_group_id IS NOT NULL`),
     sql`CONSTRAINT period_start_before_end CHECK (${table.periodStart} <= ${table.periodEnd})`,
   ],
 );

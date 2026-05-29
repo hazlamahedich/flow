@@ -1,6 +1,6 @@
 ---
 generated: 2026-04-20
-last_updated: 2026-05-28  # Re-sliced Story 8-1 into 8-1a/8-1b/8-1c + schema fixes + ATDD expanded
+last_updated: 2026-05-29  # Re-sliced Story 8-1 into 8-1a/8-1b/8-1c + schema fixes + ATDD expanded
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -88,8 +88,8 @@ development_status:
   8-1-weekly-client-reports: deprecated  # SPLIT — replaced by 8-1a, 8-1b, 8-1c
   8-1a-weekly-reports-foundation: done    # Generation + persistence + list/detail UI
   8-1b-report-templates: done                     # Template CRUD + customization
-  8-1c-report-regeneration: ready-for-dev         # Re-generation + versioning
-  8-2-weekly-report-agent-auto-drafts: backlog
+  8-1c-report-regeneration: done                # Re-generation + versioning
+  8-2-weekly-report-agent-auto-drafts: in-progress
   8-3-client-health-agent-usage-analytics: backlog
   8-4-friday-feeling-ritual: backlog
   epic-8-retrospective: optional
