@@ -3,7 +3,7 @@ import { inboxInputSchema, inboxProposalSchema } from '../inbox/schemas';
 import { calendarInputSchema, calendarProposalSchema } from '../calendar/schemas';
 import { arCollectionInputSchema, arCollectionProposalSchema } from '../ar-collection/schemas';
 import { weeklyReportInputSchema, weeklyReportProposalSchema } from '../weekly-report/schemas';
-import { clientHealthInputSchema, clientHealthProposalSchema } from '../client-health/schemas';
+import { clientHealthInputSchema, clientHealthProposalSchema } from '../client-health/src/schemas';
 import { timeIntegrityInputSchema, timeIntegrityProposalSchema } from '../time-integrity/schemas';
 import { writeAuditLog } from '../shared/audit-writer';
 import { createTrustClient } from '../shared/trust-client';

@@ -24,6 +24,10 @@
       "types": "./weekly-report/index.ts",
       "default": "./dist/weekly-report/index.js"
     },
+    "./client-health": {
+      "types": "./client-health/index.ts",
+      "default": "./dist/client-health/index.js"
+    },
     "./orchestrator": {
       "types": "./orchestrator/index.ts",
       "default": "./dist/orchestrator/index.js"

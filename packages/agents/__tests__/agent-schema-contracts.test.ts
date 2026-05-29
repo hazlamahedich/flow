@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { inboxInputSchema, inboxProposalSchema } from '../inbox/schemas';
 import { calendarInputSchema, calendarProposalSchema } from '../calendar/schemas';
-import { clientHealthInputSchema, clientHealthProposalSchema } from '../client-health/schemas';
+import { clientHealthInputSchema, clientHealthProposalSchema } from '../client-health/src/schemas';
 import { weeklyReportInputSchema, weeklyReportProposalSchema } from '../weekly-report/schemas';
 import { arCollectionInputSchema, arCollectionProposalSchema } from '../ar-collection/schemas';
 
@@ -51,25 +51,25 @@ describe('Agent Schema Contracts', () => {
 
   describe('client-health schemas', () => {
     it('parses valid input', () => {
-      expect(clientHealthInputSchema.safeParse({ workspaceId: UUID, signalId: UUID2 }).success).toBe(true);
+      expect(clientHealthInputSchema.safeParse({ workspaceId: UUID, clientId: UUID2, snapshotDate: '2026-05-29', agentRunId: '00000000-0000-0000-0000-000000000003', trigger: 'cron' }).success).toBe(true);
     });
 
     it('parses valid proposal', () => {
-      expect(clientHealthProposalSchema.safeParse({ healthStatus: 'at-risk', confidence: 0.75, reasoning: 'Slowing responses' }).success).toBe(true);
+      expect(clientHealthProposalSchema.safeParse({ snapshotId: UUID, clientId: UUID2, engagementScore: 80, paymentScore: 90, communicationScore: 70, overallHealth: 'at-risk', indicators: {}, signalEmitted: true }).success).toBe(true);
     });
 
     it('rejects empty healthStatus', () => {
-      expect(clientHealthProposalSchema.safeParse({ healthStatus: '', confidence: 0.75, reasoning: 'test' }).success).toBe(true);
+      expect(clientHealthProposalSchema.safeParse({ snapshotId: UUID, clientId: UUID2, engagementScore: 80, paymentScore: 90, communicationScore: 70, overallHealth: '', indicators: {}, signalEmitted: true }).success).toBe(false);
     });
   });
 
   describe('weekly-report schemas', () => {
     it('parses valid input', () => {
-      expect(weeklyReportInputSchema.safeParse({ workspaceId: UUID, signalId: UUID2 }).success).toBe(true);
+      expect(weeklyReportInputSchema.safeParse({ workspaceId: UUID, clientId: UUID2, periodStart: '2026-05-22', periodEnd: '2026-05-29', agentRunId: '00000000-0000-0000-0000-000000000003' }).success).toBe(true);
     });
 
     it('parses valid proposal', () => {
-      expect(weeklyReportProposalSchema.safeParse({ reportType: 'weekly-summary', confidence: 0.85, reasoning: 'Generated summary' }).success).toBe(true);
+      expect(weeklyReportProposalSchema.safeParse({ title: 'Weekly Summary', confidence: 0.85, reasoning: 'Generated summary', riskLevel: 'low', preview: 'Summary of activity' }).success).toBe(true);
     });
   });
 

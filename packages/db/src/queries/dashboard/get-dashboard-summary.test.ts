@@ -12,6 +12,7 @@ function mockClient(tables: Record<string, MockedResult>) {
     const builder: Record<string, unknown> = {
       select: vi.fn(() => builder),
       eq: vi.fn(() => builder),
+      in: vi.fn(() => builder),
     };
     let callCount = 0;
     Object.defineProperty(builder, 'then', {
@@ -34,7 +35,7 @@ describe('getDashboardSummary', () => {
       agent_approvals: { count: 3, error: null },
       agent_runs: { count: 12, error: null },
       invoices: { count: 5, error: null },
-      client_health_alerts: { count: 1, error: null },
+      client_health_snapshots: { count: 1, error: null },
       clients: { count: 8, error: null },
     });
 
@@ -55,7 +56,7 @@ describe('getDashboardSummary', () => {
       agent_approvals: { count: null, error: pgError },
       agent_runs: { count: null, error: pgError },
       invoices: { count: null, error: pgError },
-      client_health_alerts: { count: null, error: pgError },
+      client_health_snapshots: { count: null, error: pgError },
       clients: { count: null, error: pgError },
     });
 
@@ -76,7 +77,7 @@ describe('getDashboardSummary', () => {
       agent_approvals: { count: 2, error: null },
       agent_runs: { count: null, error: pgError },
       invoices: { count: 7, error: null },
-      client_health_alerts: { count: null, error: pgError },
+      client_health_snapshots: { count: null, error: pgError },
       clients: { count: 3, error: null },
     });
 
@@ -96,7 +97,7 @@ describe('getDashboardSummary', () => {
       agent_approvals: { count: null, error: { code: '42501', message: 'permission denied' } },
       agent_runs: { count: 0, error: null },
       invoices: { count: 0, error: null },
-      client_health_alerts: { count: 0, error: null },
+      client_health_snapshots: { count: 0, error: null },
       clients: { count: 0, error: null },
     });
 
@@ -112,6 +113,7 @@ describe('getDashboardSummary', () => {
           eqArgs.push([col, val]);
           return builder;
         }),
+        in: vi.fn(() => builder),
       };
       let callCount = 0;
       Object.defineProperty(builder, 'then', {

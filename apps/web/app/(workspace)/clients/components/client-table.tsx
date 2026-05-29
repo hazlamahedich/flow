@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { Badge } from '@flow/ui';
 import type { Client } from '@flow/types';
+import { ClientHealthBadge } from './client-health-badge';
 
 interface ClientTableProps {
-  clients: Client[];
+  clients: (Client & { health?: string | null; healthScores?: { engagement: number; payment: number; communication: number } | null })[];
   sortBy: string;
   sortOrder: string;
   onSort: (column: string) => void;
@@ -39,6 +40,7 @@ export function ClientTable({ clients, sortBy, sortOrder, onSort }: ClientTableP
         <thead className="border-b border-[var(--flow-color-border-default)] bg-[var(--flow-color-bg-surface-secondary)]">
           <tr>
             <SortHeader column="name">Name</SortHeader>
+            <SortHeader column="health">Health</SortHeader>
             <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--flow-color-text-secondary)]">
               Company
             </th>
@@ -67,6 +69,9 @@ export function ClientTable({ clients, sortBy, sortOrder, onSort }: ClientTableP
                   >
                     {client.name}
                   </Link>
+                </td>
+                <td className="px-4 py-3">
+                  <ClientHealthBadge health={client.health ?? null} scores={client.healthScores ?? null} />
                 </td>
                 <td className="px-4 py-3 text-[var(--flow-color-text-secondary)]">
                   {client.companyName ?? '—'}

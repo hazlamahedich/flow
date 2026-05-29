@@ -1,6 +1,6 @@
 ---
 generated: 2026-04-20
-last_updated: 2026-05-29  # Re-sliced Story 8-1 into 8-1a/8-1b/8-1c + schema fixes + ATDD expanded
+last_updated: 2026-05-29  # Story 8-3 review
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -90,7 +90,7 @@ development_status:
   8-1b-report-templates: done                     # Template CRUD + customization
   8-1c-report-regeneration: done                # Re-generation + versioning
   8-2-weekly-report-agent-auto-drafts: in-progress
-  8-3-client-health-agent-usage-analytics: backlog
+  8-3-client-health-agent-usage-analytics: review
   8-4-friday-feeling-ritual: backlog
   epic-8-retrospective: optional
 
@@ -126,9 +126,9 @@ test_metrics:
     note: "TDD red-phase scaffolding — P0 acceptance tests must pass before epic close-out"
     target_pass_rate: "100% of P0 tests"
   epic-8-atdd:
-    last_measured: 2026-05-28
-    total: 39
-    passing: 17  # 8-1b: 17/17 passing
+    last_measured: 2026-05-29
+    total: 56
+    passing: 22  # 8-1b: 17/17 + 8-3: 5 ATDD tests activated
     skipped: 0
-    note: "8-1b (17 tests) all green. 8-1a and 8-1c remaining in backlog."
+    note: "8-1b (17 tests) + 8-3 (5 tests) all green. 28 unit tests in client-health."
     target_pass_rate: "100% of P0 tests"

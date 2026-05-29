@@ -214,3 +214,9 @@ export type {
 export { createInvoiceEditGuard } from './queries/invoices/invoice-edit-guard';
 export { aggregateReportData } from './queries/reports/aggregate-data';
 export type { AggregateReportDataOptions, AggregatedReportData, StalledItem } from './queries/reports/aggregate-data';
+export { getUsageAnalytics } from './queries/analytics/get-usage-analytics';
+export type { UsageAnalytics } from './queries/analytics/get-usage-analytics';
+export { getValidationMetrics, recordValidationMetric } from './queries/analytics/get-validation-metrics';
+export type { ValidationMetric } from './queries/analytics/get-validation-metrics';
+export { getClientHealthSnapshots } from './queries/clients/health-snapshots';
+export type { ClientHealthSnapshot } from './queries/clients/health-snapshots';

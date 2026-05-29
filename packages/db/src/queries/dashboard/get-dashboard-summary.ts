@@ -9,13 +9,12 @@ export interface DashboardSummary {
   clientCount: number;
 }
 
-type CountKey = keyof DashboardSummary;
+type CountKey = 'pendingApprovals' | 'agentActivityCount' | 'outstandingInvoices' | 'clientCount';
 
 const TABLE_MAP: Record<CountKey, string> = {
   pendingApprovals: 'agent_approvals',
   agentActivityCount: 'agent_runs',
   outstandingInvoices: 'invoices',
-  clientHealthAlerts: 'client_health_alerts',
   clientCount: 'clients',
 };
 
@@ -45,29 +44,55 @@ async function safeCount(
   return count ?? 0;
 }
 
+async function getClientHealthAlertCount(
+  client: SupabaseClient,
+  workspaceId: string,
+): Promise<number> {
+  try {
+    // Uses DB function to count only the latest snapshot per client,
+    // preventing stale at-risk rows from inflating the alert count.
+    const { data, error } = await client.rpc('get_client_health_alert_count', {
+      p_workspace_id: workspaceId,
+    });
+
+    if (error) {
+      if (error.code === '42883' || error.code === '42P01') return 0; // function/table missing: graceful
+      throw new DashboardQueryError(error.code, error.message);
+    }
+
+    return typeof data === 'number' ? data : Number(data ?? 0);
+  } catch (err: unknown) {
+    if (err instanceof DashboardQueryError) throw err;
+    return 0;
+  }
+}
+
 export async function getDashboardSummary(
   client: SupabaseClient,
   workspaceId: string,
 ): Promise<DashboardSummary> {
   const entries = Object.entries(TABLE_MAP) as [CountKey, string][];
 
-  const results = await Promise.allSettled(
-    entries.map(([key, table]) =>
-      safeCount(client, workspaceId, table).then((count) => [key, count] as const),
+  const [tableResults, healthAlertCount] = await Promise.all([
+    Promise.allSettled(
+      entries.map(([key, table]) =>
+        safeCount(client, workspaceId, table).then((count) => [key, count] as const),
+      ),
     ),
-  );
+    getClientHealthAlertCount(client, workspaceId),
+  ]);
 
   const summary: DashboardSummary = {
     pendingApprovals: 0,
     agentActivityCount: 0,
     outstandingInvoices: 0,
-    clientHealthAlerts: 0,
+    clientHealthAlerts: healthAlertCount,
     clientCount: 0,
   };
 
   const nonGracefulErrors: DashboardQueryError[] = [];
 
-  for (const result of results) {
+  for (const result of tableResults) {
     if (result.status === 'fulfilled') {
       summary[result.value[0]] = result.value[1];
     } else {
