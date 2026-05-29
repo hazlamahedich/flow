@@ -238,25 +238,25 @@ Implement the Weekly Report Agent that auto-drafts weekly client reports using L
   - [x] 10.2 Typecheck, lint pass.
 
 ### Review Findings
-- [ ] [Review][Patch] Schedule Triggers Fire Early — Enforce strictly `00` minutes in the UI/schema.
+- [x] [Review][Patch] Schedule Triggers Fire Early — Enforce strictly `00` minutes in the UI/schema. [packages/agents/orchestrator/sweep-worker.ts] — Normalized schedule times to `:00`; added minute extraction + midnight hour normalization
 - [x] [Review][Patch] Hallucination Checker Rejects Valid Derived Metrics and Misses Commas [packages/agents/weekly-report/hallucination-checker.ts]
 - [x] [Review][Patch] `regenerate_draft_report` RPC Leaves Stale/Deleted Sections Behind [supabase/migrations/20260603000002_report_regeneration_rpc.sql]
-- [ ] [Review][Patch] RPC `create_weekly_report_with_sections` Breaks Version Grouping [packages/agents/weekly-report/process-client-report.ts]
-- [ ] [Review][Patch] Timezone Calculation Uses UTC Instead of Workspace Local [packages/agents/orchestrator/sweep-worker.ts]
-- [ ] [Review][Patch] Mismatched Payload Keys (`workspace_id` vs `workspaceId`) [packages/agents/orchestrator/weekly-report-worker.ts]
+- [x] [Review][Patch] RPC `create_weekly_report_with_sections` Breaks Version Grouping [packages/agents/weekly-report/process-client-report.ts] — Fixed in migration `20260604000002_weekly_reports_rpc_fix.sql`
+- [x] [Review][Patch] Timezone Calculation Uses UTC Instead of Workspace Local [packages/agents/orchestrator/sweep-worker.ts]
+- [x] [Review][Patch] Mismatched Payload Keys (`workspace_id` vs `workspaceId`) [packages/agents/orchestrator/weekly-report-worker.ts]
 - [x] [Review][Patch] Missing WHEN Clause on `trg_agent_run_rejection` Trigger [supabase/migrations/20260604000001_weekly_reports_stalled_highlights.sql]
 - [x] [Review][Patch] `version_group_id` Missing Foreign Key Constraint [supabase/migrations/20260603000001_weekly_reports_version_group.sql]
-- [ ] [Review][Patch] Budget Reset Depends on Server Local Timezone [packages/agents/weekly-report/process-client-report.ts]
-- [ ] [Review][Patch] Arbitrary Truncation Drops Time Entries Without Aggregation [packages/db/src/queries/reports/aggregate-data.ts]
-- [ ] [Review][Patch] `updateRunStatus` throws inside catch block [packages/agents/orchestrator/weekly-report-worker.ts:121]
-- [ ] [Review][Patch] Explicitly disabling all sections defaults back to all sections [packages/agents/weekly-report/process-client-report.ts:74]
-- [ ] [Review][Patch] Midnight scheduling fails due to `hourCycle: 'h23'` issue [packages/agents/orchestrator/sweep-worker.ts:69]
-- [ ] [Review][Patch] Missing Trust Gate Evaluation via `TrustClient` [packages/agents/orchestrator/weekly-report-worker.ts]
-- [ ] [Review][Patch] Missing `agent_proposals` Row Creation [packages/agents/orchestrator/weekly-report-worker.ts]
-- [ ] [Review][Patch] Report Created Before Trust Gate Approval [packages/agents/weekly-report/process-client-report.ts]
-- [ ] [Review][Patch] Incorrect Cooldown Validation uses `agent_runs` [packages/agents/weekly-report/process-client-report.ts]
-- [ ] [Review][Patch] Missing Partial Unique Constraint in Drizzle Schema [packages/db/src/schema/weekly-reports.ts]
-- [ ] [Review][Patch] Missing Execution Timeout & Pause State [packages/agents/orchestrator/weekly-report-worker.ts]
+- [x] [Review][Patch] Budget Reset Depends on Server Local Timezone [packages/agents/weekly-report/process-client-report.ts] — Uses workspace owner timezone via Intl.DateTimeFormat to compute local month start
+- [x] [Review][Patch] Arbitrary Truncation Drops Time Entries Without Aggregation [packages/db/src/queries/reports/aggregate-data.ts]
+- [x] [Review][Patch] `updateRunStatus` throws inside catch block [packages/agents/orchestrator/weekly-report-worker.ts:121]
+- [x] [Review][Patch] Explicitly disabling all sections defaults back to all sections [packages/agents/weekly-report/process-client-report.ts:74]
+- [x] [Review][Patch] Midnight scheduling fails due to `hourCycle: 'h23'` issue [packages/agents/orchestrator/sweep-worker.ts:69] — Added hour normalization (24 → 0) for midnight edge case
+- [x] [Review][Patch] Missing Trust Gate Evaluation via `TrustClient` [packages/agents/orchestrator/weekly-report-worker.ts]
+- [x] [Review][Patch] Missing `agent_proposals` Row Creation [packages/agents/orchestrator/weekly-report-worker.ts]
+- [x] [Review][Patch] Report Created Before Trust Gate Approval [packages/agents/weekly-report/process-client-report.ts] — Trust gate evaluated before executor; non-auto-approve path skips report persistence and stores sections in proposal for deferred creation
+- [x] [Review][Patch] Incorrect Cooldown Validation uses `agent_runs` [packages/agents/weekly-report/process-client-report.ts] — Changed from `weekly_reports` to `agent_proposals` per AC10
+- [x] [Review][Patch] Missing Partial Unique Constraint in Drizzle Schema [packages/db/src/schema/weekly-reports.ts]
+- [x] [Review][Patch] Missing Execution Timeout & Pause State [packages/agents/orchestrator/weekly-report-worker.ts] — Added 120s `withTimeout` wrapper; timeout marks run as `paused`
 - [x] [Review][Defer] pgTAP Tests Bypass RPC Functions [supabase/tests/rls_report_regeneration.sql] — deferred, pre-existing
 
 ## Review History

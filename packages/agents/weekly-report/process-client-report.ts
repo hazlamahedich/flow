@@ -9,26 +9,54 @@ import { createLLMRouter } from '../shared/llm-router';
 import type { WeeklyReportInput, WeeklyReportProposal } from './schemas';
 import { verifyHallucinations } from './hallucination-checker';
 import { z } from 'zod';
+import { buildSectionsPayload, buildPreview } from './section-builder';
 
 const llmOutputSchema = z.record(z.string(), z.string());
 
+interface ProcessClientReportOptions {
+  persist?: boolean;
+}
+
+async function getWorkspaceBudgetStart(supabase: SupabaseClient, workspaceId: string): Promise<Date> {
+  const { data: member } = await supabase
+    .from('workspace_members')
+    .select('users!inner(timezone)')
+    .eq('workspace_id', workspaceId)
+    .eq('role', 'owner')
+    .limit(1)
+    .maybeSingle();
+
+  const tz = (member?.users as { timezone?: string } | null)?.timezone || 'UTC';
+  const now = new Date();
+  const localMonthStartStr = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
+  const [yyyy, mm] = localMonthStartStr.split('-');
+  return new Date(`${yyyy}-${mm}-01T00:00:00Z`);
+}
+
 export async function processClientReport(
   supabase: SupabaseClient,
-  input: WeeklyReportInput
-): Promise<WeeklyReportProposal> {
+  input: WeeklyReportInput,
+  options?: ProcessClientReportOptions,
+): Promise<WeeklyReportProposal & { sectionsPayload?: unknown[] }> {
   const { workspaceId, clientId, periodStart, periodEnd, agentRunId } = input;
+  const shouldPersist = options?.persist !== false;
+
   const cooldownDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { data: rejectedReports, error: rejectedError } = await supabase
-    .from('weekly_reports')
+  const { data: rejectedProposals, error: cooldownError } = await supabase
+    .from('agent_proposals')
     .select('id')
     .eq('workspace_id', workspaceId)
-    .eq('client_id', clientId)
     .eq('status', 'rejected')
     .gt('updated_at', cooldownDate);
 
-  if (rejectedError) throw rejectedError;
-  if (rejectedReports && rejectedReports.length > 0) {
-    throw new Error(`24-hour cooldown active: report generation rejected recently for client ${clientId}`);
+  if (cooldownError) throw cooldownError;
+  if (rejectedProposals && rejectedProposals.length > 0) {
+    throw new Error(`24-hour cooldown active: proposal rejected recently for client ${clientId}`);
   }
 
   const { data: client, error: clientErr } = await supabase
@@ -69,8 +97,7 @@ export async function processClientReport(
     ? enabledSections
     : ['time_summary', 'task_log', 'stalled_items', 'agent_activity', 'highlights'];
 
-  const now = new Date();
-  const budgetStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const budgetStart = await getWorkspaceBudgetStart(supabase, workspaceId);
   const budgetCheck = await checkBudgetThreshold(workspaceId, 500, budgetStart);
   if (!budgetCheck.allowed) {
     throw new Error(`LLM Budget exceeded for workspace ${workspaceId}`);
@@ -146,31 +173,21 @@ ${JSON.stringify(aggregatedData, null, 2)}`;
     throw new Error(`HALLUCINATION_DETECTED: LLM invented values not present in aggregate: ${mismatches.join(', ')}`);
   }
 
-  const sectionTitleMap: Record<string, string> = {
-    time_summary: 'Time Summary',
-    task_log: 'Task Log',
-    stalled_items: 'Stalled Items',
-    agent_activity: 'Agent Activity',
-    highlights: 'Highlights',
-    invoice_summary: 'Invoice Summary',
-  };
+  const sectionsPayload = buildSectionsPayload(activeSections, narratives, aggregatedData);
+  const preview = buildPreview(activeSections, narratives);
 
-  const sectionsPayload = activeSections.map((secType, index) => {
-    let baseContent: Record<string, unknown> = {};
-    if (secType === 'time_summary') baseContent = { totalMinutes: aggregatedData.timeSummary.totalMinutes };
-    else if (secType === 'task_log') baseContent = { projects: aggregatedData.taskLog.projects };
-    else if (secType === 'agent_activity') baseContent = { runs: aggregatedData.agentActivity.runs };
-    else if (secType === 'invoice_summary') baseContent = aggregatedData.invoiceSummary as unknown as Record<string, unknown>;
-    else if (secType === 'stalled_items') baseContent = { items: aggregatedData.stalledItems };
+  if (!shouldPersist) {
     return {
-      section_type: secType,
-      title: sectionTitleMap[secType] ?? secType,
-      sort_order: index + 1,
-      content: { ...baseContent, narrative: narratives[secType] ?? '' },
+      title: `Weekly Report Draft for ${client.name}`,
+      confidence: 0.95,
+      reasoning: 'Draft compiled accurately using pre-aggregated narrative prose.',
+      riskLevel: 'low',
+      preview,
+      sectionsPayload,
     };
-  });
+  }
 
-  const { data: member } = await supabase
+  const { data: ownerMember } = await supabase
     .from('workspace_members')
     .select('user_id')
     .eq('workspace_id', workspaceId)
@@ -178,7 +195,7 @@ ${JSON.stringify(aggregatedData, null, 2)}`;
     .limit(1)
     .single();
 
-  const creatorUserId = member?.user_id ?? workspaceId;
+  const creatorUserId = ownerMember?.user_id ?? workspaceId;
 
   const { data: reportId, error: rpcError } = await supabase.rpc(
     'create_weekly_report_with_sections',
@@ -197,11 +214,6 @@ ${JSON.stringify(aggregatedData, null, 2)}`;
   if (rpcError || !reportId) {
     throw new Error(`Failed to persist report via database RPC: ${rpcError?.message}`);
   }
-
-  const preview = activeSections
-    .slice(0, 3)
-    .map((secType) => `${sectionTitleMap[secType] ?? secType}: ${narratives[secType] ?? ''}`)
-    .join('\n\n');
 
   return {
     reportId,

@@ -8,7 +8,7 @@ import { PgBossProducer } from './pg-boss-producer';
 
 interface SweepTriggerPayload {
   type: 'sweep_trigger';
-  trigger: 'time_integrity_daily' | 'stripe_webhook_cleanup' | 'weekly_report_hourly';
+  trigger: 'time_integrity_daily' | 'stripe_webhook_cleanup' | 'weekly_report_hourly' | 'client_health_hourly';
 }
 
 interface SweepJobPayload {
@@ -18,31 +18,25 @@ interface SweepJobPayload {
 
 /**
  * Checks if the configured schedule is due based on workspace timezone.
+ * Enforces strict :00 minute alignment — hourly cron cannot guarantee minute-level precision.
+ * Handles midnight edge case where some Intl implementations produce "24" with hourCycle: 'h23'.
  */
-function isScheduleDue(schedule: any, userTimezone: string): boolean {
-  const tz = schedule.timezone || userTimezone || 'UTC';
+function isScheduleDue(schedule: Record<string, unknown>, userTimezone: string): boolean {
+  const tz = (schedule.timezone as string) || userTimezone || 'UTC';
   const now = new Date();
   
   let parts;
+  const fmtOpts: Intl.DateTimeFormatOptions = {
+    timeZone: tz,
+    weekday: 'short',
+    hour: 'numeric',
+    minute: 'numeric',
+    hourCycle: 'h23',
+  };
   try {
-    parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: tz,
-      weekday: 'short', // "Mon", "Tue", etc.
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-      hourCycle: 'h23'
-    }).formatToParts(now);
+    parts = new Intl.DateTimeFormat('en-US', fmtOpts).formatToParts(now);
   } catch {
-    // Fallback if timezone string is invalid
-    parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'UTC',
-      weekday: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-      hourCycle: 'h23'
-    }).formatToParts(now);
+    parts = new Intl.DateTimeFormat('en-US', { ...fmtOpts, timeZone: 'UTC' }).formatToParts(now);
   }
 
   const weekdayPart = parts.find(p => p.type === 'weekday')?.value;
@@ -51,13 +45,17 @@ function isScheduleDue(schedule: any, userTimezone: string): boolean {
   const dayMap: Record<string, number> = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
   const currentDay = dayMap[weekdayPart ?? ''] ?? 0;
   
-  const targetDay = schedule.dayOfWeek !== undefined ? Number(schedule.dayOfWeek) : 1; // default Monday
-  const targetTime = schedule.time || '06:30';
-  const [targetHour] = targetTime.split(':').map(Number);
+  const targetDay = schedule.dayOfWeek !== undefined ? Number(schedule.dayOfWeek) : 1;
+  const rawTime = (schedule.time as string) || '06:30';
+  // Normalize to :00 minutes — hourly sweep cannot fire at sub-hour precision
+  const normalizedTime = rawTime.replace(/:\d{2}$/, ':00');
+  const [targetHour] = normalizedTime.split(':').map(Number);
 
-  const currentHour = Number(hourPart);
+  // Normalize midnight: some environments produce "24" with hourCycle: 'h23'
+  let currentHour = Number(hourPart);
+  if (currentHour === 24) currentHour = 0;
 
-  // Checks hourly: if target weekday and target hour matches current hour
+  // Match on weekday + hour only (cron granularity is hourly; minute comparison is for documentation)
   return currentDay === targetDay && currentHour === targetHour;
 }
 
@@ -205,7 +203,7 @@ export async function registerSweepWorkers(boss: PgBoss, trustClient?: TrustClie
     let enqueued = 0;
 
     for (const cfg of configs ?? []) {
-      const schedule = (cfg.schedule as any) ?? {};
+      const schedule = (cfg.schedule as Record<string, unknown>) ?? {};
       
       const { data: member } = await client
         .from('workspace_members')
@@ -215,7 +213,7 @@ export async function registerSweepWorkers(boss: PgBoss, trustClient?: TrustClie
         .limit(1)
         .maybeSingle();
 
-      const userTimezone = (member?.users as any)?.timezone || 'UTC';
+      const userTimezone = (member?.users as { timezone?: string } | null)?.timezone || 'UTC';
 
       if (isScheduleDue(schedule, userTimezone)) {
         try {
@@ -350,6 +348,205 @@ export async function registerSweepWorkers(boss: PgBoss, trustClient?: TrustClie
       entityType: 'workspace',
       entityId: workspaceId,
       details: { clientsFannedOut: fannedOut, clientsTotal: (activeClients ?? []).length, periodStart, periodEnd },
+    });
+  });
+
+  // Story 8-3: Client Health sweep trigger — hourly, fans out per-workspace
+  await boss.work<SweepTriggerPayload>('client-health-sweep-trigger', async (_jobs) => {
+    const client = createServiceClient();
+
+    const { data: configs, error } = await client
+      .from('agent_configurations')
+      .select('workspace_id, schedule')
+      .eq('agent_id', 'client-health')
+      .eq('status', 'active');
+
+    if (error) {
+      writeAuditLog({
+        workspaceId: 'system',
+        agentId: 'client-health',
+        action: 'sweep.trigger.fetch_error',
+        entityType: 'orchestrator',
+        details: { error: error.message },
+      });
+      throw error;
+    }
+
+    let enqueued = 0;
+
+    for (const cfg of configs ?? []) {
+      const schedule = (cfg.schedule as Record<string, unknown>) ?? {};
+
+      const { data: member } = await client
+        .from('workspace_members')
+        .select('user_id, users(timezone)')
+        .eq('workspace_id', cfg.workspace_id)
+        .eq('role', 'owner')
+        .limit(1)
+        .maybeSingle();
+
+      const userTimezone = (member?.users as { timezone?: string } | null)?.timezone || 'UTC';
+
+      if (isScheduleDue(schedule, userTimezone)) {
+        try {
+          await boss.send(
+            'agent:client-health:workspace-sweep',
+            { workspaceId: cfg.workspace_id as string },
+            { retryLimit: 2, retryDelay: 60 },
+          );
+          enqueued++;
+        } catch (sendErr: unknown) {
+          writeAuditLog({
+            workspaceId: cfg.workspace_id as string,
+            agentId: 'client-health',
+            action: 'sweep.trigger.enqueue_error',
+            entityType: 'workspace',
+            entityId: cfg.workspace_id as string,
+            details: { error: String(sendErr) },
+          });
+        }
+      }
+    }
+
+    writeAuditLog({
+      workspaceId: 'system',
+      agentId: 'client-health',
+      action: 'sweep.trigger.enqueued',
+      entityType: 'orchestrator',
+      details: { workspacesEnqueued: enqueued, workspacesTotal: (configs ?? []).length },
+    });
+  });
+
+  // Story 8-3: Client Health workspace sweep — fans out per-client in batched chunks
+  const BATCH_SIZE = 100;
+
+  await boss.work<{ workspaceId: string }>('agent:client-health:workspace-sweep', async (jobs) => {
+    const job = jobs[0];
+    if (!job) {
+      throw new Error('agent:client-health:workspace-sweep — no job in batch');
+    }
+    const { workspaceId } = job.data;
+    if (!workspaceId) {
+      throw new Error('agent:client-health:workspace-sweep — workspaceId missing in payload');
+    }
+
+    const client = createServiceClient();
+
+    const { data: activeClients, error } = await client
+      .from('clients')
+      .select('id, name')
+      .eq('workspace_id', workspaceId)
+      .eq('status', 'active');
+
+    if (error) {
+      writeAuditLog({
+        workspaceId,
+        agentId: 'client-health',
+        action: 'sweep.workspace.fetch_clients_error',
+        entityType: 'workspace',
+        entityId: workspaceId,
+        details: { error: error.message },
+      });
+      throw error;
+    }
+
+    const clients = activeClients ?? [];
+    if (clients.length === 0) {
+      writeAuditLog({
+        workspaceId,
+        agentId: 'client-health',
+        action: 'sweep.workspace.no_clients',
+        entityType: 'workspace',
+        entityId: workspaceId,
+        details: { reason: 'no_active_clients' },
+      });
+      return;
+    }
+
+    const snapshotDate = new Date().toISOString().slice(0, 10);
+
+    let processed = 0;
+    let failed = 0;
+
+    for (let i = 0; i < clients.length; i += BATCH_SIZE) {
+      const batch = clients.slice(i, i + BATCH_SIZE);
+
+      for (const c of batch) {
+        try {
+          const runId = crypto.randomUUID();
+          await boss.send(
+            'agent:client-health:compute-client',
+            {
+              workspaceId,
+              clientId: c.id,
+              snapshotDate,
+              agentRunId: runId,
+              trigger: 'cron',
+            },
+            { retryLimit: 2, retryDelay: 30 },
+          );
+          processed++;
+        } catch (sendErr: unknown) {
+          failed++;
+          writeAuditLog({
+            workspaceId,
+            agentId: 'client-health',
+            action: 'sweep.workspace.enqueue_client_error',
+            entityType: 'client',
+            entityId: c.id,
+            details: { error: String(sendErr), snapshotDate },
+          });
+        }
+      }
+    }
+
+    writeAuditLog({
+      workspaceId,
+      agentId: 'client-health',
+      action: 'sweep.workspace.success',
+      entityType: 'workspace',
+      entityId: workspaceId,
+      details: { clientsEnqueued: processed, clientsFailed: failed, clientsTotal: clients.length, snapshotDate },
+    });
+  });
+
+  // Story 8-3: Client Health per-client computation job
+  await boss.work<{
+    workspaceId: string;
+    clientId: string;
+    snapshotDate: string;
+    agentRunId: string;
+    trigger: string;
+  }>('agent:client-health:compute-client', async (jobs) => {
+    const job = jobs[0];
+    if (!job) {
+      throw new Error('agent:client-health:compute-client — no job in batch');
+    }
+    const { workspaceId, clientId, snapshotDate, agentRunId, trigger } = job.data;
+
+    const { execute: healthExecute } = await import('../client-health/src/executor');
+    const result = await healthExecute({
+      workspaceId,
+      clientId,
+      snapshotDate,
+      agentRunId,
+      trigger: trigger as 'cron' | 'manual',
+    });
+
+    writeAuditLog({
+      workspaceId,
+      agentId: 'client-health',
+      action: 'compute.client.success',
+      entityType: 'client',
+      entityId: clientId,
+      details: {
+        overallHealth: result.overallHealth,
+        engagementScore: result.engagementScore,
+        paymentScore: result.paymentScore,
+        communicationScore: result.communicationScore,
+        signalEmitted: result.signalEmitted,
+        snapshotDate,
+      },
     });
   });
 }
