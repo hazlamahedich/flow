@@ -19,6 +19,13 @@ export async function getWeeklyReportsAction(
     };
   }
 
+  if (!['owner', 'admin', 'member'].includes(ctx.role)) {
+    return {
+      success: false,
+      error: createFlowError(403, 'FORBIDDEN', 'Access denied to reports.', 'auth'),
+    };
+  }
+
   const pageSize = 20;
   const from = (Math.max(page, 1) - 1) * pageSize;
   const to = from + pageSize - 1;

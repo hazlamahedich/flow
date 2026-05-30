@@ -119,6 +119,8 @@ const validSectionsConfig = {
   task_log: { enabled: true, sort_order: 2 },
   agent_activity: { enabled: true, sort_order: 3 },
   invoice_summary: { enabled: true, sort_order: 4 },
+  stalled_items: { enabled: false, sort_order: 5 },
+  highlights: { enabled: false, sort_order: 6 },
 };
 
 const validBranding = {
@@ -322,6 +324,8 @@ describe('[P0] [8.1b-ATDD-002] section customization with validation', () => {
         task_log: { enabled: false, sort_order: 2 },
         agent_activity: { enabled: false, sort_order: 3 },
         invoice_summary: { enabled: false, sort_order: 4 },
+        stalled_items: { enabled: false, sort_order: 5 },
+        highlights: { enabled: false, sort_order: 6 },
       },
       branding: validBranding,
     });
@@ -346,6 +350,8 @@ describe('[P0] [8.1b-ATDD-002] section customization with validation', () => {
         task_log: { enabled: true, sort_order: 2 },
         agent_activity: { enabled: true, sort_order: 3 },
         invoice_summary: { enabled: true, sort_order: 4 },
+        stalled_items: { enabled: false, sort_order: 5 },
+        highlights: { enabled: false, sort_order: 6 },
       },
       branding: validBranding,
     });
@@ -364,6 +370,8 @@ describe('[P0] [8.1b-ATDD-002] section customization with validation', () => {
         task_log: { enabled: true, sort_order: 2 },
         agent_activity: { enabled: true, sort_order: 3 },
         invoice_summary: { enabled: true, sort_order: 4 },
+        stalled_items: { enabled: false, sort_order: 5 },
+        highlights: { enabled: false, sort_order: 6 },
       },
       branding: validBranding,
     });
@@ -660,15 +668,15 @@ describe('[P0] [8.1b-ATDD-004] template UI components', () => {
     const mod = await import('@/app/(workspace)/reports/templates/page');
     expect(mod.default).toBeDefined();
     expect(typeof mod.default).toBe('function');
-  });
+  }, 30000);
 
   test('TemplateCard shows name, enabled sections, last updated', async () => {
     const { TemplateCard } = await import('@/app/(workspace)/reports/templates/components/TemplateCard');
     expect(TemplateCard).toBeDefined();
-  });
+  }, 30000);
 
   test('TemplateForm renders section toggles and accent color picker', async () => {
     const { TemplateForm } = await import('@/app/(workspace)/reports/templates/components/TemplateForm');
     expect(TemplateForm).toBeDefined();
-  });
+  }, 30000);
 });

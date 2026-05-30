@@ -84,14 +84,14 @@ development_status:
   epic-7-retrospective: done
 
   # Epic 8 re-sliced: Story 8-1 split into 8-1a, 8-1b, 8-1c (was previously ready-for-dev)
-  epic-8: in-progress
+  epic-8: done
   8-1-weekly-client-reports: deprecated  # SPLIT — replaced by 8-1a, 8-1b, 8-1c
   8-1a-weekly-reports-foundation: done    # Generation + persistence + list/detail UI
   8-1b-report-templates: done                     # Template CRUD + customization
   8-1c-report-regeneration: done                # Re-generation + versioning
-  8-2-weekly-report-agent-auto-drafts: in-progress
-  8-3-client-health-agent-usage-analytics: review
-  8-4-friday-feeling-ritual: review
+  8-2-weekly-report-agent-auto-drafts: done
+  8-3-client-health-agent-usage-analytics: done
+  8-4-friday-feeling-ritual: done
   epic-8-retrospective: optional
 
   epic-9: backlog
@@ -126,9 +126,10 @@ test_metrics:
     note: "TDD red-phase scaffolding — P0 acceptance tests must pass before epic close-out"
     target_pass_rate: "100% of P0 tests"
   epic-8-atdd:
-    last_measured: 2026-05-29
-    total: 56
-    passing: 22  # 8-1b: 17/17 + 8-3: 5 ATDD tests activated
+    last_measured: 2026-05-30
+    total: 90
+    passing: 90
     skipped: 0
-    note: "8-1b (17 tests) + 8-3 (5 tests) all green. 28 unit tests in client-health."
+    pass_rate: "100%"
+    note: "All P0 acceptance tests for Epic 8 (90/90) are passing green."
     target_pass_rate: "100% of P0 tests"

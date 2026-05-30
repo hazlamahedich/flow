@@ -3,17 +3,27 @@
  * End-to-end tests for report generation, viewing, sharing, and the Friday Feeling ritual.
  */
 import { test, expect } from '../support/merged-fixtures';
-import type { Page } from '@playwright/test';
+
+// Centralized Routing Constants
+const ROUTES = {
+  REPORTS: '/reports',
+  REPORT_TEMPLATES: '/reports/templates',
+  AGENT_LOG: '/reports/agent-log',
+  ANALYTICS: '/analytics',
+  CLIENTS: '/clients',
+  INBOX: '/inbox',
+  FRIDAY_FEELING: '/friday-feeling',
+} as const;
 
 test.describe('[P0] Epic 8 — Reporting & Client Health', () => {
-  test.beforeEach(async ({ ownerPage }) => {
-    await ownerPage.goto('/reports');
-  });
+  // Configure tests to run in parallel
+  test.describe.configure({ mode: 'parallel' });
 
   // ───────────────────────────────────────────────────────────────
   // E2E-001: Reports list page loads
   // ───────────────────────────────────────────────────────────────
-  test('[8.1-E2E-001] reports list page loads with heading and generate button', async ({ ownerPage }) => {
+  test('[8.1-E2E-001] Given owner is authenticated, When navigating to reports list page, Then it loads with heading and generate button', async ({ ownerPage }) => {
+    await ownerPage.goto(ROUTES.REPORTS);
     await expect(ownerPage).not.toHaveURL(/\/login/);
     await expect(
       ownerPage.getByRole('heading', { name: /reports/i }),
@@ -26,12 +36,11 @@ test.describe('[P0] Epic 8 — Reporting & Client Health', () => {
   // ───────────────────────────────────────────────────────────────
   // E2E-002: Generate report form
   // ───────────────────────────────────────────────────────────────
-  test('[8.1-E2E-002] generate report form has client picker and date range', async ({ ownerPage }) => {
+  test('[8.1-E2E-002] Given owner is authenticated on reports page, When generate report link is clicked, Then generate report form is displayed with client picker and date range inputs', async ({ ownerPage }) => {
+    await ownerPage.goto(ROUTES.REPORTS);
     await expect(ownerPage).not.toHaveURL(/\/login/);
     const generateBtn = ownerPage.getByRole('link', { name: /generate report/i });
-    if (!(await generateBtn.isVisible())) {
-      test.skip(true, 'Generate report button not visible');
-    }
+    await expect(generateBtn).toBeVisible();
     await generateBtn.click();
     await expect(ownerPage.getByRole('heading', { name: /generate weekly report/i })).toBeVisible();
     await expect(ownerPage.getByTestId('client-picker')).toBeVisible();
@@ -42,7 +51,8 @@ test.describe('[P0] Epic 8 — Reporting & Client Health', () => {
   // ───────────────────────────────────────────────────────────────
   // E2E-003: Report detail page shows sections
   // ───────────────────────────────────────────────────────────────
-  test('[8.1-E2E-003] report detail page shows time summary, task log, and agent activity sections', async ({ ownerPage }) => {
+  test('[8.1-E2E-003] Given reports exist, When report detail page is loaded, Then it shows time summary, task log, and agent activity sections', async ({ ownerPage }) => {
+    await ownerPage.goto(ROUTES.REPORTS);
     await expect(ownerPage).not.toHaveURL(/\/login/);
     const firstReportLink = ownerPage.locator('a[href*="/reports/"]').first();
     if (!(await firstReportLink.isVisible())) {
@@ -58,8 +68,8 @@ test.describe('[P0] Epic 8 — Reporting & Client Health', () => {
   // ───────────────────────────────────────────────────────────────
   // E2E-004: Report templates settings page
   // ───────────────────────────────────────────────────────────────
-  test('[8.1-E2E-004] report template settings shows section toggles and branding options', async ({ ownerPage }) => {
-    await ownerPage.goto('/reports/templates');
+  test('[8.1-E2E-004] Given owner on templates page, When viewing settings, Then section toggles and branding options are visible', async ({ ownerPage }) => {
+    await ownerPage.goto(ROUTES.REPORT_TEMPLATES);
     await expect(ownerPage).not.toHaveURL(/\/login/);
     await expect(ownerPage.getByRole('heading', { name: /report templates/i })).toBeVisible();
     await expect(ownerPage.getByTestId('template-section-toggle')).toBeVisible();
@@ -69,8 +79,8 @@ test.describe('[P0] Epic 8 — Reporting & Client Health', () => {
   // ───────────────────────────────────────────────────────────────
   // E2E-005: Agent action log page
   // ───────────────────────────────────────────────────────────────
-  test('[8.2-E2E-001] agent action log page shows chronological agent runs', async ({ ownerPage }) => {
-    await ownerPage.goto('/reports/agent-log');
+  test('[8.2-E2E-001] Given owner on agent log page, When page is loaded, Then chronological agent runs or empty state is shown', async ({ ownerPage }) => {
+    await ownerPage.goto(ROUTES.AGENT_LOG);
     await expect(ownerPage).not.toHaveURL(/\/login/);
     await expect(ownerPage.getByRole('heading', { name: /agent action log/i })).toBeVisible();
     const logTable = ownerPage.getByRole('table');
@@ -81,8 +91,8 @@ test.describe('[P0] Epic 8 — Reporting & Client Health', () => {
   // ───────────────────────────────────────────────────────────────
   // E2E-006: Usage analytics dashboard
   // ───────────────────────────────────────────────────────────────
-  test('[8.3-E2E-001] analytics dashboard shows completion rate, approval rate, and trust distribution', async ({ ownerPage }) => {
-    await ownerPage.goto('/analytics');
+  test('[8.3-E2E-001] Given owner on analytics dashboard, When page is loaded, Then completion rate, approval rate, and trust distribution metrics are shown', async ({ ownerPage }) => {
+    await ownerPage.goto(ROUTES.ANALYTICS);
     await expect(ownerPage).not.toHaveURL(/\/login/);
     await expect(ownerPage.getByRole('heading', { name: /usage analytics/i })).toBeVisible();
     await expect(ownerPage.getByTestId('metric-completion-rate')).toBeVisible();
@@ -93,8 +103,8 @@ test.describe('[P0] Epic 8 — Reporting & Client Health', () => {
   // ───────────────────────────────────────────────────────────────
   // E2E-007: Client health card on client detail page
   // ───────────────────────────────────────────────────────────────
-  test('[8.3-E2E-002] client detail page shows health indicator card', async ({ ownerPage }) => {
-    await ownerPage.goto('/clients');
+  test('[8.3-E2E-002] Given clients exist, When viewing first client detail page, Then client health card and health indicator are displayed', async ({ ownerPage }) => {
+    await ownerPage.goto(ROUTES.CLIENTS);
     await expect(ownerPage).not.toHaveURL(/\/login/);
     const firstClientLink = ownerPage.locator('a[href*="/clients/"]').first();
     if (!(await firstClientLink.isVisible())) {
@@ -108,8 +118,8 @@ test.describe('[P0] Epic 8 — Reporting & Client Health', () => {
   // ───────────────────────────────────────────────────────────────
   // E2E-008: Friday Feeling appears in inbox
   // ───────────────────────────────────────────────────────────────
-  test('[8.4-E2E-001] friday feeling summary appears in orchestrated workflow inbox', async ({ ownerPage }) => {
-    await ownerPage.goto('/inbox');
+  test('[8.4-E2E-001] Given owner inbox loaded, When page is viewed, Then Friday Feeling summary or empty state appears in orchestrated workflow inbox', async ({ ownerPage }) => {
+    await ownerPage.goto(ROUTES.INBOX);
     await expect(ownerPage).not.toHaveURL(/\/login/);
     const ffItem = ownerPage.getByTestId('inbox-item-friday-feeling');
     const emptyState = ownerPage.getByText(/no new items/i);
@@ -119,8 +129,8 @@ test.describe('[P0] Epic 8 — Reporting & Client Health', () => {
   // ───────────────────────────────────────────────────────────────
   // E2E-009: The Exhale screen
   // ───────────────────────────────────────────────────────────────
-  test('[8.4-E2E-002] the exhale screen shows impact stories when activated', async ({ ownerPage }) => {
-    await ownerPage.goto('/friday-feeling');
+  test('[8.4-E2E-002] Given owner on friday feeling page, When page is loaded, Then the exhale screen shows impact stories, tasks count, and time saved', async ({ ownerPage }) => {
+    await ownerPage.goto(ROUTES.FRIDAY_FEELING);
     await expect(ownerPage).not.toHaveURL(/\/login/);
     await expect(ownerPage.getByRole('heading', { name: /the exhale/i })).toBeVisible();
     await expect(ownerPage.getByTestId('exhale-impact-stories')).toBeVisible();

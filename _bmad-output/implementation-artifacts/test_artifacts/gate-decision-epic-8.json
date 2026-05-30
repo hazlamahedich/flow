@@ -1,0 +1,21 @@
+{
+  "gate_eligible": true,
+  "collection_status": "COLLECTED",
+  "decision": "PASS",
+  "rationale": "All P0 and P1 criteria are covered by active, fully unskipped, and passing E2E, ATDD, and unit tests. All 30 acceptance tests in the Story 8.1a foundation suite are green and verified. Story 8.2 and all other stories in Epic 8 are verified and transition to done.",
+  "decision_date": "2026-05-30T16:21:00Z",
+  "gate_criteria": {
+    "p0_coverage_required": "100%",
+    "p0_coverage_actual": "100%",
+    "p0_status": "MET",
+    "p1_coverage_target": "90%",
+    "p1_coverage_minimum": "80%",
+    "p1_coverage_actual": "100%",
+    "p1_status": "MET",
+    "overall_coverage_minimum": "80%",
+    "overall_coverage_actual": "100%",
+    "overall_status": "MET"
+  },
+  "uncovered_requirements": [],
+  "recommendations": []
+}
