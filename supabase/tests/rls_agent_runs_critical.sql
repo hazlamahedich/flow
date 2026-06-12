@@ -3,8 +3,9 @@
 
 BEGIN;
 
--- Setup: create test workspace and users
-SELECT plan(8);
+SELECT plan(6);
+
+SET ROLE postgres;
 
 -- Create two workspaces for isolation testing
 INSERT INTO workspaces (id, name, slug)
@@ -13,15 +14,21 @@ VALUES
   ('22222222-2222-2222-2222-222222222222', 'ws-beta', 'ws-beta');
 
 -- Create test users with workspace claims
+INSERT INTO auth.users (id, email, raw_user_meta_data, created_at, updated_at) VALUES
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'alpha@test.flow.local', '{}', now(), now()),
+  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'beta@test.flow.local', '{}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO users (id, email) VALUES
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'alpha@test.flow.local'),
-  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'beta@test.flow.local');
+  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'beta@test.flow.local')
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO workspace_members (workspace_id, user_id, role) VALUES
   ('11111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'owner'),
   ('22222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'owner');
 
--- Insert test data as service_role
+-- Insert test data as superuser (bypasses RLS)
 INSERT INTO agent_signals (id, correlation_id, agent_id, signal_type, workspace_id)
 VALUES
   ('a0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'inbox', 'inbox.categorized.email', '11111111-1111-1111-1111-111111111111'),
@@ -32,68 +39,54 @@ VALUES
   ('b0000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'inbox', 'job-alpha-1', 'categorize', 'c0000000-0000-0000-0000-000000000001'),
   ('b0000000-0000-0000-0000-000000000002', '22222222-2222-2222-2222-222222222222', 'inbox', 'job-beta-1', 'categorize', 'c0000000-0000-0000-0000-000000000002');
 
--- TC-06: workspace isolation on read (agent_signals)
+-- TC-06: workspace isolation on read (agent_signals) — alpha user sees only own
+SET ROLE authenticated;
+SET request.jwt.claims TO '{"sub": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "workspace_id": "11111111-1111-1111-1111-111111111111"}';
 SELECT results_eq(
-  $$
-    SELECT count(*) FROM agent_signals
-    WHERE workspace_id = '11111111-1111-1111-1111-111111111111'
-  $$,
+  $$SELECT count(*) FROM agent_signals$$,
   ARRAY[1::bigint],
   'TC-06: alpha workspace can only see own signals'
 );
 
--- TC-07: workspace isolation on read (agent_runs)
+-- TC-07: workspace isolation on read (agent_runs) — alpha user sees only own
 SELECT results_eq(
-  $$
-    SELECT count(*) FROM agent_runs
-    WHERE workspace_id = '11111111-1111-1111-1111-111111111111'
-  $$,
+  $$SELECT count(*) FROM agent_runs$$,
   ARRAY[1::bigint],
   'TC-07: alpha workspace can only see own runs'
 );
 
--- TC-08: unauthenticated access denied
-SELECT throws_ok(
-  $$
-    SELECT * FROM agent_signals
-  $$,
-  '42501',
-  'TC-08: unauthenticated access to agent_signals denied'
+RESET ROLE;
+
+-- TC-08: anon role sees no rows (no policy for anon)
+SET ROLE anon;
+SELECT is(
+  (SELECT count(*)::int FROM agent_signals),
+  0,
+  'TC-08: anon sees no agent_signals'
 );
 
-SELECT throws_ok(
-  $$
-    SELECT * FROM agent_runs
-  $$,
-  '42501',
-  'TC-08: unauthenticated access to agent_runs denied'
+SELECT is(
+  (SELECT count(*)::int FROM agent_runs),
+  0,
+  'TC-08: anon sees no agent_runs'
 );
+
+RESET ROLE;
 
 -- TC-09: ::text cast correctness - verify index can be used
+SET ROLE authenticated;
+SET request.jwt.claims TO '{"sub": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "workspace_id": "11111111-1111-1111-1111-111111111111"}';
 SELECT results_eq(
-  $$
-    SELECT count(*) FROM agent_signals
-    WHERE workspace_id::text = '11111111-1111-1111-1111-111111111111'
-  $$,
+  $$SELECT count(*) FROM agent_signals WHERE workspace_id::text = '11111111-1111-1111-1111-111111111111'$$,
   ARRAY[1::bigint],
   'TC-09: ::text cast on workspace_id returns correct results'
 );
 
 SELECT results_eq(
-  $$
-    SELECT count(*) FROM agent_runs
-    WHERE workspace_id::text = '11111111-1111-1111-1111-111111111111'
-  $$,
+  $$SELECT count(*) FROM agent_runs WHERE workspace_id::text = '11111111-1111-1111-1111-111111111111'$$,
   ARRAY[1::bigint],
   'TC-09: ::text cast on workspace_id returns correct results for runs'
 );
-
--- Cleanup
-DELETE FROM agent_runs;
-DELETE FROM agent_signals;
-DELETE FROM workspace_members WHERE workspace_id IN ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222');
-DELETE FROM users WHERE id IN ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
-DELETE FROM workspaces WHERE id IN ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222');
 
 SELECT * FROM finish();
 ROLLBACK;

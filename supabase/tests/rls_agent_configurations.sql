@@ -12,6 +12,13 @@ INSERT INTO workspaces (id, name, slug) VALUES
   ('a0000000-0000-0000-0000-000000000002', 'WS Beta', 'pgtap-ac-beta')
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO auth.users (id, email, raw_user_meta_data, created_at, updated_at) VALUES
+  ('b0000000-0000-0000-0000-000000000001', 'owner-a@pgtap.test', '{}', now(), now()),
+  ('b0000000-0000-0000-0000-000000000002', 'admin-a@pgtap.test', '{}', now(), now()),
+  ('b0000000-0000-0000-0000-000000000003', 'member-a@pgtap.test', '{}', now(), now()),
+  ('b0000000-0000-0000-0000-000000000004', 'owner-b@pgtap.test', '{}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO users (id, email) VALUES
   ('b0000000-0000-0000-0000-000000000001', 'owner-a@pgtap.test'),
   ('b0000000-0000-0000-0000-000000000002', 'admin-a@pgtap.test'),

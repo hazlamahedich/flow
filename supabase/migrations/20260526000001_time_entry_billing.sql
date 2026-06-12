@@ -60,6 +60,12 @@ END;
 $$;
 
 -- Prevent a time entry from appearing on multiple invoices
-CREATE UNIQUE INDEX IF NOT EXISTS invoice_line_items_unique_time_entry
-  ON invoice_line_items (time_entry_id)
-  WHERE time_entry_id IS NOT NULL;
+-- (created after invoice_line_items table in 20260527000001)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoice_line_items' AND table_schema = 'public') THEN
+    CREATE UNIQUE INDEX IF NOT EXISTS invoice_line_items_unique_time_entry
+      ON invoice_line_items (time_entry_id)
+      WHERE time_entry_id IS NOT NULL;
+  END IF;
+END $$;

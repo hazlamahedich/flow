@@ -24,9 +24,23 @@ DROP POLICY IF EXISTS policy_clients_update_member ON clients;
 
 -- 4. Create role-aware RLS policies
 
--- Owner/Admin: full access to all clients in workspace (no DELETE — archive only)
-CREATE POLICY rls_clients_owner_admin ON clients
-  FOR ALL TO authenticated
+-- Owner/Admin: SELECT access to all clients in workspace
+CREATE POLICY rls_clients_owner_admin_select ON clients
+  FOR SELECT TO authenticated
+  USING (
+    workspace_id::text = auth.jwt()->>'workspace_id'
+    AND EXISTS (
+      SELECT 1 FROM workspace_members wm
+      WHERE wm.workspace_id = clients.workspace_id
+        AND wm.user_id = auth.uid()
+        AND wm.role IN ('owner', 'admin')
+        AND wm.status = 'active'
+    )
+  );
+
+-- Owner/Admin: INSERT access
+CREATE POLICY rls_clients_owner_admin_insert ON clients
+  FOR INSERT TO authenticated
   WITH CHECK (
     workspace_id::text = auth.jwt()->>'workspace_id'
     AND EXISTS (
@@ -36,7 +50,11 @@ CREATE POLICY rls_clients_owner_admin ON clients
         AND wm.role IN ('owner', 'admin')
         AND wm.status = 'active'
     )
-  )
+  );
+
+-- Owner/Admin: UPDATE access (no DELETE — archive only)
+CREATE POLICY rls_clients_owner_admin_update ON clients
+  FOR UPDATE TO authenticated
   USING (
     workspace_id::text = auth.jwt()->>'workspace_id'
     AND EXISTS (

@@ -35,7 +35,6 @@ describe('getDashboardSummary', () => {
       agent_approvals: { count: 3, error: null },
       agent_runs: { count: 12, error: null },
       invoices: { count: 5, error: null },
-      client_health_snapshots: { count: 1, error: null },
       clients: { count: 8, error: null },
     });
 
@@ -45,7 +44,7 @@ describe('getDashboardSummary', () => {
       pendingApprovals: 3,
       agentActivityCount: 12,
       outstandingInvoices: 5,
-      clientHealthAlerts: 1,
+      clientHealthAlerts: 0,
       clientCount: 8,
     });
   });
@@ -130,7 +129,7 @@ describe('getDashboardSummary', () => {
     const client = { from } as unknown as Parameters<typeof getDashboardSummary>[0];
     await getDashboardSummary(client, workspaceId);
 
-    expect(eqArgs.length).toBe(5);
+    expect(eqArgs.length).toBe(4);
     for (const [col, val] of eqArgs) {
       expect(col).toBe('workspace_id');
       expect(val).toBe(workspaceId);

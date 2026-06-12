@@ -17,12 +17,19 @@ ALTER TABLE invoices
   DROP CONSTRAINT IF EXISTS invoices_status_transition;
 
 -- ============================================
--- Step 2: Add correctly named whitelist constraint
+-- Step 2: Add correctly named whitelist constraint (idempotent)
 -- ============================================
-ALTER TABLE invoices
-  ADD CONSTRAINT invoices_status_valid CHECK (
-    status IN ('draft', 'sent', 'viewed', 'partially_paid', 'paid', 'overdue', 'voided')
-  );
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'invoices_status_valid' AND conrelid = 'invoices'::regclass
+  ) THEN
+    ALTER TABLE invoices
+      ADD CONSTRAINT invoices_status_valid CHECK (
+        status IN ('draft', 'sent', 'viewed', 'partially_paid', 'paid', 'overdue', 'voided')
+      );
+  END IF;
+END $$;
 
 -- ============================================
 -- Step 3: Document app-layer enforcement in comments

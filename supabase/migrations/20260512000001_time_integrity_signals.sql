@@ -26,10 +26,10 @@ ALTER TABLE time_integrity_signals ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Members can view integrity signals in workspace"
   ON time_integrity_signals FOR SELECT
   USING (
-    workspace_id IN (
-      SELECT wm.workspace_id
+    workspace_id::text IN (
+      SELECT wm.workspace_id::text
       FROM workspace_members wm
-      WHERE wm.user_id = auth.uid()::text
+      WHERE wm.user_id = auth.uid()
         AND wm.status = 'active'
     )
   );

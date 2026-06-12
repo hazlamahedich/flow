@@ -13,7 +13,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT plan(20);
+SELECT plan(21);
 
 -- Setup (run as superuser to avoid RLS recursion)
 SET ROLE postgres;
@@ -51,16 +51,16 @@ INSERT INTO clients (id, workspace_id, name, email) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- Grant member access to client c1111111 in workspace A
-INSERT INTO member_client_access (workspace_id, user_id, client_id)
+INSERT INTO member_client_access (workspace_id, user_id, client_id, granted_by)
 VALUES
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333', 'c1111111-1111-1111-1111-111111111111')
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333', 'c1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111')
 ON CONFLICT DO NOTHING;
 
 -- Seed two timer_state rows: one for owner in ws-a, one for member in ws-a
 INSERT INTO timer_state (id, workspace_id, user_id, client_id, started_at)
 VALUES
-  ('t1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'c1111111-1111-1111-1111-111111111111', now()),
-  ('t2222222-2222-2222-2222-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333', 'c1111111-1111-1111-1111-111111111111', now())
+  ('a1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'c1111111-1111-1111-1111-111111111111', now()),
+  ('a2222222-2222-2222-2222-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333', 'c1111111-1111-1111-1111-111111111111', now())
 ON CONFLICT DO NOTHING;
 
 RESET ROLE;
@@ -227,21 +227,24 @@ SELECT is(
 
 -- Test 15: stop_timer RPC succeeds for valid timer, creates time_entry
 SET ROLE postgres;
+DELETE FROM timer_state WHERE user_id = '11111111-1111-1111-1111-111111111111' AND workspace_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 INSERT INTO timer_state (id, workspace_id, user_id, client_id, started_at)
-VALUES ('t3333333-3333-3333-3333-333333333333', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'c1111111-1111-1111-1111-111111111111', now() - interval '30 minutes')
+VALUES ('a3333333-3333-3333-3333-333333333333', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'c1111111-1111-1111-1111-111111111111', now() - interval '30 minutes')
 ON CONFLICT DO NOTHING;
 RESET ROLE;
 
 SELECT set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}', false);
+SET ROLE authenticated;
 SELECT ok(
-  (stop_timer('t3333333-3333-3333-3333-333333333333'::uuid, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid, '11111111-1111-1111-1111-111111111111'::uuid))->>'timeEntryId' IS NOT NULL,
+  (stop_timer('a3333333-3333-3333-3333-333333333333'::uuid, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'::uuid, '11111111-1111-1111-1111-111111111111'::uuid))->>'timeEntryId' IS NOT NULL,
   'stop_timer returns timeEntryId on success'
 );
+RESET ROLE;
 
 -- Test 16: stop_timer deletes the timer_state row
 SET ROLE postgres;
 SELECT is(
-  (SELECT count(*) FROM timer_state WHERE id = 't3333333-3333-3333-3333-333333333333'),
+  (SELECT count(*) FROM timer_state WHERE id = 'a3333333-3333-3333-3333-333333333333'),
   0::bigint,
   'stop_timer deletes the timer_state row'
 );
@@ -268,7 +271,7 @@ SELECT lives_ok(
 
 -- Test 19: service_role can INSERT timer_state
 SELECT lives_ok(
-  $$SET ROLE service_role; INSERT INTO timer_state (workspace_id, user_id, client_id) VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'c1111111-1111-1111-1111-111111111111'); RESET ROLE;$$,
+  $$SET ROLE service_role; DELETE FROM timer_state WHERE user_id = '11111111-1111-1111-1111-111111111111'; INSERT INTO timer_state (workspace_id, user_id, client_id) VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'c1111111-1111-1111-1111-111111111111'); RESET ROLE;$$,
   'service_role can insert timer_state'
 );
 

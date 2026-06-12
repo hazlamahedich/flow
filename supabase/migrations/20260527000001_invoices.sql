@@ -66,33 +66,8 @@ CREATE TABLE invoice_line_items (
   );
 
 -- ============================================
--- RLS: workspace_invoice_sequences
+-- RLS: workspace_invoice_sequences (moved after table creation below)
 -- ============================================
-ALTER TABLE workspace_invoice_sequences ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY policy_wis_select_member
-  ON workspace_invoice_sequences FOR SELECT
-  TO authenticated
-  USING (
-    workspace_id::text IN (
-      SELECT wm.workspace_id::text
-      FROM workspace_members wm
-      WHERE wm.user_id = auth.uid()
-        AND wm.status = 'active'
-    )
-  );
-
-CREATE POLICY policy_wis_all_member
-  ON workspace_invoice_sequences FOR INSERT
-  TO authenticated
-  WITH CHECK (
-    workspace_id::text IN (
-      SELECT wm.workspace_id::text
-      FROM workspace_members wm
-      WHERE wm.user_id = auth.uid()
-        AND wm.status = 'active'
-    )
-  );
 
 -- ============================================
 -- Atomic RPC: create_invoice_with_items
@@ -199,6 +174,32 @@ CREATE TABLE workspace_invoice_sequences (
   last_number INT NOT NULL DEFAULT 0,
   PRIMARY KEY (workspace_id, year)
 );
+
+ALTER TABLE workspace_invoice_sequences ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY policy_wis_select_member
+  ON workspace_invoice_sequences FOR SELECT
+  TO authenticated
+  USING (
+    workspace_id::text IN (
+      SELECT wm.workspace_id::text
+      FROM workspace_members wm
+      WHERE wm.user_id = auth.uid()
+        AND wm.status = 'active'
+    )
+  );
+
+CREATE POLICY policy_wis_all_member
+  ON workspace_invoice_sequences FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    workspace_id::text IN (
+      SELECT wm.workspace_id::text
+      FROM workspace_members wm
+      WHERE wm.user_id = auth.uid()
+        AND wm.status = 'active'
+    )
+  );
 
 -- ============================================
 -- generate_invoice_number function

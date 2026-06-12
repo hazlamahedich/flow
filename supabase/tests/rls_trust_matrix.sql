@@ -125,12 +125,12 @@ SELECT lives_ok(
   $$ UPDATE trust_matrix SET score = 199 WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' AND agent_id = 'inbox' $$,
   'TC-09a: cross-workspace update does not throw'
 );
+RESET ROLE;
 SELECT is(
-  (SELECT score FROM trust_matrix WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' AND agent_id = 'inbox'),
+  (SELECT score::integer FROM trust_matrix WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' AND agent_id = 'inbox'),
   80,
   'TC-09b: cross-workspace update had no effect'
 );
-RESET ROLE;
 
 -- TC-10: service_role bypasses RLS
 SELECT results_eq(
@@ -160,7 +160,7 @@ SELECT lives_ok(
 );
 SELECT is(
   (SELECT count(*) FROM trust_matrix WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001'),
-  4,
+  4::bigint,
   'TC-13b: owner delete had no effect (no DELETE policy)'
 );
 RESET ROLE;

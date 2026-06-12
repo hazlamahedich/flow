@@ -27,7 +27,7 @@ CREATE POLICY "Members can insert edit history in workspace"
       WHERE te.workspace_id IN (
         SELECT wm.workspace_id
         FROM workspace_members wm
-        WHERE wm.user_id = auth.uid()::text
+        WHERE wm.user_id = auth.uid()
           AND wm.status = 'active'
       )
     )
@@ -43,7 +43,7 @@ CREATE POLICY "Members can view edit history in workspace"
       WHERE te.workspace_id IN (
         SELECT wm.workspace_id
         FROM workspace_members wm
-        WHERE wm.user_id = auth.uid()::text
+        WHERE wm.user_id = auth.uid()
           AND wm.status = 'active'
       )
     )

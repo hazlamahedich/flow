@@ -1,6 +1,6 @@
 ---
 generated: 2026-04-20
-last_updated: 2026-05-29  # Story 8-3 review
+  last_updated: 2026-06-10  # Epic 8 retro closeout complete — all 45 pgTAP files passing (566 tests)
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -92,7 +92,13 @@ development_status:
   8-2-weekly-report-agent-auto-drafts: done
   8-3-client-health-agent-usage-analytics: done
   8-4-friday-feeling-ritual: done
-  epic-8-retrospective: optional
+  epic-8-retrospective: done
+  epic-8-retro-td1-service-role-audit: done
+  epic-8-retro-td1-fix-unfiltered-queries: done
+  epic-8-retro-p1-migration-fixes: done
+  epic-8-retro-td2-dashboard-test-fix: done
+  epic-8-retro-td3-pgtap-epic8-tests: done
+  epic-8-retro-p2-story-sync: done
 
   epic-9: backlog
   9-1-client-portal-foundation-light-theme: backlog
@@ -117,6 +123,59 @@ development_status:
   epic-10-retrospective: optional
 
 test_metrics:
+  retro-closeout-2026-06-10:
+    last_measured: 2026-06-10
+    vitest:
+      total: 838
+      passing: 837
+      failing: 1
+      failure: "orchestrator-factory.test.ts (pre-existing)"
+    typecheck:
+      total_errors: 9
+      note: "All pre-existing (calendar/inbox test files)"
+    pgtap_epic8:
+      rls_client_health: "7/7"
+      rls_friday_feeling: "10/10"
+    pgtap_legacy:
+      note: "All 45 pgTAP files passing (566 tests). Batch-fixed in closeout: auth.users FK (4), invalid UUIDs (3), collation (1), append-only (1), missing schema (1), RLS violations (2), NOT NULL (3), SQL errors (5), JWT patterns (5)."
+    pgtap_full:
+      total_files: 45
+      total_tests: 566
+      pass_rate: "100%"
+    migration_fixes:
+      count: 6
+      details:
+        - "20260430000002: agent_feedback RLS before table (wrapped in IF EXISTS)"
+        - "20260504000001: FOR ALL policy split into separate SELECT/INSERT/UPDATE"
+        - "20260505000002: seed FK violation (wrapped in existence checks)"
+        - "20260511000001: auth.uid()::text → auth.uid() type mismatch"
+        - "20260521000000: now() in index predicate (removed non-immutable)"
+        - "20260527000001: RLS before table creation (moved after CREATE TABLE)"
+        - "20260529000001: duplicate migration timestamp (renamed to 20260528500001)"
+        - "20260605000001: UNIQUE on timestamptz::date + missing enum + wrong column"
+    service_role_audit:
+      total_queries: 85
+      filtered: 79
+      unfiltered_fixed: 6
+      unfiltered_skipped: 1
+      skipped_reason: "cleanup.ts global maintenance — not tenant-scoped"
+  pgtap_full:
+    last_measured: 2026-06-10
+    total_files: 45
+    total_tests: 566
+    passing_files: 45
+    failing_files: 0
+    pass_rate: "100%"
+    note: "All pgTAP RLS tests passing. Fixed 25 previously-failing legacy test files in Epic 8 closeout."
+  epic-9-prerequisites:
+    supabase_local: done
+    service_role_audit: done
+    epic_8_green_phase: done
+    deferred_rls_tests: done
+    stripe_spike: done
+    finding_density_tracking: done
+    epic_9_planning_review: done
+    verdict: "READY — all prerequisites complete"
   epic-2-atdd:
     last_measured: 2026-04-26
     passing: 67

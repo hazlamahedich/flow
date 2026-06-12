@@ -23,20 +23,20 @@ CREATE POLICY "Users can update own time entries"
 CREATE POLICY "Admins can update workspace time entries"
   ON time_entries FOR UPDATE
   USING (
-    workspace_id IN (
-      SELECT wm.workspace_id
+    workspace_id::text IN (
+      SELECT wm.workspace_id::text
       FROM workspace_members wm
-      WHERE wm.user_id = auth.uid()::text
+      WHERE wm.user_id = auth.uid()
         AND wm.role IN ('owner', 'admin')
         AND wm.status = 'active'
     )
     AND deleted_at IS NULL
   )
   WITH CHECK (
-    workspace_id IN (
-      SELECT wm.workspace_id
+    workspace_id::text IN (
+      SELECT wm.workspace_id::text
       FROM workspace_members wm
-      WHERE wm.user_id = auth.uid()::text
+      WHERE wm.user_id = auth.uid()
         AND wm.role IN ('owner', 'admin')
         AND wm.status = 'active'
     )

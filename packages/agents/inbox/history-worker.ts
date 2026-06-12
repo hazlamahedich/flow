@@ -62,6 +62,7 @@ export async function handleDrainHistory(input: {
       .from('client_inboxes')
       .select('*')
       .eq('id', input.clientInboxId)
+      .eq('workspace_id', input.workspace_id)
       .single();
 
     if (inboxError || !inbox) {
@@ -149,6 +150,7 @@ export async function handleDrainHistory(input: {
       .from('raw_pubsub_payloads')
       .select('history_id')
       .eq('id', input.payloadId)
+      .eq('workspace_id', input.workspace_id)
       .single();
 
     const newCursor = rawPayload?.history_id ?? String(Date.now());
@@ -160,7 +162,8 @@ export async function handleDrainHistory(input: {
     await supabase
       .from('raw_pubsub_payloads')
       .update({ processed: true })
-      .eq('id', input.payloadId);
+      .eq('id', input.payloadId)
+      .eq('workspace_id', input.workspace_id);
   } finally {
     release();
   }

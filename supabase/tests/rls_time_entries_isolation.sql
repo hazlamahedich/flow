@@ -16,7 +16,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT plan(14);
+SELECT plan(15);
 
 SET ROLE postgres;
 
@@ -62,14 +62,14 @@ INSERT INTO clients (id, workspace_id, name, email) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- Member A has access to Acme Corp only (NOT Beta Inc)
-INSERT INTO member_client_access (workspace_id, user_id, client_id) VALUES
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333', 'c1111111-1111-1111-1111-111111111111')
+INSERT INTO member_client_access (workspace_id, user_id, client_id, granted_by) VALUES
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333', 'c1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111')
 ON CONFLICT DO NOTHING;
 
 -- Member B has access to both clients
-INSERT INTO member_client_access (workspace_id, user_id, client_id) VALUES
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '44444444-4444-4444-4444-444444444444', 'c1111111-1111-1111-1111-111111111111'),
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '44444444-4444-4444-4444-444444444444', 'c2222222-2222-2222-2222-222222222222')
+INSERT INTO member_client_access (workspace_id, user_id, client_id, granted_by) VALUES
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '44444444-4444-4444-4444-444444444444', 'c1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111'),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '44444444-4444-4444-4444-444444444444', 'c2222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111')
 ON CONFLICT DO NOTHING;
 
 -- Seed time entries
@@ -105,7 +105,7 @@ SELECT is(
   'TD1.2: Member A cannot see Beta entries (no member_client_access)'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 -- ============= TEST 2: member_client_access INSERT enforcement =============
 -- Member A cannot INSERT for Beta Inc (no access)
@@ -120,7 +120,7 @@ SELECT throws_ok(
   'TD1.3: Member A cannot INSERT time entry for inaccessible client'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 -- ============= TEST 3: member_client_access INSERT allowed =============
 -- Member A CAN INSERT for Acme (has access)
@@ -133,7 +133,7 @@ SELECT lives_ok(
   'TD1.4: Member A can INSERT time entry for accessible client'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 -- ============= TEST 4: INSERT user_id attribution enforcement =============
 -- Member cannot INSERT with different user_id (RLS enforces user_id = auth.uid())
@@ -148,7 +148,7 @@ SELECT throws_ok(
   'TD1.5: Member cannot INSERT time entry attributed to another user'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 -- ============= TEST 5: Soft-delete filter =============
 -- Owner cannot see soft-deleted entries
@@ -162,7 +162,7 @@ SELECT is(
   'TD1.6: Owner cannot SELECT soft-deleted time entry'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 -- ============= TEST 6: Owner/admin see all non-deleted entries =============
 
@@ -175,7 +175,7 @@ SELECT is(
   'TD1.7: Owner sees all 4 non-deleted entries (Acme + Beta + member entries)'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 -- ============= TEST 7: Cross-workspace denial for member =============
 -- Outsider from Workspace B cannot see Workspace A entries
@@ -189,7 +189,7 @@ SELECT is(
   'TD1.8: Cross-workspace SELECT denied (outsider sees 0 entries)'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 -- ============= TEST 8: Cross-workspace INSERT denial =============
 
@@ -203,7 +203,7 @@ SELECT throws_ok(
   'TD1.9: Cross-workspace INSERT denied'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 -- ============= TEST 9: Member B sees entries for both clients =============
 
@@ -216,7 +216,7 @@ SELECT is(
   'TD1.10: Member B sees entries for all accessible clients'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 -- ============= TEST 10: Cannot update deleted entry =============
 
@@ -224,13 +224,13 @@ SET ROLE authenticated;
 SET request.jwt.claims TO '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}';
 
 -- Bypass RLS to verify the soft-deleted row exists
-PERFORM reset_role();
+SELECT reset_role();
 SET ROLE postgres;
 SELECT ok(
   EXISTS (SELECT 1 FROM time_entries WHERE id = 'a0000001-0000-0000-0000-000000000003' AND deleted_at IS NOT NULL),
   'TD1.setup: Soft-deleted entry exists in DB'
 );
-PERFORM reset_role();
+SELECT reset_role();
 
 SET ROLE authenticated;
 SET request.jwt.claims TO '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}';
@@ -242,7 +242,7 @@ SELECT is(
   'TD1.11: Cannot UPDATE soft-deleted time entry (even as owner)'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 -- ============= TEST 11: Admin can update any non-deleted entry =============
 
@@ -256,7 +256,7 @@ SELECT is(
   'TD1.12: Admin can update any non-deleted entry in workspace'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 -- ============= TEST 12: Member cannot update another user entry =============
 
@@ -270,7 +270,7 @@ SELECT is(
   'TD1.13: Member cannot UPDATE another member entry'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 -- ============= TEST 13: Cross-workspace UPDATE denial =============
 
@@ -284,7 +284,7 @@ SELECT is(
   'TD1.14: Cross-workspace UPDATE denied'
 );
 
-PERFORM reset_role();
+SELECT reset_role();
 
 SELECT * FROM finish();
 ROLLBACK;

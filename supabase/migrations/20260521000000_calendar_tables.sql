@@ -169,8 +169,7 @@ CREATE TABLE calendar_events (
 CREATE INDEX idx_calendar_events_time_range
   ON calendar_events (client_calendar_id, start_at, end_at);
 CREATE INDEX idx_cal_events_conflicts
-  ON calendar_events (workspace_id, start_at, end_at)
-  WHERE end_at > now();
+  ON calendar_events (workspace_id, start_at, end_at);
 CREATE INDEX idx_calendar_events_workspace
   ON calendar_events (workspace_id);
 CREATE INDEX idx_calendar_events_calendar_provider_id

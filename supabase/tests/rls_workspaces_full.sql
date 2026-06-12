@@ -66,6 +66,14 @@ INSERT INTO workspace_invitations (workspace_id, email, role, token_hash, expire
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'pending@test.com', 'member', 'hash123', now() + interval '7 days', '11111111-1111-1111-1111-111111111111')
 ON CONFLICT DO NOTHING;
 
+-- Client needed for member_client_access FK
+INSERT INTO clients (id, workspace_id, name, email) VALUES
+  ('11111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Test Client', 'client@test.com'),
+  ('22222222-2222-2222-2222-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Test Client 2', 'client2@test.com'),
+  ('33333333-3333-3333-3333-333333333333', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Test Client 3', 'client3@test.com'),
+  ('44444444-4444-4444-4444-444444444444', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Test Client 4', 'client4@test.com')
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO member_client_access (workspace_id, user_id, client_id, granted_by) VALUES
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111')
 ON CONFLICT DO NOTHING;

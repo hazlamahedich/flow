@@ -40,6 +40,7 @@ export async function execute(input: InboxActionInput): Promise<InboxProposal | 
       .from('emails')
       .select('id, subject, body_clean, workspace_id, client_id, created_at')
       .eq('id', input.emailId)
+      .eq('workspace_id', input.workspaceId)
       .single();
 
     if (error || !email) throw new Error(`Email not found: ${input.emailId}`);

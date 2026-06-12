@@ -58,6 +58,7 @@ export async function scheduleDeferredDrafts(
     let emailsQuery = supabase
       .from('emails')
       .select('id, client_inbox_id')
+      .eq('workspace_id', workspaceId)
       .in('id', emailIds);
 
     if (clientInboxId) {

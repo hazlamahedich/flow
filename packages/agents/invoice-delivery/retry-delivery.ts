@@ -29,7 +29,9 @@ interface SimpleSupabase {
       };
     };
     update: (values: Record<string, unknown>) => {
-      eq: (column: string, value: string) => Promise<{ error: unknown }>;
+      eq: (column: string, value: string) => {
+        eq: (column: string, value: string) => Promise<{ error: unknown }>;
+      };
     };
   };
 }
@@ -81,7 +83,7 @@ export async function handleRetryDelivery(
   await supabase.from('invoice_deliveries').update({
     last_error: 'Retry handler scaffold — full retry in 7-2b',
     retry_count: retryCount + 1,
-  }).eq('id', deliveryId);
+  }).eq('id', deliveryId).eq('workspace_id', workspaceId);
 }
 
 function buildEmailPayload(args: {

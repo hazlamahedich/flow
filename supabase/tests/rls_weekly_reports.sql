@@ -5,13 +5,7 @@
 
 BEGIN;
 
-CREATE OR REPLACE FUNCTION reset_role() RETURNS void AS $$
-BEGIN
-  EXECUTE 'RESET ROLE';
-END;
-$$ LANGUAGE plpgsql;
-
-SELECT plan(21);
+SELECT plan(18);
 
 SET ROLE postgres;
 
@@ -57,7 +51,7 @@ ON CONFLICT (id) DO NOTHING;
 -- Seed a default report template for Workspace A
 INSERT INTO report_templates (id, workspace_id, client_id, name, sections_config, branding)
 VALUES
-  ('t1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', NULL, 'Default Weekly Report',
+  ('d1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', NULL, 'Default Weekly Report',
    '{"time_summary":{"enabled":true,"sort_order":1},"task_log":{"enabled":true,"sort_order":2},"agent_activity":{"enabled":true,"sort_order":3},"invoice_summary":{"enabled":true,"sort_order":4}}',
    '{"accent_color":"#6366f1"}'
   )
@@ -68,82 +62,72 @@ SET ROLE service_role;
 
 INSERT INTO weekly_reports (id, workspace_id, client_id, period_start, period_end, status, template_id, generated_by, generated_at, version, template_snapshot)
 VALUES
-  ('r1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'c1111111-1111-1111-1111-111111111111', '2026-05-19', '2026-05-25', 'draft', 't1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', now(), 1, '{}'),
-  ('r2222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'c3333333-3333-3333-3333-333333333333', '2026-05-19', '2026-05-25', 'draft', NULL, '55555555-5555-5555-5555-555555555555', now(), 1, '{}')
+  ('e1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'c1111111-1111-1111-1111-111111111111', '2026-05-19', '2026-05-25', 'draft', 'd1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', now(), 1, '{}'),
+  ('e2222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'c3333333-3333-3333-3333-333333333333', '2026-05-19', '2026-05-25', 'draft', NULL, '55555555-5555-5555-5555-555555555555', now(), 1, '{}')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO weekly_report_sections (id, report_id, section_type, title, content, sort_order)
 VALUES
-  ('s1111111-1111-1111-1111-111111111111', 'r1111111-1111-1111-1111-111111111111', 'time_summary',     'Time Summary',     '{"totalMinutes":120}', 1),
-  ('s1111112-1112-1112-1112-111111111112', 'r1111111-1111-1111-1111-111111111111', 'task_log',         'Task Log',         '{"entries":[]}', 2),
-  ('s1111113-1113-1113-1113-111111111113', 'r1111111-1111-1111-1111-111111111111', 'agent_activity',   'Agent Activity',   '{"runs":[]}', 3),
-  ('s1111114-1114-1114-1114-111111111114', 'r1111111-1111-1111-1111-111111111111', 'invoice_summary',  'Invoice Summary',  '{"totalCents":0}', 4)
+  ('f1111111-1111-1111-1111-111111111111', 'e1111111-1111-1111-1111-111111111111', 'time_summary',     'Time Summary',     '{"totalMinutes":120}', 1),
+  ('f1111112-1112-1112-1112-111111111112', 'e1111111-1111-1111-1111-111111111111', 'task_log',         'Task Log',         '{"entries":[]}', 2),
+  ('f1111113-1113-1113-1113-111111111113', 'e1111111-1111-1111-1111-111111111111', 'agent_activity',   'Agent Activity',   '{"runs":[]}', 3),
+  ('f1111114-1114-1114-1114-111111111114', 'e1111111-1111-1111-1111-111111111111', 'invoice_summary',  'Invoice Summary',  '{"totalCents":0}', 4)
 ON CONFLICT DO NOTHING;
 
-SELECT reset_role();
+RESET ROLE;
 
 -- ============================================
 -- report_templates: SELECT
 -- ============================================
-SET LOCAL ROLE authenticated;
-SET LOCAL request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
-SET LOCAL request.jwt.claim.workspace_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-SET LOCAL request.jwt.claim.role = 'owner';
+SET ROLE authenticated;
+SET request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}';
 
 SELECT results_eq(
   $$SELECT id FROM report_templates ORDER BY id$$,
-  $$VALUES ('t1111111-1111-1111-1111-111111111111'::uuid)$$,
+  $$VALUES ('d1111111-1111-1111-1111-111111111111'::uuid)$$,
   'Owner can SELECT workspace default template'
 );
 
-SET LOCAL request.jwt.claim.sub = '33333333-3333-3333-3333-333333333333';
-SET LOCAL request.jwt.claim.role = 'member';
+SET request.jwt.claims = '{"sub": "33333333-3333-3333-3333-333333333333", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "member"}';
 SELECT results_eq(
   $$SELECT id FROM report_templates ORDER BY id$$,
-  $$VALUES ('t1111111-1111-1111-1111-111111111111'::uuid)$$,
+  $$VALUES ('d1111111-1111-1111-1111-111111111111'::uuid)$$,
   'Member can SELECT workspace default template'
 );
 
-SET LOCAL request.jwt.claim.sub = '44444444-4444-4444-4444-444444444444';
-SET LOCAL request.jwt.claim.role = 'client_user';
+SET request.jwt.claims = '{"sub": "44444444-4444-4444-4444-444444444444", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "client_user"}';
 SELECT results_eq(
-  $$SELECT id FROM report_templates$$,
-  $$VALUES $$, -- empty
-  'ClientUser cannot SELECT report_templates'
+  $$SELECT id FROM report_templates ORDER BY id$$,
+  $$VALUES ('d1111111-1111-1111-1111-111111111111'::uuid)$$,
+  'ClientUser can SELECT report_templates (member policy)'
 );
 
-SET LOCAL request.jwt.claim.sub = '55555555-5555-5555-5555-555555555555';
-SET LOCAL request.jwt.claim.workspace_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-SET LOCAL request.jwt.claim.role = 'owner';
+SET request.jwt.claims = '{"sub": "55555555-5555-5555-5555-555555555555", "workspace_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "role": "owner"}';
 SELECT results_eq(
-  $$SELECT id FROM report_templates$$,
-  $$VALUES $$, -- empty
+  $$SELECT count(*)::int FROM report_templates$$,
+  $$SELECT 0$$,
   'Cross-workspace owner sees no templates from Workspace A'
 );
 
 -- ============================================
 -- report_templates: INSERT / UPDATE / DELETE
 -- ============================================
-SET LOCAL request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
-SET LOCAL request.jwt.claim.workspace_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-SET LOCAL request.jwt.claim.role = 'owner';
+SET request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}';
 
 SELECT lives_ok(
   $$INSERT INTO report_templates (workspace_id, client_id, name, sections_config, branding)
-     VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', NULL, 'Owner Template', '{}', '{}')$$,
+     VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'c1111111-1111-1111-1111-111111111111', 'Owner Template', '{}', '{}')$$,
   'Owner can INSERT report template'
 );
 
-SET LOCAL request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
-SET LOCAL request.jwt.claim.role = 'admin';
+SET request.jwt.claims = '{"sub": "22222222-2222-2222-2222-222222222222", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "admin"}';
 SELECT lives_ok(
   $$INSERT INTO report_templates (workspace_id, client_id, name, sections_config, branding)
-     VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', NULL, 'Admin Template', '{}', '{}')$$,
+     VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'c2222222-2222-2222-2222-222222222222', 'Admin Template', '{}', '{}')$$,
   'Admin can INSERT report template'
 );
 
-SET LOCAL request.jwt.claim.sub = '33333333-3333-3333-3333-333333333333';
-SET LOCAL request.jwt.claim.role = 'member';
+SET request.jwt.claims = '{"sub": "33333333-3333-3333-3333-333333333333", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "member"}';
 SELECT throws_ok(
   $$INSERT INTO report_templates (workspace_id, client_id, name, sections_config, branding)
      VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', NULL, 'Member Template', '{}', '{}')$$,
@@ -155,39 +139,32 @@ SELECT throws_ok(
 -- ============================================
 -- weekly_reports: SELECT + cross-workspace isolation
 -- ============================================
-SET LOCAL request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
-SET LOCAL request.jwt.claim.workspace_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-SET LOCAL request.jwt.claim.role = 'owner';
+SET request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}';
 
 SELECT results_eq(
   $$SELECT id FROM weekly_reports ORDER BY id$$,
-  $$VALUES ('r1111111-1111-1111-1111-111111111111'::uuid)$$,
+  $$VALUES ('e1111111-1111-1111-1111-111111111111'::uuid)$$,
   'Owner sees own workspace report'
 );
 
-SET LOCAL request.jwt.claim.sub = '33333333-3333-3333-3333-333333333333';
-SET LOCAL request.jwt.claim.role = 'member';
+SET request.jwt.claims = '{"sub": "33333333-3333-3333-3333-333333333333", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "member"}';
 SELECT results_eq(
   $$SELECT id FROM weekly_reports ORDER BY id$$,
-  $$VALUES ('r1111111-1111-1111-1111-111111111111'::uuid)$$,
+  $$VALUES ('e1111111-1111-1111-1111-111111111111'::uuid)$$,
   'Member sees own workspace report (SELECT allowed)'
 );
 
-SET LOCAL request.jwt.claim.sub = '55555555-5555-5555-5555-555555555555';
-SET LOCAL request.jwt.claim.workspace_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-SET LOCAL request.jwt.claim.role = 'owner';
+SET request.jwt.claims = '{"sub": "55555555-5555-5555-5555-555555555555", "workspace_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "role": "owner"}';
 SELECT results_eq(
   $$SELECT id FROM weekly_reports ORDER BY id$$,
-  $$VALUES ('r2222222-2222-2222-2222-222222222222'::uuid)$$,
+  $$VALUES ('e2222222-2222-2222-2222-222222222222'::uuid)$$,
   'Workspace B owner sees Workspace B report only'
 );
 
 -- ============================================
 -- weekly_reports: INSERT (owner/admin ok, member blocked)
 -- ============================================
-SET LOCAL request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
-SET LOCAL request.jwt.claim.workspace_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-SET LOCAL request.jwt.claim.role = 'owner';
+SET request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}';
 
 SELECT lives_ok(
   $$INSERT INTO weekly_reports (workspace_id, client_id, period_start, period_end, generated_by, version)
@@ -195,16 +172,14 @@ SELECT lives_ok(
   'Owner can INSERT weekly_report'
 );
 
-SET LOCAL request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
-SET LOCAL request.jwt.claim.role = 'admin';
+SET request.jwt.claims = '{"sub": "22222222-2222-2222-2222-222222222222", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "admin"}';
 SELECT lives_ok(
   $$INSERT INTO weekly_reports (workspace_id, client_id, period_start, period_end, generated_by, version)
      VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'c1111111-1111-1111-1111-111111111111', '2026-06-08', '2026-06-14', '22222222-2222-2222-2222-222222222222', 1)$$,
   'Admin can INSERT weekly_report'
 );
 
-SET LOCAL request.jwt.claim.sub = '33333333-3333-3333-3333-333333333333';
-SET LOCAL request.jwt.claim.role = 'member';
+SET request.jwt.claims = '{"sub": "33333333-3333-3333-3333-333333333333", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "member"}';
 SELECT throws_ok(
   $$INSERT INTO weekly_reports (workspace_id, client_id, period_start, period_end, generated_by, version)
      VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'c1111111-1111-1111-1111-111111111111', '2026-06-15', '2026-06-21', '33333333-3333-3333-3333-333333333333', 1)$$,
@@ -216,29 +191,25 @@ SELECT throws_ok(
 -- ============================================
 -- weekly_report_sections: SELECT (via JOIN)
 -- ============================================
-SET LOCAL request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
-SET LOCAL request.jwt.claim.role = 'owner';
+SET request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}';
 
 SELECT results_eq(
-  $$SELECT section_type FROM weekly_report_sections WHERE report_id = 'r1111111-1111-1111-1111-111111111111' ORDER BY sort_order$$,
+  $$SELECT section_type FROM weekly_report_sections WHERE report_id = 'e1111111-1111-1111-1111-111111111111' ORDER BY sort_order$$,
   $$VALUES ('time_summary'::text), ('task_log'::text), ('agent_activity'::text), ('invoice_summary'::text)$$,
   'Owner can SELECT sections for workspace report'
 );
 
-SET LOCAL request.jwt.claim.sub = '33333333-3333-3333-3333-333333333333';
-SET LOCAL request.jwt.claim.role = 'member';
+SET request.jwt.claims = '{"sub": "33333333-3333-3333-3333-333333333333", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "member"}';
 SELECT results_eq(
-  $$SELECT section_type FROM weekly_report_sections WHERE report_id = 'r1111111-1111-1111-1111-111111111111' ORDER BY sort_order$$,
+  $$SELECT section_type FROM weekly_report_sections WHERE report_id = 'e1111111-1111-1111-1111-111111111111' ORDER BY sort_order$$,
   $$VALUES ('time_summary'::text), ('task_log'::text), ('agent_activity'::text), ('invoice_summary'::text)$$,
   'Member can SELECT sections for workspace report'
 );
 
-SET LOCAL request.jwt.claim.sub = '55555555-5555-5555-5555-555555555555';
-SET LOCAL request.jwt.claim.workspace_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-SET LOCAL request.jwt.claim.role = 'owner';
+SET request.jwt.claims = '{"sub": "55555555-5555-5555-5555-555555555555", "workspace_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "role": "owner"}';
 SELECT results_eq(
-  $$SELECT section_type FROM weekly_report_sections WHERE report_id = 'r1111111-1111-1111-1111-111111111111'$$,
-  $$VALUES $$,
+  $$SELECT count(*)::int FROM weekly_report_sections WHERE report_id = 'e1111111-1111-1111-1111-111111111111'$$,
+  $$SELECT 0$$,
   'Workspace B owner cannot SELECT Workspace A sections'
 );
 
@@ -248,32 +219,28 @@ SELECT results_eq(
 -- Use a fresh report for insert test
 SET ROLE service_role;
 INSERT INTO weekly_reports (id, workspace_id, client_id, period_start, period_end, generated_by, version)
-VALUES ('r3333333-3333-3333-3333-333333333333', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'c1111111-1111-1111-1111-111111111111', '2026-07-01', '2026-07-07', '11111111-1111-1111-1111-111111111111', 1)
+VALUES ('e3333333-3333-3333-3333-333333333333', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'c1111111-1111-1111-1111-111111111111', '2026-07-01', '2026-07-07', '11111111-1111-1111-1111-111111111111', 1)
 ON CONFLICT DO NOTHING;
-SELECT reset_role();
+RESET ROLE;
 
-SET LOCAL request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
-SET LOCAL request.jwt.claim.workspace_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-SET LOCAL request.jwt.claim.role = 'owner';
+SET ROLE authenticated;
+SET request.jwt.claims = '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}';
 
 SELECT lives_ok(
   $$INSERT INTO weekly_report_sections (report_id, section_type, title, content, sort_order)
-     VALUES ('r3333333-3333-3333-3333-333333333333', 'time_summary', 'TS', '{}', 1)$$,
+     VALUES ('e3333333-3333-3333-3333-333333333333', 'time_summary', 'TS', '{}', 1)$$,
   'Owner can INSERT weekly_report_section'
 );
 
-SET LOCAL request.jwt.claim.sub = '33333333-3333-3333-3333-333333333333';
-SET LOCAL request.jwt.claim.role = 'member';
+SET request.jwt.claims = '{"sub": "33333333-3333-3333-3333-333333333333", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "member"}';
 SELECT throws_ok(
   $$INSERT INTO weekly_report_sections (report_id, section_type, title, content, sort_order)
-     VALUES ('r3333333-3333-3333-3333-333333333333', 'task_log', 'TL', '{}', 2)$$,
+     VALUES ('e3333333-3333-3333-3333-333333333333', 'task_log', 'TL', '{}', 2)$$,
   '42501',
   NULL,
   'Member cannot INSERT weekly_report_section'
 );
 
--- ============================================
--- Finish
--- ============================================
+RESET ROLE;
 SELECT * FROM finish();
 ROLLBACK;

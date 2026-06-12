@@ -61,10 +61,10 @@ CREATE TABLE IF NOT EXISTS wednesday_affirmations (
   story text NOT NULL,
   milestone jsonb NOT NULL,
   generated_at timestamptz NOT NULL DEFAULT now(),
-  dismissed_at timestamptz,
-
-  UNIQUE(workspace_id, team_member_id, generated_at::date)
+  dismissed_at timestamptz
 );
+
+CREATE UNIQUE INDEX idx_wa_unique_per_day ON wednesday_affirmations (workspace_id, team_member_id, (timezone('UTC', generated_at)::date));
 
 CREATE INDEX IF NOT EXISTS idx_wa_workspace ON wednesday_affirmations(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_wa_active ON wednesday_affirmations(workspace_id, generated_at DESC) WHERE dismissed_at IS NULL;
@@ -94,10 +94,10 @@ CREATE POLICY "wa_service_all" ON wednesday_affirmations
   );
 
 -- ───────────────────────────────────────────────────────────────
--- 4. Register friday-feeling agent in agent_configs seed
+-- 4. Register friday-feeling agent
 -- ───────────────────────────────────────────────────────────────
-INSERT INTO agent_configurations (workspace_id, agent_id, status, settings)
-SELECT w.id, 'friday-feeling', 'active', '{"schedule": {"dayOfWeek": 5, "time": "16:00"}}'::jsonb
+INSERT INTO agent_configurations (workspace_id, agent_id, status, schedule)
+SELECT w.id, 'friday-feeling', 'active', '{"dayOfWeek": 5, "time": "16:00"}'::jsonb
 FROM workspaces w
 WHERE NOT EXISTS (
   SELECT 1 FROM agent_configurations ac

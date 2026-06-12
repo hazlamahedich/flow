@@ -41,6 +41,11 @@ INSERT INTO clients (id, workspace_id, name, email) VALUES
   ('c1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Acme Corp', 'acme@test.com')
 ON CONFLICT (id) DO NOTHING;
 
+-- Grant member access to client so member can INSERT time entries
+INSERT INTO member_client_access (workspace_id, user_id, client_id, granted_by) VALUES
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '33333333-3333-3333-3333-333333333333', 'c1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111')
+ON CONFLICT DO NOTHING;
+
 -- Seed time entries
 INSERT INTO time_entries (id, workspace_id, client_id, user_id, date, duration_minutes)
 VALUES

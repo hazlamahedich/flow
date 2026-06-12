@@ -17,5 +17,6 @@ CREATE TYPE agent_id_type AS ENUM (
   'ar-collection',
   'weekly-report',
   'client-health',
-  'time-integrity'
+  'time-integrity',
+  'friday-feeling'
 );

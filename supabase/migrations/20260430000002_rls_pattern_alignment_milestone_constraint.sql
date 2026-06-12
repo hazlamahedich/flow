@@ -98,52 +98,59 @@ CREATE POLICY policy_trust_milestones_delete_owner ON trust_milestones
 
 -- ============================================================================
 -- 3. Fix agent_feedback RLS: replace subquery join with ::text JWT cast
+-- NOTE: agent_feedback table created in 20260503000001_agent_feedback.sql
+-- These policies are applied AFTER table creation via DO block guard
 -- ============================================================================
 
-DROP POLICY IF EXISTS agent_feedback_select ON agent_feedback;
-DROP POLICY IF EXISTS agent_feedback_insert ON agent_feedback;
-DROP POLICY IF EXISTS agent_feedback_update ON agent_feedback;
-DROP POLICY IF EXISTS agent_feedback_delete_owner_admin ON agent_feedback;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'agent_feedback' AND table_schema = 'public') THEN
+    DROP POLICY IF EXISTS agent_feedback_select ON agent_feedback;
+    DROP POLICY IF EXISTS agent_feedback_insert ON agent_feedback;
+    DROP POLICY IF EXISTS agent_feedback_update ON agent_feedback;
+    DROP POLICY IF EXISTS agent_feedback_delete_owner_admin ON agent_feedback;
 
-CREATE POLICY agent_feedback_select ON agent_feedback
-  FOR SELECT TO authenticated
-  USING (
-    workspace_id::text IN (
-      SELECT wm.workspace_id::text FROM workspace_members wm
-      WHERE wm.user_id = auth.uid() AND wm.removed_at IS NULL
-    )
-  );
+    CREATE POLICY agent_feedback_select ON agent_feedback
+      FOR SELECT TO authenticated
+      USING (
+        workspace_id::text IN (
+          SELECT wm.workspace_id::text FROM workspace_members wm
+          WHERE wm.user_id = auth.uid() AND wm.removed_at IS NULL
+        )
+      );
 
-CREATE POLICY agent_feedback_insert ON agent_feedback
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    user_id = auth.uid()
-    AND workspace_id::text IN (
-      SELECT wm.workspace_id::text FROM workspace_members wm
-      WHERE wm.user_id = auth.uid() AND wm.removed_at IS NULL
-    )
-  );
+    CREATE POLICY agent_feedback_insert ON agent_feedback
+      FOR INSERT TO authenticated
+      WITH CHECK (
+        user_id = auth.uid()
+        AND workspace_id::text IN (
+          SELECT wm.workspace_id::text FROM workspace_members wm
+          WHERE wm.user_id = auth.uid() AND wm.removed_at IS NULL
+        )
+      );
 
-CREATE POLICY agent_feedback_update ON agent_feedback
-  FOR UPDATE TO authenticated
-  USING (
-    user_id = auth.uid()
-    AND workspace_id::text IN (
-      SELECT wm.workspace_id::text FROM workspace_members wm
-      WHERE wm.user_id = auth.uid() AND wm.removed_at IS NULL
-    )
-  );
+    CREATE POLICY agent_feedback_update ON agent_feedback
+      FOR UPDATE TO authenticated
+      USING (
+        user_id = auth.uid()
+        AND workspace_id::text IN (
+          SELECT wm.workspace_id::text FROM workspace_members wm
+          WHERE wm.user_id = auth.uid() AND wm.removed_at IS NULL
+        )
+      );
 
-CREATE POLICY agent_feedback_delete_owner_admin ON agent_feedback
-  FOR DELETE TO authenticated
-  USING (
-    workspace_id::text IN (
-      SELECT wm.workspace_id::text FROM workspace_members wm
-      WHERE wm.user_id = auth.uid()
-        AND wm.removed_at IS NULL
-        AND wm.role IN ('owner', 'admin')
-    )
-  );
+    CREATE POLICY agent_feedback_delete_owner_admin ON agent_feedback
+      FOR DELETE TO authenticated
+      USING (
+        workspace_id::text IN (
+          SELECT wm.workspace_id::text FROM workspace_members wm
+          WHERE wm.user_id = auth.uid()
+            AND wm.removed_at IS NULL
+            AND wm.role IN ('owner', 'admin')
+        )
+      );
+  END IF;
+END $$;
 
 -- ============================================================================
 -- 4. Add milestone_type CHECK constraint (DW-2.6a-5)
