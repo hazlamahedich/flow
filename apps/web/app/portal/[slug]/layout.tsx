@@ -4,6 +4,11 @@ import {
   validatePortalSessionWithDb,
   PORTAL_COOKIE_NAME,
 } from '@/lib/actions/portal';
+import { PortalBrandingStyle } from '@/app/portal/components/PortalBrandingStyle';
+import { PortalBrandingProvider } from '@/app/portal/components/PortalBrandingProvider';
+import { PORTAL_FONT_CLASSES } from '@/app/portal/fonts';
+import { getPortalBranding } from '@/lib/actions/portal-branding/get-branding';
+import type { PortalBrandingConfig } from '@/lib/portal-branding/resolve';
 
 /**
  * Portal layout shell.
@@ -16,8 +21,9 @@ import {
  * so the cookie isn't required to start a session.
  *
  * UX-DR38: "Powered by Flow OS" footer with referral attribution.
- * Palette values (CSS vars) ship with defaults today; 9-1b will swap in
- * branded values via the PortalBrandingProvider.
+ * UX-DR3/4/35: Portal branding injected via PortalBrandingStyle (scoped CSS
+ * custom properties) + PortalBrandingProvider (content vars via Context).
+ * Default preset is `warm-host` (warm cream + gold accent, trophy-case feel).
  */
 export default async function PortalLayout({
   children,
@@ -35,14 +41,18 @@ export default async function PortalLayout({
   const cookieStore = await cookies();
   const hasCookie = cookieStore.get(PORTAL_COOKIE_NAME) !== undefined;
 
+  /**
+   * 9-1b T3.2 fix: replaced non-existent --flow-color-* placeholders with
+   * canonical --flow-* names from packages/tokens/src/css/generated-themes.css.
+   */
   if (!session) {
     return (
-      <div className="min-h-screen bg-[var(--flow-color-bg-primary)] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[var(--flow-bg-canvas)] flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center space-y-4">
-          <h1 className="text-xl font-semibold text-[var(--flow-color-text-primary)]">
+          <h1 className="text-xl font-semibold text-[var(--flow-text-primary)]">
             Your portal link has expired
           </h1>
-          <p className="text-sm text-[var(--flow-color-text-tertiary)]">
+          <p className="text-sm text-[var(--flow-text-muted)]">
             {hasCookie
               ? 'Your session has ended. Please request a new link from your virtual assistant.'
               : 'This link is invalid, expired, or has already been used. Please request a new link from your virtual assistant.'}
@@ -53,14 +63,23 @@ export default async function PortalLayout({
     );
   }
 
+  // 9-1b T3.1: resolve workspace branding config (defaults to warm-host if none).
+  const brandingConfig: PortalBrandingConfig | undefined = await getPortalBranding(
+    session.workspaceId,
+  );
+
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--flow-color-bg-primary)]">
-      <header className="border-b border-[var(--flow-color-border-default)] px-4 py-2">
-        <p className="text-sm text-[var(--flow-color-text-tertiary)]">Client Portal</p>
-      </header>
-      <main className="flex-1">{children}</main>
-      <PoweredByFooter slug={slug} />
-    </div>
+    <PortalBrandingStyle config={brandingConfig}>
+      <PortalBrandingProvider config={brandingConfig}>
+        <div className={`min-h-screen flex flex-col bg-[var(--flow-bg-canvas)] ${PORTAL_FONT_CLASSES}`}>
+          <header className="border-b border-[var(--flow-border-default)] px-4 py-2">
+            <p className="text-sm text-[var(--flow-text-muted)]">Client Portal</p>
+          </header>
+          <main className="flex-1">{children}</main>
+          <PoweredByFooter slug={slug} />
+        </div>
+      </PortalBrandingProvider>
+    </PortalBrandingStyle>
   );
 }
 
@@ -72,12 +91,12 @@ export default async function PortalLayout({
 function PoweredByFooter({ slug }: { slug: string }) {
   const refUrl = `https://flow.app/?ref=${encodeURIComponent(slug)}`;
   return (
-    <footer className="border-t border-[var(--flow-color-border-default)] px-4 py-3 text-center">
-      <p className="text-xs text-[var(--flow-color-text-tertiary)]">
+    <footer className="border-t border-[var(--flow-border-default)] px-4 py-3 text-center">
+      <p className="text-xs text-[var(--flow-text-muted)]">
         Powered by{' '}
         <Link
           href={refUrl}
-          className="font-medium text-[var(--flow-color-text-secondary)] underline-offset-2 hover:underline"
+          className="font-medium text-[var(--flow-text-primary)] underline-offset-2 hover:underline"
           rel="noopener noreferrer"
           target="_blank"
         >
