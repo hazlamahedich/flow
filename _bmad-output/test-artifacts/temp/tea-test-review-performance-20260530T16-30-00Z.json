@@ -1,0 +1,45 @@
+{
+  "dimension": "performance",
+  "score": 75,
+  "max_score": 100,
+  "grade": "C",
+  "violations": [
+    {
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 9,
+      "severity": "HIGH",
+      "category": "excessive-beforeeach-navigation",
+      "description": "Redundant navigation in beforeEach block. In 6 out of 9 tests, ownerPage navigates to '/reports' in the beforeEach block, only to immediately navigate to another page (e.g. '/reports/templates', '/reports/agent-log', '/analytics', etc.) at the start of the test.",
+      "suggestion": "Move route-specific navigations out of beforeEach and place them inside only the individual tests that require them, or group tests in nested describe blocks with separate beforeEach setups.",
+      "code_snippet": "test.beforeEach(async ({ ownerPage }) => {\n    await ownerPage.goto('/reports');\n  });"
+    },
+    {
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 8,
+      "severity": "LOW",
+      "category": "lack-of-parallelization-hint",
+      "description": "The describe block does not configure explicit parallel execution within the file",
+      "suggestion": "Enable parallel E2E execution inside the test file using 'test.describe.configure({ mode: 'parallel' })' to fully leverage Playwright's parallel runner.",
+      "code_snippet": "test.describe('[P0] Epic 8 — Reporting & Client Health', () => {"
+    }
+  ],
+  "passed_checks": 13,
+  "failed_checks": 2,
+  "total_checks": 15,
+  "violation_summary": {
+    "HIGH": 1,
+    "MEDIUM": 0,
+    "LOW": 1
+  },
+  "performance_metrics": {
+    "parallelizable_tests": 100,
+    "serial_tests": 0,
+    "avg_test_duration_estimate": "~1.5 seconds per test",
+    "slow_tests": []
+  },
+  "recommendations": [
+    "Refactor navigation: only navigate to '/reports' in tests that actually use it, avoiding double-navigation overhead.",
+    "Add 'test.describe.configure({ mode: 'parallel' })' at the top of the describe block to run E2E tests concurrently."
+  ],
+  "summary": "Performance is degraded by a major navigation inefficiency: a global beforeEach always navigates to '/reports', which is completely redundant for 6 out of the 9 tests that immediately navigate elsewhere. Fixing this will decrease E2E test execution time significantly."
+}

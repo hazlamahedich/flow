@@ -17,7 +17,8 @@ export type CacheEntity =
   | 'invoice'
   | 'invoice_line_item'
   | 'invoice_payment'
-  | 'credit_note';
+  | 'credit_note'
+  | 'portal_token';
 
 export type CacheMutation = 'create' | 'update' | 'delete';
 
@@ -41,6 +42,7 @@ const ENTITY_TAG_MAP: Record<CacheEntity, string> = {
   invoice_line_item: 'invoices',
   invoice_payment: 'invoices',
   credit_note: 'invoices',
+  portal_token: 'portal-tokens',
 };
 
 export function cacheTag(

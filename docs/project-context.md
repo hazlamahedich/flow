@@ -468,7 +468,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - JWT token refresh does NOT re-evaluate Supabase Realtime subscriptions. Use server-sent events or polling for permission-sensitive real-time updates.
 - Workspace switch in multi-tab: session-level workspace context, not JWT-only. Token refresh kills Realtime subscriptions across open tabs.
 - RLS returns empty result sets, not 403s. Application cannot distinguish "no data" from "not allowed." Use `has_access()` RPC for explicit permission checks before rendering.
-- Client portal magic links scoped to `(workspace_id, client_id)`. No cross-client visibility. Links expire after 15 minutes. Max 5 generation attempts per email per hour.
+- Client portal magic links scoped to `(workspace_id, client_id)`. No cross-client visibility. Magic-link tokens expire after 72 hours (configurable, max 168 hours), are single-use, and stored as sha256 hashes only. Once consumed, they establish a 24-hour absolute portal session cookie (`__flow_portal`, HttpOnly, Secure, SameSite=Lax). Max 5 generation attempts per email per hour.
 - **Service role RLS bypass:** every server-side query using service_role key must include explicit `workspace_id` filter via shared data-access layer. One unprotected `.select('*')` = cross-tenant leak. Linter rule flags unprotected service-role queries.
 - **LLM context isolation:** context windows explicitly cleared between workspace processing. No shared in-memory conversation state across tenants. No shared conversation threads across client boundaries, even within the same VA session.
 - **Post-generation PII scanner:** agent outputs scanned against PII pattern library before delivery. Tokenization covers storage, not LLM output.

@@ -1,0 +1,39 @@
+{
+  "dimension": "maintainability",
+  "score": 92,
+  "max_score": 100,
+  "grade": "A-",
+  "violations": [
+    {
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 10,
+      "severity": "LOW",
+      "category": "hardcoded-routes",
+      "description": "Hardcoded routing strings used directly in test navigation",
+      "suggestion": "Move routes/URLs into a unified config file or route enum to prevent failures when pages are moved.",
+      "code_snippet": "await ownerPage.goto('/reports');"
+    },
+    {
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 16,
+      "severity": "LOW",
+      "category": "non-bdd-naming",
+      "description": "Test titles do not strictly follow Given-When-Then BDD naming convention",
+      "suggestion": "Prefix titles with 'Given... When... Then...' to align with the BDD Format best practices.",
+      "code_snippet": "test('[8.1-E2E-001] reports list page loads with heading and generate button', async ({ ownerPage }) => {"
+    }
+  ],
+  "passed_checks": 13,
+  "failed_checks": 2,
+  "total_checks": 15,
+  "violation_summary": {
+    "HIGH": 0,
+    "MEDIUM": 0,
+    "LOW": 2
+  },
+  "recommendations": [
+    "Refactor test titles to follow a strict Given-When-Then BDD style.",
+    "Extract page routes to a shared constants dictionary in tests/support/helpers."
+  ],
+  "summary": "High maintainability score. The file structure is clean, utilizes descriptive block groupings, and is kept well under the 300-line soft limit (131 lines total). Only minor style/naming low-severity issues were found."
+}

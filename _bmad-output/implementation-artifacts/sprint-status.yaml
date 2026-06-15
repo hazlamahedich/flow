@@ -1,6 +1,6 @@
 ---
 generated: 2026-04-20
-  last_updated: 2026-06-10  # Epic 8 retro closeout complete — all 45 pgTAP files passing (566 tests)
+  last_updated: 2026-06-16  # Story 9-1a code review closed (10 findings fixed, tests pass)
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -100,8 +100,10 @@ development_status:
   epic-8-retro-td3-pgtap-epic8-tests: done
   epic-8-retro-p2-story-sync: done
 
-  epic-9: backlog
-  9-1-client-portal-foundation-light-theme: backlog
+  epic-9: in-progress
+  9-1-client-portal-foundation-light-theme: deprecated  # SPLIT — replaced by 9-1a, 9-1b (see epic-9-planning-review.md §2)
+  9-1a-portal-auth-layout: done                        # Portal tokens, anon-role RLS, layout shell, abuse prevention (FR8, FR51, FR54, UX-DR38). Code review closed 2026-06-16.
+  9-1b-portal-branding-theming: backlog                # Light theme palette, branding presets, constrained customization (UX-DR12, UX-DR26, UX-DR35)
   9-2-client-portal-invoice-payment-report-approval: backlog
   9-3-stripe-payment-integration-webhook-processing: backlog
   9-4-subscription-tiers-tier-limits: backlog
@@ -192,3 +194,22 @@ test_metrics:
     pass_rate: "100%"
     note: "All P0 acceptance tests for Epic 8 (90/90) are passing green."
     target_pass_rate: "100% of P0 tests"
+  epic-9-atdd:
+    last_measured: 2026-06-15
+    total: 163
+    passing: 163
+    skipped: 0
+    pass_rate: "100%"
+    note: "ATDD red-phase scaffolds for all 10 Epic 9 slices (9-1a/b, 9-2, 9-3a/b, 9-4, 9-5a/b, 9-6, 9-7). Contract-first pattern: vi.hoisted + vi.mock stubs verify schemas, constants, state machine transitions, and mock signatures. Tests pass now (contract verification); become RED acceptance criteria when vi.mock stubs are replaced with real imports during story implementation."
+    target_pass_rate: "100% of P0 tests"
+    slices:
+      "9-1a": { tests: 17, frs: "FR8, FR51, FR54, UX-DR38" }
+      "9-1b": { tests: 19, frs: "FR51, UX-DR12, UX-DR26, UX-DR35" }
+      "9-2":  { tests: 16, frs: "FR52, FR53, FR82, UX-DR36-40" }
+      "9-3a": { tests: 22, frs: "FR39, FR42, FR44, NFR05, NFR46" }
+      "9-3b": { tests: 13, frs: "FR39, FR58" }
+      "9-4":  { tests: 15, frs: "FR55, FR56, FR61, FR62" }
+      "9-5a": { tests: 19, frs: "FR59, FR60" }
+      "9-5b": { tests: 14, frs: "FR57, FR60" }
+      "9-6":  { tests: 15, frs: "FR37, FR60" }
+      "9-7":  { tests: 13, frs: "NFR54, NFR55, NFR56" }

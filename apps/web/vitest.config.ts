@@ -23,6 +23,7 @@ export default defineConfig({
       { find: '@flow/auth/device-trust', replacement: path.resolve(__dirname, '../../packages/auth/src/device-trust.ts') },
       { find: '@flow/auth/device-types', replacement: path.resolve(__dirname, '../../packages/auth/src/device-types.ts') },
       { find: '@flow/auth/server-admin', replacement: path.resolve(__dirname, '../../packages/auth/src/server-admin.ts') },
+      { find: '@flow/auth/server/portal-client', replacement: path.resolve(__dirname, '../../packages/auth/src/server/portal-client.ts') },
       { find: '@flow/auth/env', replacement: path.resolve(__dirname, '../../packages/auth/src/env.ts') },
       { find: /^@flow\/auth$/, replacement: path.resolve(__dirname, '../../packages/auth/src/index.ts') },
       { find: '@flow/test-utils', replacement: path.resolve(__dirname, '../../packages/test-utils/src/index.ts') },

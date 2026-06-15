@@ -1,0 +1,30 @@
+{
+  "dimension": "isolation",
+  "score": 90,
+  "max_score": 100,
+  "grade": "A-",
+  "violations": [
+    {
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 9,
+      "severity": "MEDIUM",
+      "category": "shared-database-state",
+      "description": "Tests rely on global seeded state without explicit test-level data provisioning or dynamic data creation",
+      "suggestion": "Implement test-specific database seeding (e.g. creating client and report records inside beforeEach or custom page fixtures) and perform cleanup after execution.",
+      "code_snippet": "test.beforeEach(async ({ ownerPage }) => {\n    await ownerPage.goto('/reports');\n  });"
+    }
+  ],
+  "passed_checks": 14,
+  "failed_checks": 1,
+  "total_checks": 15,
+  "violation_summary": {
+    "HIGH": 0,
+    "MEDIUM": 1,
+    "LOW": 0
+  },
+  "recommendations": [
+    "Adopt the Data Factories and API Setup pattern (from data-factories.md) to seed unique, isolated records per test run.",
+    "Introduce cleanup blocks or transaction resets in database triggers to prevent pollution and test interference."
+  ],
+  "summary": "Excellent test-level isolation in terms of browser context: the suite uses separate, authenticated page contexts (ownerPage) for each test. The main concern is reliance on shared/global database state without test-level provisioning or cleanup discipline, which represents a medium severity isolation issue."
+}

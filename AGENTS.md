@@ -89,13 +89,30 @@ A unified knowledge graph of the project exists at `graphify-out/graph.json`. It
 1. Run `graphify --update` on the changed directory to keep the graph in sync
 2. Or rely on the git post-commit hook for code-only changes (AST re-extraction, no LLM cost)
 
-**If the graph doesn't exist**, skip graph steps entirely — never block on it. To rebuild from scratch, run graphify on each key directory in order:
+**If the graph doesn't exist**, skip graph steps entirely — never block on it. To rebuild from scratch, run graphify on each key directory in order (note: `--wiki` is not supported in graphify v0.8.17 — use the Obsidian converter script below instead):
 ```bash
-graphify _bmad-output/planning-artifacts/ --mode deep --wiki
+graphify _bmad-output/planning-artifacts/ --mode deep
 graphify _bmad-output/implementation-artifacts/ --update
 graphify apps/web/ --update && graphify packages/ --update
 graphify supabase/migrations/ --update && graphify supabase/tests/ --update && graphify tests/ --update
 ```
+
+**Obsidian bridge** — graphify emits `graph.json` / `GRAPH_REPORT.md` / `graph.html`; it does not emit a markdown vault. To get a queryable Obsidian second-brain over the same graph, run:
+```bash
+python3 scripts/graphify-to-obsidian.py
+# → writes graphify-out/obsidian-vault/{concepts,files,communities,INDEX.md}
+# open that folder in Obsidian: File > Open vault
+```
+Re-run after every `graphify update`. The vault is `.gitignore`d. Scope: ~192 concept notes, ~5000 source-file notes (capped), ~6900 community MOCs. LLM cost: zero (converter reads existing `graph.json`, no API calls).
+
+**Automated refresh** — the Obsidian vault refreshes itself after every commit and branch switch:
+- The graphify `post-commit` and `post-checkout` hooks call `scripts/refresh-obsidian-vault.sh`, which launches `scripts/graphify-to-obsidian.py` **detached in the background** (non-blocking — commits return immediately, converter takes ~70s on exFAT).
+- The converter has a built-in mtime guard (skips if vault already newer than `graph.json`) and a lockfile (skips if another refresh is running within the last 10 min).
+- Opt out for a single commit: `SKIP_OBSIDIAN_REFRESH=1 git commit ...`
+- Manual foreground refresh: `pnpm brain` (or `pnpm brain:force` to bypass the mtime guard).
+- Background log: `graphify-out/obsidian-vault.refresh.log`.
+
+The hook additions live **outside** graphify's `# graphify-hook-start`/`# graphify-hook-end` markers, so `graphify hook uninstall` + `graphify hook install` will not clobber them.
 
 **Key queries for BMAD workflows:**
 - Requirement traceability: `/graphify path "FR28a" "<code_or_story_node>"`

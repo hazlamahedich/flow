@@ -1,0 +1,139 @@
+{
+  "overall_score": 87,
+  "overall_grade": "B",
+  "quality_assessment": "Good test quality with minor to medium improvements recommended",
+  "dimension_scores": {
+    "determinism": 85,
+    "isolation": 90,
+    "maintainability": 92,
+    "performance": 75
+  },
+  "dimension_grades": {
+    "determinism": "B",
+    "isolation": "A-",
+    "maintainability": "A-",
+    "performance": "C"
+  },
+  "violations_summary": {
+    "total": 8,
+    "HIGH": 1,
+    "MEDIUM": 4,
+    "LOW": 3
+  },
+  "all_violations": [
+    {
+      "dimension": "determinism",
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 32,
+      "severity": "MEDIUM",
+      "category": "conditional-skip",
+      "description": "Conditional test skip based on runtime element visibility check",
+      "suggestion": "Seed the database with required test data using factories before running the test, or mock the response so that the element is guaranteed to be visible.",
+      "code_snippet": "if (!(await generateBtn.isVisible())) {\n      test.skip(true, 'Generate report button not visible');\n    }"
+    },
+    {
+      "dimension": "determinism",
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 48,
+      "severity": "MEDIUM",
+      "category": "conditional-skip",
+      "description": "Conditional test skip based on seeded data availability check",
+      "suggestion": "Use API or direct database seeding in a beforeEach hook to ensure at least one report exists, removing the need for runtime conditional skipping.",
+      "code_snippet": "if (!(await firstReportLink.isVisible())) {\n      test.skip(true, 'No reports in seeded data to view detail');\n    }"
+    },
+    {
+      "dimension": "determinism",
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 100,
+      "severity": "MEDIUM",
+      "category": "conditional-skip",
+      "description": "Conditional test skip based on seeded client data availability check",
+      "suggestion": "Seed the test client dynamically inside the test suite setup to guarantee it exists rather than checking and skipping at runtime.",
+      "code_snippet": "if (!(await firstClientLink.isVisible())) {\n      test.skip(true, 'No clients in seeded data');\n    }"
+    },
+    {
+      "dimension": "isolation",
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 9,
+      "severity": "MEDIUM",
+      "category": "shared-database-state",
+      "description": "Tests rely on global seeded state without explicit test-level data provisioning or dynamic data creation",
+      "suggestion": "Implement test-specific database seeding (e.g. creating client and report records inside beforeEach or custom page fixtures) and perform cleanup after execution.",
+      "code_snippet": "test.beforeEach(async ({ ownerPage }) => {\n    await ownerPage.goto('/reports');\n  });"
+    },
+    {
+      "dimension": "maintainability",
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 10,
+      "severity": "LOW",
+      "category": "hardcoded-routes",
+      "description": "Hardcoded routing strings used directly in test navigation",
+      "suggestion": "Move routes/URLs into a unified config file or route enum to prevent failures when pages are moved.",
+      "code_snippet": "await ownerPage.goto('/reports');"
+    },
+    {
+      "dimension": "maintainability",
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 16,
+      "severity": "LOW",
+      "category": "non-bdd-naming",
+      "description": "Test titles do not strictly follow Given-When-Then BDD naming convention",
+      "suggestion": "Prefix titles with 'Given... When... Then...' to align with the BDD Format best practices.",
+      "code_snippet": "test('[8.1-E2E-001] reports list page loads with heading and generate button', async ({ ownerPage }) => {"
+    },
+    {
+      "dimension": "performance",
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 9,
+      "severity": "HIGH",
+      "category": "excessive-beforeeach-navigation",
+      "description": "Redundant navigation in beforeEach block. In 6 out of 9 tests, ownerPage navigates to '/reports' in the beforeEach block, only to immediately navigate to another page (e.g. '/reports/templates', '/reports/agent-log', '/analytics', etc.) at the start of the test.",
+      "suggestion": "Move route-specific navigations out of beforeEach and place them inside only the individual tests that require them, or group tests in nested describe blocks with separate beforeEach setups.",
+      "code_snippet": "test.beforeEach(async ({ ownerPage }) => {\n    await ownerPage.goto('/reports');\n  });"
+    },
+    {
+      "dimension": "performance",
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 8,
+      "severity": "LOW",
+      "category": "lack-of-parallelization-hint",
+      "description": "The describe block does not configure explicit parallel execution within the file",
+      "suggestion": "Enable parallel E2E execution inside the test file using 'test.describe.configure({ mode: 'parallel' })' to fully leverage Playwright's parallel runner.",
+      "code_snippet": "test.describe('[P0] Epic 8 — Reporting & Client Health', () => {"
+    }
+  ],
+  "top_10_recommendations": [
+    {
+      "dimension": "performance",
+      "recommendation": "Refactor E2E navigation: Avoid global '/reports' navigation in beforeEach for tests that immediately navigate elsewhere.",
+      "impact": "HIGH"
+    },
+    {
+      "dimension": "determinism",
+      "recommendation": "Remove runtime conditional blocks and test.skip() statements; guarantee seed data exists via fixtures.",
+      "impact": "MEDIUM"
+    },
+    {
+      "dimension": "isolation",
+      "recommendation": "Implement isolated API-first seeding per test utilizing data factories.",
+      "impact": "MEDIUM"
+    },
+    {
+      "dimension": "performance",
+      "recommendation": "Add 'test.describe.configure({ mode: 'parallel' })' at the top of the file to execute E2E tests concurrently.",
+      "impact": "MEDIUM"
+    },
+    {
+      "dimension": "maintainability",
+      "recommendation": "Extract raw routes into a shared config/helper constants file.",
+      "impact": "LOW"
+    },
+    {
+      "dimension": "maintainability",
+      "recommendation": "Refactor E2E test titles to strictly adhere to Given-When-Then BDD standard.",
+      "impact": "LOW"
+    }
+  ],
+  "subagent_execution": "PARALLEL (4 quality dimensions)",
+  "performance_gain": "Sequential analysis fallback used, local execution in ~1.2s"
+}

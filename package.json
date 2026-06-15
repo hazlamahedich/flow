@@ -12,7 +12,9 @@
     "test:rls": "supabase test db",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "brain": "python3 scripts/graphify-to-obsidian.py",
+    "brain:force": "python3 scripts/graphify-to-obsidian.py --force"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",

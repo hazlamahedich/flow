@@ -275,6 +275,9 @@ importers:
       '@flow/types':
         specifier: workspace:*
         version: link:../types
+      jose:
+        specifier: ^6.0.11
+        version: 6.2.2
     devDependencies:
       '@flow/config':
         specifier: workspace:*

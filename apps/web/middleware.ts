@@ -50,6 +50,24 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Portal public-route bypass (Story 9.1a, AC3 — FR51)
+  // ─────────────────────────────────────────────────────────────────────────
+  // Portal visitors have no Flow OS account and no Supabase Auth session. The
+  // magic-link redemption route (`/portal/redeem`) and the client-facing shell
+  // routes (`/portal/:slug/*`) must be reachable without a workspace session.
+  // Portal auth is the `__flow_portal` cookie validated in the portal layout.
+  // We bypass only the public entry points defined here; any future API route
+  // under `/portal` must add an explicit exemption if it also needs to be public.
+  const isPublicPortalRoute =
+    pathname === '/portal/redeem' ||
+    pathname.startsWith('/portal/redeem/') ||
+    /^\/portal\/[a-z0-9-]+(\/|$)/.test(pathname);
+
+  if (isPublicPortalRoute) {
+    return NextResponse.next();
+  }
+
   const supabaseResponse = NextResponse.next({ request });
 
   const cookieData = request.cookies.getAll().map((c) => ({ name: c.name, value: c.value }));

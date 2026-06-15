@@ -1,0 +1,48 @@
+{
+  "dimension": "determinism",
+  "score": 85,
+  "max_score": 100,
+  "grade": "B",
+  "violations": [
+    {
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 32,
+      "severity": "MEDIUM",
+      "category": "conditional-skip",
+      "description": "Conditional test skip based on runtime element visibility check",
+      "suggestion": "Seed the database with required test data using factories before running the test, or mock the response so that the element is guaranteed to be visible.",
+      "code_snippet": "if (!(await generateBtn.isVisible())) {\n      test.skip(true, 'Generate report button not visible');\n    }"
+    },
+    {
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 48,
+      "severity": "MEDIUM",
+      "category": "conditional-skip",
+      "description": "Conditional test skip based on seeded data availability check",
+      "suggestion": "Use API or direct database seeding in a beforeEach hook to ensure at least one report exists, removing the need for runtime conditional skipping.",
+      "code_snippet": "if (!(await firstReportLink.isVisible())) {\n      test.skip(true, 'No reports in seeded data to view detail');\n    }"
+    },
+    {
+      "file": "tests/e2e/epic-8-reporting.spec.ts",
+      "line": 100,
+      "severity": "MEDIUM",
+      "category": "conditional-skip",
+      "description": "Conditional test skip based on seeded client data availability check",
+      "suggestion": "Seed the test client dynamically inside the test suite setup to guarantee it exists rather than checking and skipping at runtime.",
+      "code_snippet": "if (!(await firstClientLink.isVisible())) {\n      test.skip(true, 'No clients in seeded data');\n    }"
+    }
+  ],
+  "passed_checks": 12,
+  "failed_checks": 3,
+  "total_checks": 15,
+  "violation_summary": {
+    "HIGH": 0,
+    "MEDIUM": 3,
+    "LOW": 0
+  },
+  "recommendations": [
+    "Ensure all tests actively provision their own required data via API/seeding rather than relying on global database state.",
+    "Remove runtime conditional blocks and test.skip() statements to ensure tests either run fully or fail explicitly."
+  ],
+  "summary": "The test suite has no high severity determinism issues like Math.random() or hardcoded date/time objects. However, there are 3 medium-severity violations due to conditional test skipping (test.skip()) depending on seeded data visibility, which reduces determinism and can hide integration/seeding failures."
+}
