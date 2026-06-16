@@ -10,7 +10,7 @@
 export { generatePortalLinkAction } from './generate-link';
 export { validatePortalTokenAction } from './validate-token';
 export { revokePortalTokenAction } from './revoke-token';
-export { validatePortalSession, getPortalPath, getFallbackPortalPath } from './portal-session';
+export { validatePortalSession, validatePortalSlug, getPortalPath, getFallbackPortalPath } from './portal-session';
 export { validatePortalSessionWithDb } from './validate-session-db';
 export {
   PORTAL_TOKEN_BYTES,
@@ -21,3 +21,16 @@ export {
 } from './constants';
 export { portalTokenSchema, generatePortalLinkSchema, revokePortalTokenSchema } from './schemas';
 export type { PortalContext } from './helpers';
+
+// Story 9.2 — portal query helpers (read-only)
+export { getPortalInvoices } from './get-portal-invoices';
+export type { PortalInvoiceListItem } from './get-portal-invoices';
+export { getPortalInvoiceDetail } from './get-portal-invoice-detail';
+export type { PortalInvoiceDetail } from './get-portal-invoice-detail';
+
+// Story 9.2 — portal server actions
+export { payInvoicePortalAction } from './pay-invoice';
+export { approveReportAction } from './approve-report';
+export { requestReportChangesAction } from './request-report-changes';
+export { sendClientNotificationAction } from './client-notification';
+export { sendClientNotificationServerAction } from './client-notification-server';

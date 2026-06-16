@@ -1,6 +1,6 @@
 ---
 generated: 2026-04-20
-  last_updated: 2026-06-16  # Story 9-1b code review closed, patches applied, tests pass
+  last_updated: 2026-06-16  # Story 9-2 review: DB security patches applied, unit/acceptance tests green, pgTAP blocked by pre-existing db reset failure
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -104,7 +104,7 @@ development_status:
   9-1-client-portal-foundation-light-theme: deprecated  # SPLIT — replaced by 9-1a, 9-1b (see epic-9-planning-review.md §2)
   9-1a-portal-auth-layout: done                        # Portal tokens, anon-role RLS, layout shell, abuse prevention (FR8, FR51, FR54, UX-DR38). Code review closed 2026-06-16.
   9-1b-portal-branding-theming: done        # Code review closed 2026-06-16, patches applied, tests pass
-  9-2-client-portal-invoice-payment-report-approval: backlog
+  9-2-client-portal-invoice-payment-report-approval: in-progress  # Code review closed; security patches applied; unit + acceptance tests green; pgTAP run blocked by pre-existing supabase db reset failure
   9-3-stripe-payment-integration-webhook-processing: backlog
   9-4-subscription-tiers-tier-limits: backlog
   9-5-subscription-lifecycle-downgrade-handling: backlog

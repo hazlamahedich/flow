@@ -12,6 +12,7 @@ import { sendInvoiceSchema } from '@flow/types';
 import type { ActionResult } from '@flow/types';
 import { getPaymentProvider, getTransactionalEmailProvider, signDeliveryToken } from '@flow/agents/providers';
 import { buildSendInvoiceEmailPayload, plainLanguageError } from './send-invoice-email';
+import { sendClientNotificationServerAction } from '../portal/client-notification-server';
 
 export async function sendInvoiceAction(
   input: unknown,
@@ -173,11 +174,19 @@ export async function sendInvoiceAction(
     };
   }
 
-  // Update invoice to sent and store payment_url
+  // Update invoice to sent and store payment_url + checkout metadata
   const nowIso = new Date().toISOString();
+  const paymentUrlExpiresAt = new Date(Math.min(dueDateMs, sevenDaysMs)).toISOString();
   const { error: updateError } = await supabase
     .from('invoices')
-    .update({ status: 'sent', sent_at: nowIso, payment_url: checkout.url, delivery_token: token })
+    .update({
+      status: 'sent',
+      sent_at: nowIso,
+      payment_url: checkout.url,
+      payment_url_expires_at: paymentUrlExpiresAt,
+      stripe_checkout_session_id: checkout.sessionId,
+      delivery_token: token,
+    })
     .eq('id', invoiceId)
     .eq('workspace_id', ctx.workspaceId);
 
@@ -207,7 +216,14 @@ export async function sendInvoiceAction(
       .eq('workspace_id', ctx.workspaceId);
 
     if (teMarkError) {
-      console.error('Failed to mark time entries as invoiced:', teMarkError.message, { invoiceId, timeEntryIds: invoicedTimeEntryIds });
+      await supabase.from('audit_log').insert({
+        workspace_id: ctx.workspaceId,
+        user_id: ctx.userId,
+        action: 'time_entries_invoiced_failed',
+        entity_type: 'invoice',
+        entity_id: invoiceId,
+        details: { error: teMarkError.message, timeEntryIds: invoicedTimeEntryIds },
+      });
     }
   }
 
@@ -229,6 +245,13 @@ export async function sendInvoiceAction(
 
   revalidateTag(cacheTag('invoice', ctx.workspaceId));
   invalidateAfterMutation('invoice', 'update', ctx.workspaceId);
+
+  // Story 9.2 (FR82): best-effort client notification — never blocks the primary flow (EC12/EC13)
+  void sendClientNotificationServerAction({
+    type: 'invoice_created',
+    clientId: (invoice as Record<string, unknown>).client_id as string,
+    payload: { invoiceId, invoiceNumber, amountCents: totalCents, currency },
+  }).catch(() => {});
 
   return { success: true, data: { invoiceId, paymentUrl: checkout.url, deliveryId } };
 }

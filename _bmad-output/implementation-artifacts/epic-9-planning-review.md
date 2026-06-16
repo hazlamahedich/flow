@@ -404,3 +404,21 @@ Sprint 4: Completion
 | 5 | Conditional-write pattern for mutable shared state | Apply to webhook dedup (`INSERT ... ON CONFLICT DO NOTHING`) and subscription state transitions (`UPDATE ... WHERE status = $expected`). |
 | 6 | Shared helpers in packages, not apps | Billing queries go in `@flow/db/queries` from the start. Portal helpers in `packages/shared/`. |
 | 7 | Track model per story from Epic 9 onward | Finding density table must be populated during each story's dev cycle. |
+
+## Appendix C: Close-Out Checklist (run before `epic-9-retrospective: done`)
+
+Triggered once all Epic 9 stories are `done` and the retrospective is opened.
+
+- [ ] **Graphify semantic re-extraction (deferred from per-story runs).** The git post-commit hook keeps **code** AST nodes current for free, but **markdown/prose** (`planning-artifacts/`, `implementation-artifacts/`) needs an LLM batch to refresh the `INFERRED` concept/edge layer. Run once over both directories:
+  ```bash
+  OLLAMA_API_KEY=x graphify _bmad-output/planning-artifacts/ --update \
+    --backend ollama --model qwen2.5:14b --max-concurrency 1
+  OLLAMA_API_KEY=x graphify _bmad-output/implementation-artifacts/ --update \
+    --backend ollama --model qwen2.5:14b --max-concurrency 1
+  ```
+  Prereq: `pip install openai` (graphify's ollama backend uses the OpenAI-compatible client). This is **not** a code-quality gate — it refreshes traceability/coverage-gap/drift queries for the retrospective (`/graphify coverage`, `/graphify drift`, `/graphify path "FR52" "<code>"`).
+- [ ] Epic 9 ATDD: all P0 acceptance tests green (currently 163/163 contract-phase).
+- [ ] pgTAP: all Epic 9 RLS test files passing (portal_tokens, portal_role, portal-branding, + new portal-invoice-report-rls from 9-2).
+- [ ] `pnpm typecheck && pnpm lint && pnpm test` clean.
+- [ ] service_role audit re-verified under portal access patterns (Epic 8 carry-forward #2).
+- [ ] Finding-density table populated for every Epic 9 story (carry-forward #7).

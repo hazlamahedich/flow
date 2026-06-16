@@ -7,6 +7,7 @@
 
 import { cookies } from 'next/headers';
 import { signPortalJwt, verifyPortalJwt } from '@flow/auth/server/portal-client';
+import { getServerSupabase } from '@/lib/supabase-server';
 import {
   PORTAL_COOKIE_NAME,
   PORTAL_SESSION_MAX_AGE_SECONDS,
@@ -72,4 +73,44 @@ export function getPortalPath(slug: string): string | null {
 /** Fallback portal path when no valid slug is available. */
 export function getFallbackPortalPath(): string {
   return `/portal/${PORTAL_SLUG_PLACEHOLDER}`;
+}
+
+/**
+ * Validate the route slug matches the portal session workspace.
+ *
+ * Portal URLs are `/portal/{workspaceSlug}/...`. After redeeming a magic link,
+ * the canonical workspace slug is used. This helper prevents URL spoofing by
+ * ensuring the slug in the address bar corresponds to the session workspace.
+ */
+export async function validatePortalSlug(
+  slug: string,
+): Promise<PortalContext | null> {
+  const session = await validatePortalSession();
+  if (!session) {
+    return null;
+  }
+
+  const safeSlug = sanitizeSlug(slug);
+  if (!safeSlug) {
+    return null;
+  }
+
+  const supabase = await getServerSupabase();
+  const { data, error } = await supabase
+    .from('workspaces')
+    .select('slug')
+    .eq('id', session.workspaceId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const ws = data as { slug?: string | null };
+  const canonicalSlug = sanitizeSlug(ws.slug ?? '');
+  if (canonicalSlug && canonicalSlug !== safeSlug) {
+    return null;
+  }
+
+  return session;
 }
