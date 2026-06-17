@@ -318,7 +318,7 @@ _Epic 5 retro A2: Record the SHA of the first failing test commit (red phase) be
 | Test File | First Red Commit SHA | Date |
 |-----------|---------------------|------|
 | apps/web/__tests__/acceptance/epic-9/9-3b-checkout-portal-integration.spec.ts | (existing RED scaffold, 2026-06-15) | 2026-06-15 |
-| apps/web/__tests__/billing/9-3b-checkout-portal.spec.ts | fdbed8a928b5189c4030cbbe0d4bc4728ab8cea6 | 2026-06-17 |
+| apps/web/__tests__/billing/9-3b-checkout-portal.spec.ts | 73166ab15c5ba2350cc6fc696912cf8b9ddf2971 | 2026-06-17 |
 
 ### File List
 
