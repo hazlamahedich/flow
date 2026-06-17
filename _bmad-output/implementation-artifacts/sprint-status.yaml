@@ -1,6 +1,6 @@
 ---
 generated: 2026-04-20
-  last_updated: 2026-06-16  # Story 9-2 review: DB security patches applied, unit/acceptance tests green, pgTAP blocked by pre-existing db reset failure
+  last_updated: 2026-06-17  # Story 9-3a marked done: all 20 review findings resolved, AC0-AC7 verified.
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -105,7 +105,9 @@ development_status:
   9-1a-portal-auth-layout: done                        # Portal tokens, anon-role RLS, layout shell, abuse prevention (FR8, FR51, FR54, UX-DR38). Code review closed 2026-06-16.
   9-1b-portal-branding-theming: done        # Code review closed 2026-06-16, patches applied, tests pass
   9-2-client-portal-invoice-payment-report-approval: in-progress  # Code review closed; security patches applied; unit + acceptance tests green; pgTAP run blocked by pre-existing supabase db reset failure
-  9-3-stripe-payment-integration-webhook-processing: backlog
+  9-3-stripe-payment-integration-webhook-processing: deprecated  # SPLIT — replaced by 9-3a, 9-3b (see epic-9-planning-review.md §6)
+  9-3a-stripe-webhook-infrastructure: done   # All 20 review findings resolved 2026-06-17: 17 patched initially, 3 remaining (AC0 GREEN phase, route.ts handler extraction, verify-webhook caching) addressed in follow-up. AC0-AC7 verified, 54 vitest + 23 pgTAP all green.
+  9-3b-checkout-portal-integration: backlog           # createCheckoutSession action, Stripe Customer Portal, cancel/reactivate, billing settings UI. FR39, FR58
   9-4-subscription-tiers-tier-limits: backlog
   9-5-subscription-lifecycle-downgrade-handling: backlog
   9-6-recurring-invoices: backlog
@@ -206,7 +208,7 @@ test_metrics:
       "9-1a": { tests: 17, frs: "FR8, FR51, FR54, UX-DR38" }
       "9-1b": { tests: 19, frs: "FR51, UX-DR12, UX-DR26, UX-DR35" }
       "9-2":  { tests: 16, frs: "FR52, FR53, FR82, UX-DR36-40" }
-      "9-3a": { tests: 22, frs: "FR39, FR42, FR44, NFR05, NFR46" }
+      "9-3a": { tests: 22, frs: "FR39, FR42, FR44, FR59, NFR05, NFR46", note: "red-phase scaffold rewritten 2026-06-17; status in-analysis" }
       "9-3b": { tests: 13, frs: "FR39, FR58" }
       "9-4":  { tests: 15, frs: "FR55, FR56, FR61, FR62" }
       "9-5a": { tests: 19, frs: "FR59, FR60" }

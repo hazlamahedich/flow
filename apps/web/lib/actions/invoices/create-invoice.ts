@@ -9,6 +9,7 @@ import {
 } from '@flow/db';
 import { createInvoiceSchema } from '@flow/types';
 import type { ActionResult, Invoice } from '@flow/types';
+import { computeInvoiceDedupHash } from '@flow/shared';
 import { checkDuplicateTimeEntries } from './create-invoice-helpers';
 import { resolveTimeEntryDurations } from './resolve-time-entries';
 import { buildLineItemsAndTotal } from './build-invoice-line-items';
@@ -144,6 +145,34 @@ export async function createInvoiceAction(
   if (!built.success) return built;
   const { dbLineItems, totalCents } = built.data;
 
+  // -- Duplicate invoice guard (forever dedup by workspace + client + items + issue date)
+  const dedupHash = computeInvoiceDedupHash({
+    workspaceId: ctx.workspaceId,
+    clientId,
+    lineItems: dbLineItems.map((li) => ({
+      sourceType: li.source_type,
+      timeEntryId: li.time_entry_id ?? null,
+      retainerId: li.retainer_id ?? null,
+      description: li.description,
+      amountCents: li.amount_cents,
+      quantity: li.quantity,
+    })),
+    issueDate,
+  });
+
+  const { data: duplicate } = await supabase
+    .from('invoices')
+    .select('id')
+    .eq('dedup_hash', dedupHash)
+    .maybeSingle();
+
+  if (duplicate) {
+    return {
+      success: false,
+      error: createFlowError(409, 'DUPLICATE_INVOICE', 'A duplicate invoice exists with the same line items for this client.', 'financial'),
+    };
+  }
+
   // -- Persist invoice via atomic RPC
   try {
     const { data: invoiceId, error: rpcError } = await supabase
@@ -160,9 +189,32 @@ export async function createInvoiceAction(
       });
 
     if (rpcError || !invoiceId) {
+      // Postgres unique_violation on dedup_hash (rare — the SELECT-then-INSERT
+      // race window above). Per AC7, return 409 DUPLICATE_INVOICE on collision.
+      if (rpcError && (rpcError as { code?: string }).code === '23505') {
+        return {
+          success: false,
+          error: createFlowError(409, 'DUPLICATE_INVOICE', 'A duplicate invoice exists with the same line items for this client.', 'financial'),
+        };
+      }
       return {
         success: false,
         error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to create invoice.', 'system'),
+      };
+    }
+
+    // Attach dedup hash to the created invoice (best-effort; unique index guards us)
+    const { error: hashError } = await supabase
+      .from('invoices')
+      .update({ dedup_hash: dedupHash })
+      .eq('id', invoiceId);
+    if (hashError && (hashError as { code?: string }).code === '23505') {
+      // Lost the race between SELECT and INSERT — another request created the
+      // same invoice first. Roll back this invoice to honor dedup semantics.
+      await supabase.from('invoices').delete().eq('id', invoiceId);
+      return {
+        success: false,
+        error: createFlowError(409, 'DUPLICATE_INVOICE', 'A duplicate invoice exists with the same line items for this client.', 'financial'),
       };
     }
 
@@ -182,7 +234,16 @@ export async function createInvoiceAction(
     // -- Map response
     const mapped = await mapCreatedInvoice(supabase, invoiceId, clientId, invoiceNumber, issueDate, dueDate, totalCents, notes, ctx.workspaceId);
     return mapped;
-  } catch {
+  } catch (err) {
+    // Defensive: catch any unexpected unique-violation thrown through the
+    // Supabase error path as a JS exception (some clients do this).
+    const code = (err as { code?: string } | null)?.code;
+    if (code === '23505') {
+      return {
+        success: false,
+        error: createFlowError(409, 'DUPLICATE_INVOICE', 'A duplicate invoice exists with the same line items for this client.', 'financial'),
+      };
+    }
     return {
       success: false,
       error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to create invoice.', 'system'),

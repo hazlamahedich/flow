@@ -34,6 +34,7 @@ export const invoices = pgTable(
     sentAt: timestamp('sent_at', { withTimezone: true }),
     viewedAt: timestamp('viewed_at', { withTimezone: true }),
     deliveryToken: text('delivery_token').unique(),
+    dedupHash: text('dedup_hash'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

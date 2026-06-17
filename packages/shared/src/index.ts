@@ -70,3 +70,8 @@ export type {
 } from './constants/agent-identity';
 export { mapStripeDeclineCode, isRetryableDeclineCode } from './stripe-decline-codes';
 export type { DeclineCodeInfo } from './stripe-decline-codes';
+export {
+  computeInvoiceDedupHash,
+  type InvoiceDedupLineItem,
+  type ComputeInvoiceDedupHashInput,
+} from './invoice-dedup';

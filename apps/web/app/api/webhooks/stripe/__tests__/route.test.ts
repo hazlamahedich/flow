@@ -72,7 +72,9 @@ function mockSupabase(options: {
 
 describe('/api/webhooks/stripe POST', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    // clearAllMocks preserves mockReturnValue (resetAllMocks wipes it, which
+    // silently breaks the `mapStripeDeclineCode` mock between tests).
+    vi.clearAllMocks();
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
     process.env.STRIPE_SECRET_KEY = 'sk_test_secret';
   });
@@ -113,7 +115,7 @@ describe('/api/webhooks/stripe POST', () => {
       constructWebhookEvent: vi.fn().mockReturnValue({
         id: 'evt_dup',
         type: 'test.event',
-        payload: {},
+        payload: { data: { object: {} } },
         createdAt: new Date().toISOString(),
       }),
     };
@@ -121,7 +123,7 @@ describe('/api/webhooks/stripe POST', () => {
 
     const request = new Request('http://localhost/api/webhooks/stripe', {
       method: 'POST',
-      headers: { 'stripe-signature': 't=123,v1=abc' },
+      headers: { 'stripe-signature': 't=123,v1=d20efd4f60a3b3852bcd133de6be0f49d4b7ebea5fdd09e892abb9540ff8640b' },
       body: '{}',
     });
     const response = await POST(request);
@@ -139,6 +141,9 @@ describe('/api/webhooks/stripe POST', () => {
         payload: {
           data: {
             object: {
+              mode: 'payment',
+              amount_total: 1099,
+              payment_intent: 'pi_123',
               metadata: { invoice_id: 'inv_123', workspace_id: 'ws_123' },
             },
           },
@@ -150,7 +155,7 @@ describe('/api/webhooks/stripe POST', () => {
 
     const request = new Request('http://localhost/api/webhooks/stripe', {
       method: 'POST',
-      headers: { 'stripe-signature': 't=123,v1=abc' },
+      headers: { 'stripe-signature': 't=123,v1=d20efd4f60a3b3852bcd133de6be0f49d4b7ebea5fdd09e892abb9540ff8640b' },
       body: '{}',
     });
     const response = await POST(request);
@@ -170,6 +175,7 @@ describe('/api/webhooks/stripe POST', () => {
             object: {
               amount: 10000,
               metadata: { invoice_id: 'inv_123', workspace_id: 'ws_123' },
+              last_payment_error: { decline_code: 'card_declined' },
             },
           },
         },
@@ -180,7 +186,7 @@ describe('/api/webhooks/stripe POST', () => {
 
     const request = new Request('http://localhost/api/webhooks/stripe', {
       method: 'POST',
-      headers: { 'stripe-signature': 't=123,v1=abc' },
+      headers: { 'stripe-signature': 't=123,v1=d20efd4f60a3b3852bcd133de6be0f49d4b7ebea5fdd09e892abb9540ff8640b' },
       body: '{}',
     });
     const response = await POST(request);

@@ -1,0 +1,2 @@
+export const STRIPE_WEBHOOK_MAX_RETRIES = 3;
+export const STRIPE_WEBHOOK_RETRY_BACKOFF_MS = [1000, 5000, 30000] as const;

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@flow/db';
-import { StripePaymentProvider } from '@flow/agents/providers';
-import { mapStripeDeclineCode } from '@flow/shared';
-import type { WebhookEvent } from '@flow/agents/providers';
+import { processStripeEvent } from '@/lib/stripe/handlers';
+import { verifyWebhookSignature } from '@/lib/stripe/verify-webhook-signature';
+import type { WebhookEvent } from '@/lib/stripe/webhook-types';
 
 const ALLOWED_STRIPE_KEYS = new Set([
   'id',
@@ -23,6 +23,12 @@ const ALLOWED_STRIPE_KEYS = new Set([
   'stripe_event_id',
   'last_payment_error',
   'decline_code',
+  'subscription',
+  'items',
+  'current_period_start',
+  'current_period_end',
+  'cancel_at_period_end',
+  'mode',
 ]);
 
 const SENSITIVE_KEY_PATTERNS = [
@@ -54,6 +60,21 @@ function scrubPayload(obj: unknown): unknown {
   return result;
 }
 
+function toWebhookEvent(stripeEvent: {
+  id: string;
+  type: string;
+  payload: Record<string, unknown>;
+  createdAt: string;
+}): WebhookEvent {
+  const payload = stripeEvent.payload;
+  return {
+    id: stripeEvent.id,
+    type: stripeEvent.type,
+    created: Date.parse(stripeEvent.createdAt) / 1000,
+    data: payload.data as { object: Record<string, unknown> },
+  };
+}
+
 export async function POST(request: Request): Promise<Response> {
   const rawBody = await request.text();
   const signature = request.headers.get('stripe-signature') ?? '';
@@ -64,13 +85,9 @@ export async function POST(request: Request): Promise<Response> {
     return new Response('Service misconfigured', { status: 500 });
   }
 
-  let event: WebhookEvent;
+  let verifiedEvent: WebhookEvent;
   try {
-    const provider = new StripePaymentProvider({
-      secretKey: process.env.STRIPE_SECRET_KEY ?? '',
-      webhookSecret: secret,
-    });
-    event = provider.constructWebhookEvent(rawBody, signature, secret);
+    verifiedEvent = verifyWebhookSignature(rawBody, signature, secret);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Invalid signature';
     return NextResponse.json({ error: message }, { status: 400 });
@@ -78,122 +95,59 @@ export async function POST(request: Request): Promise<Response> {
 
   const supabase = createServiceClient();
 
-  const payloadObj = event.payload as Record<string, unknown>;
-  const dataObj = (payloadObj.data as Record<string, unknown> | undefined)?.object as
-    | Record<string, unknown>
-    | undefined;
-
-  const metadata = (dataObj?.metadata ?? payloadObj.metadata ?? {}) as Record<string, string>;
+  const metadata = (verifiedEvent.data.object.metadata ?? {}) as Record<string, string>;
   const invoiceId = metadata.invoice_id;
   const workspaceId = metadata.workspace_id;
 
   // Atomic dedup insert
-  const { error: dedupError } = await supabase
-    .from('stripe_webhook_events')
-    .insert({
-      stripe_event_id: event.id,
-      event_type: event.type,
-      status: 'pending',
-      workspace_id: workspaceId ?? null,
-      invoice_id: invoiceId ?? null,
-      payload_json: scrubPayload(event.payload) as Record<string, unknown>,
-      expires_at: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
-    });
+  const { error: dedupError } = await supabase.from('stripe_webhook_events').insert({
+    stripe_event_id: verifiedEvent.id,
+    event_type: verifiedEvent.type,
+    status: 'pending',
+    workspace_id: workspaceId ?? null,
+    invoice_id: invoiceId ?? null,
+    payload_json: scrubPayload(verifiedEvent) as Record<string, unknown>,
+    expires_at: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
+  });
 
   if (dedupError) {
     if (dedupError.code === '23505') {
-      // Duplicate — ACK immediately
       return NextResponse.json({ received: true }, { status: 200 });
     }
-    console.error('stripe_webhook_events insert failed', { stripe_event_id: event.id, error: dedupError.message });
+    console.error('stripe_webhook_events insert failed', {
+      stripe_event_id: verifiedEvent.id,
+      error: dedupError.message,
+    });
     return new Response('Internal Server Error', { status: 500 });
   }
 
   try {
-    if (event.type === 'checkout.session.completed') {
-      // Story 9-3 owns success-path side effects. We ACK and log.
-      if (invoiceId && workspaceId) {
-        const { data: inv } = await supabase
-          .from('invoices')
-          .select('id, status')
-          .eq('id', invoiceId)
-          .eq('workspace_id', workspaceId)
-          .maybeSingle();
-        if (inv && !['sent', 'viewed'].includes(inv.status as string)) {
-          console.warn('checkout.session.completed for non-actionable invoice', {
-            stripe_event_id: event.id,
-            invoice_id: invoiceId,
-            invoice_status: inv.status,
-          });
-        }
-      }
-    } else if (
-      event.type === 'payment_intent.payment_failed' ||
-      event.type === 'checkout.session.expired'
-    ) {
-      if (!invoiceId || !workspaceId) {
-        console.warn('Missing metadata in failure event', {
-          stripe_event_id: event.id,
-          event_type: event.type,
-        });
-        await supabase
-          .from('stripe_webhook_events')
-          .update({ status: 'failed', error_message: 'Missing invoice_id or workspace_id in event metadata' })
-          .eq('stripe_event_id', event.id);
-        return NextResponse.json({ received: true }, { status: 200 });
-      } else {
-        const amountCents =
-          event.type === 'checkout.session.expired'
-            ? Number((dataObj?.amount_total as number) ?? 0)
-            : Number((dataObj?.amount as number) ?? 0);
-
-        const declineCode =
-          (dataObj?.last_payment_error as Record<string, unknown> | undefined)
-            ?.decline_code as string | undefined;
-
-        const mapped = mapStripeDeclineCode(declineCode as string | undefined);
-
-        const { error: insertErr } = await supabase.from('invoice_payment_attempts').insert({
-          invoice_id: invoiceId,
-          workspace_id: workspaceId,
-          stripe_event_id: event.id,
-          attempt_type: 'stripe_checkout',
-          status: 'failed',
-          error_code: declineCode ?? null,
-          error_message: mapped.message,
-          amount_cents: amountCents,
-        });
-
-        if (insertErr) {
-          console.error('invoice_payment_attempts insert failed', {
-            stripe_event_id: event.id,
-            error: insertErr.message,
-          });
-          await supabase
-            .from('stripe_webhook_events')
-            .update({ status: 'failed', error_message: insertErr.message })
-            .eq('stripe_event_id', event.id);
-          return NextResponse.json({ received: true }, { status: 200 });
-        }
-      }
+    const result = await processStripeEvent(supabase, verifiedEvent);
+    if (!result.processed) {
+      await supabase
+        .from('stripe_webhook_events')
+        .update({ status: 'failed', error_message: result.reason ?? null })
+        .eq('stripe_event_id', verifiedEvent.id);
+      return NextResponse.json({ received: true }, { status: 200 });
     }
 
-    // Mark processed
     await supabase
       .from('stripe_webhook_events')
       .update({ status: 'processed' })
-      .eq('stripe_event_id', event.id);
+      .eq('stripe_event_id', verifiedEvent.id);
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);
     console.error('Webhook processing error caught', {
-      stripe_event_id: event.id,
+      stripe_event_id: verifiedEvent.id,
       error: errMsg,
     });
     await supabase
       .from('stripe_webhook_events')
       .update({ status: 'failed', error_message: errMsg })
-      .eq('stripe_event_id', event.id);
+      .eq('stripe_event_id', verifiedEvent.id);
   }
 
   return NextResponse.json({ received: true }, { status: 200 });
 }
+
+export { toWebhookEvent };

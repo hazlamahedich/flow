@@ -92,5 +92,6 @@ export async function createInvoice(
     amountPaidCents: invoice.amount_paid_cents ?? 0,
     creditBalanceCents: invoice.credit_balance_cents ?? 0,
     version: invoice.version ?? 1,
+    dedupHash: invoice.dedup_hash ?? null,
   };
 }
