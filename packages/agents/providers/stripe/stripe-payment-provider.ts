@@ -10,6 +10,7 @@ import type {
   Refund,
   WebhookEvent,
   CheckoutSession,
+  PortalSession,
 } from '../payment-provider.js';
 import crypto from 'node:crypto';
 
@@ -76,12 +77,13 @@ export class StripePaymentProvider implements PaymentProvider {
     name: string;
     workspaceId: string;
     metadata?: Record<string, string>;
+    idempotencyKey?: string;
   }): Promise<PaymentCustomer> {
     const result = await this.stripeRequest<StripeCustomer>('POST', '/customers', {
       email: params.email,
       name: params.name,
       metadata: { workspace_id: params.workspaceId, ...params.metadata },
-    });
+    }, params.idempotencyKey);
     return mapCustomer(result);
   }
 
@@ -184,6 +186,87 @@ export class StripePaymentProvider implements PaymentProvider {
     }
 
     return { url: result.url, sessionId: result.id };
+  }
+
+  /**
+   * Subscription Checkout Session (Story 9.3b — FR55).
+   *
+   * `POST /v1/checkout/sessions` with `mode=subscription`, a single recurring
+   * price line item, and metadata propagated to both the Checkout Session and
+   * the resulting Subscription via `subscription_data.metadata`. The webhook
+   * handler `checkout-completed.ts` (9-3a) reads `metadata.workspace_id` from
+   * either location.
+   */
+  async createSubscriptionCheckoutSession(params: {
+    customerId: string;
+    priceId: string;
+    successUrl: string;
+    cancelUrl: string;
+    metadata: Record<string, string>;
+    idempotencyKey?: string;
+  }): Promise<CheckoutSession> {
+    const result = await this.stripeRequest<StripeCheckoutSession>('POST', '/checkout/sessions', {
+      mode: 'subscription',
+      customer: params.customerId,
+      line_items: [{ price: params.priceId, quantity: 1 }],
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+      metadata: params.metadata,
+      subscription_data: { metadata: params.metadata },
+    }, params.idempotencyKey);
+
+    if (!result.url) {
+      throw new StripeApiError('Stripe subscription checkout session returned no URL', 0, '/checkout/sessions');
+    }
+
+    return { url: result.url, sessionId: result.id };
+  }
+
+  /**
+   * Stripe Customer Portal Session (Story 9.3b — FR58).
+   *
+   * `POST /v1/billing_portal/sessions` with the customer ID and the URL to
+   * return to after the customer exits the portal. Portal configuration
+   * (features, business profile) is created once per environment in the Stripe
+   * Dashboard — see Dev Notes. The optional `configuration` parameter binds
+   * the session to a specific configuration ID when more than one exists.
+   */
+  async createPortalSession(params: {
+    customerId: string;
+    returnUrl: string;
+    configuration?: string;
+  }): Promise<PortalSession> {
+    const body: Record<string, unknown> = {
+      customer: params.customerId,
+      return_url: params.returnUrl,
+    };
+    if (params.configuration) {
+      body.configuration = params.configuration;
+    }
+    const result = await this.stripeRequest<StripePortalSession>('POST', '/billing_portal/sessions', body);
+    if (!result.url) {
+      throw new StripeApiError('Stripe billing portal session returned no URL', 0, '/billing_portal/sessions');
+    }
+    return { url: result.url };
+  }
+
+  /**
+   * Read a Checkout Session by ID with the subscription expanded (Story 9.3b, AC4).
+   *
+   * Stripe returns the `subscription` field as either a string ID or an
+   * expanded object depending on the `expand[]` query param. We expand it
+   * explicitly and normalize to a string ID (or null when the checkout was
+   * for a one-time payment and has no subscription).
+   */
+  async getCheckoutSession(sessionId: string): Promise<{ subscriptionId: string | null; customerId: string | null }> {
+    const result = await this.stripeRequest<StripeCheckoutSessionLookup>(
+      'GET',
+      `/checkout/sessions/${sessionId}?expand[]=subscription`,
+    );
+    const sub = result.subscription;
+    const subscriptionId = typeof sub === 'string' ? sub : sub?.id ?? null;
+    const customerId = typeof result.customer === 'string' ? result.customer : null;
+    return { subscriptionId, customerId };
   }
 
   async getPaymentIntent(paymentIntentId: string): Promise<PaymentIntent> {
@@ -432,6 +515,12 @@ interface StripeCustomer { id: string; email: string; name: string; metadata: Re
 interface StripePaymentMethod { id: string; type: string; card?: { brand: string; last4: string; exp_month: number; exp_year: number }; }
 interface StripePaymentIntent { id: string; amount: number; currency: string; status: string; client_secret?: string; metadata: Record<string, string>; }
 interface StripeCheckoutSession { id: string; url: string; }
+interface StripePortalSession { id: string; url: string; }
+interface StripeCheckoutSessionLookup {
+  id: string;
+  subscription: string | { id: string } | null;
+  customer: string | { id: string } | null;
+}
 interface StripeSubscription { id: string; customer: string; items: { data: Array<{ price: { id: string } }> }; status: string; current_period_start: number; current_period_end: number; cancel_at_period_end: boolean; metadata: Record<string, string>; }
 interface StripeInvoice { id: string; customer: string; subscription?: string; amount_due: number; amount_paid: number; currency: string; status: string; hosted_invoice_url?: string; invoice_pdf?: string; due_date?: number; status_transitions?: { paid_at?: number }; lines: { data: Array<{ description: string; amount: number; quantity: number; metadata: Record<string, string> }> }; }
 interface StripeRefund { id: string; payment_intent: string; amount: number; reason: string; status: string; }
@@ -461,11 +550,14 @@ function mapPaymentIntent(pi: StripePaymentIntent): PaymentIntent {
   };
 }
 function mapSubscription(s: StripeSubscription): Subscription {
+  // Stripe uses American spelling `'canceled'`; our DB CHECK constraint and
+  // `subscriptionStatusSchema` (9-3b AC6/AC7) use British `'cancelled'`.
+  const normalizedStatus = s.status === 'canceled' ? 'cancelled' : s.status;
   return {
     providerSubscriptionId: s.id,
     customerId: typeof s.customer === 'string' ? s.customer : '',
     priceId: s.items.data[0]?.price.id ?? '',
-    status: s.status as Subscription['status'],
+    status: normalizedStatus as Subscription['status'],
     currentPeriodStart: new Date(s.current_period_start * 1000).toISOString(),
     currentPeriodEnd: new Date(s.current_period_end * 1000).toISOString(),
     cancelAtPeriodEnd: s.cancel_at_period_end,

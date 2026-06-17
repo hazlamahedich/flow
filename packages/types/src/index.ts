@@ -32,6 +32,18 @@ export { retainerTypeEnum, createRetainerSchema, updateRetainerSchema, cancelRet
 export type { RetainerType, CreateRetainerInput, UpdateRetainerInput, CancelRetainerInput, Retainer, ScopeCreepAlert, UtilizationState } from './retainer';
 export type { PaginatedResult, PaginationInput } from './pagination';
 export {
+  subscriptionTierSchema, upgradableTierSchema, subscriptionStatusSchema,
+  billingIntervalSchema, checkoutIntervalSchema,
+  createCheckoutSessionSchema, createPortalSessionSchema,
+  manageSubscriptionSchema,
+} from './subscription';
+export type {
+  SubscriptionTier, UpgradableTier, SubscriptionStatus,
+  BillingInterval, CheckoutInterval,
+  CreateCheckoutSessionInput, CreatePortalSessionInput,
+  ManageSubscriptionInput,
+} from './subscription';
+export {
   reportStatusEnum, sectionTypeEnum, generateWeeklyReportSchema,
   weeklyReportSchema, weeklyReportSectionSchema, reportTemplateSchema, reportListItemSchema,
   accentColorSchema,

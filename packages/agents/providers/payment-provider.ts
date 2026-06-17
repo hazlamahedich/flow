@@ -39,7 +39,7 @@ export interface Subscription {
   providerSubscriptionId: string;
   customerId: string;
   priceId: string;
-  status: 'active' | 'past_due' | 'canceled' | 'incomplete' | 'trialing' | 'paused';
+  status: 'active' | 'past_due' | 'cancelled' | 'incomplete' | 'trialing' | 'paused';
   currentPeriodStart: string;
   currentPeriodEnd: string;
   cancelAtPeriodEnd: boolean;
@@ -87,6 +87,10 @@ export interface CheckoutSession {
   sessionId: string;
 }
 
+export interface PortalSession {
+  url: string;
+}
+
 export interface PaymentProvider {
   getProviderName(): string;
 
@@ -95,6 +99,7 @@ export interface PaymentProvider {
     name: string;
     workspaceId: string;
     metadata?: Record<string, string>;
+    idempotencyKey?: string;
   }): Promise<PaymentCustomer>;
 
   getCustomer(customerId: string): Promise<PaymentCustomer | null>;
@@ -127,6 +132,50 @@ export interface PaymentProvider {
     expiresAt?: number;
     idempotencyKey?: string;
   }): Promise<CheckoutSession>;
+
+  /**
+   * Subscription Checkout Session (Story 9.3b — FR55).
+   *
+   * Distinct from {@link createCheckoutSession} (which is one-time `mode=payment`
+   * for invoices): this creates `mode=subscription` checkout sessions with a
+   * recurring price line item. Metadata is written to BOTH the Checkout Session
+   * and the resulting Subscription (`subscription_data.metadata`) so the
+   * `checkout.session.completed` webhook handler (9-3a) and the
+   * `customer.subscription.updated` handler can both read `workspace_id`.
+   */
+  createSubscriptionCheckoutSession(params: {
+    customerId: string;
+    priceId: string;
+    successUrl: string;
+    cancelUrl: string;
+    metadata: Record<string, string>;
+    idempotencyKey?: string;
+  }): Promise<CheckoutSession>;
+
+  /**
+   * Stripe Customer Portal Session (Story 9.3b — FR58).
+   *
+   * Returns a short-lived URL to Stripe's hosted Customer Portal where the
+   * customer can self-manage payment methods, view invoice history, and
+   * cancel their subscription (per the portal configuration created once
+   * in the Stripe Dashboard — see Dev Notes).
+   */
+  createPortalSession(params: {
+    customerId: string;
+    returnUrl: string;
+    configuration?: string;
+  }): Promise<PortalSession>;
+
+  /**
+   * Read a Checkout Session by ID with the subscription expanded (Story 9.3b, AC4 — FR42).
+   *
+   * Used by `syncStripeDataAction` as the success-redirect fallback: when a
+   * workspace has no local `stripe_subscription_id` yet, the action looks up
+   * the checkout session by the `{CHECKOUT_SESSION_ID}` Stripe appended to
+   * the success URL, resolves the resulting subscription, verifies the
+   * customer matches, and upserts via the idempotent RPC.
+   */
+  getCheckoutSession(sessionId: string): Promise<{ subscriptionId: string | null; customerId: string | null }>;
 
   createSubscription(params: {
     customerId: string;

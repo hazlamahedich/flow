@@ -32,9 +32,19 @@ export interface SubscriptionWindows {
 
 const PLACEHOLDER_PREFIX = 'price_placeholder_';
 
+/**
+ * Human-readable display price for a plan card. Kept separate from the Stripe
+ * price ID so copy can be tuned without touching checkout logic.
+ */
+export interface PlanDisplayPrice {
+  label: string;
+  interval: string;
+}
+
 export interface TierConfig {
   tierLimits: TierLimits;
   stripePrices: TierPrices;
+  planDisplayPrices: Record<'pro' | 'agency', PlanDisplayPrice>;
   windows: SubscriptionWindows;
   freeTransactionFeePercent: number;
 }
@@ -51,12 +61,18 @@ async function fetchConfigValue<T>(
   return schema.parse(data.value);
 }
 
+const planDisplayPricesSchema = z.record(
+  z.enum(['pro', 'agency']),
+  z.object({ label: z.string(), interval: z.string() }),
+) as z.ZodType<Record<'pro' | 'agency', PlanDisplayPrice>>;
+
 export const getTierConfig = cache(async (): Promise<TierConfig> => {
   const supabase = createServiceClient();
 
-  const [tierLimits, stripePrices, graceDays, suspensionDays, freeFee] = await Promise.all([
+  const [tierLimits, stripePrices, displayPrices, graceDays, suspensionDays, freeFee] = await Promise.all([
     fetchConfigValue(supabase, 'tier_limits', tierLimitsSchema),
     fetchConfigValue(supabase, 'stripe_prices', tierPricesSchema),
+    fetchConfigValue(supabase, 'plan_display_prices', planDisplayPricesSchema).catch(() => DEFAULT_DISPLAY_PRICES),
     fetchConfigValue(supabase, 'subscription_grace_period_days', z.number()),
     fetchConfigValue(supabase, 'subscription_suspension_period_days', z.number()),
     fetchConfigValue(supabase, 'stripe_free_transaction_fee_percent', z.number()),
@@ -74,6 +90,7 @@ export const getTierConfig = cache(async (): Promise<TierConfig> => {
   return {
     tierLimits,
     stripePrices,
+    planDisplayPrices: displayPrices,
     windows: {
       grace_period_days: graceDays,
       suspension_period_days: suspensionDays,
@@ -81,3 +98,8 @@ export const getTierConfig = cache(async (): Promise<TierConfig> => {
     freeTransactionFeePercent: freeFee,
   };
 });
+
+const DEFAULT_DISPLAY_PRICES: Record<'pro' | 'agency', PlanDisplayPrice> = {
+  pro: { label: '$29 / month', interval: 'month' },
+  agency: { label: '$99 / month', interval: 'month' },
+};

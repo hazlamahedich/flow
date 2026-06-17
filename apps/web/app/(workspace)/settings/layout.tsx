@@ -9,6 +9,7 @@ const settingsTabs = [
   { href: '/settings/profile', label: 'Profile' },
   { href: '/settings/team', label: 'Team' },
   { href: '/settings/agents', label: 'Agents' },
+  { href: '/settings/billing', label: 'Billing' },
   { href: '/settings/devices', label: 'Devices' },
   { href: '/settings/sessions', label: 'Sessions' },
 ];

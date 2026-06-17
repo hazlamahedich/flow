@@ -87,6 +87,8 @@ export type FlowErrorCode =
   | 'PERIOD_TOO_LONG'
   | 'INVALID_DATE_RANGE'
   | 'CONCURRENT_MODIFICATION'
+  | 'NOT_CONFIGURED'
+  | 'NO_ACTIVE_SUBSCRIPTION'
 
 export type AgentErrorCode =
   | 'AGENT_ERROR'
