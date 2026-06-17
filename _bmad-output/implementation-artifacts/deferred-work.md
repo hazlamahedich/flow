@@ -517,6 +517,10 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - D6-4-R-MINSAMPLE — First bypass event triggers immediate alert (rate=1.0 > 0.3 threshold). Product decision needed on minimum sample size before alerts fire. `product-decision`
 - D6-4-R-DEADCODE — Cascade executor non-cancel update path sends empty provider payload. Currently unreachable but dead code. Blocked on move-to-vacated option implementation. `tech-debt`
 - D6-4-R-EMPTYCATCH — Empty catch block without comment in cascade rollback path (cascade-executor.ts:793). Project rule violation. Coupled to rollback rework. `tech-debt`
+
+## Deferred from: code review of story 9-4 — Subscription Tiers & Tier Limits (2026-06-17)
+
+- 9-4-R-LINECOUNT — `change-tier.ts` exceeds the 80-line function guideline (108 lines). Already documented in story Deferred Items (#5): thin wrapper shape mandated by AC4, boilerplate irreducible without harming readability, still well under 200-line file limit. `tech-debt` `apps/web/lib/actions/billing/change-tier.ts`
 - D6-4-R-PRECEDENCE — Operator precedence: `source ?? 'unknown' as const` in initial-sync.ts:121. `as const` binds tighter than `??` but TypeScript still infers correctly. Cosmetic. `tech-debt`
 
 ## Deferred from: code review of 7-3-partial-payments-balance-tracking (2026-05-26)

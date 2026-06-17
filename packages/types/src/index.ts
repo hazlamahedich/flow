@@ -36,12 +36,14 @@ export {
   billingIntervalSchema, checkoutIntervalSchema,
   createCheckoutSessionSchema, createPortalSessionSchema,
   manageSubscriptionSchema,
+  changeTierSchema,
 } from './subscription';
 export type {
   SubscriptionTier, UpgradableTier, SubscriptionStatus,
   BillingInterval, CheckoutInterval,
   CreateCheckoutSessionInput, CreatePortalSessionInput,
   ManageSubscriptionInput,
+  ChangeTierInput,
 } from './subscription';
 export {
   reportStatusEnum, sectionTypeEnum, generateWeeklyReportSchema,

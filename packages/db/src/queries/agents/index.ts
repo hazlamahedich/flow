@@ -25,6 +25,7 @@ export {
   getUserAgentConfigurations,
   getUserActiveAgentCount,
   getUserAgentConfiguration,
+  countActiveAgents,
 } from './configurations-user';
 export {
   insertCostLog,

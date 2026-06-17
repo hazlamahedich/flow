@@ -7,13 +7,13 @@ import {
   createFlowError,
   cacheTag,
   insertClient,
-  countActiveClients,
   checkDuplicateEmail,
 } from '@flow/db';
 import {
   createClientSchema,
 } from '@flow/types';
 import type { ActionResult, Client } from '@flow/types';
+import { enforceTierLimit } from '@/lib/actions/billing/enforce-tier-limit';
 
 export async function createWorkspaceClient(
   input: unknown,
@@ -41,37 +41,30 @@ export async function createWorkspaceClient(
     };
   }
 
-  const { data: configRow } = await supabase
-    .from('app_config')
-    .select('value')
-    .eq('key', 'tier_limits')
-    .single();
-
-  if (configRow?.value) {
-    const tierLimits = configRow.value as Record<string, { maxClients?: number }>;
-    const { data: wsRow } = await supabase
-      .from('workspaces')
-      .select('settings')
-      .eq('id', ctx.workspaceId)
-      .single();
-    const workspaceTier = (wsRow?.settings as Record<string, unknown> | null)?.tier as string ?? 'free';
-    const limit = tierLimits[workspaceTier]?.maxClients ?? 5;
-
-    if (limit !== -1) {
-      const currentCount = await countActiveClients(supabase, ctx.workspaceId);
-      if (currentCount >= limit) {
-        return {
-          success: false,
-          error: createFlowError(
-            403,
-            'CLIENT_LIMIT_REACHED',
-            `You've reached the client limit (${limit}) for your plan. Upgrade to add more.`,
-            'validation',
-            { currentCount, limit, tier: workspaceTier },
-          ),
-        };
-      }
-    }
+  // Tier limit enforcement (Story 9.4 AC3 — replaces the legacy inline
+  // app_config + settings.tier + -1 sentinel check). enforceTierLimit reads
+  // subscription_tier via RLS, normalizes null → unlimited (Agency), and
+  // delegates the pure decision to checkTierLimit. Existing data is NEVER
+  // blocked — only new resource creation (FR56).
+  const tierCheck = await enforceTierLimit({ workspaceId: ctx.workspaceId, resource: 'clients' });
+  if (!tierCheck.allowed) {
+    const limitText = tierCheck.limit != null ? `(${tierCheck.limit})` : '';
+    return {
+      success: false,
+      error: createFlowError(
+        403,
+        'TIER_LIMIT_EXCEEDED',
+        `You've reached the client limit ${limitText} for your plan. Upgrade to add more.`,
+        'validation',
+        {
+          resource: 'clients',
+          current: tierCheck.current,
+          limit: tierCheck.limit,
+          tier: tierCheck.tier,
+          reason: tierCheck.reason,
+        },
+      ),
+    };
   }
 
   if (parsed.data.email && parsed.data.email.trim() !== '') {

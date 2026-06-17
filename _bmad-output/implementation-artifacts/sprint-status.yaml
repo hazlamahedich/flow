@@ -1,6 +1,6 @@
 ---
 generated: 2026-04-20
-  last_updated: 2026-06-17  # Story 9-3b review: checkout + Customer Portal integration implemented (T1-T9 complete, 43 unit + 17 ATDD green). FR55, FR58. Depends on 9-3a (done).
+  last_updated: 2026-06-17  # Story 9-4 implementation complete → review. 30 unit + 21 ATDD tests green; 0 new typecheck/lint errors in 9-4 files.
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -108,7 +108,7 @@ development_status:
   9-3-stripe-payment-integration-webhook-processing: deprecated  # SPLIT — replaced by 9-3a, 9-3b (see epic-9-planning-review.md §6)
   9-3a-stripe-webhook-infrastructure: done   # All 20 review findings resolved 2026-06-17: 17 patched initially, 3 remaining (AC0 GREEN phase, route.ts handler extraction, verify-webhook caching) addressed in follow-up. AC0-AC7 verified, 54 vitest + 23 pgTAP all green.
   9-3b-checkout-portal-integration: done             # createCheckoutSession action, Stripe Customer Portal, cancel/reactivate, billing settings UI. FR55, FR58. Code review findings resolved; 47 unit + 17 ATDD green; 0 new typecheck/lint errors in 9-3b files
-  9-4-subscription-tiers-tier-limits: backlog
+  9-4-subscription-tiers-tier-limits: done  # T1-T9 complete 2026-06-17: enforceTierLimit + changeTierAction + UsageMeter + 5% fee notice + seed fix. Code review closed 2026-06-17: 1 decision resolved (party-mode), 4 patches applied, 1 deferred. 30 unit + 21 ATDD green; 0 new typecheck/lint errors in 9-4 files.
   9-5-subscription-lifecycle-downgrade-handling: backlog
   9-6-recurring-invoices: backlog
   9-7-billing-accuracy-usage-visibility: backlog

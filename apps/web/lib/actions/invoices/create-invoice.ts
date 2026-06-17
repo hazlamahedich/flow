@@ -10,14 +10,23 @@ import {
 import { createInvoiceSchema } from '@flow/types';
 import type { ActionResult, Invoice } from '@flow/types';
 import { computeInvoiceDedupHash } from '@flow/shared';
+import { getTierConfig } from '@/lib/config/tier-config';
 import { checkDuplicateTimeEntries } from './create-invoice-helpers';
 import { resolveTimeEntryDurations } from './resolve-time-entries';
 import { buildLineItemsAndTotal } from './build-invoice-line-items';
 import { mapCreatedInvoice } from './create-invoice-mapper';
 
+/**
+ * Extended Invoice shape with an optional `notices` array. Story 9.4 AC5
+ * (FR61) attaches the Free-tier 5% processing-fee notice here — informational
+ * only; the invoice amount is NOT modified server-side (spike §6.4). Stripe
+ * Connect / line-item surcharge is deferred to Agency+ Phase 2.
+ */
+export type InvoiceWithNotices = Invoice & { notices?: string[] };
+
 export async function createInvoiceAction(
   input: unknown,
-): Promise<ActionResult<Invoice>> {
+): Promise<ActionResult<InvoiceWithNotices>> {
   const parsed = createInvoiceSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -233,7 +242,17 @@ export async function createInvoiceAction(
 
     // -- Map response
     const mapped = await mapCreatedInvoice(supabase, invoiceId, clientId, invoiceNumber, issueDate, dueDate, totalCents, notes, ctx.workspaceId);
-    return mapped;
+    if (!mapped.success) return mapped;
+
+    // ── Free-tier 5% transaction-fee notice (Story 9.4 AC5 — FR61).
+    // Informational ONLY — invoice amount is never modified server-side
+    // (spike §6.4; line-item/surcharge + Stripe Connect deferred to Agency+
+    // Phase 2). The notice surfaces for the UI to display next to the
+    // newly-created invoice on Free-tier workspaces.
+    const notices = await buildFreeTierNoticeIfNeeded(supabase, ctx.workspaceId);
+    return notices
+      ? { success: true, data: { ...mapped.data, notices: [notices] } }
+      : mapped;
   } catch (err) {
     // Defensive: catch any unexpected unique-violation thrown through the
     // Supabase error path as a JS exception (some clients do this).
@@ -248,5 +267,32 @@ export async function createInvoiceAction(
       success: false,
       error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to create invoice.', 'system'),
     };
+  }
+}
+
+/**
+ * Build the Free-tier 5% processing-fee notice string if the workspace is on
+ * the Free plan (FR61). Returns `null` for paid tiers (no notice) or if
+ * tier/fee resolution fails (fail-open: never block invoice creation).
+ */
+async function buildFreeTierNoticeIfNeeded(
+  supabase: Awaited<ReturnType<typeof getServerSupabase>>,
+  workspaceId: string,
+): Promise<string | null> {
+  try {
+    const { data: ws } = await supabase
+      .from('workspaces')
+      .select('subscription_tier')
+      .eq('id', workspaceId)
+      .maybeSingle();
+    if (!ws) return null;
+    const tier = (ws as { subscription_tier: string }).subscription_tier;
+    if (tier !== 'free') return null;
+
+    const feePercent = (await getTierConfig()).freeTransactionFeePercent;
+    return `A ${feePercent}% processing fee applies to Stripe payments on the Free plan.`;
+  } catch {
+    // Fail open: a missing config must never block invoice creation.
+    return null;
   }
 }

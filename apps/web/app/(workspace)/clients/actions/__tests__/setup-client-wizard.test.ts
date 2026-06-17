@@ -141,14 +141,14 @@ describe('setupClientWizard', () => {
   it('returns failure on tier limit', async () => {
     mockCreateWorkspaceClient.mockResolvedValue({
       success: false,
-      error: { status: 403, code: 'CLIENT_LIMIT_REACHED', message: 'Limit reached', category: 'validation' },
+      error: { status: 403, code: 'TIER_LIMIT_EXCEEDED', message: 'Limit reached', category: 'validation' },
     });
 
     const result = await setupClientWizard({ clientData: { name: 'Test' } });
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.code).toBe('CLIENT_LIMIT_REACHED');
+      expect(result.error.code).toBe('TIER_LIMIT_EXCEEDED');
     }
   });
 

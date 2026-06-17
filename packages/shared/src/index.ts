@@ -75,3 +75,11 @@ export {
   type InvoiceDedupLineItem,
   type ComputeInvoiceDedupHashInput,
 } from './invoice-dedup';
+
+export {
+  APPROACH_THRESHOLD_PERCENT,
+  APPROACH_LIMIT_WARNING,
+  checkTierLimit,
+  type CheckTierLimitInput,
+  type CheckTierLimitResult,
+} from './tier-limits';

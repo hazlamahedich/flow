@@ -4,12 +4,15 @@ vi.mock('@/lib/supabase-server', () => ({
   getServerSupabase: vi.fn(),
 }));
 
+vi.mock('@/lib/actions/billing/enforce-tier-limit', () => ({
+  enforceTierLimit: vi.fn(),
+}));
+
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
   createFlowError: (status: number, code: string, message: string, category: string) => ({ status, code, message, category }),
   cacheTag: vi.fn((entity: string, id: string) => `${entity}:${id}`),
   insertClient: vi.fn(),
-  countActiveClients: vi.fn(),
   checkDuplicateEmail: vi.fn(),
 }));
 
@@ -19,29 +22,22 @@ vi.mock('next/cache', () => ({
 
 import { createWorkspaceClient } from '../create-client';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, insertClient, countActiveClients, checkDuplicateEmail } from '@flow/db';
+import { requireTenantContext, insertClient, checkDuplicateEmail } from '@flow/db';
+import { enforceTierLimit } from '@/lib/actions/billing/enforce-tier-limit';
 
 const mockGetServerSupabase = vi.mocked(getServerSupabase);
 const mockRequireTenantContext = vi.mocked(requireTenantContext);
 const mockInsertClient = vi.mocked(insertClient);
-const mockCountActiveClients = vi.mocked(countActiveClients);
 const mockCheckDuplicateEmail = vi.mocked(checkDuplicateEmail);
+const mockEnforceTierLimit = vi.mocked(enforceTierLimit);
 
-const mockSupabase = {
-  from: vi.fn(() => ({
-    select: vi.fn(() => ({
-      eq: vi.fn(() => ({
-        single: vi.fn(() => Promise.resolve({ data: { value: { free: { maxClients: 5 } } }, error: null })),
-      })),
-    })),
-  })),
-};
+const mockSupabase = {} as never;
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetServerSupabase.mockResolvedValue(mockSupabase as never);
+  mockGetServerSupabase.mockResolvedValue(mockSupabase);
   mockRequireTenantContext.mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'owner' });
-  mockCountActiveClients.mockResolvedValue(2);
+  mockEnforceTierLimit.mockResolvedValue({ allowed: true });
   mockCheckDuplicateEmail.mockResolvedValue(null);
 });
 
@@ -68,11 +64,16 @@ describe('createWorkspaceClient', () => {
     if (!result.success) expect(result.error.code).toBe('INSUFFICIENT_ROLE');
   });
 
-  it('blocks when tier limit reached', async () => {
-    mockCountActiveClients.mockResolvedValue(5);
+  it('blocks when tier limit reached (TIER_LIMIT_EXCEEDED)', async () => {
+    mockEnforceTierLimit.mockResolvedValue({
+      allowed: false,
+      limit: 3,
+      current: 3,
+      tier: 'free',
+    });
     const result = await createWorkspaceClient({ name: 'Test' });
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.code).toBe('CLIENT_LIMIT_REACHED');
+    if (!result.success) expect(result.error.code).toBe('TIER_LIMIT_EXCEEDED');
   });
 
   it('blocks duplicate email', async () => {

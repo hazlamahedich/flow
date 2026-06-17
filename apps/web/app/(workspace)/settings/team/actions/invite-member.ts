@@ -8,6 +8,7 @@ import { revalidateTag } from 'next/cache';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { checkRateLimit, INVITATION_CONFIG } from '@/lib/rate-limit';
 import { logWorkspaceEvent } from '@/lib/workspace-audit';
+import { enforceTierLimit } from '@/lib/actions/billing/enforce-tier-limit';
 
 async function sendInvitationEmail(
   email: string,
@@ -64,6 +65,30 @@ export async function inviteMember(
         'INSUFFICIENT_ROLE',
         "You don't have permission to perform this action.",
         'auth',
+      ),
+    };
+  }
+
+  // Tier limit enforcement (Story 9.4 AC3 — FR56). Counted against active
+  // workspace_members only (EC11); pending invitations do NOT consume seats.
+  // Existing members are never evicted; only new invites are blocked at limit.
+  const tierCheck = await enforceTierLimit({ workspaceId: ctx.workspaceId, resource: 'team_members' });
+  if (!tierCheck.allowed) {
+    const limitText = tierCheck.limit != null ? `(${tierCheck.limit})` : '';
+    return {
+      success: false,
+      error: createFlowError(
+        403,
+        'TIER_LIMIT_EXCEEDED',
+        `You've reached the team-member limit ${limitText} for your plan. Upgrade to invite more.`,
+        'validation',
+        {
+          resource: 'team_members',
+          current: tierCheck.current,
+          limit: tierCheck.limit,
+          tier: tierCheck.tier,
+          reason: tierCheck.reason,
+        },
       ),
     };
   }

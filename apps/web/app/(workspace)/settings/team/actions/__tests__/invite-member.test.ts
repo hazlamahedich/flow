@@ -34,6 +34,12 @@ vi.mock('@flow/db/client', () => ({
   })),
 }));
 
+// Story 9.4: inviteMember now calls enforceTierLimit before the insert.
+// Mock it to always allow so existing invite-flow tests stay focused.
+vi.mock('@/lib/actions/billing/enforce-tier-limit', () => ({
+  enforceTierLimit: vi.fn().mockResolvedValue({ allowed: true }),
+}));
+
 import { inviteMember } from '../invite-member';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext } from '@flow/db';

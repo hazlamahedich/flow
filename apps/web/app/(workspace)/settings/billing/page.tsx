@@ -1,22 +1,28 @@
 /**
- * Billing settings page — Server Component (Story 9.3b, AC5 — FR55, FR58).
+ * Billing settings page — Server Component (Story 9.3b + 9.4).
  *
  * Reads the workspace row (tier, status, period, cancel_at_period_end,
- * stripe_customer_id) and recent invoices via `getServerSupabase()` +
- * `requireTenantContext()`, then passes data to child client components
- * for interactivity. The page itself is a Server Component (default export,
+ * stripe_customer_id), recent invoices, AND usage counts (Story 9.4 AC6 —
+ * clients / team members / agents) via `getServerSupabase()` +
+ * `requireTenantContext()`, then passes data to child client components for
+ * interactivity. The page itself is a Server Component (default export,
  * no `"use client"` directive).
  *
- * Out of scope (deferred to 9-4 / 9-7): tier-limit enforcement badges,
- * 5% free-tier fee notice, full usage metering dashboard, dispute window
- * display, downgrade/cross-grade checkout flows.
+ * 9.4 additions:
+ *   - Usage-vs-limits display via `UsageMeter` (AC6, FR55/FR56)
+ *   - One-click upgrade via `changeTierAction` (AC4, FR62)
+ *
+ * Out of scope (deferred to 9-7): full usage metering dashboard, dispute
+ * window display.
  */
 import type { Metadata } from 'next';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError } from '@flow/db';
-import type { ActionResult } from '@flow/types';
+import { requireTenantContext, createFlowError, countActiveClients, countActiveTeamMembers, countActiveAgents } from '@flow/db';
+import type { ActionResult, SubscriptionTier } from '@flow/types';
 import { getTierConfig } from '@/lib/config/tier-config';
+import { getTierLimits, type TierLimit } from '@/lib/actions/billing/enforce-tier-limit';
 import { createCheckoutSessionAction } from '@/lib/actions/billing/create-checkout-session';
+import { changeTierAction } from '@/lib/actions/billing/change-tier';
 import { createPortalSessionAction } from '@/lib/actions/billing/create-portal-session';
 import {
   cancelSubscriptionAction,
@@ -28,6 +34,7 @@ import { ManageBillingButton } from './components/ManageBillingButton';
 import { SubscriptionActions } from './components/SubscriptionActions';
 import { BillingHistory } from './components/BillingHistory';
 import { SyncBanner } from './components/SyncBanner';
+import { UsageMeter } from './components/UsageMeter';
 
 export const metadata: Metadata = {
   title: 'Billing',
@@ -57,10 +64,11 @@ interface PageData {
   };
   recentInvoices: BillingHistoryItem[];
   planDisplayPrices: Record<'pro' | 'agency', { label: string; interval: string }>;
+  usage: { clients: number; teamMembers: number; agents: number };
+  tierLimits: TierLimit;
 }
 
-async function loadPageData(workspaceId: string): Promise<PageData | null> {
-  const supabase = await getServerSupabase();
+async function loadPageData(workspaceId: string, supabase: Awaited<ReturnType<typeof getServerSupabase>>): Promise<PageData | null> {
   const { data: workspace } = await supabase
     .from('workspaces')
     .select(
@@ -78,17 +86,31 @@ async function loadPageData(workspaceId: string): Promise<PageData | null> {
     .limit(10);
 
   let planDisplayPrices: PageData['planDisplayPrices'];
+  let tierLimits: TierLimit;
   try {
     const tierConfig = await getTierConfig();
     planDisplayPrices = tierConfig.planDisplayPrices;
+    tierLimits = await getTierLimits(workspace.subscription_tier as SubscriptionTier);
   } catch {
     planDisplayPrices = { pro: { label: '$29 / month', interval: 'month' }, agency: { label: '$99 / month', interval: 'month' } };
+    tierLimits = { maxClients: 5, maxTeamMembers: 1, maxAgents: 2 };
   }
+
+  // Usage counts use the same RLS-safe helpers consumed by enforceTierLimit
+  // (Story 9.4 AC6 — do not duplicate count logic). All three accept the
+  // user-scoped supabase client.
+  const [clients, teamMembers, agents] = await Promise.all([
+    countActiveClients(supabase, workspaceId).catch(() => 0),
+    countActiveTeamMembers(supabase, workspaceId).catch(() => 0),
+    countActiveAgents(supabase, workspaceId).catch(() => 0),
+  ]);
 
   return {
     workspace: workspace as PageData['workspace'],
     recentInvoices: (invoiceRows ?? []) as unknown as BillingHistoryItem[],
     planDisplayPrices,
+    usage: { clients, teamMembers, agents },
+    tierLimits,
   };
 }
 
@@ -97,6 +119,11 @@ async function loadPageData(workspaceId: string): Promise<PageData | null> {
 async function handleCheckout(input: unknown): Promise<ActionResult<{ url: string }>> {
   'use server';
   return createCheckoutSessionAction(input);
+}
+
+async function handleUpgrade(input: unknown): Promise<ActionResult<{ checkoutUrl: string }>> {
+  'use server';
+  return changeTierAction(input);
 }
 
 async function handlePortal(input?: unknown): Promise<ActionResult<{ url: string }>> {
@@ -140,7 +167,7 @@ export default async function BillingPage({
     );
   }
 
-  const data = await loadPageData(ctx.workspaceId);
+  const data = await loadPageData(ctx.workspaceId, supabase);
   if (!data) {
     return (
       <div className="space-y-6">
@@ -192,6 +219,13 @@ export default async function BillingPage({
       </section>
 
       <PlanCard checkoutAction={handleCheckout} currentTier={data.workspace.subscription_tier} planDisplayPrices={data.planDisplayPrices} />
+
+      <UsageMeter
+        tier={data.workspace.subscription_tier as SubscriptionTier}
+        usage={data.usage}
+        limits={data.tierLimits}
+        upgradeAction={handleUpgrade}
+      />
 
       <SubscriptionActions
         cancelAction={handleCancel}

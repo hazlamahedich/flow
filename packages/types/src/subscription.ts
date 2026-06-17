@@ -39,6 +39,18 @@ export const createCheckoutSessionSchema = z.object({
 });
 export type CreateCheckoutSessionInput = z.infer<typeof createCheckoutSessionSchema>;
 
+/**
+ * changeTierSchema — write model for `changeTierAction` (Story 9.4 AC4, FR62).
+ *
+ * `targetTier` is `pro | agency`. Downgrade-to-Free is NOT a tier change — it
+ * is a cancel-at-period-end flow owned by 9-5a/FR57. EC7 verifies this at the
+ * schema level.
+ */
+export const changeTierSchema = z.object({
+  targetTier: upgradableTierSchema,
+});
+export type ChangeTierInput = z.infer<typeof changeTierSchema>;
+
 export const createPortalSessionSchema = z.object({}).optional();
 export type CreatePortalSessionInput = z.infer<typeof createPortalSessionSchema>;
 

@@ -72,3 +72,31 @@ export async function getAccessibleClients(
 
   return (clients ?? []) as Array<{ id: string; name: string }>;
 }
+
+/**
+ * Count **active, non-expired** workspace_members for tier-limit enforcement
+ * (Story 9.4 AC2, EC11).
+ *
+ * Mirrors `getActiveMembership`'s active+not-expired rule: pending
+ * invitations do NOT consume seats (those are `workspace_invitations`, a
+ * separate table). An expired-but-still-active row is also excluded so a
+ * member who let their session lapse doesn't block a new invite.
+ *
+ * User-scoped (accepts the caller's SupabaseClient — RLS applies). Never
+ * `service_role`: this is consumed by `enforceTierLimit`, a user-facing
+ * path (project-context.md:150).
+ */
+export async function countActiveTeamMembers(
+  client: SupabaseClient,
+  workspaceId: string,
+): Promise<number> {
+  const nowIso = new Date().toISOString();
+  const { count, error } = await client
+    .from('workspace_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('workspace_id', workspaceId)
+    .eq('status', 'active')
+    .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
+  if (error) throw error;
+  return count ?? 0;
+}

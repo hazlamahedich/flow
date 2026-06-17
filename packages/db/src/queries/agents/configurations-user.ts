@@ -29,6 +29,17 @@ export async function getUserActiveAgentCount(
   return count ?? 0;
 }
 
+/**
+ * Alias of `getUserActiveAgentCount` for tier-limit enforcement (Story 9.4).
+ *
+ * RLS-safe (accepts a user-scoped SupabaseClient). The non-user-scoped
+ * `getActiveAgentCount` (configurations.ts) uses `service_role` internally
+ * and is FORBIDDEN in user-facing actions like `enforceTierLimit`
+ * (project-context.md:150). This alias makes the contract explicit so
+ * 9-5b and future code reference the user-scoped variant by name.
+ */
+export const countActiveAgents = getUserActiveAgentCount;
+
 export async function getUserAgentConfiguration(
   client: ServerClient,
   workspaceId: string,
