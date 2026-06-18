@@ -7,6 +7,11 @@ export { AgentJobPayloadSchema } from './orchestrator/schemas';
 export type { AgentJobPayload } from './orchestrator/schemas';
 export { beginDrain, completeDrain } from './orchestrator/agent-lifecycle';
 export type { AffectedRun, DeactivationResult } from './orchestrator/agent-lifecycle';
+export {
+  runGraceSweep,
+  runSuspensionSweep,
+  runReconciliation,
+} from './orchestrator/lifecycle-sweep';
 export { createLLMRouter, NoAvailableProviderError } from './shared/llm-router';
 export type { LlmRouter, LlmResponse, AgentExecutionContext, LLMOptions } from './shared/llm-router';
 

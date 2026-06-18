@@ -24,8 +24,43 @@ export type SubscriptionTier = z.infer<typeof subscriptionTierSchema>;
 export const upgradableTierSchema = z.enum(['pro', 'agency']);
 export type UpgradableTier = z.infer<typeof upgradableTierSchema>;
 
-export const subscriptionStatusSchema = z.enum(['free', 'active', 'past_due', 'cancelled']);
+export const subscriptionStatusSchema = z.enum([
+  'free',
+  'active',
+  'past_due',
+  'cancelled',
+  'suspended',
+  'deleted',
+]);
 export type SubscriptionStatus = z.infer<typeof subscriptionStatusSchema>;
+
+export const subscriptionLifecycleStatusSchema = z.enum([
+  'free',
+  'active',
+  'past_due',
+  'suspended',
+  'deleted',
+]);
+export type SubscriptionLifecycleStatus = z.infer<typeof subscriptionLifecycleStatusSchema>;
+
+export const ReconciliationReportSchema = z.object({
+  checked: z.number().int().nonnegative(),
+  drift: z.array(
+    z.object({
+      workspaceId: z.string(),
+      fromStatus: subscriptionStatusSchema,
+      toStatus: subscriptionStatusSchema,
+      corrected: z.boolean(),
+    })
+  ),
+  uncorrectable: z.array(
+    z.object({
+      workspaceId: z.string(),
+      reason: z.string(),
+    })
+  ),
+});
+export type ReconciliationReport = z.infer<typeof ReconciliationReportSchema>;
 
 export const billingIntervalSchema = z.enum(['monthly', 'yearly']);
 export type BillingInterval = z.infer<typeof billingIntervalSchema>;

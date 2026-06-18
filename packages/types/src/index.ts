@@ -33,6 +33,8 @@ export type { RetainerType, CreateRetainerInput, UpdateRetainerInput, CancelReta
 export type { PaginatedResult, PaginationInput } from './pagination';
 export {
   subscriptionTierSchema, upgradableTierSchema, subscriptionStatusSchema,
+  subscriptionLifecycleStatusSchema,
+  ReconciliationReportSchema,
   billingIntervalSchema, checkoutIntervalSchema,
   createCheckoutSessionSchema, createPortalSessionSchema,
   manageSubscriptionSchema,
@@ -40,6 +42,8 @@ export {
 } from './subscription';
 export type {
   SubscriptionTier, UpgradableTier, SubscriptionStatus,
+  SubscriptionLifecycleStatus,
+  ReconciliationReport,
   BillingInterval, CheckoutInterval,
   CreateCheckoutSessionInput, CreatePortalSessionInput,
   ManageSubscriptionInput,

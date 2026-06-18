@@ -83,3 +83,13 @@ export {
   type CheckTierLimitInput,
   type CheckTierLimitResult,
 } from './tier-limits';
+
+export {
+  transitionSubscriptionStatus,
+  isTerminalStatus,
+  SUBSCRIPTION_TRANSITIONS,
+  mapStripeStatusToDb,
+  GRACE_PERIOD_DAYS,
+  SUSPENSION_MAX_DAYS,
+} from './subscription-lifecycle';
+export type { SubscriptionStatus } from './subscription-lifecycle';
