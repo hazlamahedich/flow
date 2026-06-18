@@ -19,11 +19,17 @@ import { reconcileSubscriptionsAction } from '@/lib/actions/billing/reconcile-su
 vi.mock('@flow/agents', () => ({ runReconciliation: vi.fn() }));
 vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
-  return { ...actual, requireTenantContext: vi.fn(), createFlowError: actual.createFlowError };
+  return {
+    ...actual,
+    requireTenantContext: vi.fn(),
+    createFlowError: actual.createFlowError,
+  };
 });
+vi.mock('@/lib/supabase-server', () => ({ getServerSupabase: vi.fn() }));
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }));
 
 const { runReconciliation } = await import('@flow/agents');
+const { getServerSupabase } = await import('@/lib/supabase-server');
 
 beforeEach(() => vi.clearAllMocks());
 

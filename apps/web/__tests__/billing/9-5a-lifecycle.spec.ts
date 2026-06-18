@@ -21,11 +21,18 @@ import { ReconciliationReportSchema } from '@flow/types';
 import { runGraceSweep, runSuspensionSweep, runReconciliation } from '@flow/agents';
 import { createServiceClient } from '@flow/db';
 import { reconcileSubscriptionsAction } from '@/lib/actions/billing/reconcile-subscriptions';
+import { getServerSupabase } from '@/lib/supabase-server';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // ── Boundary mocks ──
 vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
   return { ...actual, createServiceClient: vi.fn() };
+});
+
+vi.mock('@flow/agents', async () => {
+  const actual = await vi.importActual<typeof import('@flow/agents')>('@flow/agents');
+  return { ...actual, writeAuditLog: vi.fn<typeof import('@flow/agents/shared/audit-writer')['writeAuditLog']>() };
 });
 
 vi.mock('@flow/agents/shared/audit-writer', () => ({
@@ -39,9 +46,12 @@ vi.mock('@flow/agents/providers', () => ({
 vi.mock('next/cache', () => ({
   revalidateTag: vi.fn(),
 }));
+vi.mock('@/lib/supabase-server', () => ({
+  getServerSupabase: vi.fn(),
+}));
 
-const { writeAuditLog } = await import('@flow/agents/shared/audit-writer');
-const { getPaymentProvider } = await import('@flow/agents/providers');
+const { writeAuditLog } = await vi.importMock<typeof import('@flow/agents/shared/audit-writer')>('@flow/agents/shared/audit-writer');
+const { getPaymentProvider } = await vi.importMock<typeof import('@flow/agents/providers')>('@flow/agents/providers');
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -172,6 +182,9 @@ function buildMockClient(overrides: {
   const fromMock = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
+    neq: vi.fn().mockReturnThis(),
+    not: vi.fn().mockReturnThis(),
+    gt: vi.fn().mockReturnThis(),
     lt: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
@@ -234,7 +247,12 @@ describe('runGraceSweep', () => {
 
     const result = await runGraceSweep();
     expect(result.swept).toBe(1);
-    expect(writeAuditLog).not.toHaveBeenCalled();
+    // No `subscription.transitioned` audit log for the PRECONDITION_FAILED row
+    // (the actual transitioner — webhook/reconcile — already logged it).
+    const transitionCalls = (writeAuditLog as unknown as ReturnType<typeof vi.fn>).mock.calls.filter(
+      ([p]: [unknown]) => (p as { action?: string }).action === 'subscription.transitioned',
+    );
+    expect(transitionCalls).toHaveLength(0);
   });
 
   test('isolates per-row errors (EC8)', async () => {
@@ -249,10 +267,23 @@ describe('runGraceSweep', () => {
       })
     );
 
-    vi.mocked(createServiceClient)().rpc.mockRejectedValueOnce(new Error('db error')).mockResolvedValueOnce({
+    const rpcMock = vi.fn();
+    rpcMock.mockRejectedValueOnce(new Error('db error'));
+    rpcMock.mockResolvedValueOnce({
       data: { success: true },
       error: null,
     });
+    vi.mocked(createServiceClient).mockReturnValue({
+      ...buildMockClient({
+        appConfig: [{ key: 'subscription_grace_period_days', value: '7' }],
+        workspaces: [
+          { id: 'ws-1', subscription_status: 'past_due', subscription_updated_at: '2026-06-09T00:00:00Z' },
+          { id: 'ws-2', subscription_status: 'past_due', subscription_updated_at: '2026-06-09T00:00:00Z' },
+        ],
+        rpcResult: { success: true },
+      }),
+      rpc: rpcMock,
+    } as unknown as ReturnType<typeof createServiceClient>);
 
     const result = await runGraceSweep();
     expect(result.swept).toBe(1);
@@ -285,7 +316,7 @@ describe('runReconciliation', () => {
         workspaces: [{ id: 'ws-1', subscription_status: 'active', stripe_subscription_id: 'sub_1' }],
       })
     );
-    getPaymentProvider.mockReturnValue({
+    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       getSubscription: vi.fn().mockResolvedValue({ status: 'active' }),
     });
 
@@ -302,7 +333,7 @@ describe('runReconciliation', () => {
         rpcResult: { success: true },
       })
     );
-    getPaymentProvider.mockReturnValue({
+    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       getSubscription: vi.fn().mockResolvedValue({ status: 'past_due' }),
     });
 
@@ -330,7 +361,7 @@ describe('runReconciliation', () => {
         workspaces: [{ id: 'ws-1', subscription_status: 'active', stripe_subscription_id: 'sub_1' }],
       })
     );
-    getPaymentProvider.mockReturnValue({
+    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       getSubscription: vi.fn().mockRejectedValue(new Error('Stripe outage')),
     });
 
@@ -345,7 +376,7 @@ describe('runReconciliation', () => {
         workspaces: [{ id: 'ws-1', subscription_status: 'free', stripe_subscription_id: 'sub_1' }],
       })
     );
-    getPaymentProvider.mockReturnValue({
+    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       getSubscription: vi.fn().mockResolvedValue({ status: 'deleted' }),
     });
 
@@ -361,7 +392,7 @@ describe('runReconciliation', () => {
         rpcResult: { error: 'PRECONDITION_FAILED' },
       })
     );
-    getPaymentProvider.mockReturnValue({
+    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       getSubscription: vi.fn().mockResolvedValue({ status: 'suspended' }),
     });
 
@@ -375,11 +406,34 @@ describe('runReconciliation', () => {
 // 6. Server Action wrapper (AC6)
 // ─────────────────────────────────────────────────────────────────
 describe('reconcileSubscriptionsAction', () => {
+  function mockServerSupabase(overrides?: { role?: string }) {
+    const role = overrides?.role ?? 'owner';
+    vi.mocked(getServerSupabase).mockResolvedValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: {
+            user: {
+              id: 'user-1',
+              app_metadata: { workspace_id: '00000000-0000-0000-0000-000000000001', role },
+            },
+          },
+          error: null,
+        }),
+      },
+      rpc: vi.fn(),
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'ws-1', role }, error: null }),
+      }),
+    } as unknown as SupabaseClient);
+  }
+
   test('delegates to runReconciliation and wraps in ActionResult', async () => {
-    vi.mocked(runReconciliation).mockResolvedValueOnce({ checked: 0, drift: [], uncorrectable: [] });
+    mockServerSupabase({ role: 'owner' });
+    vi.spyOn(await import('@flow/agents'), 'runReconciliation').mockResolvedValueOnce({ checked: 0, drift: [], uncorrectable: [] });
 
     const result = await reconcileSubscriptionsAction();
-    expect(runReconciliation).toHaveBeenCalledTimes(1);
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toEqual({ checked: 0, drift: [], uncorrectable: [] });

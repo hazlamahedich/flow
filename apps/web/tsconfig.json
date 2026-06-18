@@ -22,6 +22,8 @@
       "@flow/agents/time-integrity/anomaly-detection": ["../../packages/agents/time-integrity/anomaly-detection"],
       "@flow/agents/time-integrity/schemas": ["../../packages/agents/time-integrity/schemas"],
       "@flow/agents/orchestrator/boss-di": ["../../packages/agents/orchestrator/boss-di"],
+      "@flow/agents/shared": ["../../packages/agents/shared"],
+      "@flow/agents/shared/audit-writer": ["../../packages/agents/shared/audit-writer"],
       "@flow/agents/calendar/config": ["../../packages/agents/calendar/config"],
       "@flow/agents/calendar/types": ["../../packages/agents/calendar/types"],
       "@flow/agents/calendar/signal-consumer": ["../../packages/agents/calendar/signal-consumer"],

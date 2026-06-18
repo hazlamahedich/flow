@@ -518,6 +518,17 @@ At least 50% of previous epic's deferred items must be resolved before starting 
 - D6-4-R-DEADCODE — Cascade executor non-cancel update path sends empty provider payload. Currently unreachable but dead code. Blocked on move-to-vacated option implementation. `tech-debt`
 - D6-4-R-EMPTYCATCH — Empty catch block without comment in cascade rollback path (cascade-executor.ts:793). Project rule violation. Coupled to rollback rework. `tech-debt`
 
+## Deferred from: code review of story 9-5a — Subscription Lifecycle State Machine (2026-06-18)
+
+- 9-5a-R-DEFER-1 — `mapSubscriptionStatus` in `subscription-updated.ts` not extracted to shared `mapStripeStatusToDb`. Deferred per story notes; `handleSubscriptionUpdated` out of scope for 9-5a. `tech-debt` `apps/web/lib/stripe/handlers/subscription-updated.ts:34-52`
+- 9-5a-R-DEFER-2 — `set_workspace_subscription_status` allowlist now accepts `suspended`/`deleted`, enabling unconditional invalid transitions from other handlers. Existing RPC extended per spec; other webhook handlers unchanged in this story. `tech-debt` `supabase/migrations/20260619000001_subscription_lifecycle_states.sql:113-157`
+- 9-5a-R-DEFER-3 — Reconciliation lacks the 4-hour overall timeout. Deferred per story notes; 100-row batch cap bounds runtime for now. `tech-debt` `packages/agents/orchestrator/reconcile-subscriptions.ts`
+
+## Resolved via party-mode consensus during 9-5a review (2026-06-18)
+
+- 9-5a-R-DEC-1 — `transition_to_suspended_any` grant tightened to `service_role` only (was granted to `authenticated, service_role`). Security fix; no deferred work.
+- 9-5a-R-DEC-2 — Add `subscription_status_updated_at` column and drive sweeps off it (was using `subscription_updated_at`). Schema correctness fix; no deferred work.
+
 ## Deferred from: code review of story 9-4 — Subscription Tiers & Tier Limits (2026-06-17)
 
 - 9-4-R-LINECOUNT — `change-tier.ts` exceeds the 80-line function guideline (108 lines). Already documented in story Deferred Items (#5): thin wrapper shape mandated by AC4, boilerplate irreducible without harming readability, still well under 200-line file limit. `tech-debt` `apps/web/lib/actions/billing/change-tier.ts`

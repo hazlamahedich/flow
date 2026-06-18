@@ -1,6 +1,6 @@
 ---
-generated: 2026-04-20
-  last_updated: 2026-06-18  # Story 9-5a in-progress (dev).
+  generated: 2026-04-20
+  last_updated: 2026-06-18  # Story 9-5a in-progress (review follow-up patches).
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -110,7 +110,7 @@ development_status:
   9-3b-checkout-portal-integration: done             # createCheckoutSession action, Stripe Customer Portal, cancel/reactivate, billing settings UI. FR55, FR58. Code review findings resolved; 47 unit + 17 ATDD green; 0 new typecheck/lint errors in 9-3b files
   9-4-subscription-tiers-tier-limits: done  # T1-T9 complete 2026-06-17: enforceTierLimit + changeTierAction + UsageMeter + 5% fee notice + seed fix. Code review closed 2026-06-17: 1 decision resolved (party-mode), 4 patches applied, 1 deferred. 30 unit + 21 ATDD green; 0 new typecheck/lint errors in 9-4 files.
   9-5-subscription-lifecycle-downgrade-handling: deprecated  # SPLIT — replaced by 9-5a, 9-5b (see epic-9-planning-review.md §6)
-  9-5a-subscription-lifecycle-state-machine: in-progress  # State machine (Active→Past Due→Suspended→Deleted), 7d grace sweep, 30d suspension sweep, nightly reconciliation. FR59, FR42, NFR54. Dev started 2026-06-18.
+  9-5a-subscription-lifecycle-state-machine: done  # State machine (Active→Past Due→Suspended→Deleted), 7d grace sweep, 30d suspension sweep, nightly reconciliation. FR59, FR42, NFR54. Dev + code review closed 2026-06-18; party-mode consensus: tighten RPC grant + add subscription_status_updated_at. 59 web unit tests + 12 pgTAP tests green; agents/db/shared typecheck green for 9-5a files.
   9-5b-agent-pause-downgrade-handling: backlog  # Orchestrator guard clause, FR57 downgrade data preservation, auto-upgrade prompts, notification surfaces. Depends on 9-5a.
   9-6-recurring-invoices: backlog
   9-7-billing-accuracy-usage-visibility: backlog

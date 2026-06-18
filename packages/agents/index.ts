@@ -10,8 +10,8 @@ export type { AffectedRun, DeactivationResult } from './orchestrator/agent-lifec
 export {
   runGraceSweep,
   runSuspensionSweep,
-  runReconciliation,
 } from './orchestrator/lifecycle-sweep';
+export { runReconciliation } from './orchestrator/reconcile-subscriptions';
 export { createLLMRouter, NoAvailableProviderError } from './shared/llm-router';
 export type { LlmRouter, LlmResponse, AgentExecutionContext, LLMOptions } from './shared/llm-router';
 

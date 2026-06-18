@@ -93,6 +93,11 @@ export function createOrchestrator(trustGateConfig?: TrustGateConfig): Orchestra
     const { registerSweepWorkers } = await import('./sweep-worker');
     await registerSweepWorkers(boss, trustGateConfig?.trustClient);
 
+    // Story 9-5a — register subscription lifecycle sweep workers
+    // (grace + suspension + nightly reconciliation)
+    const { registerLifecycleSweepWorkers } = await import('./lifecycle-sweep-worker');
+    await registerLifecycleSweepWorkers(boss);
+
     // Story 6-2 — register calendar agent workers (conflict detection)
     const { registerCalendarWorkers } = await import('./calendar-worker');
     await registerCalendarWorkers(boss);

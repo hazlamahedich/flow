@@ -49,6 +49,24 @@ const SCHEDULES: ScheduleEntry[] = [
     cron: '0 14 * * 3',
     data: { type: 'sweep_trigger', trigger: 'wednesday_affirmation' },
   },
+  // Story 9-5a — FR59 lifecycle: daily grace + suspension sweeps at 02:00 UTC
+  // (low-traffic window, mirrors `time-integrity-sweep-trigger`).
+  {
+    name: 'subscription-grace-sweep-trigger',
+    cron: '0 2 * * *',
+    data: { type: 'sweep_trigger', trigger: 'subscription_grace_daily' },
+  },
+  {
+    name: 'subscription-suspension-sweep-trigger',
+    cron: '0 2 * * *',
+    data: { type: 'sweep_trigger', trigger: 'subscription_suspension_daily' },
+  },
+  // Story 9-5a — NFR54: nightly reconciliation at 03:00 UTC (after the two sweeps).
+  {
+    name: 'subscription-reconcile-trigger',
+    cron: '0 3 * * *',
+    data: { type: 'sweep_trigger', trigger: 'subscription_reconcile_nightly' },
+  },
 ];
 
 export async function registerSchedules(boss: PgBoss): Promise<void> {

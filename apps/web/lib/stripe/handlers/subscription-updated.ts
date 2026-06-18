@@ -147,10 +147,16 @@ export async function handleSubscriptionDeleted(
     return { processed: false, reason: 'missing workspace_id or customer for lookup' };
   }
 
-  const { error } = await supabase.rpc('set_workspace_subscription_status', {
+  // FR59 + spike §6.1 — `customer.subscription.deleted` triggers the SUSPENSION
+  // flow (30-day read-only window), NOT `cancelled`. The workspace enters
+  // `suspended` regardless of whether it was `active`, `past_due`, or
+  // `cancelled` (owner-scheduled cancel-at-period-end whose period has ended).
+  // The single conditional write handles all three source states idempotently:
+  // a duplicate webhook delivery on an already-`suspended` or `deleted` row
+  // returns `PRECONDITION_FAILED`, which we treat as `processed:true`
+  // (project-context.md:494 — "already in target state = success").
+  const { error } = await supabase.rpc('transition_to_suspended_any', {
     p_workspace_id: workspaceId,
-    p_status: 'cancelled',
-    p_clear_period_end: true,
   });
 
   if (error) {

@@ -40,6 +40,10 @@
       "types": "./orchestrator/pg-boss-producer.ts",
       "default": "./dist/orchestrator/pg-boss-producer.js"
     },
+    "./shared": {
+      "types": "./shared/index.ts",
+      "default": "./dist/shared/index.js"
+    },
     "./orchestrator/types": {
       "types": "./orchestrator/types.ts",
       "default": "./dist/orchestrator/types.js"

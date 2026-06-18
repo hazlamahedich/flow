@@ -20,11 +20,12 @@ export const workspaces = pgTable(
     subscriptionCurrentPeriodEnd: timestamp('subscription_current_period_end', { withTimezone: true }),
     subscriptionCancelAtPeriodEnd: boolean('subscription_cancel_at_period_end').notNull().default(false),
     subscriptionUpdatedAt: timestamp('subscription_updated_at', { withTimezone: true }).notNull().defaultNow(),
+    subscriptionStatusUpdatedAt: timestamp('subscription_status_updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (_table) => [
     check(
       'workspaces_subscription_status_valid',
-      sql`subscription_status IN ('free', 'active', 'past_due', 'cancelled')`,
+      sql`subscription_status IN ('free', 'active', 'past_due', 'cancelled', 'suspended', 'deleted')`,
     ),
     check(
       'workspaces_subscription_tier_valid',
