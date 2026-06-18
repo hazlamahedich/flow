@@ -1,6 +1,6 @@
 ---
   generated: 2026-04-20
-  last_updated: 2026-06-18  # Story 9-5a in-progress (review follow-up patches).
+  last_updated: 2026-06-18  # Story 9-5b dev complete → review (80 9-5b tests green across apps/web + packages/shared + packages/agents).
 project: flow
 tracking_system: file-system
 story_location: "{project-root}/_bmad-output/implementation-artifacts"
@@ -111,7 +111,10 @@ development_status:
   9-4-subscription-tiers-tier-limits: done  # T1-T9 complete 2026-06-17: enforceTierLimit + changeTierAction + UsageMeter + 5% fee notice + seed fix. Code review closed 2026-06-17: 1 decision resolved (party-mode), 4 patches applied, 1 deferred. 30 unit + 21 ATDD green; 0 new typecheck/lint errors in 9-4 files.
   9-5-subscription-lifecycle-downgrade-handling: deprecated  # SPLIT — replaced by 9-5a, 9-5b (see epic-9-planning-review.md §6)
   9-5a-subscription-lifecycle-state-machine: done  # State machine (Active→Past Due→Suspended→Deleted), 7d grace sweep, 30d suspension sweep, nightly reconciliation. FR59, FR42, NFR54. Dev + code review closed 2026-06-18; party-mode consensus: tighten RPC grant + add subscription_status_updated_at. 59 web unit tests + 12 pgTAP tests green; agents/db/shared typecheck green for 9-5a files.
-  9-5b-agent-pause-downgrade-handling: backlog  # Orchestrator guard clause, FR57 downgrade data preservation, auto-upgrade prompts, notification surfaces. Depends on 9-5a.
+  9-5b-agent-pause-downgrade-handling: review  # REVISED 2026-06-18 (party-mode adversarial review BLOCK → PM/Architect re-scope, user-approved). Orchestrator guard clause + boss.fail + cancelRun (FR60), enforceTierLimit regression at REAL paths (FR56 enforce half), webhook-bound applyDowngradeOnTierChange + MRU archive + archived-clients RLS (FR57 client half), in-app SubscriptionStatusBanner (FR60 P0), auto-upgrade banner. Scope redistributed: Agency→Pro→9-5c, client-selection UI→9-5d, proactive notify→9-5e. Tier fix: Free maxClients=2 (PRD; new migration 20260618000004 + P0 ticket vs 9-4). 17 ATDD tests (was misstated 14). Depends on 9-5a (done).
+  9-5c-agency-to-pro-downgrade: backlog  # NEW 2026-06-18 (PM re-scope). Agency→Pro downgrade: team-member removal path. FR57 team half. ~2d. Launch-blocking (Epic 9).
+  9-5d-client-selection-downgrade-ui: backlog  # NEW 2026-06-18 (PM re-scope). Full FR57 user-choice: choose-which-clients-to-keep UI + archived-client portal/VA read-only UX + bulk unarchive on upgrade. FR57 choice clause. ~2d. Launch-blocking (Epic 9).
+  9-5e-approaching-limit-notifications: backlog  # NEW 2026-06-18 (PM re-scope). Proactive "approaching limit" notifications + one-click upgrade on approach. FR56 proactive half. ~2d. Launch-blocking (Epic 9).
   9-6-recurring-invoices: backlog
   9-7-billing-accuracy-usage-visibility: backlog
   epic-9-retrospective: optional
@@ -214,6 +217,6 @@ test_metrics:
       "9-3b": { tests: 13, frs: "FR39, FR58" }
       "9-4":  { tests: 15, frs: "FR55, FR56, FR61, FR62" }
       "9-5a": { tests: 19, frs: "FR59, FR60" }
-      "9-5b": { tests: 14, frs: "FR57, FR60" }
+      "9-5b": { tests: 17, frs: "FR57, FR60", note: "revised 2026-06-18; was misstated 14; tautologies replaced with shape assertions on green-flip; actual ATDD count is 17" }
       "9-6":  { tests: 15, frs: "FR37, FR60" }
       "9-7":  { tests: 13, frs: "NFR54, NFR55, NFR56" }

@@ -77,6 +77,7 @@ describe('executor-perf', () => {
       actionType: 'email_categorization' as const,
       workspaceId: 'ws-1',
       emailId: 'email-1',
+      signalId: 'sig-perf-1',
     };
 
     const start = Date.now();
@@ -114,6 +115,7 @@ describe('executor-perf', () => {
       actionType: 'email_categorization' as const,
       workspaceId: 'ws-1',
       emailId: 'email-2',
+      signalId: 'sig-perf-2',
     };
 
     const start = Date.now();

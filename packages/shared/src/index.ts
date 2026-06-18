@@ -93,3 +93,10 @@ export {
   SUSPENSION_MAX_DAYS,
 } from './subscription-lifecycle';
 export type { SubscriptionStatus } from './subscription-lifecycle';
+
+// Story 9.5b — FR60 (orchestrator guard helpers)
+export {
+  shouldDequeueForWorkspace,
+  isPausedStatus,
+  PAUSED_STATUSES,
+} from './subscription-state';

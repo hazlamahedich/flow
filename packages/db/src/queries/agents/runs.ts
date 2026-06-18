@@ -156,3 +156,43 @@ export async function releaseRun(runId: string) {
     .in('status', ['running', 'queued']);
   if (error) throw error;
 }
+
+/**
+ * Cancel a queued agent run. Used by the orchestrator subscription guard
+ * (Story 9.5b AC1 — FR60) when a job is dequeued for a non-active workspace:
+ * the job is released back to the queue via `boss.fail(retryable)`, AND the
+ * existing `queued` `agent_runs` row is transitioned to `cancelled` so it
+ * does not appear as "pending" in the audit timeline.
+ *
+ * Valid per `VALID_RUN_TRANSITIONS.queued = ['running','failed','cancelled']`
+ * (packages/types/src/agents.ts:159). The guard uses a conditional-write
+ * (`status = 'queued'`) so a concurrent claim that advanced the run to
+ * `running` does NOT get clobbered — `maybeSingle()` returns null.
+ *
+ * Returns `true` if the row was cancelled, `false` if it was already past
+ * `queued` (concurrent claim — caller treats as success).
+ */
+export async function cancelRun(
+  runId: string,
+  reason: string,
+): Promise<boolean> {
+  const client = createServiceClient();
+  const { data, error } = await client
+    .from('agent_runs')
+    .update({
+      status: 'cancelled',
+      completed_at: new Date().toISOString(),
+      error: {
+        code: 'SUBSCRIPTION_PAUSED',
+        message: reason,
+        retryable: true,
+        retryExhausted: false,
+      },
+    })
+    .eq('id', runId)
+    .eq('status', 'queued')
+    .select('id')
+    .maybeSingle();
+  if (error) throw error;
+  return data != null;
+}

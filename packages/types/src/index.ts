@@ -39,6 +39,7 @@ export {
   createCheckoutSessionSchema, createPortalSessionSchema,
   manageSubscriptionSchema,
   changeTierSchema,
+  downgradeSchema,
 } from './subscription';
 export type {
   SubscriptionTier, UpgradableTier, SubscriptionStatus,
@@ -48,6 +49,7 @@ export type {
   CreateCheckoutSessionInput, CreatePortalSessionInput,
   ManageSubscriptionInput,
   ChangeTierInput,
+  DowngradeInput,
 } from './subscription';
 export {
   reportStatusEnum, sectionTypeEnum, generateWeeklyReportSchema,

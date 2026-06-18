@@ -9,6 +9,7 @@ export {
   claimRunWithGuard,
   findStaleRuns,
   releaseRun,
+  cancelRun,
 } from './runs';
 export {
   getAgentConfigurations,

@@ -86,6 +86,23 @@ export const changeTierSchema = z.object({
 });
 export type ChangeTierInput = z.infer<typeof changeTierSchema>;
 
+/**
+ * downgradeSchema — internal write model for `applyDowngradeOnTierChange`
+ * (Story 9.5b AC3 — FR57 client half).
+ *
+ * `fromTier` is `pro | agency` (cannot downgrade from Free — EC3).
+ * `toTier` is `'free'` only; Agency→Pro is owned by 9-5c (separate story).
+ *
+ * Used by the Stripe `customer.subscription.updated` webhook handler to
+ * atomically archive excess clients when a workspace downgrades. NOT a
+ * user-callable Server Action.
+ */
+export const downgradeSchema = z.object({
+  fromTier: upgradableTierSchema,
+  toTier: z.enum(['free']),
+});
+export type DowngradeInput = z.infer<typeof downgradeSchema>;
+
 export const createPortalSessionSchema = z.object({}).optional();
 export type CreatePortalSessionInput = z.infer<typeof createPortalSessionSchema>;
 

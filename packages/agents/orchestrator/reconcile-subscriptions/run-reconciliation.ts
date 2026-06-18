@@ -2,14 +2,13 @@
  * Subscription reconciliation (Story 9.5a — NFR54, spike §9.1).
  *
  * Compares Stripe's view of each subscription to our DB. When they disagree:
- *   1. Validates the transition via `transitionSubscriptionStatus` (pure).
- *   2. Calls `transition_workspace_subscription_status` (conditional write).
- *   3. Records drift / uncorrectable cases in the returned `ReconciliationReport`.
+ * validates the transition (pure) → calls `transition_workspace_subscription_status`
+ * (conditional write) → records drift / uncorrectable in the returned report.
+ * System-level (`service_role`); sequential 100-row pages with Stripe
+ * rate-limit sleep. Per-workspace error isolation (EC9).
  *
- * System-level: uses `createServiceClient()` and `getPaymentProvider('stripe')`
- * (project-context.md:150). Sequential 100-row pages with a per-iteration
- * Stripe rate-limit sleep. Per-workspace error isolation (EC9) — one Stripe
- * outage does not fail the whole job.
+ * Story 9.5b T4.5 — also runs `correctTierDrift` (in `correct-tier-drift.ts`)
+ * to catch downgrade archives the webhook missed.
  */
 import { createServiceClient } from '@flow/db';
 import { writeAuditLog } from '../../shared/audit-writer';
@@ -18,16 +17,13 @@ import {
   mapStripeStatusToDb,
   transitionSubscriptionStatus,
 } from '@flow/shared';
-import type { ReconciliationReport, SubscriptionStatus } from '@flow/types';
+import type { ReconciliationReport } from '@flow/types';
+import { correctTierDrift, type TierDriftRow } from './correct-tier-drift';
 
 const RECONCILE_BATCH_SIZE = 100;
 const STRIPE_RATE_LIMIT_SLEEP_MS = 100;
 
-interface ReconcileRow {
-  id: string;
-  subscription_status: SubscriptionStatus;
-  stripe_subscription_id: string;
-}
+type ReconcileRow = TierDriftRow;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -44,7 +40,7 @@ async function fetchWorkspacesToReconcilePage(
   const client = createServiceClient();
   let query = client
     .from('workspaces')
-    .select('id, subscription_status, stripe_subscription_id')
+    .select('id, subscription_status, stripe_subscription_id, subscription_tier')
     .neq('subscription_status', 'deleted')
     .not('stripe_subscription_id', 'is', null)
     .order('id', { ascending: true })
@@ -84,16 +80,10 @@ async function reconcileWorkspace(
     stripeStatus = subscription.status;
     await sleep(STRIPE_RATE_LIMIT_SLEEP_MS);
   } catch (err) {
-    report.uncorrectable.push({
-      workspaceId,
-      reason: 'stripe_api_error',
-    });
+    report.uncorrectable.push({ workspaceId, reason: 'stripe_api_error' });
     writeAuditLog({
-      workspaceId,
-      agentId: 'orchestrator',
-      action: 'subscription.reconciliation_failed',
-      entityType: 'workspace',
-      entityId: workspaceId,
+      workspaceId, agentId: 'orchestrator', action: 'subscription.reconciliation_failed',
+      entityType: 'workspace', entityId: workspaceId,
       details: { reason: 'stripe_api_error', error: String(err) },
     });
     return;
@@ -101,37 +91,28 @@ async function reconcileWorkspace(
 
   const mappedStatus = mapStripeStatusToDb(stripeStatus);
   if (!mappedStatus) {
-    report.uncorrectable.push({
-      workspaceId,
-      reason: 'unmapped_status',
-    });
+    report.uncorrectable.push({ workspaceId, reason: 'unmapped_status' });
     writeAuditLog({
-      workspaceId,
-      agentId: 'orchestrator',
-      action: 'subscription.reconciliation_failed',
-      entityType: 'workspace',
-      entityId: workspaceId,
+      workspaceId, agentId: 'orchestrator', action: 'subscription.reconciliation_failed',
+      entityType: 'workspace', entityId: workspaceId,
       details: { reason: 'unmapped_status', stripeStatus },
     });
     return;
   }
 
   if (mappedStatus === dbStatus) {
+    // Story 9.5b T4.5 — status matches, but tier_drift might still exist
+    // (webhook missed the archive, or count changed after the flip).
+    await correctTierDrift(row);
     return;
   }
 
   const validation = transitionSubscriptionStatus(dbStatus, mappedStatus);
   if (!validation.ok) {
-    report.uncorrectable.push({
-      workspaceId,
-      reason: 'invalid_transition',
-    });
+    report.uncorrectable.push({ workspaceId, reason: 'invalid_transition' });
     writeAuditLog({
-      workspaceId,
-      agentId: 'orchestrator',
-      action: 'subscription.reconciliation_failed',
-      entityType: 'workspace',
-      entityId: workspaceId,
+      workspaceId, agentId: 'orchestrator', action: 'subscription.reconciliation_failed',
+      entityType: 'workspace', entityId: workspaceId,
       details: { reason: 'invalid_transition', from: dbStatus, to: mappedStatus },
     });
     return;
@@ -145,67 +126,40 @@ async function reconcileWorkspace(
       p_to_status: mappedStatus,
     });
     const data = (rpcResult.data ?? {}) as { success?: boolean; error?: string };
-    if (rpcResult.error) {
-      throw new Error(rpcResult.error.message ?? 'rpc_error');
-    }
-    if (data.error === 'PRECONDITION_FAILED') {
-      corrected = false;
-    } else if (data.success === true) {
-      corrected = true;
-    } else {
-      throw new Error(data.error ?? 'unknown_rpc_response');
-    }
+    if (rpcResult.error) throw new Error(rpcResult.error.message ?? 'rpc_error');
+    if (data.error === 'PRECONDITION_FAILED') corrected = false;
+    else if (data.success === true) corrected = true;
+    else throw new Error(data.error ?? 'unknown_rpc_response');
   } catch (err) {
-    report.uncorrectable.push({
-      workspaceId,
-      reason: 'status_changed_before_reconcile',
-    });
+    report.uncorrectable.push({ workspaceId, reason: 'status_changed_before_reconcile' });
     writeAuditLog({
-      workspaceId,
-      agentId: 'orchestrator',
-      action: 'subscription.reconciliation_failed',
-      entityType: 'workspace',
-      entityId: workspaceId,
-      details: {
-        reason: 'status_changed_before_reconcile',
-        error: String(err),
-      },
+      workspaceId, agentId: 'orchestrator', action: 'subscription.reconciliation_failed',
+      entityType: 'workspace', entityId: workspaceId,
+      details: { reason: 'status_changed_before_reconcile', error: String(err) },
     });
     return;
   }
 
-  report.drift.push({
-    workspaceId,
-    fromStatus: dbStatus,
-    toStatus: mappedStatus,
-    corrected,
-  });
+  report.drift.push({ workspaceId, fromStatus: dbStatus, toStatus: mappedStatus, corrected });
 
   if (corrected) {
     writeAuditLog({
-      workspaceId,
-      agentId: 'orchestrator',
-      action: 'subscription.reconciled',
-      entityType: 'workspace',
-      entityId: workspaceId,
+      workspaceId, agentId: 'orchestrator', action: 'subscription.reconciled',
+      entityType: 'workspace', entityId: workspaceId,
       details: { from: dbStatus, to: mappedStatus },
     });
   }
+
+  // Story 9.5b T4.5 — regardless of status drift, also check tier_drift.
+  await correctTierDrift(row);
 }
 
 /**
  * Nightly reconciliation entry point. Returns a `ReconciliationReport`
- * summarizing checked count, drift, and uncorrectable cases. The report IS
- * the failure surface — uncorrectable rows are surfaced for 9-7's
- * billing-accuracy dashboard rather than failing the job.
+ * summarizing checked count, drift, and uncorrectable cases.
  */
 export async function runReconciliation(): Promise<ReconciliationReport> {
-  const report: ReconciliationReport = {
-    checked: 0,
-    drift: [],
-    uncorrectable: [],
-  };
-
+  const report: ReconciliationReport = { checked: 0, drift: [], uncorrectable: [] };
   let lastId: string | null = null;
   let page: ReconcileRow[];
 
@@ -216,29 +170,21 @@ export async function runReconciliation(): Promise<ReconciliationReport> {
       try {
         await reconcileWorkspace(row, report);
       } catch (err) {
-        report.uncorrectable.push({
-          workspaceId: row.id,
-          reason: 'unexpected_error',
-        });
+        report.uncorrectable.push({ workspaceId: row.id, reason: 'unexpected_error' });
         writeAuditLog({
-          workspaceId: row.id,
-          agentId: 'orchestrator',
+          workspaceId: row.id, agentId: 'orchestrator',
           action: 'subscription.reconciliation_failed',
-          entityType: 'workspace',
-          entityId: row.id,
+          entityType: 'workspace', entityId: row.id,
           details: { reason: 'unexpected_error', error: String(err) },
         });
       }
     }
-    const lastRow = page[page.length - 1];
-    lastId = lastRow?.id ?? null;
+    lastId = page[page.length - 1]?.id ?? null;
   } while (page.length === RECONCILE_BATCH_SIZE);
 
   writeAuditLog({
-    workspaceId: 'system',
-    agentId: 'orchestrator',
-    action: 'subscription.reconciliation_complete',
-    entityType: 'orchestrator',
+    workspaceId: 'system', agentId: 'orchestrator',
+    action: 'subscription.reconciliation_complete', entityType: 'orchestrator',
     details: {
       checked: report.checked,
       driftCount: report.drift.length,

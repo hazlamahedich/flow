@@ -38,7 +38,19 @@ export async function updateWorkspaceClient(
     return { success: false, error: createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found.', 'validation') };
   }
   if (existing.status === 'archived') {
-    return { success: false, error: createFlowError(409, 'CLIENT_ARCHIVED', 'Cannot edit archived client. Restore first.', 'validation') };
+    // Story 9.5b T4.7 — defence-in-depth for archived clients. RLS blocks
+    // the UPDATE at the DB layer (migration 20260618800001); this app-layer
+    // guard surfaces a clearer 403 to the user instead of a silent 0-row
+    // update. Code = RESOURCE_ARCHIVED per AC3 spec.
+    return {
+      success: false,
+      error: createFlowError(
+        403,
+        'RESOURCE_ARCHIVED',
+        'This client is archived. Upgrade to edit.',
+        'validation',
+      ),
+    };
   }
 
   try {

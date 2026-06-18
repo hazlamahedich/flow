@@ -25,6 +25,8 @@ vi.mock('@flow/db', () => ({
   updateRunStatus: vi.fn(),
   releaseRun: vi.fn(),
   getRunById: vi.fn(),
+  getWorkspaceSubscriptionStatus: vi.fn().mockResolvedValue('active'),
+  cancelRun: vi.fn().mockResolvedValue(true),
   createServiceClient: vi.fn(() => ({
     from: vi.fn(() => ({
       update: vi.fn(() => ({ eq: vi.fn(() => ({ error: null })) })),

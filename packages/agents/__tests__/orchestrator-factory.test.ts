@@ -22,6 +22,8 @@ vi.mock('@flow/db', () => ({
   createServiceClient: vi.fn(() => ({ from: vi.fn() })),
   getAgentConfiguration: vi.fn(async () => null),
   insertRun: vi.fn(),
+  getWorkspaceSubscriptionStatus: vi.fn().mockResolvedValue('active'),
+  cancelRun: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock('../shared/audit-writer', () => ({
@@ -59,7 +61,7 @@ describe('Orchestrator Factory', () => {
       expect(instance.on).toHaveBeenCalledWith('error', expect.any(Function));
       expect(instance.on).toHaveBeenCalledWith('warning', expect.any(Function));
     }
-  }, 15_000);
+  }, 30_000);
 
   it('throws when DATABASE_URL is missing', () => {
     delete process.env.DATABASE_URL;

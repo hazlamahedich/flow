@@ -66,7 +66,7 @@ describe('updateWorkspaceClient', () => {
     mockGetClientById.mockResolvedValue({ id: UUID, name: 'Archived', status: 'archived' } as never);
     const result = await updateWorkspaceClient({ clientId: UUID, name: 'X' });
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.code).toBe('CLIENT_ARCHIVED');
+    if (!result.success) expect(result.error.code).toBe('RESOURCE_ARCHIVED');
   });
 
   it('allows updating email to null', async () => {

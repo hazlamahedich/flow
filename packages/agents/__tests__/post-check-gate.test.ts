@@ -6,6 +6,8 @@ import { z } from 'zod';
 
 vi.mock('@flow/db', () => ({
   getRunById: vi.fn(),
+  getWorkspaceSubscriptionStatus: vi.fn().mockResolvedValue('active'),
+  cancelRun: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock('../shared/audit-writer', () => ({

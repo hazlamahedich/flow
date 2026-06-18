@@ -17,6 +17,8 @@ vi.mock('pg-boss', () => ({
 vi.mock('@flow/db', () => ({
   findStaleRuns: vi.fn(async () => []),
   updateRunStatus: vi.fn(),
+  getWorkspaceSubscriptionStatus: vi.fn().mockResolvedValue('active'),
+  cancelRun: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock('../shared/audit-writer', () => ({

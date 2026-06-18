@@ -17,7 +17,7 @@
  */
 import type { Metadata } from 'next';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, countActiveClients, countActiveTeamMembers, countActiveAgents } from '@flow/db';
+import { requireTenantContext, createFlowError, countActiveClients, countArchivedClients, getLatestArchivedAt, countActiveTeamMembers, countActiveAgents } from '@flow/db';
 import type { ActionResult, SubscriptionTier } from '@flow/types';
 import { getTierConfig } from '@/lib/config/tier-config';
 import { getTierLimits, type TierLimit } from '@/lib/actions/billing/enforce-tier-limit';
@@ -35,6 +35,7 @@ import { SubscriptionActions } from './components/SubscriptionActions';
 import { BillingHistory } from './components/BillingHistory';
 import { SyncBanner } from './components/SyncBanner';
 import { UsageMeter } from './components/UsageMeter';
+import { DowngradeBanner } from './components/DowngradeBanner';
 
 export const metadata: Metadata = {
   title: 'Billing',
@@ -65,6 +66,7 @@ interface PageData {
   recentInvoices: BillingHistoryItem[];
   planDisplayPrices: Record<'pro' | 'agency', { label: string; interval: string }>;
   usage: { clients: number; teamMembers: number; agents: number };
+  archived: { count: number; latestArchivedAt: string | null };
   tierLimits: TierLimit;
 }
 
@@ -99,8 +101,10 @@ async function loadPageData(workspaceId: string, supabase: Awaited<ReturnType<ty
   // Usage counts use the same RLS-safe helpers consumed by enforceTierLimit
   // (Story 9.4 AC6 — do not duplicate count logic). All three accept the
   // user-scoped supabase client.
-  const [clients, teamMembers, agents] = await Promise.all([
+  const [clients, archivedCount, latestArchivedAt, teamMembers, agents] = await Promise.all([
     countActiveClients(supabase, workspaceId).catch(() => 0),
+    countArchivedClients(supabase, workspaceId).catch(() => 0),
+    getLatestArchivedAt(supabase, workspaceId).catch(() => null),
     countActiveTeamMembers(supabase, workspaceId).catch(() => 0),
     countActiveAgents(supabase, workspaceId).catch(() => 0),
   ]);
@@ -110,6 +114,7 @@ async function loadPageData(workspaceId: string, supabase: Awaited<ReturnType<ty
     recentInvoices: (invoiceRows ?? []) as unknown as BillingHistoryItem[],
     planDisplayPrices,
     usage: { clients, teamMembers, agents },
+    archived: { count: archivedCount, latestArchivedAt },
     tierLimits,
   };
 }
@@ -191,6 +196,20 @@ export default async function BillingPage({
         isCancelReturn={isCancelReturn}
         sessionId={params.session_id}
         onSync={handleSync}
+      />
+
+      {/* Story 9.5b AC4 — auto-upgrade prompt after downgrade (FR57). */}
+      <DowngradeBanner
+        archivedCount={data.archived.count}
+        archivedAt={data.archived.latestArchivedAt ?? ''}
+        workspaceId={ctx.workspaceId}
+        onUpgrade={async (input) => {
+          const r = await handleUpgrade(input);
+          if (r.success && 'checkoutUrl' in r.data) {
+            return { success: true as const, data: { checkoutUrl: r.data.checkoutUrl } };
+          }
+          return r as unknown as ActionResult<{ checkoutUrl: string }>;
+        }}
       />
 
       <section className="rounded-[var(--flow-radius-lg)] border border-[var(--flow-color-border-default)] p-5">

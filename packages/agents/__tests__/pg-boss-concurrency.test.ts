@@ -6,6 +6,8 @@ vi.mock('@flow/db', () => ({
   releaseRun: vi.fn(),
   getRunById: vi.fn(),
   findStaleRuns: vi.fn(async () => []),
+  getWorkspaceSubscriptionStatus: vi.fn().mockResolvedValue('active'),
+  cancelRun: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock('../shared/audit-writer', () => ({

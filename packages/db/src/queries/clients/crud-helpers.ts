@@ -52,6 +52,37 @@ export async function countActiveClients(
   return count ?? 0;
 }
 
+export async function countArchivedClients(
+  supabase: SupabaseClient,
+  workspaceId: string,
+): Promise<number> {
+  const { count, error } = await supabase
+    .from('clients')
+    .select('*', { count: 'exact', head: true })
+    .eq('workspace_id', workspaceId)
+    .eq('status', 'archived');
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function getLatestArchivedAt(
+  supabase: SupabaseClient,
+  workspaceId: string,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('clients')
+    .select('archived_at')
+    .eq('workspace_id', workspaceId)
+    .eq('status', 'archived')
+    .order('archived_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const row = data as { archived_at: string | null };
+  return row.archived_at ?? null;
+}
+
 export async function checkDuplicateEmail(
   supabase: SupabaseClient,
   workspaceId: string,

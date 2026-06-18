@@ -10,6 +10,7 @@ import { CircuitBreaker } from '../shared/circuit-breaker';
 import { runPreCheck, blockForApproval } from './gates';
 import { runPostCheck } from './post-check';
 import { writeGateSignal } from './gate-events';
+import { releaseIfSubscriptionPaused } from './subscription-guard';
 import type { PreCheckResult } from './gates';
 
 const CAN_ACT_RETRY_DELAYS_MS = [1000, 5000, 15000];
@@ -63,6 +64,14 @@ export class PgBossWorker implements AgentRunWorker {
     const cb = this.getCircuitBreaker(agentType);
     if (cb && !cb.allowRequest()) {
       writeAuditLog({ workspaceId: payload.workspaceId, agentId: payload.agentId, action: 'claim.circuit_open', entityType: 'agent_run', entityId: payload.runId, details: { jobId: job.id, outcome: 'released' } });
+      return null;
+    }
+
+    // Story 9.5b AC1 — subscription-pause guard (FR60). Runs AFTER circuit
+    // breaker, BEFORE claimRunWithGuard. Releases the job via boss.fail +
+    // cancels the queued run when the workspace is paused. See
+    // `subscription-guard.ts` for details + EC matrix.
+    if (await releaseIfSubscriptionPaused(this.boss, payload, job)) {
       return null;
     }
 

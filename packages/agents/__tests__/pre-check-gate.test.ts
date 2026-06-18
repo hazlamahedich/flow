@@ -5,6 +5,8 @@ import { runPreCheck, blockForApproval } from '../orchestrator/gates';
 
 vi.mock('@flow/db', () => ({
   updateRunStatus: vi.fn(),
+  getWorkspaceSubscriptionStatus: vi.fn().mockResolvedValue('active'),
+  cancelRun: vi.fn().mockResolvedValue(true),
 }));
 
 vi.mock('../shared/audit-writer', () => ({

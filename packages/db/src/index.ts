@@ -27,6 +27,7 @@ export { getDashboardSummary, getDashboardCacheTag } from './queries/dashboard';
 export type { DashboardSummary } from './queries/dashboard';
 export { listUserWorkspaces, listAllWorkspaces } from './queries/workspaces';
 export { countActiveTeamMembers } from './queries/workspaces';
+export { getWorkspaceSubscriptionStatus } from './queries/workspaces';
 export type { UserWorkspace } from './queries/workspaces';
 
 export { searchEntities } from './queries/search/search-entities';
@@ -44,6 +45,7 @@ export {
   claimRunWithGuard,
   findStaleRuns,
   releaseRun,
+  cancelRun,
   getAgentConfigurations,
   getUserAgentConfigurations,
   getActiveAgentCount,
@@ -131,11 +133,18 @@ export {
   archiveClient,
   restoreClient,
   countActiveClients,
+  countArchivedClients,
+  getLatestArchivedAt,
   checkDuplicateEmail,
   hasActiveAgentRuns,
 } from './queries/clients';
 export { listAllActiveClients } from './queries/clients';
 export type { ActiveClientSummary } from './queries/clients';
+export {
+  bulkArchiveClients,
+  listActiveClientIdsMruFirst,
+} from './queries/clients/archiveClients';
+export type { BulkArchiveResult } from './queries/clients/archiveClients';
 export { getClientEngagementTimeline } from './queries/clients/timeline';
 export {
   assignMemberToClient,

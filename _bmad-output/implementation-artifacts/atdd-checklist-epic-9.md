@@ -79,7 +79,7 @@ All tests use the `vi.hoisted()` + `vi.mock()` red-phase pattern: non-existent m
 | `9-3b-checkout-portal-integration.spec.ts` | Checkout & Portal Integration | 13 | P0 | FR39, FR58 |
 | `9-4-subscription-tiers-tier-limits.spec.ts` | Tiers & Tier Limits | 15 | P0 | FR55, FR56, FR61, FR62 |
 | `9-5a-subscription-lifecycle-state-machine.spec.ts` | Lifecycle State Machine | 19 | P0 | FR59, FR60 |
-| `9-5b-agent-pause-downgrade-handling.spec.ts` | Agent Pause & Downgrade | 14 | P0/P1 | FR57, FR60 |
+| `9-5b-agent-pause-downgrade-handling.spec.ts` | Agent Pause & Downgrade | 17 | P0/P1 | FR57, FR60 |
 | `9-6-recurring-invoices.spec.ts` | Recurring Invoices | 15 | P0 | FR37, FR60 |
 | `9-7-billing-accuracy-usage-visibility.spec.ts` | Billing Accuracy & Usage | 13 | P0 | NFR54, NFR55, NFR56 |
 | **Total** | **10 slices** | **163** | | |
@@ -158,7 +158,7 @@ All tests use the `vi.hoisted()` + `vi.mock()` red-phase pattern: non-existent m
 - Grace period: 7 days; Suspension window: 30 days (FR59)
 - `reconcileSubscriptionsAction`: flags drift, corrects via Stripe truth
 
-### 9-5b: Agent Pause & Downgrade Handling (14 tests)
+### 9-5b: Agent Pause & Downgrade Handling (17 tests)
 
 - `shouldDequeueForWorkspace`: active/free=true, past_due/suspended/deleted=false (FR60)
 - `enforceTierLimit`: blocks over-limit for clients/team/agents

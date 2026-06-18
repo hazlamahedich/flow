@@ -40,6 +40,8 @@ vi.mock('@flow/db', () => {
     }),
     releaseRun: vi.fn(),
     findStaleRuns: vi.fn(async () => []),
+    getWorkspaceSubscriptionStatus: vi.fn().mockResolvedValue('active'),
+    cancelRun: vi.fn().mockResolvedValue(true),
     __runs: runs,
   };
 });

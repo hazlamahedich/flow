@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getTierConfig } from '@/lib/config/tier-config';
 import { StripePaymentProvider } from '@flow/agents/providers';
+import { applyDowngradeOnTierChange } from '@/lib/actions/billing/downgrade-internal';
 import type { WebhookEvent, WebhookProcessingResult } from '../webhook-types';
 
 function getMetadata(object: Record<string, unknown>): Record<string, string> {
@@ -51,6 +52,27 @@ function mapSubscriptionStatus(
   return undefined;
 }
 
+/**
+ * Fetch the workspace's previous `subscription_tier` BEFORE the upsert flips
+ * it. Used to detect downgrade (Pro|Agency → Free) and trigger
+ * `applyDowngradeOnTierChange` (Story 9.5b AC3 — FR57 client half).
+ *
+ * Runs in the same webhook `service_role` context; returns `null` when the
+ * workspace is missing or has no tier set yet.
+ */
+async function fetchPreviousTier(
+  supabase: SupabaseClient,
+  workspaceId: string,
+): Promise<'free' | 'pro' | 'agency' | null> {
+  const { data } = await supabase
+    .from('workspaces')
+    .select('subscription_tier')
+    .eq('id', workspaceId)
+    .maybeSingle();
+  if (!data) return null;
+  return (data as { subscription_tier: 'free' | 'pro' | 'agency' }).subscription_tier;
+}
+
 async function syncSubscriptionFromEvent(
   supabase: SupabaseClient,
   event: WebhookEvent,
@@ -71,6 +93,10 @@ async function syncSubscriptionFromEvent(
   if (!workspaceId) {
     return { processed: false, reason: 'workspace not found for subscription event' };
   }
+
+  // Capture the previous tier BEFORE the upsert flips it (Story 9.5b AC3).
+  // Used to detect downgrade (Pro|Agency → Free) and trigger archive.
+  const previousTier = await fetchPreviousTier(supabase, workspaceId);
 
   // `customer.subscription.updated` may carry a partial object (per spec dev
   // notes line 155). Expand via the provider to read full state.
@@ -95,12 +121,14 @@ async function syncSubscriptionFromEvent(
   if (!tier) {
     return { processed: false, reason: `price ${priceIdValue} does not map to a known tier` };
   }
+  const effectiveTier = tier as 'free' | 'pro' | 'agency';
 
   const periodStartMs = Date.parse(subscription.currentPeriodStart);
   const periodEndMs = Date.parse(subscription.currentPeriodEnd);
   const currentPeriodStart = Number.isNaN(periodStartMs) ? null : new Date(periodStartMs).toISOString();
   const currentPeriodEnd = Number.isNaN(periodEndMs) ? null : new Date(periodEndMs).toISOString();
 
+  // (1) Tier-flip RPC (atomic row-level FOR UPDATE lock).
   const { error } = await supabase.rpc('upsert_workspace_subscription', {
     p_workspace_id: workspaceId,
     p_stripe_customer_id: customerId,
@@ -114,6 +142,35 @@ async function syncSubscriptionFromEvent(
 
   if (error) {
     return { processed: false, reason: error.message };
+  }
+
+  // (2) Story 9.5b AC3 — if the tier-flip is a downgrade to Free, archive
+  // excess clients. The webhook ctx is the only legitimate bulk mutator
+  // (`service_role` bypasses RLS — T4.6). We pass the same `supabase` client
+  // so the caller can share a transaction when available. `tier_drift`
+  // reconciliation covers missed webhooks (T4.5).
+  if (
+    effectiveTier === 'free' &&
+    previousTier !== null &&
+    (previousTier === 'pro' || previousTier === 'agency')
+  ) {
+    try {
+      await applyDowngradeOnTierChange({
+        workspaceId,
+        fromTier: previousTier,
+        toTier: 'free',
+        supabase,
+      });
+    } catch (err) {
+      // Non-fatal — tier flip already committed; archive failure surfaces
+      // as tier_drift on next reconcileSubscriptions() run. We still log
+      // to stderr for immediate ops visibility.
+      console.error('applyDowngradeOnTierChange failed (will be reconciled)', {
+        workspaceId,
+        previousTier,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   return { processed: true };
