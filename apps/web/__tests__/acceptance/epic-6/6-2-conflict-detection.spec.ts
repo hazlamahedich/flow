@@ -163,8 +163,12 @@ describe('Story 6-2: Real-Time Conflict Detection', () => {
   describe('AC5: Performance SLA', () => {
     test('[P0] detection uses idx_cal_events_conflicts partial index', async () => {
       const fs = await import('fs');
+      const path = await import('path');
       const migration = fs.readFileSync(
-        '/Volumes/One Touch/flow/supabase/migrations/20260521000000_calendar_tables.sql',
+        path.resolve(
+          process.cwd(),
+          '../../supabase/migrations/20260521000000_calendar_tables.sql',
+        ),
         'utf-8',
       );
       expect(migration).toContain('idx_cal_events_conflicts');
