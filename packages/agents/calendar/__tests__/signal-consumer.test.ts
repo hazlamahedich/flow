@@ -5,11 +5,13 @@ const WORKSPACE_ID = '00000000-0000-4000-8000-000000000001';
 const CLIENT_ID = '00000000-0000-4000-8000-000000000002';
 const SIGNAL_ID = '00000000-0000-4000-8000-000000000010';
 
-function createMockSupabase(opts: {
-  noClients?: boolean;
-  existingRequest?: boolean;
-  insertError?: { code?: string; message: string } | null;
-} = {}) {
+function createMockSupabase(
+  opts: {
+    noClients?: boolean;
+    existingRequest?: boolean;
+    insertError?: { code?: string; message: string } | null;
+  } = {},
+) {
   let capturedInsertData: Record<string, unknown> | null = null;
 
   const from = vi.fn().mockImplementation((table: string) => {
@@ -62,7 +64,11 @@ function createMockSupabase(opts: {
           return Promise.resolve({ data: row, error: null });
         }),
       });
-      (insertChain as Record<string, unknown>)._capture = (data: Record<string, unknown>) => { capturedInsertData = data; };
+      (insertChain as Record<string, unknown>)._capture = (
+        data: Record<string, unknown>,
+      ) => {
+        capturedInsertData = data;
+      };
 
       return {
         select: vi.fn().mockReturnValue(selectChain),
@@ -77,7 +83,9 @@ function createMockSupabase(opts: {
     }
     return {};
   });
-  return { from } as unknown as InstanceType<typeof import('@supabase/supabase-js')['SupabaseClient']>;
+  return { from } as unknown as InstanceType<
+    (typeof import('@supabase/supabase-js'))['SupabaseClient']
+  >;
 }
 
 function makeSignal(actionType: string = 'schedule_meeting') {
@@ -96,45 +104,56 @@ function makeSignal(actionType: string = 'schedule_meeting') {
 }
 
 describe('consumeSchedulingSignal', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('returns unknown_action for non-scheduling action types', async () => {
-    const result = await consumeSchedulingSignal(makeSignal('reply'), { supabase: createMockSupabase() });
+    const result = await consumeSchedulingSignal(makeSignal('reply'), {
+      supabase: createMockSupabase(),
+    });
     expect(result.status).toBe('unknown_action');
     expect(result.schedulingRequest).toBeNull();
   });
 
   it('creates scheduling request for schedule_meeting action', async () => {
-    const result = await consumeSchedulingSignal(makeSignal('schedule_meeting'), { supabase: createMockSupabase() });
+    const result = await consumeSchedulingSignal(
+      makeSignal('schedule_meeting'),
+      { supabase: createMockSupabase() },
+    );
     expect(result.status).toBe('created');
     expect(result.schedulingRequest).not.toBeNull();
     expect(result.schedulingRequest!.requestType).toBe('book_new');
   });
 
   it('creates scheduling request for reschedule action', async () => {
-    const result = await consumeSchedulingSignal(makeSignal('reschedule'), { supabase: createMockSupabase() });
+    const result = await consumeSchedulingSignal(makeSignal('reschedule'), {
+      supabase: createMockSupabase(),
+    });
     expect(result.status).toBe('created');
     expect(result.schedulingRequest!.requestType).toBe('reschedule');
   });
 
   it('returns no_client_match when sender not found', async () => {
-    const result = await consumeSchedulingSignal(makeSignal(), { supabase: createMockSupabase({ noClients: true }) });
+    const result = await consumeSchedulingSignal(makeSignal(), {
+      supabase: createMockSupabase({ noClients: true }),
+    });
     expect(result.status).toBe('no_client_match');
   });
 
   it('returns duplicate for already-processed signal', async () => {
-    const result = await consumeSchedulingSignal(
-      makeSignal(),
-      { supabase: createMockSupabase({ existingRequest: true }) },
-    );
+    const result = await consumeSchedulingSignal(makeSignal(), {
+      supabase: createMockSupabase({ existingRequest: true }),
+    });
     expect(result.status).toBe('duplicate');
   });
 
   it('handles unique constraint violation on insert as duplicate', async () => {
-    const result = await consumeSchedulingSignal(
-      makeSignal(),
-      { supabase: createMockSupabase({ insertError: { code: '23505', message: 'dup' } }) },
-    );
+    const result = await consumeSchedulingSignal(makeSignal(), {
+      supabase: createMockSupabase({
+        insertError: { code: '23505', message: 'dup' },
+      }),
+    });
     expect(result.status).toBe('duplicate');
   });
 
@@ -143,7 +162,9 @@ describe('consumeSchedulingSignal', () => {
       ...makeSignal(),
       entityId: '00000000-0000-4000-8000-000000000099',
     };
-    const result = await consumeSchedulingSignal(signal, { supabase: createMockSupabase() });
+    const result = await consumeSchedulingSignal(signal, {
+      supabase: createMockSupabase(),
+    });
     expect(result.status).toBe('created');
   });
 
@@ -153,7 +174,9 @@ describe('consumeSchedulingSignal', () => {
       senderEmail: undefined,
       senderName: 'Unknown Sender',
     };
-    const result = await consumeSchedulingSignal(signal, { supabase: createMockSupabase() });
+    const result = await consumeSchedulingSignal(signal, {
+      supabase: createMockSupabase(),
+    });
     expect(result.status).toBe('created');
   });
 });

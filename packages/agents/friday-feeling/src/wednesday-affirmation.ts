@@ -1,5 +1,8 @@
 import { createServiceClient } from '@flow/db';
-import type { WednesdayAffirmationInput, WednesdayAffirmationResult } from './schemas';
+import type {
+  WednesdayAffirmationInput,
+  WednesdayAffirmationResult,
+} from './schemas';
 
 interface TrustTransitionRow {
   workspace_id: string;
@@ -41,7 +44,9 @@ export async function executeWednesdayAffirmation(
     return { affirmationIds: [], generated: 0 };
   }
 
-  const userIdSet = new Set(transitions.map((t: TrustTransitionRow) => t.user_id));
+  const userIdSet = new Set(
+    transitions.map((t: TrustTransitionRow) => t.user_id),
+  );
   const userIds = Array.from(userIdSet);
   const { data: members } = await supabase
     .from('users')
@@ -70,7 +75,9 @@ export async function executeWednesdayAffirmation(
     if (memberTransitions.length === 0) continue;
 
     // Transitions are ordered ascending; last element is the most recent.
-    const latest = memberTransitions[memberTransitions.length - 1] as TrustTransitionRow;
+    const latest = memberTransitions[
+      memberTransitions.length - 1
+    ] as TrustTransitionRow;
     const name = memberMap.get(userId) ?? 'A team member';
     const agentName = formatAgentName(latest.agent_id);
 
@@ -101,12 +108,12 @@ export async function executeWednesdayAffirmation(
 
 function formatAgentName(agentId: string): string {
   const names: Record<string, string> = {
-    'time_integrity': 'Time Integrity Agent',
-    'email_categorizer': 'Email Agent',
-    'calendar': 'Calendar Agent',
+    time_integrity: 'Time Integrity Agent',
+    email_categorizer: 'Email Agent',
+    calendar: 'Calendar Agent',
     'weekly-report': 'Weekly Report Agent',
     'client-health': 'Client Health Agent',
-    'morning_brief': 'Morning Brief Agent',
+    morning_brief: 'Morning Brief Agent',
   };
   return names[agentId] ?? `${agentId.replace(/_/g, ' ')} Agent`;
 }

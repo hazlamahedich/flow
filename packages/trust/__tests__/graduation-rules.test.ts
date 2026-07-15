@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { canGraduate, evaluateTransition, applyViolation } from '../src/graduation';
+import {
+  canGraduate,
+  evaluateTransition,
+  applyViolation,
+} from '../src/graduation';
 
 describe('graduation rules T1-T6', () => {
   describe('T1: supervised → confirm', () => {

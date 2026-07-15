@@ -3,10 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import {
-  MoreHorizontal,
-  X,
-} from 'lucide-react';
+import { MoreHorizontal, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { NAV_ITEMS } from './sidebar';
 
@@ -66,26 +63,29 @@ export function MobileTabBar() {
         data-testid="mobile-tab-bar"
       >
         <ul className="flex items-center justify-around" role="list">
-          {NAV_ITEMS.filter((item) => PRIMARY_HREFS.includes(item.href)).map(({ href, label, Icon }) => {
-            const isActive = pathname === href || pathname.startsWith(href + '/');
-            return (
-              <li key={href} className="flex-1">
-                <Link
-                  href={href}
-                  className={cn(
-                    'flex flex-col items-center gap-1 py-2 text-[10px] transition-colors motion-reduce:transition-none',
-                    isActive
-                      ? 'text-[var(--flow-color-accent-gold)]'
-                      : 'text-[var(--flow-color-text-tertiary)]',
-                  )}
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  <Icon className="h-5 w-5" aria-hidden="true" />
-                  <span>{label}</span>
-                </Link>
-              </li>
-            );
-          })}
+          {NAV_ITEMS.filter((item) => PRIMARY_HREFS.includes(item.href)).map(
+            ({ href, label, Icon }) => {
+              const isActive =
+                pathname === href || pathname.startsWith(href + '/');
+              return (
+                <li key={href} className="flex-1">
+                  <Link
+                    href={href}
+                    className={cn(
+                      'flex flex-col items-center gap-1 py-2 text-[10px] transition-colors motion-reduce:transition-none',
+                      isActive
+                        ? 'text-[var(--flow-color-accent-gold)]'
+                        : 'text-[var(--flow-color-text-tertiary)]',
+                    )}
+                    aria-current={isActive ? 'page' : undefined}
+                  >
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                    <span>{label}</span>
+                  </Link>
+                </li>
+              );
+            },
+          )}
           <li className="flex-1">
             <button
               ref={moreButtonRef}
@@ -113,7 +113,9 @@ export function MobileTabBar() {
           <div
             ref={sheetRef}
             className="fixed bottom-0 left-0 right-0 z-[var(--flow-z-overlay)] rounded-t-[var(--flow-radius-lg)] border-t border-[var(--flow-color-border-default)] bg-[var(--flow-color-bg-surface-raised)] p-4 sm:hidden"
-            style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+            style={{
+              paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))',
+            }}
             role="dialog"
             aria-label="More navigation"
             data-testid="mobile-bottom-sheet"
@@ -133,7 +135,8 @@ export function MobileTabBar() {
             </div>
             <ul className="grid grid-cols-3 gap-3" role="list">
               {OVERFLOW_HREFS.map(({ href, label, Icon }, index) => {
-                const isActive = pathname === href || pathname.startsWith(href + '/');
+                const isActive =
+                  pathname === href || pathname.startsWith(href + '/');
                 return (
                   <li key={href}>
                     <Link

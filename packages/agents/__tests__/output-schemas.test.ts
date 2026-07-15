@@ -36,16 +36,21 @@ describe('OutputSchemaRegistry', () => {
   it('passthrough schema for MVP agent stubs accepts any output', () => {
     const passthrough = z.object({}).passthrough();
     registry.register('inbox', 'execute', passthrough);
-    const result = passthrough.safeParse({ anything: true, nested: { deep: 1 } });
+    const result = passthrough.safeParse({
+      anything: true,
+      nested: { deep: 1 },
+    });
     expect(result.success).toBe(true);
   });
 
   it('validateActiveAgents logs ERROR for active agent with missing schema', async () => {
     const { writeAuditLog } = await import('../shared/audit-writer');
     registry.validateActiveAgents(['inbox']);
-    expect(writeAuditLog).toHaveBeenCalledWith(expect.objectContaining({
-      action: 'gate_schema_missing_total',
-    }));
+    expect(writeAuditLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'gate_schema_missing_total',
+      }),
+    );
   });
 
   it('conflicting schema registration overwrites with last-write-wins', () => {

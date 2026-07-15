@@ -12,7 +12,9 @@ describe('inviteMemberSchema', () => {
   });
 
   it('accepts invitation with expiresAt', () => {
-    const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    const futureDate = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    ).toISOString();
     const result = inviteMemberSchema.safeParse({
       email: 'user@example.com',
       role: 'admin',
@@ -69,7 +71,9 @@ describe('inviteMemberSchema', () => {
   });
 
   it('rejects expiresAt more than 1 year in the future', () => {
-    const farFuture = new Date(Date.now() + 400 * 24 * 60 * 60 * 1000).toISOString();
+    const farFuture = new Date(
+      Date.now() + 400 * 24 * 60 * 60 * 1000,
+    ).toISOString();
     const result = inviteMemberSchema.safeParse({
       email: 'user@example.com',
       role: 'member',
@@ -87,7 +91,11 @@ describe('invitation lifecycle state machine', () => {
   ];
 
   const illegalTransitions = [
-    { from: 'accepted', to: 'accepted', label: 'accepted→accepted (duplicate)' },
+    {
+      from: 'accepted',
+      to: 'accepted',
+      label: 'accepted→accepted (duplicate)',
+    },
     { from: 'expired', to: 'accepted', label: 'expired→accepted (reaccept)' },
   ];
 
@@ -117,11 +125,15 @@ describe('token hash verification', () => {
     const data = encoder.encode(token);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+    const hashHex = hashArray
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
 
     const hashBuffer2 = await crypto.subtle.digest('SHA-256', data);
     const hashArray2 = Array.from(new Uint8Array(hashBuffer2));
-    const hashHex2 = hashArray2.map((b) => b.toString(16).padStart(2, '0')).join('');
+    const hashHex2 = hashArray2
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
 
     expect(hashHex).toBe(hashHex2);
     expect(hashHex.length).toBe(64);
@@ -132,10 +144,18 @@ describe('token hash verification', () => {
     const token2 = crypto.randomUUID();
     const encoder = new TextEncoder();
 
-    const hash1 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(token1))))
+    const hash1 = Array.from(
+      new Uint8Array(
+        await crypto.subtle.digest('SHA-256', encoder.encode(token1)),
+      ),
+    )
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
-    const hash2 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(token2))))
+    const hash2 = Array.from(
+      new Uint8Array(
+        await crypto.subtle.digest('SHA-256', encoder.encode(token2)),
+      ),
+    )
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
 
@@ -152,7 +172,9 @@ describe('duplicate invitation (resend)', () => {
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     };
 
-    const isResend = existing.accepted_at === null && new Date(existing.expires_at) > new Date();
+    const isResend =
+      existing.accepted_at === null &&
+      new Date(existing.expires_at) > new Date();
     expect(isResend).toBe(true);
   });
 
@@ -164,7 +186,9 @@ describe('duplicate invitation (resend)', () => {
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     };
 
-    const isResend = existing.accepted_at === null && new Date(existing.expires_at) > new Date();
+    const isResend =
+      existing.accepted_at === null &&
+      new Date(existing.expires_at) > new Date();
     expect(isResend).toBe(false);
   });
 });
@@ -227,7 +251,12 @@ describe('ActionResult type contract', () => {
   it('error result has success=false and error with code', () => {
     const result = {
       success: false as const,
-      error: { status: 403, code: 'INSUFFICIENT_ROLE', message: 'Not allowed', category: 'auth' as const },
+      error: {
+        status: 403,
+        code: 'INSUFFICIENT_ROLE',
+        message: 'Not allowed',
+        category: 'auth' as const,
+      },
     };
     expect(result.success).toBe(false);
     expect(result.error.code).toBe('INSUFFICIENT_ROLE');

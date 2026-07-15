@@ -21,10 +21,23 @@ interface ProjectOption {
 interface LogTimeModalProps {
   clients: ClientOption[];
   onClose: () => void;
-  onCreated: (entry: { id: string; clientId: string; projectId: string | null; date: string; durationMinutes: number; startMinutes: number | null; endMinutes: number | null; notes: string | null }) => void;
+  onCreated: (entry: {
+    id: string;
+    clientId: string;
+    projectId: string | null;
+    date: string;
+    durationMinutes: number;
+    startMinutes: number | null;
+    endMinutes: number | null;
+    notes: string | null;
+  }) => void;
 }
 
-export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps) {
+export function LogTimeModal({
+  clients,
+  onClose,
+  onCreated,
+}: LogTimeModalProps) {
   const [clientId, setClientId] = useState('');
   const [projectId, setProjectId] = useState<string | null>(null);
   const [projects, setProjects] = useState<ProjectOption[]>([]);
@@ -43,7 +56,9 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
 
   const [showProjectCreate, setShowProjectCreate] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
-  const [projectCreateError, setProjectCreateError] = useState<string | null>(null);
+  const [projectCreateError, setProjectCreateError] = useState<string | null>(
+    null,
+  );
 
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -78,7 +93,9 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
         setProjectId(null);
       });
 
-    return () => { controller.abort(); };
+    return () => {
+      controller.abort();
+    };
   }, [clientId]);
 
   useEffect(() => {
@@ -96,7 +113,10 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
     setProjectCreateError(null);
     setIsCreatingProject(true);
 
-    const result = await createProjectAction({ clientId, name: newProjectName.trim() });
+    const result = await createProjectAction({
+      clientId,
+      name: newProjectName.trim(),
+    });
     if (result.success && result.data) {
       const newProj: ProjectOption = {
         id: result.data.id,
@@ -151,7 +171,12 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
       projectId,
       date,
       durationMinutes: duration,
-      ...(hasStart && hasEnd ? { startMinutes: timeToMinutes(startTime!), endMinutes: timeToMinutes(endTime!) } : {}),
+      ...(hasStart && hasEnd
+        ? {
+            startMinutes: timeToMinutes(startTime!),
+            endMinutes: timeToMinutes(endTime!),
+          }
+        : {}),
       notes: notes || undefined,
     });
 
@@ -171,16 +196,33 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
       onClose();
     } else {
       toast.error('Failed to log time — try again');
-      setError(result.success === false && result.error ? result.error.message : 'Failed to log time — try again');
+      setError(
+        result.success === false && result.error
+          ? result.error.message
+          : 'Failed to log time — try again',
+      );
       setSubmitting(false);
     }
-  }, [clientId, projectId, date, durationMinutes, startTime, endTime, notes, onCreated, onClose]);
+  }, [
+    clientId,
+    projectId,
+    date,
+    durationMinutes,
+    startTime,
+    endTime,
+    notes,
+    onCreated,
+    onClose,
+  ]);
 
   const clientProjects = projects.filter((p) => p.clientId === clientId);
   const hasNoProjects = clientId && clientProjects.length === 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onClose}
+    >
       <div
         className="bg-background w-full max-w-lg rounded-lg border p-6 shadow-lg"
         onClick={(e) => e.stopPropagation()}
@@ -188,7 +230,9 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
         <h2 className="mb-4 text-lg font-semibold">Log Time</h2>
 
         {error && (
-          <div className="mb-3 rounded bg-destructive/10 p-2 text-sm text-destructive">{error}</div>
+          <div className="mb-3 rounded bg-destructive/10 p-2 text-sm text-destructive">
+            {error}
+          </div>
         )}
 
         <div className="space-y-4">
@@ -201,7 +245,9 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
             >
               <option value="">Select client</option>
               {clients.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
@@ -223,7 +269,9 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
             >
               <option value="">No Project</option>
               {clientProjects.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
               ))}
               {hasNoProjects && (
                 <option value="__add__">No projects — Add one</option>
@@ -251,7 +299,9 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
               </div>
             )}
             {projectCreateError && (
-              <p className="mt-1 text-xs text-destructive">{projectCreateError}</p>
+              <p className="mt-1 text-xs text-destructive">
+                {projectCreateError}
+              </p>
             )}
           </div>
 
@@ -268,12 +318,17 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-sm font-medium">Start Time</label>
+              <label className="mb-1 block text-sm font-medium">
+                Start Time
+              </label>
               <input
                 type="time"
                 className="w-full rounded border bg-background p-2"
                 value={startTime ?? ''}
-                onChange={(e) => { setStartTime(e.target.value || null); setTimeError(null); }}
+                onChange={(e) => {
+                  setStartTime(e.target.value || null);
+                  setTimeError(null);
+                }}
               />
             </div>
             <div>
@@ -282,7 +337,10 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
                 type="time"
                 className="w-full rounded border bg-background p-2"
                 value={endTime ?? ''}
-                onChange={(e) => { setEndTime(e.target.value || null); setTimeError(null); }}
+                onChange={(e) => {
+                  setEndTime(e.target.value || null);
+                  setTimeError(null);
+                }}
               />
             </div>
           </div>
@@ -314,7 +372,9 @@ export function LogTimeModal({ clients, onClose, onCreated }: LogTimeModalProps)
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
-            <span className="text-xs text-muted-foreground">{notes.length}/500</span>
+            <span className="text-xs text-muted-foreground">
+              {notes.length}/500
+            </span>
           </div>
         </div>
 

@@ -10,7 +10,11 @@ async function getTenantClient() {
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   const client = createServerClient({
-    getAll: () => cookieStore.getAll().map((c: { name: string; value: string }) => ({ name: c.name, value: c.value })),
+    getAll: () =>
+      cookieStore.getAll().map((c: { name: string; value: string }) => ({
+        name: c.name,
+        value: c.value,
+      })),
     set: () => {},
   });
   const ctx = await requireTenantContext(client);
@@ -18,7 +22,15 @@ async function getTenantClient() {
 }
 
 function validationError(message: string): ActionResult<FeedbackRow> {
-  return { success: false, error: { status: 400, code: 'VALIDATION_ERROR', message, category: 'validation' } };
+  return {
+    success: false,
+    error: {
+      status: 400,
+      code: 'VALIDATION_ERROR',
+      message,
+      category: 'validation',
+    },
+  };
 }
 
 export async function submitFeedback(
@@ -41,13 +53,27 @@ export async function submitFeedback(
   const { data, error } = await client
     .from('agent_feedback')
     .upsert(
-      { run_id: runId, user_id: userId, workspace_id: workspaceId, sentiment, note: note ?? null },
+      {
+        run_id: runId,
+        user_id: userId,
+        workspace_id: workspaceId,
+        sentiment,
+        note: note ?? null,
+      },
       { onConflict: 'run_id,user_id' },
     )
     .select('id, sentiment, note, created_at')
     .single();
   if (error) {
-    return { success: false, error: { status: 500, code: 'INTERNAL_ERROR', message: 'Failed to submit feedback', category: 'system' } };
+    return {
+      success: false,
+      error: {
+        status: 500,
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to submit feedback',
+        category: 'system',
+      },
+    };
   }
 
   const feedback: FeedbackRow = {
@@ -65,7 +91,10 @@ export async function submitFeedback(
       data: { workspaceId, agentId: owned.agent_id, runId },
     });
   } catch (jobErr) {
-    console.error('[feedback-actions] trust:recalculate job enqueue failed:', jobErr);
+    console.error(
+      '[feedback-actions] trust:recalculate job enqueue failed:',
+      jobErr,
+    );
   }
 
   revalidateTag('agent-activity:' + workspaceId);
@@ -77,7 +106,15 @@ export async function deleteFeedback(
 ): Promise<ActionResult<void>> {
   const parsed = DeleteFeedbackSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: { status: 400, code: 'VALIDATION_ERROR', message: 'Invalid input', category: 'validation' } };
+    return {
+      success: false,
+      error: {
+        status: 400,
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid input',
+        category: 'validation',
+      },
+    };
   }
 
   const { feedbackId } = parsed.data;
@@ -90,7 +127,15 @@ export async function deleteFeedback(
     .eq('workspace_id', workspaceId)
     .single();
   if (!feedback) {
-    return { success: false, error: { status: 404, code: 'NOT_FOUND', message: 'Feedback not found', category: 'system' } };
+    return {
+      success: false,
+      error: {
+        status: 404,
+        code: 'NOT_FOUND',
+        message: 'Feedback not found',
+        category: 'system',
+      },
+    };
   }
 
   const { error, count } = await client
@@ -104,7 +149,9 @@ export async function deleteFeedback(
       error: {
         status: isRlsDeny ? 403 : 500,
         code: isRlsDeny ? 'FORBIDDEN' : 'INTERNAL_ERROR',
-        message: isRlsDeny ? 'Only admins can delete feedback' : 'Failed to delete feedback',
+        message: isRlsDeny
+          ? 'Only admins can delete feedback'
+          : 'Failed to delete feedback',
         category: isRlsDeny ? 'auth' : 'system',
       },
     };
@@ -112,7 +159,12 @@ export async function deleteFeedback(
   if (count === 0) {
     return {
       success: false,
-      error: { status: 403, code: 'FORBIDDEN', message: 'Only admins can delete feedback', category: 'auth' },
+      error: {
+        status: 403,
+        code: 'FORBIDDEN',
+        message: 'Only admins can delete feedback',
+        category: 'auth',
+      },
     };
   }
 
@@ -127,11 +179,18 @@ export async function deleteFeedback(
       const svc = createServiceClient();
       await svc.from('pgboss_jobs').insert({
         name: 'trust:recalculate',
-        data: { workspaceId, agentId: run.agent_id, runId: feedback.run_id as string },
+        data: {
+          workspaceId,
+          agentId: run.agent_id,
+          runId: feedback.run_id as string,
+        },
       });
     }
   } catch (jobErr) {
-    console.error('[feedback-actions] trust:recalculate job enqueue failed on delete:', jobErr);
+    console.error(
+      '[feedback-actions] trust:recalculate job enqueue failed on delete:',
+      jobErr,
+    );
   }
 
   revalidateTag('agent-activity:' + workspaceId);

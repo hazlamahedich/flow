@@ -36,7 +36,9 @@ export async function verifyDeliveryToken(token: string): Promise<{
   const [payloadB64, sig] = token.split('.');
   if (!payloadB64 || !sig) throw new Error('Invalid token format');
   const payloadJson = Buffer.from(payloadB64, 'base64url').toString('utf8');
-  const hmac = createHmac('sha256', secret).update(payloadJson).digest('base64url');
+  const hmac = createHmac('sha256', secret)
+    .update(payloadJson)
+    .digest('base64url');
   const hmacBuf = Buffer.from(hmac);
   const sigBuf = Buffer.from(sig);
   if (hmacBuf.length !== sigBuf.length || !timingSafeEqual(hmacBuf, sigBuf)) {

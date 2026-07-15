@@ -2,13 +2,36 @@
 
 import type { ApprovalQueueItem, AgentId } from '@flow/types';
 
-const AGENT_IDENTITY: Record<string, { cssVar: string; icon: string; label: string }> = {
+const AGENT_IDENTITY: Record<
+  string,
+  { cssVar: string; icon: string; label: string }
+> = {
   inbox: { cssVar: 'var(--flow-agent-inbox)', icon: 'I', label: 'Inbox' },
-  calendar: { cssVar: 'var(--flow-agent-calendar)', icon: 'C', label: 'Calendar' },
-  'ar-collection': { cssVar: 'var(--flow-agent-ar)', icon: '$', label: 'AR Collection' },
-  'weekly-report': { cssVar: 'var(--flow-agent-report)', icon: 'R', label: 'Reports' },
-  'client-health': { cssVar: 'var(--flow-agent-health)', icon: 'H', label: 'Health' },
-  'time-integrity': { cssVar: 'var(--flow-agent-time)', icon: '\u25F7', label: 'Time' },
+  calendar: {
+    cssVar: 'var(--flow-agent-calendar)',
+    icon: 'C',
+    label: 'Calendar',
+  },
+  'ar-collection': {
+    cssVar: 'var(--flow-agent-ar)',
+    icon: '$',
+    label: 'AR Collection',
+  },
+  'weekly-report': {
+    cssVar: 'var(--flow-agent-report)',
+    icon: 'R',
+    label: 'Reports',
+  },
+  'client-health': {
+    cssVar: 'var(--flow-agent-health)',
+    icon: 'H',
+    label: 'Health',
+  },
+  'time-integrity': {
+    cssVar: 'var(--flow-agent-time)',
+    icon: '\u25F7',
+    label: 'Time',
+  },
 };
 
 interface ProposalCardProps {
@@ -32,8 +55,13 @@ export function ProposalCard({
   onFocus,
   onToggleExpand,
 }: ProposalCardProps) {
-  const identity = AGENT_IDENTITY[item.run.agentId] ?? { cssVar: 'var(--flow-text-secondary)', icon: '?', label: item.run.agentId };
-  const typeLabel = item.proposalType === 'agent_proposal' ? 'Agent Proposal' : 'Trust Gate';
+  const identity = AGENT_IDENTITY[item.run.agentId] ?? {
+    cssVar: 'var(--flow-text-secondary)',
+    icon: '?',
+    label: item.run.agentId,
+  };
+  const typeLabel =
+    item.proposalType === 'agent_proposal' ? 'Agent Proposal' : 'Trust Gate';
 
   return (
     <div
@@ -55,7 +83,10 @@ export function ProposalCard({
       <div className="flex items-start gap-3">
         <div
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-          style={{ backgroundColor: `${identity.cssVar}20`, color: identity.cssVar }}
+          style={{
+            backgroundColor: `${identity.cssVar}20`,
+            color: identity.cssVar,
+          }}
           aria-hidden="true"
         >
           {identity.icon}
@@ -70,7 +101,10 @@ export function ProposalCard({
               {typeLabel}
             </span>
             {trustStale && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[var(--flow-status-warning)]" aria-label="Trust changed since proposal">
+              <span
+                className="inline-flex items-center gap-1 text-[10px] font-medium text-[var(--flow-status-warning)]"
+                aria-label="Trust changed since proposal"
+              >
                 {'\u26A0'} Trust changed
               </span>
             )}
@@ -98,7 +132,10 @@ export function ProposalCard({
       </div>
 
       {!isExpanded && (
-        <div className="mt-2 flex items-center gap-3 pl-11 text-[10px] text-[var(--flow-text-tertiary)]" aria-hidden="true">
+        <div
+          className="mt-2 flex items-center gap-3 pl-11 text-[10px] text-[var(--flow-text-tertiary)]"
+          aria-hidden="true"
+        >
           <span>[A]pprove</span>
           <span>[R]eject</span>
           <span>[E]dit</span>
@@ -136,15 +173,23 @@ function AgentProposalContent({
               style={{ width: `${Math.round(proposal.confidence * 100)}%` }}
             />
           </div>
-          <span className="text-[var(--flow-text-tertiary)]">{Math.round(proposal.confidence * 100)}%</span>
+          <span className="text-[var(--flow-text-tertiary)]">
+            {Math.round(proposal.confidence * 100)}%
+          </span>
         </div>
-        <span className={riskColors[proposal.riskLevel] ?? 'text-[var(--flow-text-tertiary)]'}>
+        <span
+          className={
+            riskColors[proposal.riskLevel] ?? 'text-[var(--flow-text-tertiary)]'
+          }
+        >
           {proposal.riskLevel} risk
         </span>
       </div>
       {isExpanded && (
         <div className="mt-3 rounded-[var(--flow-radius-md)] bg-[var(--flow-bg-surface-raised)] p-3 text-sm text-[var(--flow-text-secondary)]">
-          <p className="font-medium text-[var(--flow-text-primary)] mb-1">Reasoning</p>
+          <p className="font-medium text-[var(--flow-text-primary)] mb-1">
+            Reasoning
+          </p>
           <p>{proposal.reasoning}</p>
         </div>
       )}
@@ -168,7 +213,9 @@ function TrustBlockContent({
       </p>
       {isExpanded && (
         <div className="mt-3 rounded-[var(--flow-radius-md)] bg-[var(--flow-bg-surface-raised)] p-3 text-sm">
-          <p className="font-medium text-[var(--flow-text-primary)] mb-1">Trust Decision</p>
+          <p className="font-medium text-[var(--flow-text-primary)] mb-1">
+            Trust Decision
+          </p>
           <p className="text-[var(--flow-text-secondary)]">{block.decision}</p>
           <p className="mt-2 text-xs text-[var(--flow-text-tertiary)]">
             Approve to allow execution.

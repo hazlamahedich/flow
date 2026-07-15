@@ -12,7 +12,10 @@ interface DowngradeBannerProps {
   /** Workspace ID — used to namespace localStorage dismiss state. */
   workspaceId: string;
   /** Server Action that initiates a Pro checkout (9-3b). */
-  onUpgrade: (input: { tier: 'pro'; interval: 'monthly' }) => Promise<ActionResult<{ checkoutUrl: string }>>;
+  onUpgrade: (input: {
+    tier: 'pro';
+    interval: 'monthly';
+  }) => Promise<ActionResult<{ checkoutUrl: string }>>;
 }
 
 const DISMISS_KEY_PREFIX = 'flow:downgrade-banner:dismissed:';
@@ -48,7 +51,9 @@ export function DowngradeBanner({
   // Hydrate dismiss state from localStorage on mount.
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem(DISMISS_KEY_PREFIX + workspaceId);
+      const stored = window.localStorage.getItem(
+        DISMISS_KEY_PREFIX + workspaceId,
+      );
       setDismissedAt(stored);
     } catch {
       // localStorage may be unavailable (private mode) — non-fatal.

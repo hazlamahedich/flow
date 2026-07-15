@@ -5,20 +5,20 @@
  */
 export function verifyHallucinations(
   narratives: Record<string, string>,
-  rawData: unknown
+  rawData: unknown,
 ): string[] {
   const narrativeText = Object.values(narratives).join(' ');
   const cleanText = narrativeText.replace(/,/g, '');
   // Match integers and decimals
   const numbersInText = cleanText.match(/\b\d+(?:\.\d+)?\b/g) ?? [];
-  
+
   const rawString = JSON.stringify(rawData);
   const mismatches: string[] = [];
 
   for (const num of numbersInText) {
     const val = Number(num);
     if (Number.isNaN(val)) continue;
-    
+
     // Ignore common integers/derived values (hours, days, percentages) to prevent false positives
     if (val <= 100) continue;
 

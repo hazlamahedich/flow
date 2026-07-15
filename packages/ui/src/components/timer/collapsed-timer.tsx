@@ -2,11 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { Clock } from 'lucide-react';
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from '../ui/popover';
+import { Popover, PopoverTrigger, PopoverContent } from '../ui/popover';
 import { cn } from '../../lib/utils';
 
 interface RunningState {
@@ -77,7 +73,9 @@ export function CollapsedTimer({
           <Clock
             className={cn(
               'h-5 w-5 animate-pulse',
-              staleness ? 'text-yellow-600 dark:text-yellow-400' : 'text-[var(--flow-color-accent-gold)]',
+              staleness
+                ? 'text-yellow-600 dark:text-yellow-400'
+                : 'text-[var(--flow-color-accent-gold)]',
             )}
             aria-hidden="true"
           />
@@ -91,16 +89,26 @@ export function CollapsedTimer({
         onMouseLeave={handleCloseHover}
       >
         <div className="space-y-2">
-          <div className="font-mono text-sm font-medium" aria-label="Elapsed time">
+          <div
+            className="font-mono text-sm font-medium"
+            aria-label="Elapsed time"
+          >
             {displayElapsed}
           </div>
-          <div className="text-xs text-[var(--flow-color-text-secondary)]" aria-label="Client and project">
+          <div
+            className="text-xs text-[var(--flow-color-text-secondary)]"
+            aria-label="Client and project"
+          >
             {runningState.clientName ?? '(unknown client)'}
             {runningState.projectName ? ` · ${runningState.projectName}` : ''}
           </div>
           {staleness && (
             <div className="text-xs text-yellow-600 dark:text-yellow-400">
-              Running for {Math.floor((Date.now() - runningState.startedAt.getTime()) / 3600000)}h — did you forget to stop it?
+              Running for{' '}
+              {Math.floor(
+                (Date.now() - runningState.startedAt.getTime()) / 3600000,
+              )}
+              h — did you forget to stop it?
             </div>
           )}
           <button

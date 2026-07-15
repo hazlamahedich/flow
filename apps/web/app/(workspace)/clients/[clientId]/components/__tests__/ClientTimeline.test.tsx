@@ -7,11 +7,15 @@ vi.mock('../TimelineFilterBar', () => ({
 }));
 
 vi.mock('../EmailTimelineItem', () => ({
-  EmailTimelineItem: ({ email }: any) => <div data-testid="email-item">{email.subject}</div>,
+  EmailTimelineItem: ({ email }: any) => (
+    <div data-testid="email-item">{email.subject}</div>
+  ),
 }));
 
 vi.mock('../AgentActionTimelineItem', () => ({
-  AgentActionTimelineItem: ({ run }: any) => <div data-testid="agent-item">{run.status}</div>,
+  AgentActionTimelineItem: ({ run }: any) => (
+    <div data-testid="agent-item">{run.status}</div>
+  ),
 }));
 
 vi.mock('../TimelineLoadMore', () => ({
@@ -53,7 +57,12 @@ const makeAgentEvent = (id: string, status: string) => ({
   sortKey: new Date().toISOString(),
   data: {
     id,
-    status: status as 'running' | 'completed' | 'failed' | 'pending_approval' | 'cancelled',
+    status: status as
+      | 'running'
+      | 'completed'
+      | 'failed'
+      | 'pending_approval'
+      | 'cancelled',
     agentId: 'inbox',
     actionType: 'Categorize',
     createdAt: new Date().toISOString(),
@@ -109,7 +118,9 @@ describe('ClientTimeline', () => {
         dateRange="all"
       />,
     );
-    expect(screen.getByText('No communication history yet for this client.')).toBeDefined();
+    expect(
+      screen.getByText('No communication history yet for this client.'),
+    ).toBeDefined();
   });
 
   it('shows load more button when cursor exists', () => {
@@ -147,7 +158,11 @@ describe('ClientTimeline', () => {
 
     (getTimeline as any).mockResolvedValue({
       success: true,
-      data: { events: [newEvent, dupEvent], nextCursor: 'cursor-2', hasMore: true },
+      data: {
+        events: [newEvent, dupEvent],
+        nextCursor: 'cursor-2',
+        hasMore: true,
+      },
     });
 
     render(

@@ -1,6 +1,6 @@
-@import "@flow/tokens/css";
+@import '@flow/tokens/css';
 
-@import "tailwindcss";
+@import 'tailwindcss';
 
 body {
   font-family: var(--font-family-flow-sans), system-ui, sans-serif;
@@ -13,7 +13,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

@@ -1,17 +1,19 @@
 import { z } from 'zod';
 import type { Project } from './create';
 
-export const projectRowSchema = z.object({
-  id: z.string(),
-  workspace_id: z.string(),
-  client_id: z.string(),
-  name: z.string(),
-  description: z.string().nullable(),
-  status: z.string(),
-  archived_at: z.string().nullable(),
-  created_at: z.string(),
-  updated_at: z.string(),
-}).strip();
+export const projectRowSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string(),
+    client_id: z.string(),
+    name: z.string(),
+    description: z.string().nullable(),
+    status: z.string(),
+    archived_at: z.string().nullable(),
+    created_at: z.string(),
+    updated_at: z.string(),
+  })
+  .strip();
 
 export function mapProjectRow(row: Record<string, unknown>): Project {
   const parsed = projectRowSchema.parse(row);

@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { getRollingWindow, upsertBypassMetrics, incrementTotalEvents, getBypassMetricsForClient } from '../bypass-metrics';
+import {
+  getRollingWindow,
+  upsertBypassMetrics,
+  incrementTotalEvents,
+  getBypassMetricsForClient,
+} from '../bypass-metrics';
 
 function createMetricsSelectChain(result: { data: unknown; error: unknown }) {
   const chain: Record<string, ReturnType<typeof vi.fn>> = {};
@@ -29,7 +34,8 @@ describe('getRollingWindow', () => {
     const { start, end } = getRollingWindow();
     const startDate = new Date(start);
     const endDate = new Date(end);
-    const diffDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+    const diffDays =
+      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
     expect(diffDays).toBe(30);
   });
 
@@ -63,8 +69,20 @@ describe('upsertBypassMetrics', () => {
   });
 
   it('updates existing metrics', async () => {
-    const existing = { id: 'm-1', total_events: 5, bypass_count: 2, bypass_rate: '0.4000', window_start: '2026-04-24', window_end: '2026-05-24' };
-    const updated = { id: 'm-1', total_events: 6, bypass_count: 3, bypass_rate: '0.5000' };
+    const existing = {
+      id: 'm-1',
+      total_events: 5,
+      bypass_count: 2,
+      bypass_rate: '0.4000',
+      window_start: '2026-04-24',
+      window_end: '2026-05-24',
+    };
+    const updated = {
+      id: 'm-1',
+      total_events: 6,
+      bypass_count: 3,
+      bypass_rate: '0.5000',
+    };
 
     let maybeSingleCallCount = 0;
     const chain: Record<string, ReturnType<typeof vi.fn>> = {};
@@ -75,7 +93,8 @@ describe('upsertBypassMetrics', () => {
     chain.update = vi.fn().mockReturnValue(chain);
     chain.maybeSingle = vi.fn().mockImplementation(() => {
       maybeSingleCallCount++;
-      if (maybeSingleCallCount === 1) return Promise.resolve({ data: existing, error: null });
+      if (maybeSingleCallCount === 1)
+        return Promise.resolve({ data: existing, error: null });
       return Promise.resolve({ data: updated, error: null });
     });
     const supabase = {
@@ -93,19 +112,40 @@ describe('upsertBypassMetrics', () => {
   });
 
   it('throws on fetch error', async () => {
-    const selectChain = createMetricsSelectChain({ data: null, error: { message: 'Connection refused' } });
+    const selectChain = createMetricsSelectChain({
+      data: null,
+      error: { message: 'Connection refused' },
+    });
     const supabase = {
       from: vi.fn(() => ({ ...selectChain })),
     } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
     await expect(
-      upsertBypassMetrics({ supabase, workspaceId: 'ws-1', clientId: 'client-1' }),
+      upsertBypassMetrics({
+        supabase,
+        workspaceId: 'ws-1',
+        clientId: 'client-1',
+      }),
     ).rejects.toMatchObject({ code: 'METRICS_FETCH_FAILED' });
   });
 
   it('retries on optimistic concurrency conflict (update returns null)', async () => {
-    const existing = { id: 'm-1', total_events: 5, bypass_count: 2, bypass_rate: '0.4000', window_start: '2026-04-24', window_end: '2026-05-24' };
-    const updated = { id: 'm-1', total_events: 6, bypass_count: 3, bypass_rate: '0.5000', window_start: '2026-04-24', window_end: '2026-05-24' };
+    const existing = {
+      id: 'm-1',
+      total_events: 5,
+      bypass_count: 2,
+      bypass_rate: '0.4000',
+      window_start: '2026-04-24',
+      window_end: '2026-05-24',
+    };
+    const updated = {
+      id: 'm-1',
+      total_events: 6,
+      bypass_count: 3,
+      bypass_rate: '0.5000',
+      window_start: '2026-04-24',
+      window_end: '2026-05-24',
+    };
 
     let maybeSingleCallCount = 0;
     let fromCallCount = 0;
@@ -117,8 +157,10 @@ describe('upsertBypassMetrics', () => {
     chain.update = vi.fn().mockReturnValue(chain);
     chain.maybeSingle = vi.fn().mockImplementation(() => {
       maybeSingleCallCount++;
-      if (maybeSingleCallCount === 1) return Promise.resolve({ data: existing, error: null });
-      if (maybeSingleCallCount === 2) return Promise.resolve({ data: null, error: null });
+      if (maybeSingleCallCount === 1)
+        return Promise.resolve({ data: existing, error: null });
+      if (maybeSingleCallCount === 2)
+        return Promise.resolve({ data: null, error: null });
       return Promise.resolve({ data: updated, error: null });
     });
     const supabase = {
@@ -128,7 +170,11 @@ describe('upsertBypassMetrics', () => {
       }),
     } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
-    const result = await upsertBypassMetrics({ supabase, workspaceId: 'ws-1', clientId: 'client-1' });
+    const result = await upsertBypassMetrics({
+      supabase,
+      workspaceId: 'ws-1',
+      clientId: 'client-1',
+    });
 
     expect(result.bypassCount).toBe(3);
     expect(result.totalEvents).toBe(6);
@@ -137,8 +183,16 @@ describe('upsertBypassMetrics', () => {
 
 describe('incrementTotalEvents', () => {
   it('increments total_events for existing metrics', async () => {
-    const existing = { id: 'm-1', total_events: 5, bypass_count: 2, bypass_rate: '0.4000' };
-    const selectChain = createMetricsSelectChain({ data: existing, error: null });
+    const existing = {
+      id: 'm-1',
+      total_events: 5,
+      bypass_count: 2,
+      bypass_rate: '0.4000',
+    };
+    const selectChain = createMetricsSelectChain({
+      data: existing,
+      error: null,
+    });
     const updateChain = {
       update: vi.fn().mockReturnThis(),
       eq: vi.fn().mockResolvedValue({ error: null }),
@@ -164,7 +218,10 @@ describe('incrementTotalEvents', () => {
   });
 
   it('throws on fetch error', async () => {
-    const selectChain = createMetricsSelectChain({ data: null, error: { message: 'DB error' } });
+    const selectChain = createMetricsSelectChain({
+      data: null,
+      error: { message: 'DB error' },
+    });
     const supabase = {
       from: vi.fn(() => ({ ...selectChain })),
     } as unknown as import('@supabase/supabase-js').SupabaseClient;
@@ -177,13 +234,27 @@ describe('incrementTotalEvents', () => {
 
 describe('getBypassMetricsForClient', () => {
   it('returns metrics when found', async () => {
-    const existing = { id: 'm-1', total_events: 10, bypass_count: 3, bypass_rate: '0.3000', window_start: '2026-04-24', window_end: '2026-05-24' };
-    const selectChain = createMetricsSelectChain({ data: existing, error: null });
+    const existing = {
+      id: 'm-1',
+      total_events: 10,
+      bypass_count: 3,
+      bypass_rate: '0.3000',
+      window_start: '2026-04-24',
+      window_end: '2026-05-24',
+    };
+    const selectChain = createMetricsSelectChain({
+      data: existing,
+      error: null,
+    });
     const supabase = {
       from: vi.fn(() => ({ ...selectChain })),
     } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
-    const result = await getBypassMetricsForClient(supabase, 'ws-1', 'client-1');
+    const result = await getBypassMetricsForClient(
+      supabase,
+      'ws-1',
+      'client-1',
+    );
 
     expect(result).not.toBeNull();
     expect(result!.total_events).toBe(10);
@@ -195,7 +266,11 @@ describe('getBypassMetricsForClient', () => {
       from: vi.fn(() => ({ ...selectChain })),
     } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
-    const result = await getBypassMetricsForClient(supabase, 'ws-1', 'client-1');
+    const result = await getBypassMetricsForClient(
+      supabase,
+      'ws-1',
+      'client-1',
+    );
 
     expect(result).toBeNull();
   });

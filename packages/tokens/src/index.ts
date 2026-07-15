@@ -1,4 +1,16 @@
-export { primitives, slate, blue, red, green, amber, violet, rose, orange, white, black } from './colors/primitives';
+export {
+  primitives,
+  slate,
+  blue,
+  red,
+  green,
+  amber,
+  violet,
+  rose,
+  orange,
+  white,
+  black,
+} from './colors/primitives';
 export type { ColorScale, PrimitiveColors } from './colors/primitives';
 export { darkSemanticColors } from './colors/semantic-dark';
 export type { DarkSemanticColors } from './colors/semantic-dark';

@@ -1,4 +1,13 @@
-import { createServiceClient, insertEmail, insertSignal, updateClientInboxSyncStatus, updateClientInboxOAuthState, decryptInboxTokens, encryptInboxTokens, isMessageProcessed } from '@flow/db';
+import {
+  createServiceClient,
+  insertEmail,
+  insertSignal,
+  updateClientInboxSyncStatus,
+  updateClientInboxOAuthState,
+  decryptInboxTokens,
+  encryptInboxTokens,
+  isMessageProcessed,
+} from '@flow/db';
 import type { PgBoss } from 'pg-boss';
 import type { OAuthStateEncrypted } from '@flow/types';
 import { PgBossProducer } from '../orchestrator/pg-boss-producer.js';
@@ -12,7 +21,12 @@ const inboxLocks = new Map<string, Promise<void>>();
 function acquireInboxLock(inboxId: string): () => void {
   let release: () => void;
   const prev = inboxLocks.get(inboxId) ?? Promise.resolve();
-  const next = prev.then(() => new Promise<void>((resolve) => { release = resolve; }));
+  const next = prev.then(
+    () =>
+      new Promise<void>((resolve) => {
+        release = resolve;
+      }),
+  );
   inboxLocks.set(inboxId, next);
   void next.finally(() => {
     if (inboxLocks.get(inboxId) === next) inboxLocks.delete(inboxId);
@@ -29,7 +43,13 @@ export async function startHistoryWorker(boss: PgBoss) {
     .on(
       'postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'raw_pubsub_payloads' },
-      async (payload: RealtimePostgresInsertPayload<{ id: string; workspace_id: string; client_inbox_id: string }>) => {
+      async (
+        payload: RealtimePostgresInsertPayload<{
+          id: string;
+          workspace_id: string;
+          client_inbox_id: string;
+        }>,
+      ) => {
         const { id, workspace_id, client_inbox_id } = payload.new;
 
         await producer.submit({
@@ -48,11 +68,14 @@ export async function startHistoryWorker(boss: PgBoss) {
     .subscribe();
 }
 
-export async function handleDrainHistory(input: {
-  workspace_id: string;
-  payloadId: string;
-  clientInboxId: string;
-}, boss?: PgBoss) {
+export async function handleDrainHistory(
+  input: {
+    workspace_id: string;
+    payloadId: string;
+    clientInboxId: string;
+  },
+  boss?: PgBoss,
+) {
   const supabase = createServiceClient();
   const provider = new GmailProvider();
   const release = acquireInboxLock(input.clientInboxId);
@@ -72,28 +95,43 @@ export async function handleDrainHistory(input: {
     let tokens = decryptInboxTokens(inbox.oauth_state as OAuthStateEncrypted);
     let accessToken = tokens.accessToken;
 
-    const expiry = typeof tokens.expiryDate === 'number' ? tokens.expiryDate : 0;
+    const expiry =
+      typeof tokens.expiryDate === 'number' ? tokens.expiryDate : 0;
     if (Date.now() >= expiry) {
       const refreshed = await provider.refreshToken(tokens.refreshToken);
       accessToken = refreshed.accessToken;
       const encrypted = encryptInboxTokens(refreshed);
-      await updateClientInboxOAuthState(supabase, inbox.id, inbox.workspace_id, encrypted as Record<string, unknown>);
+      await updateClientInboxOAuthState(
+        supabase,
+        inbox.id,
+        inbox.workspace_id,
+        encrypted as Record<string, unknown>,
+      );
       tokens = refreshed;
     }
 
     const syncCursor = inbox.sync_cursor ?? '0';
-    const historyItems = await provider.getHistorySince(accessToken, syncCursor);
+    const historyItems = await provider.getHistorySince(
+      accessToken,
+      syncCursor,
+    );
 
     const bossInstance = boss ?? getBossInstance();
     const producer = new PgBossProducer(bossInstance);
 
     for (const item of historyItems) {
       try {
-        const alreadyProcessed = await isMessageProcessed(supabase, item.messageId);
+        const alreadyProcessed = await isMessageProcessed(
+          supabase,
+          item.messageId,
+        );
         if (alreadyProcessed) continue;
 
         const message = await provider.getMessage(accessToken, item.messageId);
-        const { cleanText, safeHtml } = sanitizeEmail(message.bodyHtml || '', message.bodyText ?? undefined);
+        const { cleanText, safeHtml } = sanitizeEmail(
+          message.bodyHtml || '',
+          message.bodyText ?? undefined,
+        );
         const emailId = crypto.randomUUID();
         await insertEmail(supabase, {
           id: emailId,
@@ -142,7 +180,10 @@ export async function handleDrainHistory(input: {
           correlationId: emailId,
         });
       } catch (err) {
-        console.error(`[inbox] Failed to process message ${item.messageId}:`, err);
+        console.error(
+          `[inbox] Failed to process message ${item.messageId}:`,
+          err,
+        );
       }
     }
 
@@ -154,10 +195,16 @@ export async function handleDrainHistory(input: {
       .single();
 
     const newCursor = rawPayload?.history_id ?? String(Date.now());
-    await updateClientInboxSyncStatus(supabase, inbox.id, inbox.workspace_id, 'connected', {
-      syncCursor: newCursor,
-      lastSyncAt: new Date().toISOString(),
-    });
+    await updateClientInboxSyncStatus(
+      supabase,
+      inbox.id,
+      inbox.workspace_id,
+      'connected',
+      {
+        syncCursor: newCursor,
+        lastSyncAt: new Date().toISOString(),
+      },
+    );
 
     await supabase
       .from('raw_pubsub_payloads')

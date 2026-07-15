@@ -33,7 +33,9 @@ describe('invalidateUserSessions', () => {
     } as unknown as ReturnType<typeof createServiceClient>);
 
     await invalidateUserSessions('550e8400-e29b-41d4-a716-446655440000');
-    expect(mockSignOut).toHaveBeenCalledWith('550e8400-e29b-41d4-a716-446655440000');
+    expect(mockSignOut).toHaveBeenCalledWith(
+      '550e8400-e29b-41d4-a716-446655440000',
+    );
   });
 
   it('[P0] throws internal error when signOut fails', async () => {

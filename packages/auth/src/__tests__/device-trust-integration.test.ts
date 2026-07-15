@@ -59,11 +59,16 @@ function createMockSupabase() {
 describe('trustDevice', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSupabase = createMockSupabase() as Record<string, ReturnType<typeof vi.fn>>;
+    mockSupabase = createMockSupabase() as Record<
+      string,
+      ReturnType<typeof vi.fn>
+    >;
   });
 
   it('[P0] rejects when device count exceeds max', async () => {
-    const devices = Array.from({ length: MAX_TRUSTED_DEVICES }, (_, i) => ({ id: `dev-${i}` }));
+    const devices = Array.from({ length: MAX_TRUSTED_DEVICES }, (_, i) => ({
+      id: `dev-${i}`,
+    }));
     mockSupabase.from!.mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
@@ -72,7 +77,10 @@ describe('trustDevice', () => {
       }),
     });
 
-    const result = await trustDevice({ userId: crypto.randomUUID(), userAgent: 'Chrome/120' });
+    const result = await trustDevice({
+      userId: crypto.randomUUID(),
+      userAgent: 'Chrome/120',
+    });
     expect(result).toEqual({
       trusted: false,
       reason: 'count_exceeded',
@@ -87,13 +95,17 @@ describe('trustDevice', () => {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockResolvedValueOnce({ data: [], error: null })
+              eq: vi
+                .fn()
+                .mockResolvedValueOnce({ data: [], error: null })
                 .mockResolvedValueOnce({ data: [], error: null }),
             }),
           }),
           insert: vi.fn().mockReturnValue({
             select: vi.fn().mockReturnValue({
-              single: vi.fn().mockResolvedValue({ data: { id: 'dev-new' }, error: null }),
+              single: vi
+                .fn()
+                .mockResolvedValue({ data: { id: 'dev-new' }, error: null }),
             }),
           }),
         };
@@ -101,7 +113,10 @@ describe('trustDevice', () => {
       return { select: vi.fn() };
     });
 
-    const result = await trustDevice({ userId: crypto.randomUUID(), userAgent: 'Chrome/120' });
+    const result = await trustDevice({
+      userId: crypto.randomUUID(),
+      userAgent: 'Chrome/120',
+    });
     expect(result.trusted).toBe(true);
     expect(result.trusted === true && result.deviceToken).toBeDefined();
     expect(result.trusted === true && result.deviceId).toBe('dev-new');
@@ -111,7 +126,10 @@ describe('trustDevice', () => {
 describe('verifyDeviceTrust', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSupabase = createMockSupabase() as Record<string, ReturnType<typeof vi.fn>>;
+    mockSupabase = createMockSupabase() as Record<
+      string,
+      ReturnType<typeof vi.fn>
+    >;
   });
 
   it('[P0] returns trusted for valid non-revoked device', async () => {
@@ -128,7 +146,10 @@ describe('verifyDeviceTrust', () => {
       }),
     });
 
-    const result = await verifyDeviceTrust({ userId: crypto.randomUUID(), deviceCookie: 'token' });
+    const result = await verifyDeviceTrust({
+      userId: crypto.randomUUID(),
+      deviceCookie: 'token',
+    });
     expect(result).toEqual({ trusted: true, deviceId: 'dev-1' });
   });
 
@@ -146,7 +167,10 @@ describe('verifyDeviceTrust', () => {
       }),
     });
 
-    const result = await verifyDeviceTrust({ userId: crypto.randomUUID(), deviceCookie: 'token' });
+    const result = await verifyDeviceTrust({
+      userId: crypto.randomUUID(),
+      deviceCookie: 'token',
+    });
     expect(result.trusted).toBe(false);
   });
 });
@@ -154,7 +178,10 @@ describe('verifyDeviceTrust', () => {
 describe('revokeDevice', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSupabase = createMockSupabase() as Record<string, ReturnType<typeof vi.fn>>;
+    mockSupabase = createMockSupabase() as Record<
+      string,
+      ReturnType<typeof vi.fn>
+    >;
   });
 
   it('[P0] returns revoked on success', async () => {
@@ -164,7 +191,9 @@ describe('revokeDevice', () => {
           eq: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
               select: vi.fn().mockReturnValue({
-                single: vi.fn().mockResolvedValue({ data: { id: 'dev-1' }, error: null }),
+                single: vi
+                  .fn()
+                  .mockResolvedValue({ data: { id: 'dev-1' }, error: null }),
               }),
             }),
           }),
@@ -172,7 +201,10 @@ describe('revokeDevice', () => {
       }),
     });
 
-    const result = await revokeDevice({ userId: crypto.randomUUID(), deviceId: 'dev-1' });
+    const result = await revokeDevice({
+      userId: crypto.randomUUID(),
+      deviceId: 'dev-1',
+    });
     expect(result).toEqual({ revoked: true, deviceId: 'dev-1' });
   });
 });
@@ -180,7 +212,10 @@ describe('revokeDevice', () => {
 describe('revokeAllDevices', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSupabase = createMockSupabase() as Record<string, ReturnType<typeof vi.fn>>;
+    mockSupabase = createMockSupabase() as Record<
+      string,
+      ReturnType<typeof vi.fn>
+    >;
   });
 
   it('[P0] returns count of revoked devices', async () => {
@@ -205,7 +240,10 @@ describe('revokeAllDevices', () => {
 describe('renameDevice', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSupabase = createMockSupabase() as Record<string, ReturnType<typeof vi.fn>>;
+    mockSupabase = createMockSupabase() as Record<
+      string,
+      ReturnType<typeof vi.fn>
+    >;
   });
 
   it('[P0] completes without error on success', async () => {
@@ -218,7 +256,11 @@ describe('renameDevice', () => {
     });
 
     await expect(
-      renameDevice({ userId: crypto.randomUUID(), deviceId: 'dev-1', label: 'My Laptop' }),
+      renameDevice({
+        userId: crypto.randomUUID(),
+        deviceId: 'dev-1',
+        label: 'My Laptop',
+      }),
     ).resolves.toBeUndefined();
   });
 });
@@ -226,7 +268,10 @@ describe('renameDevice', () => {
 describe('getUserDevices', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSupabase = createMockSupabase() as Record<string, ReturnType<typeof vi.fn>>;
+    mockSupabase = createMockSupabase() as Record<
+      string,
+      ReturnType<typeof vi.fn>
+    >;
   });
 
   it('[P0] maps database rows to DeviceRecord shape', async () => {
@@ -235,16 +280,18 @@ describe('getUserDevices', () => {
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
           order: vi.fn().mockResolvedValue({
-            data: [{
-              id: 'dev-1',
-              user_id: userId,
-              device_token_hash: 'abc',
-              label: 'Chrome on macOS',
-              user_agent_hint: null,
-              last_seen_at: '2024-01-01T00:00:00Z',
-              created_at: '2024-01-01T00:00:00Z',
-              is_revoked: false,
-            }],
+            data: [
+              {
+                id: 'dev-1',
+                user_id: userId,
+                device_token_hash: 'abc',
+                label: 'Chrome on macOS',
+                user_agent_hint: null,
+                last_seen_at: '2024-01-01T00:00:00Z',
+                created_at: '2024-01-01T00:00:00Z',
+                is_revoked: false,
+              },
+            ],
             error: null,
           }),
         }),

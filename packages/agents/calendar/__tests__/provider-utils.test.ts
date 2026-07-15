@@ -16,13 +16,17 @@ describe('withTimeout', () => {
 
   it('rejects with timeout error when promise takes too long', async () => {
     let resolveFn: (value: string) => void;
-    const promise = new Promise<string>((resolve) => { resolveFn = resolve; });
+    const promise = new Promise<string>((resolve) => {
+      resolveFn = resolve;
+    });
 
     const result = withTimeout(promise, 1000);
 
     vi.advanceTimersByTime(1001);
 
-    await expect(result).rejects.toThrow('Provider call timed out after 1000ms');
+    await expect(result).rejects.toThrow(
+      'Provider call timed out after 1000ms',
+    );
 
     resolveFn!('late');
   });

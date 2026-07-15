@@ -32,7 +32,9 @@ describe('cancelEmailChange', () => {
   });
 
   it('returns unauthorized when no session', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser(null) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser(null) as never,
+    );
     const result = await cancelEmailChange(null);
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -41,7 +43,9 @@ describe('cancelEmailChange', () => {
   });
 
   it('returns validation error when no requestId', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser({ id: 'user-1' }) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser({ id: 'user-1' }) as never,
+    );
     const result = await cancelEmailChange(null);
     expect(result.success).toBe(false);
     if (!result.success) {

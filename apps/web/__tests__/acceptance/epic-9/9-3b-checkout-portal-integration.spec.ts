@@ -104,7 +104,10 @@ function mockSupabase(
     }),
     rpc: vi.fn().mockImplementation((name: string) => {
       if (name === 'check_rate_limit') {
-        return Promise.resolve({ data: { allowed: true, retry_after_ms: 0 }, error: null });
+        return Promise.resolve({
+          data: { allowed: true, retry_after_ms: 0 },
+          error: null,
+        });
       }
       return Promise.resolve({ data: null, error: null });
     }),
@@ -114,7 +117,9 @@ function mockSupabase(
 
 const WORKSPACE_ID = '00000000-0000-0000-0000-000000000001';
 
-function defaultWorkspace(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+function defaultWorkspace(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
   return {
     id: WORKSPACE_ID,
     name: 'Acme',
@@ -132,7 +137,9 @@ function defaultWorkspace(overrides: Record<string, unknown> = {}): Record<strin
 beforeEach(() => {
   vi.clearAllMocks();
   Object.values(providerMocks).forEach((m) => m.mockReset());
-  vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase('owner', defaultWorkspace()));
+  vi.mocked(getServerSupabase).mockResolvedValue(
+    mockSupabase('owner', defaultWorkspace()),
+  );
 });
 
 // ───────────────────────────────────────────────────────────────
@@ -144,7 +151,12 @@ describe('[P0] [9.3b-ATDD-001] createCheckoutSessionAction returns Stripe Checko
   });
 
   test('checkoutSessionSchema accepts a target tier', () => {
-    expect(createCheckoutSessionSchema.safeParse({ tier: 'pro', interval: 'monthly' }).success).toBe(true);
+    expect(
+      createCheckoutSessionSchema.safeParse({
+        tier: 'pro',
+        interval: 'monthly',
+      }).success,
+    ).toBe(true);
   });
 
   test('returns checkout URL for Free → Pro upgrade', async () => {
@@ -153,14 +165,20 @@ describe('[P0] [9.3b-ATDD-001] createCheckoutSessionAction returns Stripe Checko
       sessionId: 'cs_1',
     });
 
-    const result = await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
+    const result = await createCheckoutSessionAction({
+      tier: 'pro',
+      interval: 'monthly',
+    });
 
     expect(result.success).toBe(true);
-    if (result.success) expect(result.data.url).toMatch(/^https:\/\/checkout\.stripe\.com/);
+    if (result.success)
+      expect(result.data.url).toMatch(/^https:\/\/checkout\.stripe\.com/);
   });
 
   test('metadata includes workspace_id on every Stripe object (snake_case)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase('owner', defaultWorkspace({ stripe_customer_id: null })));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase('owner', defaultWorkspace({ stripe_customer_id: null })),
+    );
     providerMocks.createCustomer.mockResolvedValue({
       providerCustomerId: 'cus_new',
       email: 'owner@example.com',
@@ -178,15 +196,21 @@ describe('[P0] [9.3b-ATDD-001] createCheckoutSessionAction returns Stripe Checko
     expect(customerCall.metadata).toEqual({ workspace_id: WORKSPACE_ID });
     expect(customerCall.idempotencyKey).toBe(`customer:${WORKSPACE_ID}`);
 
-    const call = providerMocks.createSubscriptionCheckoutSession.mock.calls[0][0];
+    const call =
+      providerMocks.createSubscriptionCheckoutSession.mock.calls[0][0];
     expect(call.metadata).toEqual({ workspace_id: WORKSPACE_ID });
     expect(call.metadata.workspaceId).toBeUndefined();
   });
 
   test('rejects non-owner caller (FORBIDDEN)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase('member', defaultWorkspace()));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase('member', defaultWorkspace()),
+    );
 
-    const result = await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
+    const result = await createCheckoutSessionAction({
+      tier: 'pro',
+      interval: 'monthly',
+    });
 
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('FORBIDDEN');
@@ -209,7 +233,8 @@ describe('[P0] [9.3b-ATDD-002] createPortalSessionAction returns Stripe Customer
     const result = await createPortalSessionAction();
 
     expect(result.success).toBe(true);
-    if (result.success) expect(result.data.url).toMatch(/^https:\/\/billing\.stripe\.com/);
+    if (result.success)
+      expect(result.data.url).toMatch(/^https:\/\/billing\.stripe\.com/);
   });
 
   test('rejects workspace without stripe_customer_id (NOT_CONFIGURED)', async () => {
@@ -230,10 +255,13 @@ describe('[P0] [9.3b-ATDD-002] createPortalSessionAction returns Stripe Customer
 describe('[P0] [9.3b-ATDD-003] cancel and reactivate subscription flows', () => {
   test('cancelSubscriptionAction schedules cancellation at period end', async () => {
     vi.mocked(getServerSupabase).mockResolvedValue(
-      mockSupabase('owner', defaultWorkspace({
-        subscription_status: 'active',
-        stripe_subscription_id: 'sub_1',
-      })),
+      mockSupabase(
+        'owner',
+        defaultWorkspace({
+          subscription_status: 'active',
+          stripe_subscription_id: 'sub_1',
+        }),
+      ),
     );
     providerMocks.cancelSubscription.mockResolvedValue({
       providerSubscriptionId: 'sub_1',
@@ -248,15 +276,21 @@ describe('[P0] [9.3b-ATDD-003] cancel and reactivate subscription flows', () => 
     const result = await cancelSubscriptionAction();
 
     expect(result.success).toBe(true);
-    expect(providerMocks.cancelSubscription).toHaveBeenCalledWith('sub_1', false);
+    expect(providerMocks.cancelSubscription).toHaveBeenCalledWith(
+      'sub_1',
+      false,
+    );
   });
 
   test('reactivateSubscriptionAction resumes a canceled-but-not-expired sub', async () => {
     vi.mocked(getServerSupabase).mockResolvedValue(
-      mockSupabase('owner', defaultWorkspace({
-        subscription_status: 'active',
-        stripe_subscription_id: 'sub_1',
-      })),
+      mockSupabase(
+        'owner',
+        defaultWorkspace({
+          subscription_status: 'active',
+          stripe_subscription_id: 'sub_1',
+        }),
+      ),
     );
     providerMocks.resumeSubscription.mockResolvedValue({
       providerSubscriptionId: 'sub_1',
@@ -277,7 +311,8 @@ describe('[P0] [9.3b-ATDD-003] cancel and reactivate subscription flows', () => 
     const result = await cancelSubscriptionAction();
 
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.code).toBe('NO_ACTIVE_SUBSCRIPTION');
+    if (!result.success)
+      expect(result.error.code).toBe('NO_ACTIVE_SUBSCRIPTION');
   });
 });
 
@@ -315,10 +350,13 @@ describe('[P0] [9.3b-ATDD-005] syncStripeDataAction success-redirect fallback', 
 
   test('always returns success (best-effort) even on provider failure', async () => {
     vi.mocked(getServerSupabase).mockResolvedValue(
-      mockSupabase('owner', defaultWorkspace({
-        stripe_customer_id: 'cus_x',
-        stripe_subscription_id: 'sub_1',
-      })),
+      mockSupabase(
+        'owner',
+        defaultWorkspace({
+          stripe_customer_id: 'cus_x',
+          stripe_subscription_id: 'sub_1',
+        }),
+      ),
     );
     providerMocks.getSubscription.mockRejectedValue(new Error('stripe down'));
 
@@ -337,7 +375,10 @@ describe('[P0] [9.3b-ATDD-006] SYSTEM_CONFIG_MISSING when prices are placeholder
     const { getTierConfig } = await import('@/lib/config/tier-config');
     vi.mocked(getTierConfig).mockRejectedValueOnce(new Error('placeholder'));
 
-    const result = await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
+    const result = await createCheckoutSessionAction({
+      tier: 'pro',
+      interval: 'monthly',
+    });
 
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -353,12 +394,17 @@ describe('[P0] [9.3b-ATDD-006] SYSTEM_CONFIG_MISSING when prices are placeholder
 describe('[P0] [9.3b-ATDD-007] STRIPE_ERROR 502 on provider failures', () => {
   test('reactivate maps Stripe failure to STRIPE_ERROR (does not fabricate success)', async () => {
     vi.mocked(getServerSupabase).mockResolvedValue(
-      mockSupabase('owner', defaultWorkspace({
-        subscription_status: 'active',
-        stripe_subscription_id: 'sub_1',
-      })),
+      mockSupabase(
+        'owner',
+        defaultWorkspace({
+          subscription_status: 'active',
+          stripe_subscription_id: 'sub_1',
+        }),
+      ),
     );
-    providerMocks.resumeSubscription.mockRejectedValue(new Error('subscription expired'));
+    providerMocks.resumeSubscription.mockRejectedValue(
+      new Error('subscription expired'),
+    );
 
     const result = await reactivateSubscriptionAction();
 

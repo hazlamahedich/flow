@@ -13,7 +13,8 @@ export function ClientEmptyState({ variant, onReset }: ClientEmptyStateProps) {
           No clients assigned yet
         </p>
         <p className="mt-2 text-sm text-[var(--flow-color-text-secondary)]">
-          Your team lead hasn&apos;t assigned you any clients yet. Ask them to grant you access.
+          Your team lead hasn&apos;t assigned you any clients yet. Ask them to
+          grant you access.
         </p>
       </div>
     );
@@ -46,7 +47,8 @@ export function ClientEmptyState({ variant, onReset }: ClientEmptyStateProps) {
         Add your first client
       </p>
       <p className="mt-2 text-sm text-[var(--flow-color-text-secondary)]">
-        Manage all your client info in one place — contact details, billing preferences, and notes.
+        Manage all your client info in one place — contact details, billing
+        preferences, and notes.
       </p>
     </div>
   );

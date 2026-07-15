@@ -18,7 +18,13 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/supabase-server', () => ({ getServerSupabase: vi.fn() }));
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }));
 
-const { mockCountActiveClients, mockCountActiveTeamMembers, mockCountActiveAgents, mockRequireTenantContext, mockCreateCheckout } = vi.hoisted(() => ({
+const {
+  mockCountActiveClients,
+  mockCountActiveTeamMembers,
+  mockCountActiveAgents,
+  mockRequireTenantContext,
+  mockCreateCheckout,
+} = vi.hoisted(() => ({
   mockCountActiveClients: vi.fn().mockResolvedValue(0),
   mockCountActiveTeamMembers: vi.fn().mockResolvedValue(0),
   mockCountActiveAgents: vi.fn().mockResolvedValue(0),
@@ -110,7 +116,11 @@ describe('[9.4-T1.1] checkTierLimit pure helper (FR56)', () => {
   });
 
   test('EC1 — unlimited (MAX_SAFE_INTEGER): always allowed', () => {
-    const result = checkTierLimit({ current: 1_000_000, adding: 1, limit: Number.MAX_SAFE_INTEGER });
+    const result = checkTierLimit({
+      current: 1_000_000,
+      adding: 1,
+      limit: Number.MAX_SAFE_INTEGER,
+    });
     expect(result.allowed).toBe(true);
   });
 
@@ -147,13 +157,19 @@ describe('[9.4-T1.1] checkTierLimit pure helper (FR56)', () => {
 // ─────────────────────────────────────────────────────────────
 describe('[9.4-T1.2] changeTierSchema (FR62)', () => {
   test('EC7 — rejects downgrade to free (schema-level)', () => {
-    expect(changeTierSchema.safeParse({ targetTier: 'free' }).success).toBe(false);
+    expect(changeTierSchema.safeParse({ targetTier: 'free' }).success).toBe(
+      false,
+    );
   });
   test('accepts pro', () => {
-    expect(changeTierSchema.safeParse({ targetTier: 'pro' }).success).toBe(true);
+    expect(changeTierSchema.safeParse({ targetTier: 'pro' }).success).toBe(
+      true,
+    );
   });
   test('accepts agency', () => {
-    expect(changeTierSchema.safeParse({ targetTier: 'agency' }).success).toBe(true);
+    expect(changeTierSchema.safeParse({ targetTier: 'agency' }).success).toBe(
+      true,
+    );
   });
 });
 
@@ -183,19 +199,29 @@ describe('[9.4-T2] getTierLimits (AC1, AC2)', () => {
 
 describe('[9.4-T2] enforceTierLimit (AC2, AC3)', () => {
   test('EC1 — Agency tier never blocks', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('agency') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('agency') as never,
+    );
     mockCountActiveClients.mockResolvedValue(1_000_000);
 
-    const result = await enforceTierLimit({ workspaceId: 'ws-1', resource: 'clients' });
+    const result = await enforceTierLimit({
+      workspaceId: 'ws-1',
+      resource: 'clients',
+    });
     expect(result.allowed).toBe(true);
     expect(result.tier).toBe('agency');
   });
 
   test('EC3 — Free at 3/3 clients blocks 4th creation (delta=1 default)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('free') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('free') as never,
+    );
     mockCountActiveClients.mockResolvedValue(3);
 
-    const result = await enforceTierLimit({ workspaceId: 'ws-1', resource: 'clients' });
+    const result = await enforceTierLimit({
+      workspaceId: 'ws-1',
+      resource: 'clients',
+    });
     expect(result.allowed).toBe(false);
     expect(result.limit).toBe(3);
     expect(result.current).toBe(3);
@@ -203,28 +229,44 @@ describe('[9.4-T2] enforceTierLimit (AC2, AC3)', () => {
   });
 
   test('EC2 — Free at 2/3 clients: allowed, no warning (ceil(3*0.8)=3)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('free') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('free') as never,
+    );
     mockCountActiveClients.mockResolvedValue(2);
 
-    const result = await enforceTierLimit({ workspaceId: 'ws-1', resource: 'clients' });
+    const result = await enforceTierLimit({
+      workspaceId: 'ws-1',
+      resource: 'clients',
+    });
     expect(result.allowed).toBe(true);
     expect(result.warning).toBeUndefined();
   });
 
   test('Free at 3/3 with delta=0: allowed + warning (usage-display path)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('free') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('free') as never,
+    );
     mockCountActiveClients.mockResolvedValue(3);
 
-    const result = await enforceTierLimit({ workspaceId: 'ws-1', resource: 'clients', delta: 0 });
+    const result = await enforceTierLimit({
+      workspaceId: 'ws-1',
+      resource: 'clients',
+      delta: 0,
+    });
     expect(result.allowed).toBe(true);
     expect(result.warning).toBe('Approaching limit');
   });
 
   test('EC11 — team_members counts active members via @flow/db helper', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('pro') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('pro') as never,
+    );
     mockCountActiveTeamMembers.mockResolvedValue(5);
 
-    const result = await enforceTierLimit({ workspaceId: 'ws-1', resource: 'team_members' });
+    const result = await enforceTierLimit({
+      workspaceId: 'ws-1',
+      resource: 'team_members',
+    });
     expect(mockCountActiveTeamMembers).toHaveBeenCalled();
     expect(result.current).toBe(5);
     expect(result.limit).toBe(5);
@@ -232,19 +274,29 @@ describe('[9.4-T2] enforceTierLimit (AC2, AC3)', () => {
   });
 
   test('agents resource is counted via countActiveAgents', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('free') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('free') as never,
+    );
     mockCountActiveAgents.mockResolvedValue(1);
 
-    const result = await enforceTierLimit({ workspaceId: 'ws-1', resource: 'agents' });
+    const result = await enforceTierLimit({
+      workspaceId: 'ws-1',
+      resource: 'agents',
+    });
     expect(mockCountActiveAgents).toHaveBeenCalled();
     expect(result.allowed).toBe(true);
   });
 
   test('EC10 — status-independent: past_due Pro still uses Pro limits', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('pro', 'past_due') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('pro', 'past_due') as never,
+    );
     mockCountActiveClients.mockResolvedValue(0);
 
-    const result = await enforceTierLimit({ workspaceId: 'ws-1', resource: 'clients' });
+    const result = await enforceTierLimit({
+      workspaceId: 'ws-1',
+      resource: 'clients',
+    });
     expect(result.tier).toBe('pro');
     expect(result.limit).toBe(15); // Pro maxClients, not Free's 3
   });
@@ -260,7 +312,10 @@ describe('[9.4-T2] enforceTierLimit (AC2, AC3)', () => {
       })),
     } as never);
 
-    const result = await enforceTierLimit({ workspaceId: 'ws-1', resource: 'clients' });
+    const result = await enforceTierLimit({
+      workspaceId: 'ws-1',
+      resource: 'clients',
+    });
     expect(result.allowed).toBe(false);
   });
 });
@@ -270,7 +325,9 @@ describe('[9.4-T2] enforceTierLimit (AC2, AC3)', () => {
 // ─────────────────────────────────────────────────────────────
 describe('[9.4-T4] changeTierAction (FR62)', () => {
   test('EC6 — same tier rejected with INVALID_STATE 409', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('pro') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('pro') as never,
+    );
 
     const result = await changeTierAction({ targetTier: 'pro' });
     expect(result.success).toBe(false);
@@ -281,7 +338,9 @@ describe('[9.4-T4] changeTierAction (FR62)', () => {
   });
 
   test('EC8 — delegates to createCheckoutSessionAction for proration', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('free') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('free') as never,
+    );
     vi.mocked(createCheckoutSessionAction).mockResolvedValue({
       success: true,
       data: { url: 'https://checkout.stripe.com/cs_test_proration' },
@@ -290,14 +349,21 @@ describe('[9.4-T4] changeTierAction (FR62)', () => {
     const result = await changeTierAction({ targetTier: 'pro' });
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.checkoutUrl).toBe('https://checkout.stripe.com/cs_test_proration');
+      expect(result.data.checkoutUrl).toBe(
+        'https://checkout.stripe.com/cs_test_proration',
+      );
     }
     // EC8: no local proration — pure delegation.
-    expect(createCheckoutSessionAction).toHaveBeenCalledWith({ tier: 'pro', interval: 'monthly' });
+    expect(createCheckoutSessionAction).toHaveBeenCalledWith({
+      tier: 'pro',
+      interval: 'monthly',
+    });
   });
 
   test('EC4 — upgrade allowed regardless of current usage', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('free') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('free') as never,
+    );
     mockCountActiveClients.mockResolvedValue(99); // way over free limit
     vi.mocked(createCheckoutSessionAction).mockResolvedValue({
       success: true,
@@ -309,7 +375,9 @@ describe('[9.4-T4] changeTierAction (FR62)', () => {
   });
 
   test('propagates SYSTEM_CONFIG_MISSING from 9-3b', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('free') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('free') as never,
+    );
     vi.mocked(createCheckoutSessionAction).mockResolvedValue({
       success: false,
       error: {
@@ -328,7 +396,9 @@ describe('[9.4-T4] changeTierAction (FR62)', () => {
   });
 
   test('non-owner rejected with FORBIDDEN', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('free') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('free') as never,
+    );
     mockRequireTenantContext.mockResolvedValue({
       workspaceId: 'ws-1',
       userId: 'user-1',

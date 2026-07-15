@@ -44,7 +44,9 @@ describe('revokeAllDevicesAction', () => {
 
   it('[P0] returns auth error when no session', async () => {
     vi.mocked(getServerSupabase).mockResolvedValue({
-      auth: { getSession: vi.fn().mockResolvedValue({ data: { session: null } }) },
+      auth: {
+        getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+      },
     } as unknown as MockSupabase);
 
     const result = await revokeAllDevicesAction();
@@ -53,7 +55,11 @@ describe('revokeAllDevicesAction', () => {
 
   it('[P0] revokes all devices and invalidates sessions', async () => {
     vi.mocked(getServerSupabase).mockResolvedValue({
-      auth: { getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } }) },
+      auth: {
+        getSession: vi
+          .fn()
+          .mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } }),
+      },
     } as unknown as MockSupabase);
     vi.mocked(revokeAllDevices).mockResolvedValue(3);
 
@@ -67,7 +73,11 @@ describe('revokeAllDevicesAction', () => {
 
   it('[P0] returns success even when session invalidation fails', async () => {
     vi.mocked(getServerSupabase).mockResolvedValue({
-      auth: { getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } }) },
+      auth: {
+        getSession: vi
+          .fn()
+          .mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } }),
+      },
     } as unknown as MockSupabase);
     vi.mocked(revokeAllDevices).mockResolvedValue(2);
     vi.mocked(invalidateUserSessions).mockRejectedValue(new Error('timeout'));
@@ -78,7 +88,11 @@ describe('revokeAllDevicesAction', () => {
 
   it('[P0] returns error when revokeAllDevices throws', async () => {
     vi.mocked(getServerSupabase).mockResolvedValue({
-      auth: { getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } }) },
+      auth: {
+        getSession: vi
+          .fn()
+          .mockResolvedValue({ data: { session: { user: { id: 'user-1' } } } }),
+      },
     } as unknown as MockSupabase);
     vi.mocked(revokeAllDevices).mockRejectedValue(new Error('db error'));
 

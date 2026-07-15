@@ -1,5 +1,11 @@
 import { useState, useCallback } from 'react';
-import type { WizardStep, ContactData, BillingData, RetainerFormData, WizardState } from '../../actions/wizard-types';
+import type {
+  WizardStep,
+  ContactData,
+  BillingData,
+  RetainerFormData,
+  WizardState,
+} from '../../actions/wizard-types';
 
 const INITIAL_STATE: WizardState = {
   step: 1,
@@ -48,7 +54,11 @@ export function useWizardState() {
   }, []);
 
   const updateRetainer = useCallback((data: RetainerFormData) => {
-    setState((prev) => ({ ...prev, retainerData: data, retainerSkipped: false }));
+    setState((prev) => ({
+      ...prev,
+      retainerData: data,
+      retainerSkipped: false,
+    }));
   }, []);
 
   const resetState = useCallback(() => {

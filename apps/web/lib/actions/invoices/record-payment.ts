@@ -2,9 +2,18 @@
 
 import { revalidateTag } from 'next/cache';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, cacheTag, invalidateAfterMutation } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  cacheTag,
+  invalidateAfterMutation,
+} from '@flow/db';
 import { recordPaymentSchema } from '@flow/types';
-import type { ActionResult, InvoicePayment, InvoiceWithBalance } from '@flow/types';
+import type {
+  ActionResult,
+  InvoicePayment,
+  InvoiceWithBalance,
+} from '@flow/types';
 import {
   fetchInvoiceForPayment,
   callPaymentRpcWithRetry,
@@ -14,7 +23,11 @@ import { checkIdempotencyKey } from './idempotency';
 interface RecordPaymentResult {
   payment: InvoicePayment;
   invoice: InvoiceWithBalance & { payments: InvoicePayment[] };
-  warning?: { type: 'OVERPAYMENT_CREDIT'; excessAmountCents: number; creditBalanceCents: number };
+  warning?: {
+    type: 'OVERPAYMENT_CREDIT';
+    excessAmountCents: number;
+    creditBalanceCents: number;
+  };
 }
 
 export async function recordPaymentAction(
@@ -24,21 +37,44 @@ export async function recordPaymentAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation', {
-        issues: parsed.error.issues,
-      }),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+        {
+          issues: parsed.error.issues,
+        },
+      ),
     };
   }
 
   const supabase = await getServerSupabase();
   const ctx = await requireTenantContext(supabase);
 
-  const { invoiceId, amountCents, paymentDate, paymentMethod, notes, idempotencyKey, confirmOverpayment } = parsed.data;
+  const {
+    invoiceId,
+    amountCents,
+    paymentDate,
+    paymentMethod,
+    notes,
+    idempotencyKey,
+    confirmOverpayment,
+  } = parsed.data;
 
-  const idempotencyResult = await checkIdempotencyKey<RecordPaymentResult>(supabase, ctx.workspaceId, invoiceId, idempotencyKey);
+  const idempotencyResult = await checkIdempotencyKey<RecordPaymentResult>(
+    supabase,
+    ctx.workspaceId,
+    invoiceId,
+    idempotencyKey,
+  );
   if (idempotencyResult) return idempotencyResult;
 
-  const invoice = await fetchInvoiceForPayment(supabase, invoiceId, ctx.workspaceId);
+  const invoice = await fetchInvoiceForPayment(
+    supabase,
+    invoiceId,
+    ctx.workspaceId,
+  );
   if ('error' in invoice) return { success: false, error: invoice.error };
 
   const { status, totalCents, amountPaidCents } = invoice;
@@ -54,7 +90,13 @@ export async function recordPaymentAction(
   }
 
   const rpcResult = await callPaymentRpcWithRetry(supabase, {
-    invoiceId, workspaceId: ctx.workspaceId, amountCents, paymentMethod, paymentDate, notes, createdBy: ctx.userId,
+    invoiceId,
+    workspaceId: ctx.workspaceId,
+    amountCents,
+    paymentMethod,
+    paymentDate,
+    notes,
+    createdBy: ctx.userId,
     idempotencyKey,
   });
 
@@ -64,27 +106,55 @@ export async function recordPaymentAction(
   const nowIso = new Date().toISOString();
 
   const paymentRecord: InvoicePayment = {
-    id: paymentId, invoiceId, workspaceId: ctx.workspaceId, amountCents, paymentMethod, paymentDate,
-    notes: notes ?? null, stripePaymentIntentId: null, createdBy: ctx.userId, createdAt: nowIso, updatedAt: nowIso,
+    id: paymentId,
+    invoiceId,
+    workspaceId: ctx.workspaceId,
+    amountCents,
+    paymentMethod,
+    paymentDate,
+    notes: notes ?? null,
+    stripePaymentIntentId: null,
+    createdBy: ctx.userId,
+    createdAt: nowIso,
+    updatedAt: nowIso,
   };
 
   const response: RecordPaymentResult = {
     payment: paymentRecord,
     invoice: {
-      id: invoiceId, workspaceId: ctx.workspaceId, clientId: invoice.clientId, clientName: invoice.clientName,
-      invoiceNumber: invoice.invoiceNumber, status: newStatus as InvoiceWithBalance['status'],
-      issueDate: invoice.issueDate, dueDate: invoice.dueDate, totalCents,
-      amountPaidCents: newAmountPaid, creditBalanceCents: newCreditBalance,
+      id: invoiceId,
+      workspaceId: ctx.workspaceId,
+      clientId: invoice.clientId,
+      clientName: invoice.clientName,
+      invoiceNumber: invoice.invoiceNumber,
+      status: newStatus as InvoiceWithBalance['status'],
+      issueDate: invoice.issueDate,
+      dueDate: invoice.dueDate,
+      totalCents,
+      amountPaidCents: newAmountPaid,
+      creditBalanceCents: newCreditBalance,
       balanceCents: Math.max(totalCents - newAmountPaid, 0),
-      currency: invoice.currency, notes: invoice.notes, voidedAt: invoice.voidedAt, voidReason: invoice.voidReason,
-      createdAt: invoice.createdAt, updatedAt: nowIso, paymentUrl: invoice.paymentUrl,
-      sentAt: invoice.sentAt, viewedAt: invoice.viewedAt, deliveryToken: invoice.deliveryToken,
-      version: invoice.version + 1, payments: [paymentRecord],
+      currency: invoice.currency,
+      notes: invoice.notes,
+      voidedAt: invoice.voidedAt,
+      voidReason: invoice.voidReason,
+      createdAt: invoice.createdAt,
+      updatedAt: nowIso,
+      paymentUrl: invoice.paymentUrl,
+      sentAt: invoice.sentAt,
+      viewedAt: invoice.viewedAt,
+      deliveryToken: invoice.deliveryToken,
+      version: invoice.version + 1,
+      payments: [paymentRecord],
     },
   };
 
   if (isOverpayment) {
-    response.warning = { type: 'OVERPAYMENT_CREDIT', excessAmountCents: amountCents - outstanding, creditBalanceCents: newCreditBalance };
+    response.warning = {
+      type: 'OVERPAYMENT_CREDIT',
+      excessAmountCents: amountCents - outstanding,
+      creditBalanceCents: newCreditBalance,
+    };
   }
 
   revalidateTag(cacheTag('invoice', ctx.workspaceId));
@@ -93,22 +163,49 @@ export async function recordPaymentAction(
   return { success: true, data: response };
 }
 
-function rejectInvalidStatus(status: string): ActionResult<RecordPaymentResult> | null {
+function rejectInvalidStatus(
+  status: string,
+): ActionResult<RecordPaymentResult> | null {
   const rejections: Record<string, { code: string; msg: string }> = {
-    voided: { code: 'INVOICE_VOIDED', msg: 'Cannot record payment on a voided invoice.' },
+    voided: {
+      code: 'INVOICE_VOIDED',
+      msg: 'Cannot record payment on a voided invoice.',
+    },
     paid: { code: 'INVOICE_ALREADY_PAID', msg: 'Invoice is already paid.' },
-    draft: { code: 'INVOICE_DRAFT', msg: 'Cannot record payment on a draft invoice.' },
+    draft: {
+      code: 'INVOICE_DRAFT',
+      msg: 'Cannot record payment on a draft invoice.',
+    },
   };
   const r = rejections[status];
-  if (r) return { success: false, error: createFlowError(400, r.code as 'INVOICE_VOIDED', r.msg, 'financial') };
+  if (r)
+    return {
+      success: false,
+      error: createFlowError(
+        400,
+        r.code as 'INVOICE_VOIDED',
+        r.msg,
+        'financial',
+      ),
+    };
   return null;
 }
 
 function overpaymentWarning(excess: number): ActionResult<RecordPaymentResult> {
   return {
     success: false,
-    error: createFlowError(409, 'VALIDATION_ERROR', 'Payment exceeds outstanding balance.', 'validation', {
-      overpayment: { type: 'OVERPAYMENT_CREDIT' as const, excessAmountCents: excess, creditBalanceCents: excess },
-    }),
+    error: createFlowError(
+      409,
+      'VALIDATION_ERROR',
+      'Payment exceeds outstanding balance.',
+      'validation',
+      {
+        overpayment: {
+          type: 'OVERPAYMENT_CREDIT' as const,
+          excessAmountCents: excess,
+          creditBalanceCents: excess,
+        },
+      },
+    ),
   };
 }

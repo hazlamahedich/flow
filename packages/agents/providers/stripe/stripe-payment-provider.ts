@@ -1,4 +1,3 @@
-
 import type {
   PaymentProvider,
   PaymentCustomer,
@@ -53,9 +52,7 @@ export class StripePaymentProvider implements PaymentProvider {
     };
 
     if (body && method !== 'GET') {
-      options.body = new URLSearchParams(
-        flattenForForm(body),
-      ).toString();
+      options.body = new URLSearchParams(flattenForForm(body)).toString();
     }
 
     const response = await fetch(url, options);
@@ -63,7 +60,8 @@ export class StripePaymentProvider implements PaymentProvider {
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
       throw new StripeApiError(
-        (error as { error?: { message?: string } })?.error?.message ?? `Stripe API error: ${response.status}`,
+        (error as { error?: { message?: string } })?.error?.message ??
+          `Stripe API error: ${response.status}`,
         response.status,
         path,
       );
@@ -79,57 +77,89 @@ export class StripePaymentProvider implements PaymentProvider {
     metadata?: Record<string, string>;
     idempotencyKey?: string;
   }): Promise<PaymentCustomer> {
-    const result = await this.stripeRequest<StripeCustomer>('POST', '/customers', {
-      email: params.email,
-      name: params.name,
-      metadata: { workspace_id: params.workspaceId, ...params.metadata },
-    }, params.idempotencyKey);
+    const result = await this.stripeRequest<StripeCustomer>(
+      'POST',
+      '/customers',
+      {
+        email: params.email,
+        name: params.name,
+        metadata: { workspace_id: params.workspaceId, ...params.metadata },
+      },
+      params.idempotencyKey,
+    );
     return mapCustomer(result);
   }
 
   async getCustomer(customerId: string): Promise<PaymentCustomer | null> {
     try {
-      const result = await this.stripeRequest<StripeCustomer>('GET', `/customers/${customerId}`);
+      const result = await this.stripeRequest<StripeCustomer>(
+        'GET',
+        `/customers/${customerId}`,
+      );
       return mapCustomer(result);
     } catch (error) {
-      if (error instanceof StripeApiError && error.statusCode === 404) return null;
+      if (error instanceof StripeApiError && error.statusCode === 404)
+        return null;
       throw error;
     }
   }
 
   async updateCustomer(
     customerId: string,
-    params: { email?: string; name?: string; metadata?: Record<string, string> },
+    params: {
+      email?: string;
+      name?: string;
+      metadata?: Record<string, string>;
+    },
   ): Promise<PaymentCustomer> {
-    const result = await this.stripeRequest<StripeCustomer>('POST', `/customers/${customerId}`, {
-      ...(params.email ? { email: params.email } : {}),
-      ...(params.name ? { name: params.name } : {}),
-      ...(params.metadata ? { metadata: params.metadata } : {}),
-    });
+    const result = await this.stripeRequest<StripeCustomer>(
+      'POST',
+      `/customers/${customerId}`,
+      {
+        ...(params.email ? { email: params.email } : {}),
+        ...(params.name ? { name: params.name } : {}),
+        ...(params.metadata ? { metadata: params.metadata } : {}),
+      },
+    );
     return mapCustomer(result);
   }
 
   async listPaymentMethods(customerId: string): Promise<PaymentMethod[]> {
-    const result = await this.stripeRequest<StripeListResponse<StripePaymentMethod>>(
-      'GET',
-      `/payment_methods?customer=${customerId}&type=card`,
-    );
+    const result = await this.stripeRequest<
+      StripeListResponse<StripePaymentMethod>
+    >('GET', `/payment_methods?customer=${customerId}&type=card`);
     return result.data.map(mapPaymentMethod);
   }
 
-  async attachPaymentMethod(customerId: string, paymentMethodId: string): Promise<PaymentMethod> {
-    await this.stripeRequest('POST', `/payment_methods/${paymentMethodId}/attach`, {
-      customer: customerId,
-    });
-    const result = await this.stripeRequest<StripePaymentMethod>('GET', `/payment_methods/${paymentMethodId}`);
+  async attachPaymentMethod(
+    customerId: string,
+    paymentMethodId: string,
+  ): Promise<PaymentMethod> {
+    await this.stripeRequest(
+      'POST',
+      `/payment_methods/${paymentMethodId}/attach`,
+      {
+        customer: customerId,
+      },
+    );
+    const result = await this.stripeRequest<StripePaymentMethod>(
+      'GET',
+      `/payment_methods/${paymentMethodId}`,
+    );
     return mapPaymentMethod(result);
   }
 
   async detachPaymentMethod(paymentMethodId: string): Promise<void> {
-    await this.stripeRequest('POST', `/payment_methods/${paymentMethodId}/detach`);
+    await this.stripeRequest(
+      'POST',
+      `/payment_methods/${paymentMethodId}/detach`,
+    );
   }
 
-  async setDefaultPaymentMethod(customerId: string, paymentMethodId: string): Promise<void> {
+  async setDefaultPaymentMethod(
+    customerId: string,
+    paymentMethodId: string,
+  ): Promise<void> {
     await this.stripeRequest('POST', `/customers/${customerId}`, {
       invoice_settings: { default_payment_method: paymentMethodId },
     });
@@ -142,13 +172,17 @@ export class StripePaymentProvider implements PaymentProvider {
     metadata?: Record<string, string>;
     idempotencyKey?: string;
   }): Promise<PaymentIntent> {
-    const result = await this.stripeRequest<StripePaymentIntent>('POST', '/payment_intents', {
-      customer: params.customerId,
-      amount: params.amount,
-      currency: params.currency,
-      metadata: params.metadata,
-      automatic_payment_methods: { enabled: true },
-    });
+    const result = await this.stripeRequest<StripePaymentIntent>(
+      'POST',
+      '/payment_intents',
+      {
+        customer: params.customerId,
+        amount: params.amount,
+        currency: params.currency,
+        metadata: params.metadata,
+        automatic_payment_methods: { enabled: true },
+      },
+    );
     return mapPaymentIntent(result);
   }
 
@@ -162,27 +196,36 @@ export class StripePaymentProvider implements PaymentProvider {
     expiresAt?: number;
     idempotencyKey?: string;
   }): Promise<CheckoutSession> {
-    const result = await this.stripeRequest<StripeCheckoutSession>('POST', '/checkout/sessions', {
-      line_items: [
-        {
-          price_data: {
-            currency: params.currency,
-            unit_amount: params.amountCents,
-            product_data: { name: `Invoice ${params.invoiceNumber}` },
+    const result = await this.stripeRequest<StripeCheckoutSession>(
+      'POST',
+      '/checkout/sessions',
+      {
+        line_items: [
+          {
+            price_data: {
+              currency: params.currency,
+              unit_amount: params.amountCents,
+              product_data: { name: `Invoice ${params.invoiceNumber}` },
+            },
+            quantity: 1,
           },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: params.successUrl,
-      cancel_url: params.cancelUrl,
-      metadata: params.metadata,
-      payment_intent_data: { metadata: params.metadata },
-      ...(params.expiresAt ? { expires_at: params.expiresAt } : {}),
-    }, params.idempotencyKey);
+        ],
+        mode: 'payment',
+        success_url: params.successUrl,
+        cancel_url: params.cancelUrl,
+        metadata: params.metadata,
+        payment_intent_data: { metadata: params.metadata },
+        ...(params.expiresAt ? { expires_at: params.expiresAt } : {}),
+      },
+      params.idempotencyKey,
+    );
 
     if (!result.url) {
-      throw new StripeApiError('Stripe checkout session returned no URL', 0, '/checkout/sessions');
+      throw new StripeApiError(
+        'Stripe checkout session returned no URL',
+        0,
+        '/checkout/sessions',
+      );
     }
 
     return { url: result.url, sessionId: result.id };
@@ -205,18 +248,27 @@ export class StripePaymentProvider implements PaymentProvider {
     metadata: Record<string, string>;
     idempotencyKey?: string;
   }): Promise<CheckoutSession> {
-    const result = await this.stripeRequest<StripeCheckoutSession>('POST', '/checkout/sessions', {
-      mode: 'subscription',
-      customer: params.customerId,
-      line_items: [{ price: params.priceId, quantity: 1 }],
-      success_url: params.successUrl,
-      cancel_url: params.cancelUrl,
-      metadata: params.metadata,
-      subscription_data: { metadata: params.metadata },
-    }, params.idempotencyKey);
+    const result = await this.stripeRequest<StripeCheckoutSession>(
+      'POST',
+      '/checkout/sessions',
+      {
+        mode: 'subscription',
+        customer: params.customerId,
+        line_items: [{ price: params.priceId, quantity: 1 }],
+        success_url: params.successUrl,
+        cancel_url: params.cancelUrl,
+        metadata: params.metadata,
+        subscription_data: { metadata: params.metadata },
+      },
+      params.idempotencyKey,
+    );
 
     if (!result.url) {
-      throw new StripeApiError('Stripe subscription checkout session returned no URL', 0, '/checkout/sessions');
+      throw new StripeApiError(
+        'Stripe subscription checkout session returned no URL',
+        0,
+        '/checkout/sessions',
+      );
     }
 
     return { url: result.url, sessionId: result.id };
@@ -243,9 +295,17 @@ export class StripePaymentProvider implements PaymentProvider {
     if (params.configuration) {
       body.configuration = params.configuration;
     }
-    const result = await this.stripeRequest<StripePortalSession>('POST', '/billing_portal/sessions', body);
+    const result = await this.stripeRequest<StripePortalSession>(
+      'POST',
+      '/billing_portal/sessions',
+      body,
+    );
     if (!result.url) {
-      throw new StripeApiError('Stripe billing portal session returned no URL', 0, '/billing_portal/sessions');
+      throw new StripeApiError(
+        'Stripe billing portal session returned no URL',
+        0,
+        '/billing_portal/sessions',
+      );
     }
     return { url: result.url };
   }
@@ -258,33 +318,49 @@ export class StripePaymentProvider implements PaymentProvider {
    * explicitly and normalize to a string ID (or null when the checkout was
    * for a one-time payment and has no subscription).
    */
-  async getCheckoutSession(sessionId: string): Promise<{ subscriptionId: string | null; customerId: string | null }> {
+  async getCheckoutSession(
+    sessionId: string,
+  ): Promise<{ subscriptionId: string | null; customerId: string | null }> {
     const result = await this.stripeRequest<StripeCheckoutSessionLookup>(
       'GET',
       `/checkout/sessions/${sessionId}?expand[]=subscription`,
     );
     const sub = result.subscription;
-    const subscriptionId = typeof sub === 'string' ? sub : sub?.id ?? null;
-    const customerId = typeof result.customer === 'string' ? result.customer : null;
+    const subscriptionId = typeof sub === 'string' ? sub : (sub?.id ?? null);
+    const customerId =
+      typeof result.customer === 'string' ? result.customer : null;
     return { subscriptionId, customerId };
   }
 
   async getPaymentIntent(paymentIntentId: string): Promise<PaymentIntent> {
-    const result = await this.stripeRequest<StripePaymentIntent>('GET', `/payment_intents/${paymentIntentId}`);
+    const result = await this.stripeRequest<StripePaymentIntent>(
+      'GET',
+      `/payment_intents/${paymentIntentId}`,
+    );
     return mapPaymentIntent(result);
   }
 
-  async capturePaymentIntent(paymentIntentId: string, amountToCapture?: number): Promise<PaymentIntent> {
+  async capturePaymentIntent(
+    paymentIntentId: string,
+    amountToCapture?: number,
+  ): Promise<PaymentIntent> {
     const body: Record<string, unknown> = {};
     if (amountToCapture !== undefined) {
       body.amount_to_capture = amountToCapture;
     }
-    const result = await this.stripeRequest<StripePaymentIntent>('POST', `/payment_intents/${paymentIntentId}/capture`, body);
+    const result = await this.stripeRequest<StripePaymentIntent>(
+      'POST',
+      `/payment_intents/${paymentIntentId}/capture`,
+      body,
+    );
     return mapPaymentIntent(result);
   }
 
   async cancelPaymentIntent(paymentIntentId: string): Promise<PaymentIntent> {
-    const result = await this.stripeRequest<StripePaymentIntent>('POST', `/payment_intents/${paymentIntentId}/cancel`);
+    const result = await this.stripeRequest<StripePaymentIntent>(
+      'POST',
+      `/payment_intents/${paymentIntentId}/cancel`,
+    );
     return mapPaymentIntent(result);
   }
 
@@ -302,18 +378,28 @@ export class StripePaymentProvider implements PaymentProvider {
     if (params.trialDays) {
       body.trial_period_days = params.trialDays;
     }
-    const result = await this.stripeRequest<StripeSubscription>('POST', '/subscriptions', body);
+    const result = await this.stripeRequest<StripeSubscription>(
+      'POST',
+      '/subscriptions',
+      body,
+    );
     return mapSubscription(result);
   }
 
   async getSubscription(subscriptionId: string): Promise<Subscription> {
-    const result = await this.stripeRequest<StripeSubscription>('GET', `/subscriptions/${subscriptionId}`);
+    const result = await this.stripeRequest<StripeSubscription>(
+      'GET',
+      `/subscriptions/${subscriptionId}`,
+    );
     return mapSubscription(result);
   }
 
   async updateSubscription(
     subscriptionId: string,
-    params: { priceId?: string; prorationBehavior?: 'create_prorations' | 'none' },
+    params: {
+      priceId?: string;
+      prorationBehavior?: 'create_prorations' | 'none';
+    },
   ): Promise<Subscription> {
     const body: Record<string, unknown> = {};
     if (params.priceId) {
@@ -322,21 +408,36 @@ export class StripePaymentProvider implements PaymentProvider {
     if (params.prorationBehavior) {
       body.proration_behavior = params.prorationBehavior;
     }
-    const result = await this.stripeRequest<StripeSubscription>('POST', `/subscriptions/${subscriptionId}`, body);
+    const result = await this.stripeRequest<StripeSubscription>(
+      'POST',
+      `/subscriptions/${subscriptionId}`,
+      body,
+    );
     return mapSubscription(result);
   }
 
-  async cancelSubscription(subscriptionId: string, immediately = false): Promise<Subscription> {
-    const result = await this.stripeRequest<StripeSubscription>('DELETE', `/subscriptions/${subscriptionId}`, {
-      ...(immediately ? { at_period_end: false } : { at_period_end: true }),
-    });
+  async cancelSubscription(
+    subscriptionId: string,
+    immediately = false,
+  ): Promise<Subscription> {
+    const result = await this.stripeRequest<StripeSubscription>(
+      'DELETE',
+      `/subscriptions/${subscriptionId}`,
+      {
+        ...(immediately ? { at_period_end: false } : { at_period_end: true }),
+      },
+    );
     return mapSubscription(result);
   }
 
   async resumeSubscription(subscriptionId: string): Promise<Subscription> {
-    const result = await this.stripeRequest<StripeSubscription>('POST', `/subscriptions/${subscriptionId}`, {
-      cancel_at_period_end: false,
-    });
+    const result = await this.stripeRequest<StripeSubscription>(
+      'POST',
+      `/subscriptions/${subscriptionId}`,
+      {
+        cancel_at_period_end: false,
+      },
+    );
     return mapSubscription(result);
   }
 
@@ -352,7 +453,9 @@ export class StripePaymentProvider implements PaymentProvider {
     const draft = await this.stripeRequest<StripeInvoice>('POST', '/invoices', {
       customer: params.customerId,
       subscription: params.subscriptionId,
-      due_date: params.dueDate ? Math.floor(new Date(params.dueDate).getTime() / 1000) : undefined,
+      due_date: params.dueDate
+        ? Math.floor(new Date(params.dueDate).getTime() / 1000)
+        : undefined,
       metadata: params.metadata,
     });
 
@@ -368,12 +471,18 @@ export class StripePaymentProvider implements PaymentProvider {
       });
     }
 
-    const finalized = await this.stripeRequest<StripeInvoice>('POST', `/invoices/${draft.id}/finalize`);
+    const finalized = await this.stripeRequest<StripeInvoice>(
+      'POST',
+      `/invoices/${draft.id}/finalize`,
+    );
     return mapInvoice(finalized);
   }
 
   async getInvoice(invoiceId: string): Promise<Invoice> {
-    const result = await this.stripeRequest<StripeInvoice>('GET', `/invoices/${invoiceId}`);
+    const result = await this.stripeRequest<StripeInvoice>(
+      'GET',
+      `/invoices/${invoiceId}`,
+    );
     return mapInvoice(result);
   }
 
@@ -386,12 +495,18 @@ export class StripePaymentProvider implements PaymentProvider {
   }
 
   async payInvoice(invoiceId: string): Promise<Invoice> {
-    const result = await this.stripeRequest<StripeInvoice>('POST', `/invoices/${invoiceId}/pay`);
+    const result = await this.stripeRequest<StripeInvoice>(
+      'POST',
+      `/invoices/${invoiceId}/pay`,
+    );
     return mapInvoice(result);
   }
 
   async voidInvoice(invoiceId: string): Promise<Invoice> {
-    const result = await this.stripeRequest<StripeInvoice>('POST', `/invoices/${invoiceId}/void`);
+    const result = await this.stripeRequest<StripeInvoice>(
+      'POST',
+      `/invoices/${invoiceId}/void`,
+    );
     return mapInvoice(result);
   }
 
@@ -416,17 +531,29 @@ export class StripePaymentProvider implements PaymentProvider {
     throw new Error('Deprecated: use constructWebhookEvent instead');
   }
 
-  constructWebhookEvent(payload: string, signature: string, secret: string): WebhookEvent {
+  constructWebhookEvent(
+    payload: string,
+    signature: string,
+    secret: string,
+  ): WebhookEvent {
     const parsed = parseStripeSignature(signature);
     if (!parsed) {
-      throw new StripeApiError('Invalid Stripe-Signature header format', 400, 'webhook');
+      throw new StripeApiError(
+        'Invalid Stripe-Signature header format',
+        400,
+        'webhook',
+      );
     }
     const { timestamp, signatures } = parsed;
 
     // Reject if timestamp > 5 minutes old (Stripe spec tolerance)
     const now = Math.floor(Date.now() / 1000);
     if (now - timestamp > 300) {
-      throw new StripeApiError('Stripe-Signature timestamp expired', 400, 'webhook');
+      throw new StripeApiError(
+        'Stripe-Signature timestamp expired',
+        400,
+        'webhook',
+      );
     }
 
     const expected = this.computeSignature(timestamp, payload, secret);
@@ -443,9 +570,11 @@ export class StripePaymentProvider implements PaymentProvider {
       throw new StripeApiError('Invalid JSON payload', 400, 'webhook');
     }
 
-    const id = typeof event.id === 'string' && event.id.length > 0 ? event.id : '';
+    const id =
+      typeof event.id === 'string' && event.id.length > 0 ? event.id : '';
     const type = typeof event.type === 'string' ? event.type : '';
-    const created = typeof event.created === 'number' ? event.created : timestamp;
+    const created =
+      typeof event.created === 'number' ? event.created : timestamp;
 
     if (!id) {
       throw new StripeApiError('Stripe event missing id field', 400, 'webhook');
@@ -459,9 +588,16 @@ export class StripePaymentProvider implements PaymentProvider {
     };
   }
 
-  private computeSignature(timestamp: number, payload: string, secret: string): string {
+  private computeSignature(
+    timestamp: number,
+    payload: string,
+    secret: string,
+  ): string {
     const signedPayload = `${timestamp}.${payload}`;
-    return crypto.createHmac('sha256', secret).update(signedPayload).digest('hex');
+    return crypto
+      .createHmac('sha256', secret)
+      .update(signedPayload)
+      .digest('hex');
   }
 
   private secureCompare(a: string, b: string): boolean {
@@ -488,17 +624,29 @@ export class StripeApiError extends Error {
   }
 }
 
-function flattenForForm(obj: Record<string, unknown>, prefix = ''): Record<string, string> {
+function flattenForForm(
+  obj: Record<string, unknown>,
+  prefix = '',
+): Record<string, string> {
   const result: Record<string, string> = {};
   for (const [key, value] of Object.entries(obj)) {
     const formKey = prefix ? `${prefix}[${key}]` : key;
     if (value === undefined || value === null) continue;
     if (typeof value === 'object' && !Array.isArray(value)) {
-      Object.assign(result, flattenForForm(value as Record<string, unknown>, formKey));
+      Object.assign(
+        result,
+        flattenForForm(value as Record<string, unknown>, formKey),
+      );
     } else if (Array.isArray(value)) {
       value.forEach((item, index) => {
         if (typeof item === 'object' && item !== null) {
-          Object.assign(result, flattenForForm(item as Record<string, unknown>, `${formKey}[${index}]`));
+          Object.assign(
+            result,
+            flattenForForm(
+              item as Record<string, unknown>,
+              `${formKey}[${index}]`,
+            ),
+          );
         } else {
           result[`${formKey}[${index}]`] = String(item);
         }
@@ -510,23 +658,88 @@ function flattenForForm(obj: Record<string, unknown>, prefix = ''): Record<strin
   return result;
 }
 
-interface StripeListResponse<T> { data: T[]; has_more: boolean; }
-interface StripeCustomer { id: string; email: string; name: string; metadata: Record<string, string>; }
-interface StripePaymentMethod { id: string; type: string; card?: { brand: string; last4: string; exp_month: number; exp_year: number }; }
-interface StripePaymentIntent { id: string; amount: number; currency: string; status: string; client_secret?: string; metadata: Record<string, string>; }
-interface StripeCheckoutSession { id: string; url: string; }
-interface StripePortalSession { id: string; url: string; }
+interface StripeListResponse<T> {
+  data: T[];
+  has_more: boolean;
+}
+interface StripeCustomer {
+  id: string;
+  email: string;
+  name: string;
+  metadata: Record<string, string>;
+}
+interface StripePaymentMethod {
+  id: string;
+  type: string;
+  card?: { brand: string; last4: string; exp_month: number; exp_year: number };
+}
+interface StripePaymentIntent {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  client_secret?: string;
+  metadata: Record<string, string>;
+}
+interface StripeCheckoutSession {
+  id: string;
+  url: string;
+}
+interface StripePortalSession {
+  id: string;
+  url: string;
+}
 interface StripeCheckoutSessionLookup {
   id: string;
   subscription: string | { id: string } | null;
   customer: string | { id: string } | null;
 }
-interface StripeSubscription { id: string; customer: string; items: { data: Array<{ price: { id: string } }> }; status: string; current_period_start: number; current_period_end: number; cancel_at_period_end: boolean; metadata: Record<string, string>; }
-interface StripeInvoice { id: string; customer: string; subscription?: string; amount_due: number; amount_paid: number; currency: string; status: string; hosted_invoice_url?: string; invoice_pdf?: string; due_date?: number; status_transitions?: { paid_at?: number }; lines: { data: Array<{ description: string; amount: number; quantity: number; metadata: Record<string, string> }> }; }
-interface StripeRefund { id: string; payment_intent: string; amount: number; reason: string; status: string; }
+interface StripeSubscription {
+  id: string;
+  customer: string;
+  items: { data: Array<{ price: { id: string } }> };
+  status: string;
+  current_period_start: number;
+  current_period_end: number;
+  cancel_at_period_end: boolean;
+  metadata: Record<string, string>;
+}
+interface StripeInvoice {
+  id: string;
+  customer: string;
+  subscription?: string;
+  amount_due: number;
+  amount_paid: number;
+  currency: string;
+  status: string;
+  hosted_invoice_url?: string;
+  invoice_pdf?: string;
+  due_date?: number;
+  status_transitions?: { paid_at?: number };
+  lines: {
+    data: Array<{
+      description: string;
+      amount: number;
+      quantity: number;
+      metadata: Record<string, string>;
+    }>;
+  };
+}
+interface StripeRefund {
+  id: string;
+  payment_intent: string;
+  amount: number;
+  reason: string;
+  status: string;
+}
 
 function mapCustomer(c: StripeCustomer): PaymentCustomer {
-  return { providerCustomerId: c.id, email: c.email, name: c.name, metadata: c.metadata };
+  return {
+    providerCustomerId: c.id,
+    email: c.email,
+    name: c.name,
+    metadata: c.metadata,
+  };
 }
 function mapPaymentMethod(pm: StripePaymentMethod): PaymentMethod {
   return {
@@ -574,8 +787,12 @@ function mapInvoice(inv: StripeInvoice): Invoice {
     status: inv.status as Invoice['status'],
     hostedInvoiceUrl: inv.hosted_invoice_url ?? undefined,
     pdfUrl: inv.invoice_pdf ?? undefined,
-    dueDate: inv.due_date ? new Date(inv.due_date * 1000).toISOString() : undefined,
-    paidAt: inv.status_transitions?.paid_at ? new Date(inv.status_transitions.paid_at * 1000).toISOString() : undefined,
+    dueDate: inv.due_date
+      ? new Date(inv.due_date * 1000).toISOString()
+      : undefined,
+    paidAt: inv.status_transitions?.paid_at
+      ? new Date(inv.status_transitions.paid_at * 1000).toISOString()
+      : undefined,
     lineItems: inv.lines.data.map((l) => ({
       description: l.description,
       amount: l.amount,
@@ -594,7 +811,9 @@ function mapRefund(r: StripeRefund): Refund {
   };
 }
 
-function parseStripeSignature(signature: string): { timestamp: number; signatures: string[] } | null {
+function parseStripeSignature(
+  signature: string,
+): { timestamp: number; signatures: string[] } | null {
   const parts = signature.split(',').map((p) => p.trim());
   let timestamp: number | null = null;
   const signatures: string[] = [];

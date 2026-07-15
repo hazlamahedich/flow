@@ -61,7 +61,9 @@ function setupMocks(targetMember: Record<string, unknown> = {}) {
     }),
   };
 
-  vi.mocked(getServerSupabase).mockResolvedValue(supabase as unknown as MockSupabase);
+  vi.mocked(getServerSupabase).mockResolvedValue(
+    supabase as unknown as MockSupabase,
+  );
   vi.mocked(requireTenantContext).mockResolvedValue({
     workspaceId: 'ws-1',
     userId: 'user-owner',
@@ -89,7 +91,9 @@ describe('revokeMember', () => {
       role: 'admin',
     } as unknown as MockTenant);
 
-    const result = await revokeMember({ memberId: '550e8400-e29b-41d4-a716-446655440000' });
+    const result = await revokeMember({
+      memberId: '550e8400-e29b-41d4-a716-446655440000',
+    });
     expect(result.success).toBe(false);
   });
 
@@ -109,28 +113,36 @@ describe('revokeMember', () => {
       update: vi.fn(),
     };
 
-    vi.mocked(getServerSupabase).mockResolvedValue(supabase as unknown as MockSupabase);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      supabase as unknown as MockSupabase,
+    );
     vi.mocked(requireTenantContext).mockResolvedValue({
       workspaceId: 'ws-1',
       userId: 'user-owner',
       role: 'owner',
     } as unknown as MockTenant);
 
-    const result = await revokeMember({ memberId: '550e8400-e29b-41d4-a716-446655440000' });
+    const result = await revokeMember({
+      memberId: '550e8400-e29b-41d4-a716-446655440000',
+    });
     expect(result.success).toBe(false);
   });
 
   it('[P0] returns error when trying to revoke self', async () => {
     setupMocks({ user_id: 'user-owner' });
 
-    const result = await revokeMember({ memberId: '550e8400-e29b-41d4-a716-446655440000' });
+    const result = await revokeMember({
+      memberId: '550e8400-e29b-41d4-a716-446655440000',
+    });
     expect(result.success).toBe(false);
   });
 
   it('[P0] revokes member and invalidates sessions', async () => {
     setupMocks();
 
-    const result = await revokeMember({ memberId: '550e8400-e29b-41d4-a716-446655440000' });
+    const result = await revokeMember({
+      memberId: '550e8400-e29b-41d4-a716-446655440000',
+    });
     expect(result.success).toBe(true);
     expect(invalidateUserSessions).toHaveBeenCalledWith('user-target');
   });

@@ -19,18 +19,10 @@ export {
 } from './constants';
 export type { VisualVar, ContentVar, AllowedFont } from './constants';
 
-export {
-  PORTAL_BRANDING_PRESETS,
-} from './presets';
+export { PORTAL_BRANDING_PRESETS } from './presets';
 export type { PresetName, BrandingPreset } from './presets';
 
-export {
-  hexColorSchema,
-  fontNameSchema,
-  brandingConfigSchema,
-} from './schema';
+export { hexColorSchema, fontNameSchema, brandingConfigSchema } from './schema';
 
-export {
-  resolveBrandingPreset,
-} from './resolve';
+export { resolveBrandingPreset } from './resolve';
 export type { PortalBrandingConfig, ResolvedBranding } from './resolve';

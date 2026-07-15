@@ -44,7 +44,11 @@ export const recordPaymentSchema = z.object({
     (val) => {
       const d = new Date(`${val}T00:00:00Z`);
       const now = new Date();
-      const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+      const todayUtc = Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+      );
       return d.getTime() <= todayUtc;
     },
     { message: 'Payment date cannot be in the future' },

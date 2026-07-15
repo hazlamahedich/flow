@@ -1,5 +1,10 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { createTestCalendar, createTestCalendarEvent, FAKE_WORKSPACE_ID, FAKE_CLIENT_ID } from './test-factories';
+import {
+  createTestCalendar,
+  createTestCalendarEvent,
+  FAKE_WORKSPACE_ID,
+  FAKE_CLIENT_ID,
+} from './test-factories';
 
 // ATDD red-phase tests for Epic 6 Story 6.1: Calendar OAuth Connection
 // These tests define the acceptance criteria for the calendar OAuth flow.
@@ -30,12 +35,16 @@ describe('Story 6.1: Calendar OAuth Connection', () => {
 
   describe('connectCalendar Server Action', () => {
     test('[P0] returns a valid OAuth URL for calendar scopes', () => {
-      const expectedUrl = 'https://accounts.google.com/o/oauth2/v2/auth?scope=calendar.readonly';
+      const expectedUrl =
+        'https://accounts.google.com/o/oauth2/v2/auth?scope=calendar.readonly';
       provider.getOAuthUrl.mockReturnValue(expectedUrl);
 
       const result = provider.getOAuthUrl({
         redirectUri: 'http://localhost:3000/api/auth/calendar/callback',
-        state: JSON.stringify({ workspaceId: FAKE_WORKSPACE_ID, clientId: FAKE_CLIENT_ID }),
+        state: JSON.stringify({
+          workspaceId: FAKE_WORKSPACE_ID,
+          clientId: FAKE_CLIENT_ID,
+        }),
         codeChallenge: 'test-challenge',
       });
 
@@ -50,10 +59,12 @@ describe('Story 6.1: Calendar OAuth Connection', () => {
     });
 
     test('[P0] OAuth URL includes calendar scopes', () => {
-      provider.getOAuthUrl.mockImplementation((params: Record<string, unknown>) => {
-        const scopes = (params.scope as string[]) ?? [];
-        return `https://accounts.google.com/o/oauth2/v2/auth?scope=${scopes.join('+')}`;
-      });
+      provider.getOAuthUrl.mockImplementation(
+        (params: Record<string, unknown>) => {
+          const scopes = (params.scope as string[]) ?? [];
+          return `https://accounts.google.com/o/oauth2/v2/auth?scope=${scopes.join('+')}`;
+        },
+      );
 
       const result = provider.getOAuthUrl({
         redirectUri: 'http://localhost:3000/api/auth/calendar/callback',
@@ -130,7 +141,9 @@ describe('Story 6.1: Calendar OAuth Connection', () => {
       expect(calendar.oauth_state).toHaveProperty('version');
       // Should NOT contain plaintext tokens
       expect(JSON.stringify(calendar.oauth_state)).not.toContain('ya29.');
-      expect(JSON.stringify(calendar.oauth_state)).not.toContain('refresh_token');
+      expect(JSON.stringify(calendar.oauth_state)).not.toContain(
+        'refresh_token',
+      );
     });
 
     test('[P0] sync_status defaults to disconnected for new connections', () => {
@@ -152,11 +165,20 @@ describe('Story 6.1: Calendar OAuth Connection', () => {
       expect(event).toHaveProperty('end_at');
       expect(event).toHaveProperty('client_calendar_id');
       expect(event).toHaveProperty('workspace_id');
-      expect(new Date(event.end_at).getTime()).toBeGreaterThan(new Date(event.start_at).getTime());
+      expect(new Date(event.end_at).getTime()).toBeGreaterThan(
+        new Date(event.start_at).getTime(),
+      );
     });
 
     test('[P0] calendar event supports all event types', () => {
-      const eventTypes = ['meeting', 'focus_block', 'travel', 'personal', 'deadline', 'unknown'] as const;
+      const eventTypes = [
+        'meeting',
+        'focus_block',
+        'travel',
+        'personal',
+        'deadline',
+        'unknown',
+      ] as const;
       for (const eventType of eventTypes) {
         const event = createTestCalendarEvent({ event_type: eventType });
         expect(event.event_type).toBe(eventType);

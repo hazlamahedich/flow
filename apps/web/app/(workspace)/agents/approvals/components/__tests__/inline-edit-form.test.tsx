@@ -3,7 +3,12 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { InlineEditForm } from '../inline-edit-form';
 
 const defaultProps = {
-  proposal: { title: 'Test Proposal', confidence: 0.85, riskLevel: 'low' as const, reasoning: 'Test reasoning' },
+  proposal: {
+    title: 'Test Proposal',
+    confidence: 0.85,
+    riskLevel: 'low' as const,
+    reasoning: 'Test reasoning',
+  },
   reasoning: 'Test reasoning',
   onSave: vi.fn().mockResolvedValue({ success: true }),
   onCancel: vi.fn(),
@@ -11,7 +16,10 @@ const defaultProps = {
 };
 
 describe('InlineEditForm', () => {
-  beforeEach(() => { cleanup(); vi.clearAllMocks(); });
+  beforeEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
 
   it('renders edit fields', () => {
     render(<InlineEditForm {...defaultProps} />);

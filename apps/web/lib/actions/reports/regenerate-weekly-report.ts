@@ -2,7 +2,11 @@
 
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, createFlowError } from '@flow/db';
-import type { ActionResult, WeeklyReport, WeeklyReportSection } from '@flow/types';
+import type {
+  ActionResult,
+  WeeklyReport,
+  WeeklyReportSection,
+} from '@flow/types';
 import { aggregateReportData } from './lib/aggregate-report-data';
 import { buildReportSections } from './lib/build-report-sections';
 
@@ -29,17 +33,33 @@ interface RegenerateReportResult {
 
 function classifyRpcError(msg: string) {
   if (msg.includes('CONCURRENT_MODIFICATION')) {
-    return createFlowError(409, 'CONCURRENT_MODIFICATION', 'This report was modified by another user. Please refresh and try again.', 'validation');
+    return createFlowError(
+      409,
+      'CONCURRENT_MODIFICATION',
+      'This report was modified by another user. Please refresh and try again.',
+      'validation',
+    );
   }
   if (msg.includes('NOT_FOUND')) {
-    return createFlowError(404, 'NOT_FOUND', 'Report no longer exists.', 'validation');
+    return createFlowError(
+      404,
+      'NOT_FOUND',
+      'Report no longer exists.',
+      'validation',
+    );
   }
-  return createFlowError(500, 'INTERNAL_ERROR', 'Failed to regenerate report. Please try again.', 'system');
+  return createFlowError(
+    500,
+    'INTERNAL_ERROR',
+    'Failed to regenerate report. Please try again.',
+    'system',
+  );
 }
 
-export async function regenerateWeeklyReportAction(
-  input: { reportId: string; expectedVersion: number },
-): Promise<ActionResult<RegenerateReportResult>> {
+export async function regenerateWeeklyReportAction(input: {
+  reportId: string;
+  expectedVersion: number;
+}): Promise<ActionResult<RegenerateReportResult>> {
   const supabase = await getServerSupabase();
   let ctx;
   try {
@@ -47,14 +67,24 @@ export async function regenerateWeeklyReportAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
   if (!['owner', 'admin'].includes(ctx.role)) {
     return {
       success: false,
-      error: createFlowError(403, 'FORBIDDEN', 'Only workspace owners and admins can regenerate reports.', 'auth'),
+      error: createFlowError(
+        403,
+        'FORBIDDEN',
+        'Only workspace owners and admins can regenerate reports.',
+        'auth',
+      ),
     };
   }
 
@@ -70,7 +100,12 @@ export async function regenerateWeeklyReportAction(
   if (fetchErr || !existingReport) {
     return {
       success: false,
-      error: createFlowError(404, 'NOT_FOUND', 'Report not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'NOT_FOUND',
+        'Report not found.',
+        'validation',
+      ),
     };
   }
 
@@ -85,11 +120,17 @@ export async function regenerateWeeklyReportAction(
   if (aggResult.error || !aggResult.data) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', aggResult.error ?? 'Failed to aggregate report data.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        aggResult.error ?? 'Failed to aggregate report data.',
+        'system',
+      ),
     };
   }
 
-  let templateSnapshot = (existingReport.template_snapshot as Record<string, unknown>) ?? {};
+  let templateSnapshot =
+    (existingReport.template_snapshot as Record<string, unknown>) ?? {};
 
   if (existingReport.template_id) {
     const { data: tplData } = await supabase
@@ -122,7 +163,10 @@ export async function regenerateWeeklyReportAction(
       );
 
       if (rpcError) {
-        return { success: false, error: classifyRpcError(rpcError.message ?? '') };
+        return {
+          success: false,
+          error: classifyRpcError(rpcError.message ?? ''),
+        };
       }
 
       const { data: reportRow, error: reportErr } = await supabase
@@ -134,7 +178,12 @@ export async function regenerateWeeklyReportAction(
       if (reportErr || !reportRow) {
         return {
           success: false,
-          error: createFlowError(500, 'INTERNAL_ERROR', 'Report regenerated but could not be retrieved.', 'system'),
+          error: createFlowError(
+            500,
+            'INTERNAL_ERROR',
+            'Report regenerated but could not be retrieved.',
+            'system',
+          ),
         };
       }
 
@@ -165,7 +214,10 @@ export async function regenerateWeeklyReportAction(
       );
 
       if (rpcError) {
-        return { success: false, error: classifyRpcError(rpcError.message ?? '') };
+        return {
+          success: false,
+          error: classifyRpcError(rpcError.message ?? ''),
+        };
       }
 
       const { data: reportRow, error: reportErr } = await supabase
@@ -177,7 +229,12 @@ export async function regenerateWeeklyReportAction(
       if (reportErr || !reportRow) {
         return {
           success: false,
-          error: createFlowError(500, 'INTERNAL_ERROR', 'Report regenerated but could not be retrieved.', 'system'),
+          error: createFlowError(
+            500,
+            'INTERNAL_ERROR',
+            'Report regenerated but could not be retrieved.',
+            'system',
+          ),
         };
       }
 
@@ -198,13 +255,23 @@ export async function regenerateWeeklyReportAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to regenerate report. Please try again.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to regenerate report. Please try again.',
+        'system',
+      ),
     };
   }
 
   return {
     success: false,
-    error: createFlowError(400, 'VALIDATION_ERROR', 'Cannot regenerate a report in this status.', 'validation'),
+    error: createFlowError(
+      400,
+      'VALIDATION_ERROR',
+      'Cannot regenerate a report in this status.',
+      'validation',
+    ),
   };
 }
 
@@ -229,7 +296,9 @@ function mapReport(row: Record<string, unknown>): WeeklyReport {
   };
 }
 
-function mapSections(rows: Array<Record<string, unknown>> | null): WeeklyReportSection[] {
+function mapSections(
+  rows: Array<Record<string, unknown>> | null,
+): WeeklyReportSection[] {
   return (rows ?? []).map((s) => ({
     id: s.id as string,
     reportId: s.report_id as string,

@@ -13,13 +13,13 @@ vi.mock('./use-reconciliation', async () => {
   const { useState, useCallback, useRef } = await import('react');
 
   return {
-    useReconciliation: <T,>(
+    useReconciliation: <T>(
       action: (data: T) => Promise<{ success: boolean; error?: any }>,
       options: {
         onSuccess?: (data: T) => void;
         onRollback?: (data: T) => void;
         delayMs?: number;
-      } = {}
+      } = {},
     ) => {
       const [state, setState] = useState<{
         pendingAction: T | null;
@@ -42,32 +42,47 @@ vi.mock('./use-reconciliation', async () => {
         }
       }, []);
 
-      const execute = useCallback(async (data: T) => {
-        setState((prev: any) => ({ ...prev, pendingAction: data, error: null }));
+      const execute = useCallback(
+        async (data: T) => {
+          setState((prev: any) => ({
+            ...prev,
+            pendingAction: data,
+            error: null,
+          }));
 
-        if (timerRef.current) clearTimeout(timerRef.current);
+          if (timerRef.current) clearTimeout(timerRef.current);
 
-        timerRef.current = setTimeout(async () => {
-          setState((prev: any) => ({ ...prev, isProcessing: true }));
+          timerRef.current = setTimeout(async () => {
+            setState((prev: any) => ({ ...prev, isProcessing: true }));
 
-          try {
-            const result = await action(data);
+            try {
+              const result = await action(data);
 
-            if (result.success) {
-              setState({ pendingAction: null, isProcessing: false, error: null });
-              if (options.onSuccess) options.onSuccess(data);
-            } else {
-              throw new Error(result.error?.message || 'Action failed');
+              if (result.success) {
+                setState({
+                  pendingAction: null,
+                  isProcessing: false,
+                  error: null,
+                });
+                if (options.onSuccess) options.onSuccess(data);
+              } else {
+                throw new Error(result.error?.message || 'Action failed');
+              }
+            } catch (err: any) {
+              setState({
+                pendingAction: null,
+                isProcessing: false,
+                error: err.message,
+              });
+              if (options.onRollback) options.onRollback(data);
+              mockToastError(`Failed to process action: ${err.message}`);
+            } finally {
+              timerRef.current = null;
             }
-          } catch (err: any) {
-            setState({ pendingAction: null, isProcessing: false, error: err.message });
-            if (options.onRollback) options.onRollback(data);
-            mockToastError(`Failed to process action: ${err.message}`);
-          } finally {
-            timerRef.current = null;
-          }
-        }, delayMs);
-      }, [action, delayMs, options]);
+          }, delayMs);
+        },
+        [action, delayMs, options],
+      );
 
       return {
         ...state,
@@ -142,9 +157,13 @@ describe('useReconciliation', () => {
   });
 
   it('should handle failure and rollback', async () => {
-    const mockAction = vi.fn().mockResolvedValue({ success: false, error: { message: 'Failed' } });
+    const mockAction = vi
+      .fn()
+      .mockResolvedValue({ success: false, error: { message: 'Failed' } });
     const onRollback = vi.fn();
-    const { result } = renderHook(() => useReconciliation(mockAction, { onRollback }));
+    const { result } = renderHook(() =>
+      useReconciliation(mockAction, { onRollback }),
+    );
 
     act(() => {
       result.current.execute({ id: '1' });
@@ -161,6 +180,8 @@ describe('useReconciliation', () => {
     expect(result.current.pendingAction).toBeNull();
     expect(result.current.error).toBe('Failed');
     expect(onRollback).toHaveBeenCalledWith({ id: '1' });
-    expect(mockToastError).toHaveBeenCalledWith('Failed to process action: Failed');
+    expect(mockToastError).toHaveBeenCalledWith(
+      'Failed to process action: Failed',
+    );
   });
 });

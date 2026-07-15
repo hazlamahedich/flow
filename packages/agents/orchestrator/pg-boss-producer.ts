@@ -1,6 +1,12 @@
 import type { PgBoss } from 'pg-boss';
 import type { AgentRunProducer } from './types';
-import type { AgentRunHandle, AgentRunRequest, AgentRunStatus, AgentRunSummary, RunListFilter } from '@flow/types';
+import type {
+  AgentRunHandle,
+  AgentRunRequest,
+  AgentRunStatus,
+  AgentRunSummary,
+  RunListFilter,
+} from '@flow/types';
 import { AgentJobPayloadSchema } from './schemas';
 import { OrchestratorError } from './errors';
 import {
@@ -21,19 +27,32 @@ const JOB_OPTIONS = {
   deleteAfterSeconds: 86400,
 } as const;
 
-const TERMINAL_STATUSES: AgentRunStatus[] = ['completed', 'failed', 'cancelled', 'timed_out'];
+const TERMINAL_STATUSES: AgentRunStatus[] = [
+  'completed',
+  'failed',
+  'cancelled',
+  'timed_out',
+];
 
 export class PgBossProducer implements AgentRunProducer {
   constructor(private readonly boss: PgBoss) {}
 
   async submit(request: AgentRunRequest): Promise<AgentRunHandle> {
     const {
-      agentId, actionType, input, clientId,
-      idempotencyKey, correlationId, signalId,
+      agentId,
+      actionType,
+      input,
+      clientId,
+      idempotencyKey,
+      correlationId,
+      signalId,
     } = request;
     const workspaceId = input.workspace_id;
     if (!workspaceId || typeof workspaceId !== 'string') {
-      throw new OrchestratorError('INVALID_INPUT', 'input.workspace_id is required');
+      throw new OrchestratorError(
+        'INVALID_INPUT',
+        'input.workspace_id is required',
+      );
     }
     const correlation = correlationId ?? crypto.randomUUID();
 
@@ -67,7 +86,10 @@ export class PgBossProducer implements AgentRunProducer {
     const queueName = `agent:${agentId}`;
     const bossJobId = await this.boss.send(queueName, payload, JOB_OPTIONS);
     if (!bossJobId) {
-      throw new OrchestratorError('JOB_REJECTED', `pg-boss rejected job for ${queueName}`);
+      throw new OrchestratorError(
+        'JOB_REJECTED',
+        `pg-boss rejected job for ${queueName}`,
+      );
     }
 
     try {
@@ -86,9 +108,16 @@ export class PgBossProducer implements AgentRunProducer {
       });
     } catch (err: unknown) {
       if (idempotencyKey && isUniqueViolation(err)) {
-        const existing = await findByIdempotencyKey(idempotencyKey, workspaceId);
+        const existing = await findByIdempotencyKey(
+          idempotencyKey,
+          workspaceId,
+        );
         if (existing) {
-          try { await this.boss.cancel(queueName, bossJobId); } catch { /* best-effort cleanup */ }
+          try {
+            await this.boss.cancel(queueName, bossJobId);
+          } catch {
+            /* best-effort cleanup */
+          }
           writeAuditLog({
             workspaceId: existing.workspace_id,
             agentId: existing.agent_id,
@@ -109,7 +138,12 @@ export class PgBossProducer implements AgentRunProducer {
       action: 'submit',
       entityType: 'agent_run',
       entityId: runId,
-      details: { jobId: bossJobId, actionType, correlationId: correlation, outcome: 'created' },
+      details: {
+        jobId: bossJobId,
+        actionType,
+        correlationId: correlation,
+        outcome: 'created',
+      },
     });
 
     return { runId, status: 'queued' };
@@ -148,7 +182,12 @@ export class PgBossProducer implements AgentRunProducer {
   async listRuns(filter: RunListFilter): Promise<AgentRunSummary[]> {
     const workspaceId = (filter as Record<string, unknown>).workspaceId;
     if (!workspaceId || typeof workspaceId !== 'string') return [];
-    const dbFilter: { agentId?: string; status?: string; limit?: number; offset?: number } = {};
+    const dbFilter: {
+      agentId?: string;
+      status?: string;
+      limit?: number;
+      offset?: number;
+    } = {};
     if (filter.agentId) dbFilter.agentId = filter.agentId;
     if (filter.status) dbFilter.status = filter.status;
     if (filter.limit) dbFilter.limit = filter.limit;
@@ -170,9 +209,11 @@ function isUniqueViolation(err: unknown): boolean {
     return (err as { code: string }).code === '23505';
   }
   if (err && typeof err === 'object' && 'message' in err) {
-    return (err as { message: string }).message.includes('duplicate key') ||
+    return (
+      (err as { message: string }).message.includes('duplicate key') ||
       (err as { message: string }).message.includes('unique') ||
-      (err as { message: string }).message.includes('23505');
+      (err as { message: string }).message.includes('23505')
+    );
   }
   return false;
 }

@@ -6,7 +6,9 @@ import type { WebhookEvent, WebhookProcessingResult } from '../webhook-types';
 function getMetadata(event: WebhookEvent): Record<string, string> {
   const object = event.data.object;
   const metadata = object.metadata ?? {};
-  return typeof metadata === 'object' && metadata !== null && !Array.isArray(metadata)
+  return typeof metadata === 'object' &&
+    metadata !== null &&
+    !Array.isArray(metadata)
     ? (metadata as Record<string, string>)
     : {};
 }
@@ -44,7 +46,8 @@ async function activateSubscription(
   if (!customerId || typeof subscriptionIdRaw !== 'string') {
     return {
       processed: false,
-      reason: 'missing customer or subscription id in checkout.session.completed',
+      reason:
+        'missing customer or subscription id in checkout.session.completed',
     };
   }
   const subscriptionId = subscriptionIdRaw;
@@ -54,7 +57,10 @@ async function activateSubscription(
     workspaceId = await findWorkspaceIdByCustomer(supabase, customerId);
   }
   if (!workspaceId) {
-    return { processed: false, reason: 'missing workspace_id (metadata + customer lookup failed)' };
+    return {
+      processed: false,
+      reason: 'missing workspace_id (metadata + customer lookup failed)',
+    };
   }
 
   // Stripe sends `subscription` as a string ID on checkout.session.completed.
@@ -67,19 +73,29 @@ async function activateSubscription(
 
   const periodStartMs = Date.parse(subscription.currentPeriodStart);
   const periodEndMs = Date.parse(subscription.currentPeriodEnd);
-  const currentPeriodStart = Number.isNaN(periodStartMs) ? undefined : periodStartMs / 1000;
-  const currentPeriodEnd = Number.isNaN(periodEndMs) ? undefined : periodEndMs / 1000;
+  const currentPeriodStart = Number.isNaN(periodStartMs)
+    ? undefined
+    : periodStartMs / 1000;
+  const currentPeriodEnd = Number.isNaN(periodEndMs)
+    ? undefined
+    : periodEndMs / 1000;
   const cancelAtPeriodEnd = subscription.cancelAtPeriodEnd;
 
   const priceIdValue = subscription.priceId;
   if (!priceIdValue) {
-    return { processed: false, reason: 'subscription checkout completed without a price id' };
+    return {
+      processed: false,
+      reason: 'subscription checkout completed without a price id',
+    };
   }
 
   const config = await getTierConfig();
   const tier = mapPriceIdToTier(priceIdValue, config);
   if (!tier) {
-    return { processed: false, reason: `price ${priceIdValue} does not map to a known tier` };
+    return {
+      processed: false,
+      reason: `price ${priceIdValue} does not map to a known tier`,
+    };
   }
 
   const { error } = await supabase.rpc('upsert_workspace_subscription', {
@@ -116,8 +132,18 @@ async function recordOneTimePayment(
   const paymentIntent = object.payment_intent as string | undefined;
   const created = object.created as number | undefined;
 
-  if (!invoiceId || !workspaceId || amountTotal === undefined || !paymentIntent || !created) {
-    return { processed: false, reason: 'missing invoice_id, workspace_id, amount_total, payment_intent, or created' };
+  if (
+    !invoiceId ||
+    !workspaceId ||
+    amountTotal === undefined ||
+    !paymentIntent ||
+    !created
+  ) {
+    return {
+      processed: false,
+      reason:
+        'missing invoice_id, workspace_id, amount_total, payment_intent, or created',
+    };
   }
 
   const { data: existing } = await supabase
@@ -132,17 +158,23 @@ async function recordOneTimePayment(
   }
 
   if (['paid', 'voided'].includes(existing.status as string)) {
-    return { processed: true, reason: `invoice already ${existing.status as string}` };
+    return {
+      processed: true,
+      reason: `invoice already ${existing.status as string}`,
+    };
   }
 
-  const { data: result, error } = await supabase.rpc('record_payment_with_concurrency', {
-    p_invoice_id: invoiceId,
-    p_workspace_id: workspaceId,
-    p_amount_cents: amountTotal,
-    p_payment_method: 'stripe',
-    p_payment_date: new Date(created * 1000).toISOString().split('T')[0],
-    p_stripe_payment_intent_id: paymentIntent,
-  });
+  const { data: result, error } = await supabase.rpc(
+    'record_payment_with_concurrency',
+    {
+      p_invoice_id: invoiceId,
+      p_workspace_id: workspaceId,
+      p_amount_cents: amountTotal,
+      p_payment_method: 'stripe',
+      p_payment_date: new Date(created * 1000).toISOString().split('T')[0],
+      p_stripe_payment_intent_id: paymentIntent,
+    },
+  );
 
   if (error) {
     return { processed: false, reason: error.message };
@@ -151,13 +183,24 @@ async function recordOneTimePayment(
   const resultObj = result as Record<string, unknown> | null;
   const errorCode = resultObj?.error as string | undefined;
   if (errorCode) {
-    if (errorCode === 'INVOICE_ALREADY_PAID' || errorCode === 'INVOICE_VOIDED') {
-      return { processed: true, reason: `record_payment skipped: ${errorCode}` };
+    if (
+      errorCode === 'INVOICE_ALREADY_PAID' ||
+      errorCode === 'INVOICE_VOIDED'
+    ) {
+      return {
+        processed: true,
+        reason: `record_payment skipped: ${errorCode}`,
+      };
     }
     return { processed: false, reason: `record_payment failed: ${errorCode}` };
   }
 
-  await insertPaymentConfirmedNotification(supabase, invoiceId, workspaceId, amountTotal);
+  await insertPaymentConfirmedNotification(
+    supabase,
+    invoiceId,
+    workspaceId,
+    amountTotal,
+  );
 
   return { processed: true };
 }
@@ -176,14 +219,19 @@ async function insertPaymentConfirmedNotification(
       .eq('workspace_id', workspaceId)
       .maybeSingle();
 
-    const clientId = (invoice as Record<string, unknown> | null)?.client_id as string | undefined;
+    const clientId = (invoice as Record<string, unknown> | null)?.client_id as
+      | string
+      | undefined;
     if (!clientId) return;
 
     await supabase.rpc('log_client_notification', {
       p_type: 'payment_confirmed',
       p_client_id: clientId,
       p_workspace_id: workspaceId,
-      p_payload: { invoice_id: invoiceId, amount_cents: amountCents } as Record<string, unknown>,
+      p_payload: { invoice_id: invoiceId, amount_cents: amountCents } as Record<
+        string,
+        unknown
+      >,
       p_provider_message_id: null,
       p_status: 'pending',
       p_error: null,

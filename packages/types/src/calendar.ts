@@ -1,18 +1,40 @@
 import { z } from 'zod';
 
-export const calendarAccessTypeEnum = z.enum(['owner', 'read_write', 'read_only']);
+export const calendarAccessTypeEnum = z.enum([
+  'owner',
+  'read_write',
+  'read_only',
+]);
 export type CalendarAccessType = z.infer<typeof calendarAccessTypeEnum>;
 
 export const calendarProviderEnum = z.enum(['google_calendar', 'outlook']);
 export type CalendarProviderName = z.infer<typeof calendarProviderEnum>;
 
-export const calendarSyncStatusEnum = z.enum(['connected', 'syncing', 'error', 'disconnected']);
+export const calendarSyncStatusEnum = z.enum([
+  'connected',
+  'syncing',
+  'error',
+  'disconnected',
+]);
 export type CalendarSyncStatus = z.infer<typeof calendarSyncStatusEnum>;
 
-export const calendarEventTypeEnum = z.enum(['meeting', 'focus_block', 'travel', 'personal', 'deadline', 'unknown']);
+export const calendarEventTypeEnum = z.enum([
+  'meeting',
+  'focus_block',
+  'travel',
+  'personal',
+  'deadline',
+  'unknown',
+]);
 export type CalendarEventType = z.infer<typeof calendarEventTypeEnum>;
 
-export const calendarEventSourceEnum = z.enum(['va_created', 'client_created', 'third_party', 'auto_generated', 'unknown']);
+export const calendarEventSourceEnum = z.enum([
+  'va_created',
+  'client_created',
+  'third_party',
+  'auto_generated',
+  'unknown',
+]);
 export type CalendarEventSource = z.infer<typeof calendarEventSourceEnum>;
 
 export const connectCalendarInputSchema = z.object({
@@ -30,7 +52,9 @@ export const calendarOAuthStateCookieSchema = z.object({
   workspaceId: z.string().uuid(),
   returnTo: z.string(),
 });
-export type CalendarOAuthStateCookie = z.infer<typeof calendarOAuthStateCookieSchema>;
+export type CalendarOAuthStateCookie = z.infer<
+  typeof calendarOAuthStateCookieSchema
+>;
 
 export const clientCalendarSchema = z.object({
   id: z.string().uuid(),
@@ -64,11 +88,15 @@ export const calendarEventSchema = z.object({
   endTime: z.string(),
   isAllDay: z.boolean(),
   location: z.string().nullable(),
-  attendees: z.array(z.object({
-    email: z.string(),
-    name: z.string().optional(),
-    responseStatus: z.enum(['needsAction', 'declined', 'tentative', 'accepted']).optional(),
-  })),
+  attendees: z.array(
+    z.object({
+      email: z.string(),
+      name: z.string().optional(),
+      responseStatus: z
+        .enum(['needsAction', 'declined', 'tentative', 'accepted'])
+        .optional(),
+    }),
+  ),
   recurrenceRule: z.string().nullable(),
   providerMetadata: z.record(z.unknown()).nullable(),
   createdAt: z.string(),

@@ -37,7 +37,12 @@ export async function createCheckoutSessionAction(
   const parsed = createCheckoutSessionSchema.safeParse(input);
   if (!parsed.success) {
     return toFailure(
-      createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     );
   }
   const { tier, interval } = parsed.data;
@@ -47,13 +52,22 @@ export async function createCheckoutSessionAction(
     const forbidden = requireOwner(ctx);
     if (forbidden) return toFailure(forbidden);
 
-    const limited = await checkBillingRateLimit(supabase, ctx.workspaceId, 'checkout');
+    const limited = await checkBillingRateLimit(
+      supabase,
+      ctx.workspaceId,
+      'checkout',
+    );
     if (limited) return toFailure(limited);
 
     const workspace = await fetchWorkspaceForBilling(supabase, ctx.workspaceId);
     if (!workspace) {
       return toFailure(
-        createFlowError(404, 'WORKSPACE_NOT_FOUND', 'Workspace not found.', 'validation'),
+        createFlowError(
+          404,
+          'WORKSPACE_NOT_FOUND',
+          'Workspace not found.',
+          'validation',
+        ),
       );
     }
 
@@ -87,7 +101,12 @@ export async function createCheckoutSessionAction(
       return { success: true, data: { url: session.url } };
     } catch {
       return toFailure(
-        createFlowError(502, 'STRIPE_ERROR', 'Failed to create checkout session.', 'financial'),
+        createFlowError(
+          502,
+          'STRIPE_ERROR',
+          'Failed to create checkout session.',
+          'financial',
+        ),
       );
     }
   });
@@ -129,7 +148,12 @@ async function ensureCustomerId(
     providerCustomerId = customer.providerCustomerId;
   } catch {
     return toFailure(
-      createFlowError(502, 'STRIPE_ERROR', 'Failed to create billing customer.', 'financial'),
+      createFlowError(
+        502,
+        'STRIPE_ERROR',
+        'Failed to create billing customer.',
+        'financial',
+      ),
     );
   }
 
@@ -139,7 +163,12 @@ async function ensureCustomerId(
     .eq('id', ctx.workspaceId);
   if (updateError) {
     return toFailure(
-      createFlowError(500, 'INTERNAL_ERROR', 'Failed to link customer to workspace.', 'system'),
+      createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to link customer to workspace.',
+        'system',
+      ),
     );
   }
 

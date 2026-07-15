@@ -1,9 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ResendTransactionalProvider, ResendApiError } from '../resend-transactional-provider.js';
+import {
+  ResendTransactionalProvider,
+  ResendApiError,
+} from '../resend-transactional-provider.js';
 
 describe('ResendTransactionalProvider', () => {
   it('throws if API key does not start with re_', () => {
-    expect(() => new ResendTransactionalProvider('bad_key')).toThrow('Resend API key must start with re_');
+    expect(() => new ResendTransactionalProvider('bad_key')).toThrow(
+      'Resend API key must start with re_',
+    );
   });
 
   it('constructs with re_ key', () => {
@@ -42,7 +47,13 @@ describe('ResendTransactionalProvider', () => {
     });
 
     await expect(
-      p.send({ to: 'bad', subject: 'S', htmlBody: 'H', textBody: 'T', metadata: {} }),
+      p.send({
+        to: 'bad',
+        subject: 'S',
+        htmlBody: 'H',
+        textBody: 'T',
+        metadata: {},
+      }),
     ).rejects.toThrow(ResendApiError);
   });
 });

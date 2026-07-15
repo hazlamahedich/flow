@@ -25,23 +25,30 @@ export async function handleMorningBriefScheduledJob(): Promise<void> {
     return;
   }
 
-  console.log(`[morning-brief-job] Generating briefs for ${workspaces.length} workspaces`);
+  console.log(
+    `[morning-brief-job] Generating briefs for ${workspaces.length} workspaces`,
+  );
 
   const results = await Promise.allSettled(
     workspaces.map((ws) =>
       Promise.race([
         generateMorningBrief(ws.id),
         new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error(`Timeout for workspace ${ws.id}`)), TIMEOUT_MS)
+          setTimeout(
+            () => reject(new Error(`Timeout for workspace ${ws.id}`)),
+            TIMEOUT_MS,
+          ),
         ),
-      ])
-    )
+      ]),
+    ),
   );
 
   const succeeded = results.filter((r) => r.status === 'fulfilled').length;
   const failed = results.filter((r) => r.status === 'rejected').length;
 
-  console.log(`[morning-brief-job] Complete: ${succeeded} succeeded, ${failed} failed`);
+  console.log(
+    `[morning-brief-job] Complete: ${succeeded} succeeded, ${failed} failed`,
+  );
 
   if (failed > 0) {
     for (const r of results) {

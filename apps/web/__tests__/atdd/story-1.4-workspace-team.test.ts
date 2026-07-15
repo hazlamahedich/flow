@@ -32,7 +32,9 @@ describe('Story 1.4: Workspace & Team Management', () => {
       const data = encoder.encode(inv._rawToken);
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const expectedHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+      const expectedHash = hashArray
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
       expect(inv.tokenHash).toBe(expectedHash);
     });
   });

@@ -27,7 +27,9 @@ test.describe('[P1] Mobile Triage Experience', () => {
     await expect(swipeableCard).toBeVisible();
   });
 
-  test('can dismiss mobile overlay with close button', async ({ ownerPage }) => {
+  test('can dismiss mobile overlay with close button', async ({
+    ownerPage,
+  }) => {
     const firstCard = ownerPage.getByTestId('approval-card').first();
     const isVisible = await firstCard.isVisible().catch(() => false);
     test.skip(!isVisible, 'No approval cards on page');

@@ -1,13 +1,20 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Topbar } from "@/components/topbar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar } from "@/components/ui/avatar";
-import { Sparkles, CheckCircle2, ExternalLink, Globe, FileText, CreditCard } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { useState } from 'react';
+import { Topbar } from '@/components/topbar';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Avatar } from '@/components/ui/avatar';
+import {
+  Sparkles,
+  CheckCircle2,
+  ExternalLink,
+  Globe,
+  FileText,
+  CreditCard,
+} from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
 
 export default function PortalPreviewPage() {
   const [paid, setPaid] = useState(false);
@@ -31,7 +38,9 @@ export default function PortalPreviewPage() {
                 <div className="text-xs font-medium uppercase tracking-wider text-white/80">
                   Maya Reyes Studio
                 </div>
-                <h1 className="text-xl font-semibold mt-0.5">Welcome back, Priya</h1>
+                <h1 className="text-xl font-semibold mt-0.5">
+                  Welcome back, Priya
+                </h1>
               </div>
               <div className="ml-auto flex items-center gap-2 text-xs text-white/80">
                 <Globe size={12} />
@@ -39,16 +48,29 @@ export default function PortalPreviewPage() {
               </div>
             </div>
             <p className="mt-3 text-sm text-white/90 max-w-2xl">
-              Here's everything happening with Lumen Studio this month. No login required — your link is secured with magic auth.
+              Here's everything happening with Lumen Studio this month. No login
+              required — your link is secured with magic auth.
             </p>
           </div>
 
           {/* Outcome dashboard */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-8 -mt-5">
-            <PortalStat label="Tasks delivered" value="47" trend="+9 vs March" />
+            <PortalStat
+              label="Tasks delivered"
+              value="47"
+              trend="+9 vs March"
+            />
             <PortalStat label="Hours saved" value="12.4" trend="vs in-house" />
-            <PortalStat label="Avg response time" value="2.3h" trend="-38% vs Q1" />
-            <PortalStat label="Active projects" value="3" trend="all on track" />
+            <PortalStat
+              label="Avg response time"
+              value="2.3h"
+              trend="-38% vs Q1"
+            />
+            <PortalStat
+              label="Active projects"
+              value="3"
+              trend="all on track"
+            />
           </div>
 
           {/* Body */}
@@ -59,7 +81,9 @@ export default function PortalPreviewPage() {
                 <CardContent>
                   <div className="flex items-center gap-2 mb-4">
                     <CheckCircle2 size={14} className="text-flow-600" />
-                    <h3 className="text-sm font-semibold text-ink-900">Awaiting your approval</h3>
+                    <h3 className="text-sm font-semibold text-ink-900">
+                      Awaiting your approval
+                    </h3>
                   </div>
                   <div className="space-y-3">
                     <ApprovalRow
@@ -77,11 +101,28 @@ export default function PortalPreviewPage() {
               {/* Project status */}
               <Card>
                 <CardContent>
-                  <h3 className="text-sm font-semibold text-ink-900 mb-3">Projects</h3>
+                  <h3 className="text-sm font-semibold text-ink-900 mb-3">
+                    Projects
+                  </h3>
                   <ul className="space-y-3">
-                    <PortalProject name="Q2 Campaign Launch" pct={62} status="On track" tone="success" />
-                    <PortalProject name="Website refresh" pct={38} status="Design review" tone="flow" />
-                    <PortalProject name="Press kit revamp" pct={88} status="Ready for sign-off" tone="warn" />
+                    <PortalProject
+                      name="Q2 Campaign Launch"
+                      pct={62}
+                      status="On track"
+                      tone="success"
+                    />
+                    <PortalProject
+                      name="Website refresh"
+                      pct={38}
+                      status="Design review"
+                      tone="flow"
+                    />
+                    <PortalProject
+                      name="Press kit revamp"
+                      pct={88}
+                      status="Ready for sign-off"
+                      tone="warn"
+                    />
                   </ul>
                 </CardContent>
               </Card>
@@ -92,23 +133,31 @@ export default function PortalPreviewPage() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <CreditCard size={14} className="text-ink-500" />
-                      <h3 className="text-sm font-semibold text-ink-900">Open invoice</h3>
+                      <h3 className="text-sm font-semibold text-ink-900">
+                        Open invoice
+                      </h3>
                     </div>
-                    <Badge tone={paid ? "success" : "flow"}>{paid ? "paid" : "due May 9"}</Badge>
+                    <Badge tone={paid ? 'success' : 'flow'}>
+                      {paid ? 'paid' : 'due May 9'}
+                    </Badge>
                   </div>
                   <div className="rounded-xl border border-ink-100 bg-ink-50/40 p-4 flex items-center gap-4">
                     <div className="flex-1">
                       <div className="text-xs text-ink-500">INV-1059</div>
-                      <div className="text-2xl font-semibold text-ink-900">{formatCurrency(2400)}</div>
-                      <div className="text-[11px] text-ink-500 mt-1">Lumen Studio · April retainer</div>
+                      <div className="text-2xl font-semibold text-ink-900">
+                        {formatCurrency(2400)}
+                      </div>
+                      <div className="text-[11px] text-ink-500 mt-1">
+                        Lumen Studio · April retainer
+                      </div>
                     </div>
                     <Button
-                      variant={paid ? "outline" : "accent"}
+                      variant={paid ? 'outline' : 'accent'}
                       size="lg"
                       onClick={() => setPaid(true)}
                       disabled={paid}
                     >
-                      {paid ? "✓ Paid" : "Pay with Stripe"}
+                      {paid ? '✓ Paid' : 'Pay with Stripe'}
                     </Button>
                   </div>
                   <p className="text-[11px] text-ink-400 mt-2">
@@ -125,8 +174,12 @@ export default function PortalPreviewPage() {
                   <div className="flex items-center gap-3">
                     <Avatar name="Maya Reyes" size={44} />
                     <div>
-                      <div className="text-sm font-semibold text-ink-900">Maya Reyes</div>
-                      <div className="text-[11px] text-ink-500">Your operator at Reyes Studio</div>
+                      <div className="text-sm font-semibold text-ink-900">
+                        Maya Reyes
+                      </div>
+                      <div className="text-[11px] text-ink-500">
+                        Your operator at Reyes Studio
+                      </div>
                     </div>
                   </div>
                   <Button variant="outline" size="sm" className="mt-3 w-full">
@@ -140,17 +193,24 @@ export default function PortalPreviewPage() {
                 <CardContent>
                   <div className="flex items-center gap-2 mb-3">
                     <FileText size={14} className="text-ink-500" />
-                    <h3 className="text-sm font-semibold text-ink-900">Recent files</h3>
+                    <h3 className="text-sm font-semibold text-ink-900">
+                      Recent files
+                    </h3>
                   </div>
                   <ul className="space-y-2.5">
                     {[
-                      { name: "Q2_brand_guidelines_v3.pdf", size: "4.2 MB" },
-                      { name: "press-release-draft.docx", size: "82 KB" },
-                      { name: "campaign_assets_apr.zip", size: "118 MB" },
+                      { name: 'Q2_brand_guidelines_v3.pdf', size: '4.2 MB' },
+                      { name: 'press-release-draft.docx', size: '82 KB' },
+                      { name: 'campaign_assets_apr.zip', size: '118 MB' },
                     ].map((f) => (
-                      <li key={f.name} className="flex items-center gap-3 text-xs">
+                      <li
+                        key={f.name}
+                        className="flex items-center gap-3 text-xs"
+                      >
                         <FileText size={14} className="text-ink-400" />
-                        <span className="flex-1 truncate text-ink-800">{f.name}</span>
+                        <span className="flex-1 truncate text-ink-800">
+                          {f.name}
+                        </span>
                         <span className="text-ink-400">{f.size}</span>
                       </li>
                     ))}
@@ -161,10 +221,13 @@ export default function PortalPreviewPage() {
               <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
                 <div className="flex items-center gap-2">
                   <Sparkles size={14} className="text-flow-600" />
-                  <div className="text-xs font-semibold text-ink-800">Powered by Flow OS</div>
+                  <div className="text-xs font-semibold text-ink-800">
+                    Powered by Flow OS
+                  </div>
                 </div>
                 <p className="text-[11px] text-ink-500 mt-1 leading-relaxed">
-                  Get your own AI-native workspace. Refer Maya and you both get $30 credit.
+                  Get your own AI-native workspace. Refer Maya and you both get
+                  $30 credit.
                 </p>
                 <a className="mt-2 inline-flex items-center gap-1 text-[11px] text-flow-700 hover:underline">
                   Learn more <ExternalLink size={10} />
@@ -175,17 +238,29 @@ export default function PortalPreviewPage() {
         </div>
 
         <p className="text-[11px] text-ink-400 mt-3 text-center">
-          Preview only — your client's portal lives at <code className="text-ink-600">{`{slug}`}.portal.flow.app</code> with magic-link auth and your branded colors.
+          Preview only — your client's portal lives at{' '}
+          <code className="text-ink-600">{`{slug}`}.portal.flow.app</code> with
+          magic-link auth and your branded colors.
         </p>
       </div>
     </>
   );
 }
 
-function PortalStat({ label, value, trend }: { label: string; value: string; trend: string }) {
+function PortalStat({
+  label,
+  value,
+  trend,
+}: {
+  label: string;
+  value: string;
+  trend: string;
+}) {
   return (
     <div className="rounded-xl border border-ink-100 bg-white shadow-soft p-4">
-      <div className="text-[11px] uppercase tracking-wide text-ink-500 font-medium">{label}</div>
+      <div className="text-[11px] uppercase tracking-wide text-ink-500 font-medium">
+        {label}
+      </div>
       <div className="text-2xl font-semibold text-ink-900 mt-1">{value}</div>
       <div className="text-[11px] text-emerald-700 mt-0.5">{trend}</div>
     </div>
@@ -199,8 +274,12 @@ function ApprovalRow({ title, meta }: { title: string; meta: string }) {
         <div className="text-sm text-ink-900 truncate">{title}</div>
         <div className="text-[11px] text-ink-500">{meta}</div>
       </div>
-      <Button variant="outline" size="sm">Review</Button>
-      <Button variant="success" size="sm">Approve</Button>
+      <Button variant="outline" size="sm">
+        Review
+      </Button>
+      <Button variant="success" size="sm">
+        Approve
+      </Button>
     </div>
   );
 }
@@ -214,7 +293,7 @@ function PortalProject({
   name: string;
   pct: number;
   status: string;
-  tone: "success" | "flow" | "warn";
+  tone: 'success' | 'flow' | 'warn';
 }) {
   return (
     <li>
@@ -225,12 +304,18 @@ function PortalProject({
       <div className="mt-1.5 h-1.5 w-full rounded-full bg-ink-100 overflow-hidden">
         <div
           className={`h-full rounded-full ${
-            tone === "success" ? "bg-emerald-500" : tone === "warn" ? "bg-amber-500" : "bg-flow-600"
+            tone === 'success'
+              ? 'bg-emerald-500'
+              : tone === 'warn'
+                ? 'bg-amber-500'
+                : 'bg-flow-600'
           }`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="mt-1 flex justify-end text-[11px] text-ink-500">{pct}%</div>
+      <div className="mt-1 flex justify-end text-[11px] text-ink-500">
+        {pct}%
+      </div>
     </li>
   );
 }

@@ -1,11 +1,19 @@
 import { createServiceClient } from '@flow/db';
-import type { FridayFeelingInput, FridayFeelingResult, TrustTransition } from './schemas';
+import type {
+  FridayFeelingInput,
+  FridayFeelingResult,
+  TrustTransition,
+} from './schemas';
 
-const STANDARD_HEADLINE = "Here's what you accomplished. Now go live your life.";
-const EMPTY_HEADLINE = "A quiet week means a blank canvas. \u{1f3a8} Your agents have been resting up and are fully charged to tackle whatever you throw at them next week! Unplug and have a wonderful weekend.";
+const STANDARD_HEADLINE =
+  "Here's what you accomplished. Now go live your life.";
+const EMPTY_HEADLINE =
+  'A quiet week means a blank canvas. \u{1f3a8} Your agents have been resting up and are fully charged to tackle whatever you throw at them next week! Unplug and have a wonderful weekend.';
 const TIME_SAVED_PER_TASK_MINUTES = 5;
 
-export async function execute(input: FridayFeelingInput): Promise<FridayFeelingResult> {
+export async function execute(
+  input: FridayFeelingInput,
+): Promise<FridayFeelingResult> {
   const supabase = createServiceClient();
   const { workspaceId, userId, weekStart, weekEnd } = input;
 
@@ -43,15 +51,20 @@ export async function execute(input: FridayFeelingInput): Promise<FridayFeelingR
     .gte('created_at', weekStart)
     .lte('created_at', weekEnd + 'T23:59:59');
 
-  const trustMilestones: TrustTransition[] = (transitions ?? []).map((t: Record<string, unknown>) => ({
-    agent_type: t.agent_id as string,
-    from_level: t.from_level as string,
-    to_level: t.to_level as string,
-    reached_at: t.created_at as string,
-  }));
+  const trustMilestones: TrustTransition[] = (transitions ?? []).map(
+    (t: Record<string, unknown>) => ({
+      agent_type: t.agent_id as string,
+      from_level: t.from_level as string,
+      to_level: t.to_level as string,
+      reached_at: t.created_at as string,
+    }),
+  );
 
   const timeSavedMinutes = tasksHandled * TIME_SAVED_PER_TASK_MINUTES;
-  const headline = tasksHandled === 0 && trustMilestones.length === 0 ? EMPTY_HEADLINE : STANDARD_HEADLINE;
+  const headline =
+    tasksHandled === 0 && trustMilestones.length === 0
+      ? EMPTY_HEADLINE
+      : STANDARD_HEADLINE;
 
   const { data: inserted, error: insertError } = await supabase
     .from('friday_feeling_summaries')
@@ -69,7 +82,9 @@ export async function execute(input: FridayFeelingInput): Promise<FridayFeelingR
     .single();
 
   if (insertError) {
-    throw new Error(`Failed to insert friday feeling summary: ${insertError.message}`);
+    throw new Error(
+      `Failed to insert friday feeling summary: ${insertError.message}`,
+    );
   }
 
   return {

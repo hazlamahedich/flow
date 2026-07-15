@@ -67,7 +67,9 @@ export async function getInvoiceDetail(
       .order('sort_order', { ascending: true }),
     client
       .from('invoice_deliveries')
-      .select('id, status, sent_at, retry_count, last_error, message_id, created_at')
+      .select(
+        'id, status, sent_at, retry_count, last_error, message_id, created_at',
+      )
       .eq('invoice_id', invoiceId)
       .order('created_at', { ascending: false })
       .limit(1)

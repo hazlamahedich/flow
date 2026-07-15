@@ -16,13 +16,24 @@ vi.mock('@flow/db', () => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
           eq: vi.fn(() => ({
-            single: vi.fn().mockResolvedValue({ data: { id: 'run-1', agent_id: 'inbox' }, error: null }),
+            single: vi.fn().mockResolvedValue({
+              data: { id: 'run-1', agent_id: 'inbox' },
+              error: null,
+            }),
           })),
         })),
       })),
       upsert: vi.fn(() => ({
         select: vi.fn(() => ({
-          single: vi.fn().mockResolvedValue({ data: { id: 'fb-1', sentiment: 'positive', note: null, created_at: '2026-01-01' }, error: null }),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: 'fb-1',
+              sentiment: 'positive',
+              note: null,
+              created_at: '2026-01-01',
+            },
+            error: null,
+          }),
         })),
       })),
     })),
@@ -32,7 +43,9 @@ vi.mock('@flow/db', () => ({
       insert: vi.fn().mockResolvedValue({ error: null }),
     })),
   })),
-  requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'u-1' }),
+  requireTenantContext: vi
+    .fn()
+    .mockResolvedValue({ workspaceId: 'ws-1', userId: 'u-1' }),
 }));
 
 import { submitFeedback, deleteFeedback } from '../feedback-actions';
@@ -51,22 +64,35 @@ describe('submitFeedback', () => {
   });
 
   it('rejects non-UUID runId', async () => {
-    const result = await submitFeedback({ runId: 'not-a-uuid', sentiment: 'positive' });
+    const result = await submitFeedback({
+      runId: 'not-a-uuid',
+      sentiment: 'positive',
+    });
     expect(result.success).toBe(false);
   });
 
   it('rejects invalid sentiment', async () => {
-    const result = await submitFeedback({ runId: '00000000-0000-0000-0000-000000000001', sentiment: 'meh' });
+    const result = await submitFeedback({
+      runId: '00000000-0000-0000-0000-000000000001',
+      sentiment: 'meh',
+    });
     expect(result.success).toBe(false);
   });
 
   it('accepts note as optional', async () => {
-    const result = await submitFeedback({ runId: '00000000-0000-0000-0000-000000000001', sentiment: 'negative' });
+    const result = await submitFeedback({
+      runId: '00000000-0000-0000-0000-000000000001',
+      sentiment: 'negative',
+    });
     expect(result.success).toBe(true);
   });
 
   it('rejects note over 500 chars', async () => {
-    const result = await submitFeedback({ runId: '00000000-0000-0000-0000-000000000001', sentiment: 'positive', note: 'x'.repeat(501) });
+    const result = await submitFeedback({
+      runId: '00000000-0000-0000-0000-000000000001',
+      sentiment: 'positive',
+      note: 'x'.repeat(501),
+    });
     expect(result.success).toBe(false);
   });
 

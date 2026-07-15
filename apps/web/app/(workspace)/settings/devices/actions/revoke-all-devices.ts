@@ -8,9 +8,13 @@ import { getServerSupabase } from '@/lib/supabase-server';
 import { logAuthEvent } from '@/lib/auth-audit';
 import { headers } from 'next/headers';
 
-export async function revokeAllDevicesAction(): Promise<ActionResult<{ revokedCount: number }>> {
+export async function revokeAllDevicesAction(): Promise<
+  ActionResult<{ revokedCount: number }>
+> {
   const supabase = await getServerSupabase();
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session?.user) {
     return {
       success: false,
@@ -19,7 +23,10 @@ export async function revokeAllDevicesAction(): Promise<ActionResult<{ revokedCo
   }
 
   const headerStore = await headers();
-  const ip = headerStore.get('x-forwarded-for') ?? headerStore.get('x-real-ip') ?? 'unknown';
+  const ip =
+    headerStore.get('x-forwarded-for') ??
+    headerStore.get('x-real-ip') ??
+    'unknown';
 
   try {
     const count = await revokeAllDevices(session.user.id, supabase);
@@ -27,7 +34,10 @@ export async function revokeAllDevicesAction(): Promise<ActionResult<{ revokedCo
     try {
       await invalidateUserSessions(session.user.id);
     } catch (invalidateError) {
-      console.error('[revoke-all-devices] Session invalidation failed (devices still revoked):', invalidateError);
+      console.error(
+        '[revoke-all-devices] Session invalidation failed (devices still revoked):',
+        invalidateError,
+      );
     }
 
     await logAuthEvent({
@@ -48,11 +58,19 @@ export async function revokeAllDevicesAction(): Promise<ActionResult<{ revokedCo
     });
 
     if (err instanceof Error && 'code' in err) {
-      return { success: false, error: err as unknown as import('@flow/types').FlowError };
+      return {
+        success: false,
+        error: err as unknown as import('@flow/types').FlowError,
+      };
     }
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to revoke all devices', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to revoke all devices',
+        'system',
+      ),
     };
   }
 }

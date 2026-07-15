@@ -6,10 +6,19 @@ Design system token layer for Flow OS. Provides typed JS constants, CSS custom p
 
 ```ts
 // Typed JS objects (all token categories)
-import { darkSemanticColors, typography, spacing, radius, motion, mediaQueries } from '@flow/tokens';
+import {
+  darkSemanticColors,
+  typography,
+  spacing,
+  radius,
+  motion,
+  mediaQueries,
+} from '@flow/tokens';
 
 // Use media query strings in JS (CSS vars cannot be used in @media queries)
-if (window.matchMedia(mediaQueries.md).matches) { /* tablet+ */ }
+if (window.matchMedia(mediaQueries.md).matches) {
+  /* tablet+ */
+}
 ```
 
 // CSS entry (Tailwind v4 + shadcn bridge + themes)
@@ -19,7 +28,8 @@ if (window.matchMedia(mediaQueries.md).matches) { /* tablet+ */ }
 // Theme hooks and providers
 import { useTheme } from '@flow/tokens/hooks';
 import { ThemeProvider } from '@flow/tokens/providers';
-```
+
+````
 
 ## Tailwind v4 Usage
 
@@ -27,9 +37,10 @@ In your app's CSS file:
 
 ```css
 @import "@flow/tokens/css";
-```
+````
 
 This includes:
+
 - `primitives.css` — Tailwind v4 `@theme` directive with primitive color scales
 - `shadcn-bridge.css` — Maps Flow tokens to shadcn/ui expected CSS vars
 - `portal-brand.css` — Portal brand token defaults
@@ -44,17 +55,15 @@ import { ThemeProvider } from '@flow/tokens/providers';
 import { useTheme } from '@flow/tokens/hooks';
 
 function App({ children }) {
-  return (
-    <ThemeProvider defaultTheme="dark">
-      {children}
-    </ThemeProvider>
-  );
+  return <ThemeProvider defaultTheme="dark">{children}</ThemeProvider>;
 }
 
 function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   return (
-    <button onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}>
+    <button
+      onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+    >
       Current: {resolvedTheme}
     </button>
   );
@@ -115,8 +124,10 @@ gap: var(--flow-trust-gap-ceremony);
 ## Motion Tokens
 
 ```css
-transition-duration: var(--flow-duration-fast);    /* 100ms */
-transition-timing-function: var(--flow-ease-standard); /* cubic-bezier(0.4, 0, 0.2, 1) */
+transition-duration: var(--flow-duration-fast); /* 100ms */
+transition-timing-function: var(
+  --flow-ease-standard
+); /* cubic-bezier(0.4, 0, 0.2, 1) */
 ```
 
 `prefers-reduced-motion` automatically reduces all durations to 0ms except ceremony (100ms).

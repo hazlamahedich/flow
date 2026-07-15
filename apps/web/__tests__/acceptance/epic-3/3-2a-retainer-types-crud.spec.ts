@@ -49,7 +49,9 @@ describe('Story 3.2a: Retainer Agreements — Types & CRUD', () => {
       // Then: cents columns exist (no float/dollar columns)
       expect(columnNames).toContain('hourlyRateCents');
       expect(columnNames).toContain('monthlyFeeCents');
-      expect(columnNames.some((c) => c.toLowerCase().includes('cents'))).toBe(true);
+      expect(columnNames.some((c) => c.toLowerCase().includes('cents'))).toBe(
+        true,
+      );
     });
 
     test('[P0] [3.2-UNIT-006] should validate hourly_rate creation via Zod discriminated union', () => {
@@ -67,42 +69,58 @@ describe('Story 3.2a: Retainer Agreements — Types & CRUD', () => {
 
     test('[P0] [3.2-UNIT-007] should validate flat_monthly creation via Zod discriminated union', () => {
       // Given: a valid flat monthly retainer payload
-      const result = createRetainerSchema.safeParse(createTestFlatMonthlyRetainer());
+      const result = createRetainerSchema.safeParse(
+        createTestFlatMonthlyRetainer(),
+      );
       // Then: schema accepts it
       expect(result.success).toBe(true);
     });
 
     test('[P0] [3.2-UNIT-008] should validate package_based creation via Zod discriminated union', () => {
       // Given: a valid package-based retainer payload
-      const result = createRetainerSchema.safeParse(createTestPackageRetainer());
+      const result = createRetainerSchema.safeParse(
+        createTestPackageRetainer(),
+      );
       // Then: schema accepts it
       expect(result.success).toBe(true);
     });
 
     test('[P1] [3.2-UNIT-009] should validate hourly_rate_cents is positive integer', () => {
       // Given: valid and invalid hourly rates
-      const valid = createRetainerSchema.safeParse(createTestHourlyRetainer({ hourlyRateCents: 1099 }));
+      const valid = createRetainerSchema.safeParse(
+        createTestHourlyRetainer({ hourlyRateCents: 1099 }),
+      );
       expect(valid.success).toBe(true);
 
-      const zero = createRetainerSchema.safeParse(createTestHourlyRetainer({ hourlyRateCents: 0 }));
+      const zero = createRetainerSchema.safeParse(
+        createTestHourlyRetainer({ hourlyRateCents: 0 }),
+      );
       expect(zero.success).toBe(false);
 
-      const negative = createRetainerSchema.safeParse(createTestHourlyRetainer({ hourlyRateCents: -1 }));
+      const negative = createRetainerSchema.safeParse(
+        createTestHourlyRetainer({ hourlyRateCents: -1 }),
+      );
       expect(negative.success).toBe(false);
     });
 
     test('[P1] [3.2-UNIT-010] should validate flat_fee_cents is positive integer', () => {
       // Given: a valid flat monthly fee
-      const valid = createRetainerSchema.safeParse(createTestFlatMonthlyRetainer({ monthlyFeeCents: 50000 }));
+      const valid = createRetainerSchema.safeParse(
+        createTestFlatMonthlyRetainer({ monthlyFeeCents: 50000 }),
+      );
       expect(valid.success).toBe(true);
     });
 
     test('[P1] [3.2-UNIT-011] should validate package_hours is positive number', () => {
       // Given: valid and invalid package hours
-      const valid = createRetainerSchema.safeParse(createTestPackageRetainer({ packageHours: '40' }));
+      const valid = createRetainerSchema.safeParse(
+        createTestPackageRetainer({ packageHours: '40' }),
+      );
       expect(valid.success).toBe(true);
 
-      const invalid = createRetainerSchema.safeParse(createTestPackageRetainer({ packageHours: '0' }));
+      const invalid = createRetainerSchema.safeParse(
+        createTestPackageRetainer({ packageHours: '0' }),
+      );
       expect(invalid.success).toBe(false);
     });
 

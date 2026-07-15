@@ -19,9 +19,10 @@ export default async function TrustHistoryPage({ searchParams }: PageProps) {
 
   const page = typeof params.page === 'string' ? parseInt(params.page, 10) : 1;
   const agentId = typeof params.agent === 'string' ? params.agent : undefined;
-  const direction = typeof params.direction === 'string'
-    ? params.direction as 'upgrade' | 'regression' | 'all' | undefined
-    : undefined;
+  const direction =
+    typeof params.direction === 'string'
+      ? (params.direction as 'upgrade' | 'regression' | 'all' | undefined)
+      : undefined;
   const dateFrom = typeof params.from === 'string' ? params.from : undefined;
   const dateTo = typeof params.to === 'string' ? params.to : undefined;
 

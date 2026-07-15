@@ -81,7 +81,11 @@ export interface ConflictDetectionResult {
 
 export interface CalendarProvider {
   getOAuthUrl(params: CalendarOAuthUrlParams): string;
-  exchangeCode(code: string, redirectUri: string, codeVerifier: string): Promise<CalendarCodeExchangeResult>;
+  exchangeCode(
+    code: string,
+    redirectUri: string,
+    codeVerifier: string,
+  ): Promise<CalendarCodeExchangeResult>;
   refreshToken(refreshToken: string): Promise<OAuthTokens>;
   revokeToken(accessToken: string): Promise<void>;
   getConnectedEmail(accessToken: string): Promise<string>;
@@ -94,11 +98,25 @@ export interface CalendarProvider {
     timeMax: string,
     maxResults?: number,
   ): Promise<CalendarEvent[]>;
-  getEvent(accessToken: string, calendarId: string, eventId: string): Promise<CalendarEvent>;
+  getEvent(
+    accessToken: string,
+    calendarId: string,
+    eventId: string,
+  ): Promise<CalendarEvent>;
 
-  createEvent(accessToken: string, input: CalendarEventCreateInput): Promise<CalendarEvent>;
-  updateEvent(accessToken: string, input: CalendarEventUpdateInput): Promise<CalendarEvent>;
-  deleteEvent(accessToken: string, calendarId: string, eventId: string): Promise<void>;
+  createEvent(
+    accessToken: string,
+    input: CalendarEventCreateInput,
+  ): Promise<CalendarEvent>;
+  updateEvent(
+    accessToken: string,
+    input: CalendarEventUpdateInput,
+  ): Promise<CalendarEvent>;
+  deleteEvent(
+    accessToken: string,
+    calendarId: string,
+    eventId: string,
+  ): Promise<void>;
 
   getFreeBusy(
     accessToken: string,

@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach, type MockInstance } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  type MockInstance,
+} from 'vitest';
 import { writeAuditLog } from '../shared/audit-writer';
 
 describe('Audit Writer', () => {
@@ -6,8 +14,12 @@ describe('Audit Writer', () => {
   let stderrSpy: MockInstance;
 
   beforeEach(() => {
-    stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true) as unknown as MockInstance;
-    stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true) as unknown as MockInstance;
+    stdoutSpy = vi
+      .spyOn(process.stdout, 'write')
+      .mockImplementation(() => true) as unknown as MockInstance;
+    stderrSpy = vi
+      .spyOn(process.stderr, 'write')
+      .mockImplementation(() => true) as unknown as MockInstance;
   });
 
   afterEach(() => {

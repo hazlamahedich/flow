@@ -12,7 +12,9 @@ interface WizardInput {
   retainerData?: unknown;
 }
 
-export async function setupClientWizard(input: WizardInput): Promise<WizardActionResult> {
+export async function setupClientWizard(
+  input: WizardInput,
+): Promise<WizardActionResult> {
   const clientResult = await createWorkspaceClient(input.clientData);
 
   if (!clientResult.success) {
@@ -27,7 +29,9 @@ export async function setupClientWizard(input: WizardInput): Promise<WizardActio
 
   const parsed = wizardRetainerSchema.safeParse(input.retainerData);
   if (!parsed.success) {
-    const details = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
+    const details = parsed.error.issues
+      .map((i) => `${i.path.join('.')}: ${i.message}`)
+      .join('; ');
     return {
       success: true,
       data: {
@@ -67,7 +71,10 @@ export async function setupClientWizard(input: WizardInput): Promise<WizardActio
     }
 
     const error = err as { code?: string; retainerCode?: string };
-    if (error.code === '23505' || error.retainerCode === 'RETAINER_ACTIVE_EXISTS') {
+    if (
+      error.code === '23505' ||
+      error.retainerCode === 'RETAINER_ACTIVE_EXISTS'
+    ) {
       return {
         success: true,
         data: {
@@ -86,7 +93,8 @@ export async function setupClientWizard(input: WizardInput): Promise<WizardActio
         client: newClient,
         warning: {
           code: 'RETAINER_SETUP_FAILED',
-          message: 'Failed to create retainer. You can set it up from the client detail page.',
+          message:
+            'Failed to create retainer. You can set it up from the client detail page.',
         },
       },
     };

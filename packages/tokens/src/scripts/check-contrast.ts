@@ -2,7 +2,9 @@ import { darkSemanticColors } from '../colors/semantic-dark';
 import { lightSemanticColors } from '../colors/semantic-light';
 import { agentColors } from '../colors/agents';
 
-function parseHexToRgb(hex: string): { r: number; g: number; b: number } | null {
+function parseHexToRgb(
+  hex: string,
+): { r: number; g: number; b: number } | null {
   const clean = hex.replace('#', '');
   if (clean.length === 3) {
     return {
@@ -21,8 +23,12 @@ function parseHexToRgb(hex: string): { r: number; g: number; b: number } | null 
   return null;
 }
 
-function parseRgbaToRgb(val: string): { r: number; g: number; b: number } | null {
-  const match = val.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\)/);
+function parseRgbaToRgb(
+  val: string,
+): { r: number; g: number; b: number } | null {
+  const match = val.match(
+    /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\)/,
+  );
   if (!match) return null;
   return {
     r: parseInt(match[1]!, 10) / 255,
@@ -32,7 +38,8 @@ function parseRgbaToRgb(val: string): { r: number; g: number; b: number } | null
 }
 
 function relativeLuminance(r: number, g: number, b: number): number {
-  const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  const toLinear = (c: number) =>
+    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
   return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
 }
 
@@ -64,35 +71,98 @@ function resolveColor(val: string): string {
 
 const errors: string[] = [];
 
-const textBgPairs: Array<{ fg: string; bg: string; label: string; minRatio: number }> = [];
+const textBgPairs: Array<{
+  fg: string;
+  bg: string;
+  label: string;
+  minRatio: number;
+}> = [];
 
-for (const [themeName, colors] of [['dark', darkSemanticColors], ['light', lightSemanticColors]] as const) {
+for (const [themeName, colors] of [
+  ['dark', darkSemanticColors],
+  ['light', lightSemanticColors],
+] as const) {
   const bg = resolveColor(colors['--flow-bg-canvas']!);
   const surface = resolveColor(colors['--flow-bg-surface']!);
   const accent = resolveColor(colors['--flow-accent-primary']!);
 
   // Text-on-background (4.5:1) — text-inverse is for colored backgrounds, not canvas
   textBgPairs.push(
-    { fg: resolveColor(colors['--flow-text-primary']!), bg, label: `${themeName}/primary-text-on-canvas`, minRatio: 4.5 },
-    { fg: resolveColor(colors['--flow-text-secondary']!), bg, label: `${themeName}/secondary-text-on-canvas`, minRatio: 4.5 },
-    { fg: resolveColor(colors['--flow-text-muted']!), bg, label: `${themeName}/muted-text-on-canvas`, minRatio: 4.5 },
-    { fg: resolveColor(colors['--flow-accent-primary-text']!), bg: accent, label: `${themeName}/accent-text-on-accent`, minRatio: 4.0 },
+    {
+      fg: resolveColor(colors['--flow-text-primary']!),
+      bg,
+      label: `${themeName}/primary-text-on-canvas`,
+      minRatio: 4.5,
+    },
+    {
+      fg: resolveColor(colors['--flow-text-secondary']!),
+      bg,
+      label: `${themeName}/secondary-text-on-canvas`,
+      minRatio: 4.5,
+    },
+    {
+      fg: resolveColor(colors['--flow-text-muted']!),
+      bg,
+      label: `${themeName}/muted-text-on-canvas`,
+      minRatio: 4.5,
+    },
+    {
+      fg: resolveColor(colors['--flow-accent-primary-text']!),
+      bg: accent,
+      label: `${themeName}/accent-text-on-accent`,
+      minRatio: 4.0,
+    },
   );
 
   // Non-text on canvas (3:1)
   textBgPairs.push(
-    { fg: resolveColor(colors['--flow-status-success']!), bg, label: `${themeName}/success-on-canvas`, minRatio: 3 },
-    { fg: resolveColor(colors['--flow-status-warning']!), bg, label: `${themeName}/warning-on-canvas`, minRatio: 3 },
-    { fg: resolveColor(colors['--flow-status-error']!), bg, label: `${themeName}/error-on-canvas`, minRatio: 3 },
-    { fg: resolveColor(colors['--flow-status-info']!), bg, label: `${themeName}/info-on-canvas`, minRatio: 3 },
+    {
+      fg: resolveColor(colors['--flow-status-success']!),
+      bg,
+      label: `${themeName}/success-on-canvas`,
+      minRatio: 3,
+    },
+    {
+      fg: resolveColor(colors['--flow-status-warning']!),
+      bg,
+      label: `${themeName}/warning-on-canvas`,
+      minRatio: 3,
+    },
+    {
+      fg: resolveColor(colors['--flow-status-error']!),
+      bg,
+      label: `${themeName}/error-on-canvas`,
+      minRatio: 3,
+    },
+    {
+      fg: resolveColor(colors['--flow-status-info']!),
+      bg,
+      label: `${themeName}/info-on-canvas`,
+      minRatio: 3,
+    },
     { fg: accent, bg, label: `${themeName}/accent-on-canvas`, minRatio: 3 },
   );
 
   // shadcn bridge pairs (4.5:1)
   textBgPairs.push(
-    { fg: resolveColor(colors['--flow-text-primary']!), bg: resolveColor(colors['--flow-bg-surface']!), label: `${themeName}/card-foreground-on-card`, minRatio: 4.5 },
-    { fg: resolveColor(colors['--flow-text-primary']!), bg: resolveColor(colors['--flow-bg-surface-raised']!), label: `${themeName}/popover-foreground-on-popover`, minRatio: 4.5 },
-    { fg: resolveColor(colors['--flow-text-secondary']!), bg: surface, label: `${themeName}/muted-foreground-on-muted`, minRatio: 4.5 },
+    {
+      fg: resolveColor(colors['--flow-text-primary']!),
+      bg: resolveColor(colors['--flow-bg-surface']!),
+      label: `${themeName}/card-foreground-on-card`,
+      minRatio: 4.5,
+    },
+    {
+      fg: resolveColor(colors['--flow-text-primary']!),
+      bg: resolveColor(colors['--flow-bg-surface-raised']!),
+      label: `${themeName}/popover-foreground-on-popover`,
+      minRatio: 4.5,
+    },
+    {
+      fg: resolveColor(colors['--flow-text-secondary']!),
+      bg: surface,
+      label: `${themeName}/muted-foreground-on-muted`,
+      minRatio: 4.5,
+    },
   );
 
   // Agent identity colors (3:1) on bg-canvas and bg-surface
@@ -101,16 +171,29 @@ for (const [themeName, colors] of [['dark', darkSemanticColors], ['light', light
     const agentRgb = parseHexToRgb(resolveColor(agentVal));
     if (agentRgb) {
       textBgPairs.push(
-        { fg: resolveColor(agentVal), bg, label: `${themeName}/agent-${agentName}-on-canvas`, minRatio: 3 },
-        { fg: resolveColor(agentVal), bg: surface, label: `${themeName}/agent-${agentName}-on-surface`, minRatio: 3 },
+        {
+          fg: resolveColor(agentVal),
+          bg,
+          label: `${themeName}/agent-${agentName}-on-canvas`,
+          minRatio: 3,
+        },
+        {
+          fg: resolveColor(agentVal),
+          bg: surface,
+          label: `${themeName}/agent-${agentName}-on-surface`,
+          minRatio: 3,
+        },
       );
     }
   }
 
   // Focus ring color on background (3:1)
-  textBgPairs.push(
-    { fg: accent, bg, label: `${themeName}/focus-ring-on-canvas`, minRatio: 3 },
-  );
+  textBgPairs.push({
+    fg: accent,
+    bg,
+    label: `${themeName}/focus-ring-on-canvas`,
+    minRatio: 3,
+  });
 }
 
 for (const pair of textBgPairs) {
@@ -118,7 +201,9 @@ for (const pair of textBgPairs) {
   if (ratio === null) {
     errors.push(`Could not compute ratio for: ${pair.label}`);
   } else if (ratio < pair.minRatio) {
-    errors.push(`${pair.label}: ratio ${ratio.toFixed(2)} < ${pair.minRatio} (FAIL)`);
+    errors.push(
+      `${pair.label}: ratio ${ratio.toFixed(2)} < ${pair.minRatio} (FAIL)`,
+    );
   }
 }
 

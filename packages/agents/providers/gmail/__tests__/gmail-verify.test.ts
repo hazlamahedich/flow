@@ -16,7 +16,10 @@ describe('verifyGoogleOidcToken', () => {
       verifyIdToken: mockVerify,
     }));
 
-    const result = await verifyGoogleOidcToken('valid-token', 'expected-audience');
+    const result = await verifyGoogleOidcToken(
+      'valid-token',
+      'expected-audience',
+    );
 
     expect(result).toBe(true);
     expect(mockVerify).toHaveBeenCalledWith({

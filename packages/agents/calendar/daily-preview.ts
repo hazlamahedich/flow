@@ -70,7 +70,9 @@ export async function generateDailyPreview(
     .filter((r) => r.success)
     .map((r) => r.data);
 
-  const eventClientIds = [...new Set(events.map((e) => e.client_id).filter(Boolean))] as string[];
+  const eventClientIds = [
+    ...new Set(events.map((e) => e.client_id).filter(Boolean)),
+  ] as string[];
 
   const { data: rawBypassData } = await supabase
     .from('calendar_bypass_metrics')
@@ -182,18 +184,16 @@ export async function emitDailyPreviewSignal(
   const dateStr = preview.date;
   const dedupKey = `cal.preview:${workspaceId}:${dateStr}`;
 
-  const { error } = await supabase
-    .from('agent_signals')
-    .insert({
-      correlation_id: crypto.randomUUID(),
-      causation_id: crypto.randomUUID(),
-      agent_id: 'calendar',
-      signal_type: 'calendar.daily.preview',
-      payload: preview,
-      target_agent: 'inbox',
-      workspace_id: workspaceId,
-      dedup_key: dedupKey,
-    });
+  const { error } = await supabase.from('agent_signals').insert({
+    correlation_id: crypto.randomUUID(),
+    causation_id: crypto.randomUUID(),
+    agent_id: 'calendar',
+    signal_type: 'calendar.daily.preview',
+    payload: preview,
+    target_agent: 'inbox',
+    workspace_id: workspaceId,
+    dedup_key: dedupKey,
+  });
 
   if (error) {
     throw Object.assign(

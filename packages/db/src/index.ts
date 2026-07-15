@@ -1,7 +1,12 @@
-export { createServerClient, createBrowserClient, createServiceClient } from './client';
+export {
+  createServerClient,
+  createBrowserClient,
+  createServiceClient,
+} from './client';
 export { createAdminSupabase } from './admin-client';
 export type { SupabaseClient } from '@supabase/supabase-js';
-export {  requireTenantContext,
+export {
+  requireTenantContext,
   setTenantContext,
   createFlowError,
 } from './rls-helpers';
@@ -103,7 +108,11 @@ export {
   acknowledgeTransition,
   recordMilestone,
 } from './queries/trust';
-export type { TrustTransitionDbRow, TrustPreconditionDbRow, UnacknowledgedRegression } from './queries/trust';
+export type {
+  TrustTransitionDbRow,
+  TrustPreconditionDbRow,
+  UnacknowledgedRegression,
+} from './queries/trust';
 export {
   getTrustEvents,
   getCheckInDue,
@@ -183,18 +192,64 @@ export {
   recategorizeEmail,
 } from './queries/inbox';
 
+export {
+  insertRawPayload,
+  isMessageProcessed,
+  markMessageProcessed,
+} from './queries/inbox';
 
-export { insertRawPayload, isMessageProcessed, markMessageProcessed } from './queries/inbox';
+export {
+  createTimeEntry,
+  listTimeEntries,
+  softDeleteTimeEntry,
+} from './queries/time-entries';
+export type {
+  TimeEntry,
+  CreateTimeEntryInput,
+  TimeEntryFilters,
+  ListTimeEntriesInput,
+  ListTimeEntriesResult,
+  SoftDeleteTimeEntryInput,
+} from './queries/time-entries';
 
-export { createTimeEntry, listTimeEntries, softDeleteTimeEntry } from './queries/time-entries';
-export type { TimeEntry, CreateTimeEntryInput, TimeEntryFilters, ListTimeEntriesInput, ListTimeEntriesResult, SoftDeleteTimeEntryInput } from './queries/time-entries';
+export {
+  getTimerState,
+  startTimer,
+  stopTimerRpc,
+  updateTimeEntry,
+  insertEditHistory,
+  getTimeEntryForUpdate,
+  defaultInvoiceEditGuard,
+} from './queries/time-tracking';
+export type {
+  TimerStateWithNames,
+  GetTimerStateInput,
+  StartTimerInput,
+  StopTimerRpcInput,
+  StopTimerResult,
+  UpdateTimeEntryInput,
+  UpdateTimeEntryResult,
+  InsertEditHistoryInput,
+  GetTimeEntryForUpdateInput,
+  TimeEntryCurrentValues,
+  InvoiceEditGuard,
+} from './queries/time-tracking';
 
-export { getTimerState, startTimer, stopTimerRpc, updateTimeEntry, insertEditHistory, getTimeEntryForUpdate, defaultInvoiceEditGuard } from './queries/time-tracking';
-export type { TimerStateWithNames, GetTimerStateInput, StartTimerInput, StopTimerRpcInput, StopTimerResult, UpdateTimeEntryInput, UpdateTimeEntryResult, InsertEditHistoryInput, GetTimeEntryForUpdateInput, TimeEntryCurrentValues, InvoiceEditGuard } from './queries/time-tracking';
-
-export { createProject, ProjectNameDuplicateError, listProjects } from './queries/projects';
-export type { Project, CreateProjectInput, ListProjectsInput } from './queries/projects';
-export { decryptCalendarTokens, encryptCalendarTokens, rotateCalendarTokens } from './vault/calendar-tokens';
+export {
+  createProject,
+  ProjectNameDuplicateError,
+  listProjects,
+} from './queries/projects';
+export type {
+  Project,
+  CreateProjectInput,
+  ListProjectsInput,
+} from './queries/projects';
+export {
+  decryptCalendarTokens,
+  encryptCalendarTokens,
+  rotateCalendarTokens,
+} from './vault/calendar-tokens';
 export { getPaymentAttemptsByInvoice } from './queries/invoices/get-payment-attempts';
 export type { PaymentAttempt } from './queries/invoices/get-payment-attempts';
 export {
@@ -224,10 +279,17 @@ export type {
 } from './queries/invoices';
 export { createInvoiceEditGuard } from './queries/invoices/invoice-edit-guard';
 export { aggregateReportData } from './queries/reports/aggregate-data';
-export type { AggregateReportDataOptions, AggregatedReportData, StalledItem } from './queries/reports/aggregate-data';
+export type {
+  AggregateReportDataOptions,
+  AggregatedReportData,
+  StalledItem,
+} from './queries/reports/aggregate-data';
 export { getUsageAnalytics } from './queries/analytics/get-usage-analytics';
 export type { UsageAnalytics } from './queries/analytics/get-usage-analytics';
-export { getValidationMetrics, recordValidationMetric } from './queries/analytics/get-validation-metrics';
+export {
+  getValidationMetrics,
+  recordValidationMetric,
+} from './queries/analytics/get-validation-metrics';
 export type { ValidationMetric } from './queries/analytics/get-validation-metrics';
 export { getClientHealthSnapshots } from './queries/clients/health-snapshots';
 export type { ClientHealthSnapshot } from './queries/clients/health-snapshots';

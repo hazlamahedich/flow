@@ -4,7 +4,13 @@ import { duration, easing, reducedMotionDuration } from '../motion';
 describe('motion durations', () => {
   it('has all 5 duration tokens', () => {
     const keys = Object.keys(duration);
-    expect(keys).toEqual(['instant', 'fast', 'normal', 'expressive', 'ceremony']);
+    expect(keys).toEqual([
+      'instant',
+      'fast',
+      'normal',
+      'expressive',
+      'ceremony',
+    ]);
   });
 
   it('instant is 50ms', () => {
@@ -31,7 +37,13 @@ describe('motion durations', () => {
 describe('easing functions', () => {
   it('has all 5 easing tokens', () => {
     const keys = Object.keys(easing);
-    expect(keys).toEqual(['standard', 'decelerate', 'accelerate', 'spring', 'gentle']);
+    expect(keys).toEqual([
+      'standard',
+      'decelerate',
+      'accelerate',
+      'spring',
+      'gentle',
+    ]);
   });
 
   it('all use cubic-bezier format', () => {

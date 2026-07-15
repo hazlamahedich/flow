@@ -12,14 +12,18 @@ test.describe('[P0] Time Entry Creation — Manual Logging', () => {
     await expect(ownerPage.getByText(/log time/i)).toBeVisible();
   });
 
-  test('time entry list shows empty state when no entries', async ({ ownerPage }) => {
+  test('time entry list shows empty state when no entries', async ({
+    ownerPage,
+  }) => {
     const emptyState = ownerPage.getByText(/no time logged yet/i);
     if (await emptyState.isVisible()) {
       await expect(emptyState).toBeVisible();
     }
   });
 
-  test('create time entry: fill form, submit, entry appears in list', async ({ ownerPage }) => {
+  test('create time entry: fill form, submit, entry appears in list', async ({
+    ownerPage,
+  }) => {
     const logBtn = ownerPage.getByRole('button', { name: /log time/i });
     await logBtn.click();
 
@@ -37,7 +41,7 @@ test.describe('[P0] Time Entry Creation — Manual Logging', () => {
     }
 
     const submitBtn = modal.getByRole('button', { name: /log|save|submit/i });
-    if (await submitBtn.isVisible() && await submitBtn.isEnabled()) {
+    if ((await submitBtn.isVisible()) && (await submitBtn.isEnabled())) {
       await submitBtn.click();
       await expect(modal).not.toBeVisible({ timeout: 5000 });
     }

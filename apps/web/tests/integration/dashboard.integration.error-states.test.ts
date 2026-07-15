@@ -11,7 +11,9 @@ describe.skipIf(skip)('Dashboard Integration — Error States', () => {
   it('returns zeros for missing tables via Promise.allSettled', async () => {
     const mockClient = {
       from: () => ({
-        select: function (this: unknown) { return this; },
+        select: function (this: unknown) {
+          return this;
+        },
         eq: function (this: unknown) {
           return Promise.resolve({
             count: null,
@@ -32,7 +34,9 @@ describe.skipIf(skip)('Dashboard Integration — Error States', () => {
   it('non-42P01 error surfaces to caller', async () => {
     const mockClient = {
       from: () => ({
-        select: function (this: unknown) { return this; },
+        select: function (this: unknown) {
+          return this;
+        },
         eq: function (this: unknown) {
           return Promise.resolve({
             count: null,
@@ -42,15 +46,24 @@ describe.skipIf(skip)('Dashboard Integration — Error States', () => {
       }),
     } as unknown as SupabaseClient;
 
-    await expect(getDashboardSummary(mockClient, workspaceId)).rejects.toThrow();
+    await expect(
+      getDashboardSummary(mockClient, workspaceId),
+    ).rejects.toThrow();
   });
 
   it('partial failure returns degraded zeros', async () => {
     let callIdx = 0;
-    const tables = ['agent_approvals', 'agent_runs', 'invoices', 'client_health_alerts'];
+    const tables = [
+      'agent_approvals',
+      'agent_runs',
+      'invoices',
+      'client_health_alerts',
+    ];
     const mockClient = {
       from: () => ({
-        select: function (this: unknown) { return this; },
+        select: function (this: unknown) {
+          return this;
+        },
         eq: function (this: unknown) {
           const table = tables[callIdx++];
           if (table === 'agent_approvals') {

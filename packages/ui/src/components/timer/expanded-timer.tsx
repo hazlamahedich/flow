@@ -39,7 +39,11 @@ export function ExpandedTimer({
         >
           <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
           <span>
-            Timer running for {Math.floor((Date.now() - runningState.startedAt.getTime()) / 3600000)}h — did you forget to stop it?
+            Timer running for{' '}
+            {Math.floor(
+              (Date.now() - runningState.startedAt.getTime()) / 3600000,
+            )}
+            h — did you forget to stop it?
           </span>
           <button
             type="button"
@@ -54,7 +58,10 @@ export function ExpandedTimer({
 
       {runningState ? (
         <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-[var(--flow-color-text-primary)] truncate" data-testid="sidebar-timer-display">
+          <span
+            className="font-mono text-xs text-[var(--flow-color-text-primary)] truncate"
+            data-testid="sidebar-timer-display"
+          >
             {label}
           </span>
         </div>
@@ -80,7 +87,11 @@ export function ExpandedTimer({
             type="button"
             onClick={onStart}
             disabled={startDisabled}
-            title={startDisabled && !isLoading ? 'Select a client to start the timer' : undefined}
+            title={
+              startDisabled && !isLoading
+                ? 'Select a client to start the timer'
+                : undefined
+            }
             className="w-full rounded-[var(--flow-radius-sm)] bg-[var(--flow-color-accent-gold)] px-2 py-1 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="sidebar-timer-start"
           >

@@ -64,7 +64,9 @@ describe('requestEmailChange', () => {
   });
 
   it('returns unauthorized when no session', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser(null) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser(null) as never,
+    );
     const result = await requestEmailChange({ newEmail: 'new@test.com' });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -137,7 +139,10 @@ describe('requestEmailChange', () => {
     const supabase = await mockGetServerSupabase();
     vi.mocked(supabase.auth.updateUser).mockResolvedValue({
       data: { user: null },
-      error: { message: 'Email address is already registered', name: 'AuthError' } as never,
+      error: {
+        message: 'Email address is already registered',
+        name: 'AuthError',
+      } as never,
     });
 
     const result = await requestEmailChange({ newEmail: 'taken@test.com' });

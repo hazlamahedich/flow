@@ -24,11 +24,15 @@ vi.mock('googleapis', () => ({
                 parts: [
                   {
                     mimeType: 'text/plain',
-                    body: { data: Buffer.from('plain text').toString('base64') },
+                    body: {
+                      data: Buffer.from('plain text').toString('base64'),
+                    },
                   },
                   {
                     mimeType: 'text/html',
-                    body: { data: Buffer.from('<p>html text</p>').toString('base64') },
+                    body: {
+                      data: Buffer.from('<p>html text</p>').toString('base64'),
+                    },
                   },
                 ],
               },
@@ -47,7 +51,15 @@ vi.mock('googleapis', () => ({
   },
 }));
 
-import { getProfile, watchInbox, stopWatch, getMessageMetadata, getMessage, listMessages, getHistorySince } from '../gmail-api';
+import {
+  getProfile,
+  watchInbox,
+  stopWatch,
+  getMessageMetadata,
+  getMessage,
+  listMessages,
+  getHistorySince,
+} from '../gmail-api';
 
 describe('gmail-api', () => {
   describe('getProfile', () => {
@@ -60,7 +72,10 @@ describe('gmail-api', () => {
 
   describe('watchInbox', () => {
     it('returns history ID and expiration', async () => {
-      const result = await watchInbox('fake-token', 'projects/test/topics/gmail-push');
+      const result = await watchInbox(
+        'fake-token',
+        'projects/test/topics/gmail-push',
+      );
       expect(result.historyId).toBe('1000');
       expect(result.expiration).toBe('1234567890000');
     });

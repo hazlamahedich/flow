@@ -7,9 +7,7 @@ export const STEPS = [
 
 export const COMPLETION_STEP = 'completion' as const;
 
-export type StepSlug =
-  | (typeof STEPS)[number]
-  | typeof COMPLETION_STEP;
+export type StepSlug = (typeof STEPS)[number] | typeof COMPLETION_STEP;
 
 const STEP_LABELS: Record<(typeof STEPS)[number], string> = {
   welcome: 'Welcome',
@@ -20,8 +18,7 @@ const STEP_LABELS: Record<(typeof STEPS)[number], string> = {
 
 export function isValidStep(slug: string): slug is StepSlug {
   return (
-    (STEPS as readonly string[]).includes(slug) ||
-    slug === COMPLETION_STEP
+    (STEPS as readonly string[]).includes(slug) || slug === COMPLETION_STEP
   );
 }
 

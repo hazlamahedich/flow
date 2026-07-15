@@ -18,8 +18,9 @@ export function OverpaymentConfirmation({
   return (
     <div className="rounded-md border border-yellow-200 bg-yellow-50 p-3">
       <p className="text-sm text-yellow-800">
-        Payment of {displayAmount} exceeds balance by{' '}
-        ${formatCentsToDollar(excessCents)}. Excess will be recorded as client credit.
+        Payment of {displayAmount} exceeds balance by $
+        {formatCentsToDollar(excessCents)}. Excess will be recorded as client
+        credit.
       </p>
       <div className="mt-2 flex gap-2">
         <button

@@ -70,7 +70,9 @@ export async function middleware(request: NextRequest) {
 
   const supabaseResponse = NextResponse.next({ request });
 
-  const cookieData = request.cookies.getAll().map((c) => ({ name: c.name, value: c.value }));
+  const cookieData = request.cookies
+    .getAll()
+    .map((c) => ({ name: c.name, value: c.value }));
 
   const supabase = createServerClient({
     getAll() {
@@ -82,10 +84,15 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  const isAuthRoute = pathname === '/login' || pathname.startsWith('/auth/callback');
-  const isPublicRoute = ['/onboarding', '/workspace-picker'].some((r) => pathname.startsWith(r));
+  const isAuthRoute =
+    pathname === '/login' || pathname.startsWith('/auth/callback');
+  const isPublicRoute = ['/onboarding', '/workspace-picker'].some((r) =>
+    pathname.startsWith(r),
+  );
 
   if (session) {
     const issuedAt = getSessionIssuedAt(session);
@@ -106,7 +113,9 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    const absoluteTimeout = isTrustedDevice ? TRUSTED_ABSOLUTE_SESSION_MS : ABSOLUTE_SESSION_MS;
+    const absoluteTimeout = isTrustedDevice
+      ? TRUSTED_ABSOLUTE_SESSION_MS
+      : ABSOLUTE_SESSION_MS;
 
     if (issuedAt > 0 && now - issuedAt > absoluteTimeout) {
       await supabase.auth.signOut();
@@ -137,7 +146,11 @@ export async function middleware(request: NextRequest) {
       path: '/',
     });
 
-    if (isAuthRoute && pathname !== '/auth/callback' && pathname !== '/auth/callback/error') {
+    if (
+      isAuthRoute &&
+      pathname !== '/auth/callback' &&
+      pathname !== '/auth/callback/error'
+    ) {
       return NextResponse.redirect(new URL('/', request.url));
     }
   } else {

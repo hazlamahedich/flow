@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 
-const mockRange = vi.fn(() => Promise.resolve({ data: [], count: 0, error: null }));
+const mockRange = vi.fn(() =>
+  Promise.resolve({ data: [], count: 0, error: null }),
+);
 const mockLimit = vi.fn(() => Promise.resolve({ data: [], error: null }));
 const chain = {
   eq: vi.fn(() => chain),
@@ -12,10 +14,17 @@ const chain = {
   not: vi.fn(() => chain),
 };
 vi.mock('../../../client', () => ({
-  createServiceClient: vi.fn(() => ({ from: vi.fn(() => chain), rpc: vi.fn(() => Promise.resolve({ data: [], error: null })) })),
+  createServiceClient: vi.fn(() => ({
+    from: vi.fn(() => chain),
+    rpc: vi.fn(() => Promise.resolve({ data: [], error: null })),
+  })),
 }));
 
-import { getActionHistory, getCoordinationGroups, getRecentActivity } from '../history-queries';
+import {
+  getActionHistory,
+  getCoordinationGroups,
+  getRecentActivity,
+} from '../history-queries';
 
 describe.skip('Performance tests (run locally with real DB)', () => {
   it('getActionHistory with 1000+ runs completes < 500ms', async () => {

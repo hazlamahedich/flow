@@ -8,7 +8,8 @@ function renderTimeoutCard(expanded = false) {
     proposalType: 'agent_proposal',
     runOverrides: { status: 'timed_out' },
   });
-  const title = item.proposalType === 'agent_proposal' ? item.proposal.title : '';
+  const title =
+    item.proposalType === 'agent_proposal' ? item.proposal.title : '';
   render(
     <ProposalCard
       item={item}

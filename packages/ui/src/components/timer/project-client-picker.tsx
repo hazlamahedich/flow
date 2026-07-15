@@ -1,11 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from '../ui/popover';
+import { Popover, PopoverTrigger, PopoverContent } from '../ui/popover';
 import {
   Command,
   CommandInput,
@@ -42,8 +38,13 @@ export function ProjectClientPicker({
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<PickerStep>('idle');
   const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
-  const [projects, setProjects] = useState<{ id: string; name: string; clientId: string }[]>([]);
-  const [selectedClient, setSelectedClient] = useState<{ id: string; name: string } | null>(null);
+  const [projects, setProjects] = useState<
+    { id: string; name: string; clientId: string }[]
+  >([]);
+  const [selectedClient, setSelectedClient] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [search, setSearch] = useState('');
   // P5: ignore-flag refs to cancel stale responses from concurrent fetches
   const clientFetchIgnoreRef = useRef(false);
@@ -157,7 +158,9 @@ export function ProjectClientPicker({
               <CommandEmpty>No clients found</CommandEmpty>
               <CommandGroup>
                 {clients
-                  .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+                  .filter((c) =>
+                    c.name.toLowerCase().includes(search.toLowerCase()),
+                  )
                   .map((client) => (
                     <CommandItem
                       key={client.id}
@@ -187,7 +190,9 @@ export function ProjectClientPicker({
                   </span>
                 </CommandItem>
                 {projects
-                  .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
+                  .filter((p) =>
+                    p.name.toLowerCase().includes(search.toLowerCase()),
+                  )
                   .map((project) => (
                     <CommandItem
                       key={project.id}

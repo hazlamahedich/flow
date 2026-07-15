@@ -31,7 +31,7 @@ describe('Story 3.2b: Scope Creep Detection & Retainer Invoice Data', () => {
 
     test('[P0] [3.2-UNIT-018] should detect scope creep using production isScopeCreep function', () => {
       // Given: tracked minutes at 90% of 40-hour allocation (2160 min tracked, 2160 min threshold)
-      const threshold = Math.floor(40 * 60 * 90 / 100); // 2160
+      const threshold = Math.floor((40 * 60 * 90) / 100); // 2160
 
       // When: tracked equals threshold → scope creep
       const at90 = isScopeCreep(threshold, threshold);
@@ -69,7 +69,9 @@ describe('Story 3.2b: Scope Creep Detection & Retainer Invoice Data', () => {
         type: 'informational' as const,
         hoursTracked: 25,
       };
-      expect(utilizationStateSchema.safeParse(informational).success).toBe(true);
+      expect(utilizationStateSchema.safeParse(informational).success).toBe(
+        true,
+      );
 
       const noThreshold = {
         type: 'no_threshold' as const,

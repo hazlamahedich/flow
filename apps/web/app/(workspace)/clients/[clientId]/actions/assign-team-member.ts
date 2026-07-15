@@ -2,7 +2,12 @@
 
 import { revalidateTag } from 'next/cache';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, cacheTag, assignMemberToClient } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  cacheTag,
+  assignMemberToClient,
+} from '@flow/db';
 import { scopeClientAccessSchema } from '@flow/types';
 import type { ActionResult } from '@flow/types';
 
@@ -13,7 +18,12 @@ export async function assignTeamMember(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Invalid input.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Invalid input.',
+        'validation',
+      ),
     };
   }
 
@@ -23,7 +33,12 @@ export async function assignTeamMember(
   if (ctx.role !== 'owner' && ctx.role !== 'admin') {
     return {
       success: false,
-      error: createFlowError(403, 'INSUFFICIENT_ROLE', 'Only owners and admins can assign members.', 'auth'),
+      error: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Only owners and admins can assign members.',
+        'auth',
+      ),
     };
   }
 
@@ -36,11 +51,19 @@ export async function assignTeamMember(
     });
 
     revalidateTag(cacheTag('workspace_client', ctx.workspaceId));
-    return { success: true, data: { userId: parsed.data.userId, clientId: parsed.data.clientId } };
+    return {
+      success: true,
+      data: { userId: parsed.data.userId, clientId: parsed.data.clientId },
+    };
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to assign member.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to assign member.',
+        'system',
+      ),
     };
   }
 }

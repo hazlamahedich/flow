@@ -13,7 +13,12 @@ describe('requestEmailChangeAtomic', () => {
       data: { request_count: 2, was_inserted: 1, pending_new_email: null },
     });
 
-    const result = await requestEmailChangeAtomic(client, 'user-1', 'new@test.com', 'tok');
+    const result = await requestEmailChangeAtomic(
+      client,
+      'user-1',
+      'new@test.com',
+      'tok',
+    );
     expect(result.allowed).toBe(true);
     expect(result.wasInserted).toBe(true);
     expect(result.pendingExists).toBe(false);
@@ -21,10 +26,19 @@ describe('requestEmailChangeAtomic', () => {
 
   it('[P0] returns allowed=false when request count at limit', async () => {
     const client = mockClient({
-      data: { request_count: 5, was_inserted: 0, pending_new_email: 'old@test.com' },
+      data: {
+        request_count: 5,
+        was_inserted: 0,
+        pending_new_email: 'old@test.com',
+      },
     });
 
-    const result = await requestEmailChangeAtomic(client, 'user-1', 'new@test.com', 'tok');
+    const result = await requestEmailChangeAtomic(
+      client,
+      'user-1',
+      'new@test.com',
+      'tok',
+    );
     expect(result.allowed).toBe(false);
     expect(result.wasInserted).toBe(false);
     expect(result.pendingExists).toBe(true);
@@ -54,10 +68,19 @@ describe('requestEmailChangeAtomic', () => {
 
   it('[P1] returns pendingExists=true when wasInserted=0 and pending email exists', async () => {
     const client = mockClient({
-      data: { request_count: 1, was_inserted: 0, pending_new_email: 'pending@test.com' },
+      data: {
+        request_count: 1,
+        was_inserted: 0,
+        pending_new_email: 'pending@test.com',
+      },
     });
 
-    const result = await requestEmailChangeAtomic(client, 'user-1', 'new@test.com', 'tok');
+    const result = await requestEmailChangeAtomic(
+      client,
+      'user-1',
+      'new@test.com',
+      'tok',
+    );
     expect(result.pendingExists).toBe(true);
     expect(result.pendingNewEmail).toBe('pending@test.com');
   });
@@ -65,7 +88,12 @@ describe('requestEmailChangeAtomic', () => {
   it('[P1] handles missing response fields with defaults', async () => {
     const client = mockClient({ data: {} });
 
-    const result = await requestEmailChangeAtomic(client, 'user-1', 'new@test.com', 'tok');
+    const result = await requestEmailChangeAtomic(
+      client,
+      'user-1',
+      'new@test.com',
+      'tok',
+    );
     expect(result.allowed).toBe(true);
     expect(result.wasInserted).toBe(false);
     expect(result.requestCount).toBe(0);

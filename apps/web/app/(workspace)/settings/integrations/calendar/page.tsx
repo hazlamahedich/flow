@@ -54,9 +54,7 @@ export default async function CalendarIntegrationPage() {
         <h1 className="text-2xl font-semibold text-[var(--flow-color-text-primary)]">
           Calendar Integration
         </h1>
-        {ctx.role !== 'member' && (
-          <ConnectCalendarButton />
-        )}
+        {ctx.role !== 'member' && <ConnectCalendarButton />}
       </div>
 
       {calendarsError && (

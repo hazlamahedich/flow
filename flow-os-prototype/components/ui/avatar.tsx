@@ -1,13 +1,13 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 const palette = [
-  "bg-flow-100 text-flow-700",
-  "bg-emerald-100 text-emerald-700",
-  "bg-amber-100 text-amber-700",
-  "bg-violet-100 text-violet-700",
-  "bg-cyan-100 text-cyan-700",
-  "bg-rose-100 text-rose-700",
+  'bg-flow-100 text-flow-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-amber-100 text-amber-700',
+  'bg-violet-100 text-violet-700',
+  'bg-cyan-100 text-cyan-700',
+  'bg-rose-100 text-rose-700',
 ];
 
 function hash(s: string) {
@@ -29,15 +29,15 @@ export function Avatar({
     .split(/\s+/)
     .map((p) => p[0])
     .slice(0, 2)
-    .join("")
+    .join('')
     .toUpperCase();
   const tone = palette[hash(name) % palette.length];
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-full font-semibold",
+        'inline-flex items-center justify-center rounded-full font-semibold',
         tone,
-        className
+        className,
       )}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.38) }}
     >

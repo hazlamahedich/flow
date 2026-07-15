@@ -1,9 +1,13 @@
 import { createServiceClient } from '@flow/db';
-import { TRUST_THRESHOLDS, NEW_WORKSPACE_TRUST, TrustLevel } from './schemas/trust';
+import {
+  TRUST_THRESHOLDS,
+  NEW_WORKSPACE_TRUST,
+  TrustLevel,
+} from './schemas/trust';
 
 export async function computeTrustLevel(
   workspaceId: string,
-  clientInboxId: string
+  clientInboxId: string,
 ): Promise<TrustLevel> {
   const supabase = createServiceClient();
 
@@ -17,8 +21,12 @@ export async function computeTrustLevel(
     return NEW_WORKSPACE_TRUST as TrustLevel;
   }
 
-  const recatMetric = metrics.find((m) => m.metric_type === 'recategorization_rate');
-  const draftMetric = metrics.find((m) => m.metric_type === 'draft_acceptance_rate');
+  const recatMetric = metrics.find(
+    (m) => m.metric_type === 'recategorization_rate',
+  );
+  const draftMetric = metrics.find(
+    (m) => m.metric_type === 'draft_acceptance_rate',
+  );
 
   const recatRate = recatMetric?.metric_value ?? 1;
   const recatSamples = recatMetric?.sample_count ?? 0;
@@ -46,14 +54,17 @@ export async function computeTrustLevel(
   return 1;
 }
 
-export async function meetsDraftGate(workspaceId: string, clientInboxId: string): Promise<boolean> {
+export async function meetsDraftGate(
+  workspaceId: string,
+  clientInboxId: string,
+): Promise<boolean> {
   const trustLevel = await computeTrustLevel(workspaceId, clientInboxId);
   return trustLevel >= TRUST_THRESHOLDS.DRAFT_TRUST_GATE;
 }
 
 export async function recordRecategorizationMetric(
   workspaceId: string,
-  clientInboxId: string
+  clientInboxId: string,
 ): Promise<void> {
   const supabase = createServiceClient();
 
@@ -69,7 +80,10 @@ export async function recordRecategorizationMetric(
   // Get recategorized emails for this client inbox using inner join
   const { count: recatCount, error: recatError } = await supabase
     .from('recategorization_log')
-    .select('email_id, emails!inner(client_inbox_id)', { count: 'exact', head: true })
+    .select('email_id, emails!inner(client_inbox_id)', {
+      count: 'exact',
+      head: true,
+    })
     .eq('workspace_id', workspaceId)
     .eq('emails.client_inbox_id', clientInboxId);
 
@@ -78,19 +92,21 @@ export async function recordRecategorizationMetric(
   const sampleCount = totalEmails ?? 0;
   const metricValue = sampleCount > 0 ? (recatCount ?? 0) / sampleCount : 0;
 
-  const { error: upsertError } = await supabase.from('inbox_trust_metrics').upsert(
-    {
-      workspace_id: workspaceId,
-      client_inbox_id: clientInboxId,
-      metric_type: 'recategorization_rate',
-      metric_value: metricValue,
-      sample_count: sampleCount,
-      computed_at: new Date().toISOString(),
-    },
-    {
-      onConflict: 'workspace_id, client_inbox_id, metric_type',
-    }
-  );
+  const { error: upsertError } = await supabase
+    .from('inbox_trust_metrics')
+    .upsert(
+      {
+        workspace_id: workspaceId,
+        client_inbox_id: clientInboxId,
+        metric_type: 'recategorization_rate',
+        metric_value: metricValue,
+        sample_count: sampleCount,
+        computed_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'workspace_id, client_inbox_id, metric_type',
+      },
+    );
 
   if (upsertError) throw upsertError;
 }

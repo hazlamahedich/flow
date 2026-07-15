@@ -8,7 +8,13 @@ interface ErrorDisplayProps {
 }
 
 function parseError(raw: Record<string, unknown> | null): AgentRunError {
-  if (!raw) return { code: 'unknown', entity: undefined, resolution: undefined, retryable: false };
+  if (!raw)
+    return {
+      code: 'unknown',
+      entity: undefined,
+      resolution: undefined,
+      retryable: false,
+    };
   return {
     code: (raw.code as string) ?? 'unknown',
     entity: raw.entity as string | undefined,
@@ -24,8 +30,12 @@ export function ErrorDisplay({ error }: ErrorDisplayProps) {
     <div className="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-1">
       <p className="text-sm font-medium text-amber-800">{ERROR_TONE.header}</p>
       <p className="text-xs text-amber-700">
-        <span className="font-mono bg-amber-100 px-1 rounded">{parsed.code}</span>
-        {parsed.entity && <span className="ml-2">Affected: {parsed.entity}</span>}
+        <span className="font-mono bg-amber-100 px-1 rounded">
+          {parsed.code}
+        </span>
+        {parsed.entity && (
+          <span className="ml-2">Affected: {parsed.entity}</span>
+        )}
       </p>
       {parsed.resolution && (
         <p className="text-xs text-amber-700">{parsed.resolution}</p>

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { useState } from 'react';
+import * as Tooltip from '@radix-ui/react-tooltip';
 
 interface ClientHealthBadgeProps {
   health: string | null;
@@ -13,16 +13,16 @@ interface ClientHealthBadgeProps {
 }
 
 const COLOR_MAP: Record<string, string> = {
-  healthy: "bg-green-500",
-  "at-risk": "bg-yellow-500",
-  critical: "bg-red-500",
-  neutral: "bg-gray-400",
-  onboarding: "bg-gray-400",
+  healthy: 'bg-green-500',
+  'at-risk': 'bg-yellow-500',
+  critical: 'bg-red-500',
+  neutral: 'bg-gray-400',
+  onboarding: 'bg-gray-400',
 };
 
 function dotColor(health: string | null): string {
-  if (!health) return "bg-gray-400";
-  return COLOR_MAP[health] ?? "bg-gray-400";
+  if (!health) return 'bg-gray-400';
+  return COLOR_MAP[health] ?? 'bg-gray-400';
 }
 
 export function ClientHealthBadge({ health, scores }: ClientHealthBadgeProps) {
@@ -32,7 +32,7 @@ export function ClientHealthBadge({ health, scores }: ClientHealthBadgeProps) {
     return (
       <span
         className={`inline-block h-2.5 w-2.5 rounded-full ${dotColor(health)}`}
-        aria-label={health ?? "no data"}
+        aria-label={health ?? 'no data'}
       />
     );
   }
@@ -43,7 +43,7 @@ export function ClientHealthBadge({ health, scores }: ClientHealthBadgeProps) {
         <Tooltip.Trigger asChild>
           <button
             className={`inline-block h-2.5 w-2.5 rounded-full ${dotColor(health)} cursor-default`}
-            aria-label={health ?? "no data"}
+            aria-label={health ?? 'no data'}
           />
         </Tooltip.Trigger>
         <Tooltip.Portal>

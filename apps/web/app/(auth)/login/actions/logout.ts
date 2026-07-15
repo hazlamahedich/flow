@@ -9,13 +9,18 @@ export async function logout(): Promise<void> {
   const supabase = await getServerSupabase();
   const headerStore = await headers();
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   if (!session) {
     redirect('/login');
   }
 
-  const ip = headerStore.get('x-forwarded-for') ?? headerStore.get('x-real-ip') ?? 'unknown';
+  const ip =
+    headerStore.get('x-forwarded-for') ??
+    headerStore.get('x-real-ip') ??
+    'unknown';
   const logParams: Parameters<typeof logAuthEvent>[0] = {
     action: 'session_revoked',
     userId: session.user.id,

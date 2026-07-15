@@ -5,11 +5,21 @@ import {
   detectLowHours,
   type TimeEntryForDetection,
 } from '@flow/agents/time-integrity/anomaly-detection';
-import { GAP_THRESHOLD_MINUTES, LOW_HOURS_TARGET, timeIntegrityInputSchema } from '@flow/agents/time-integrity/schemas';
-import { getBossInstance, setBossInstance, clearBossInstance } from '@flow/agents/orchestrator/boss-di';
+import {
+  GAP_THRESHOLD_MINUTES,
+  LOW_HOURS_TARGET,
+  timeIntegrityInputSchema,
+} from '@flow/agents/time-integrity/schemas';
+import {
+  getBossInstance,
+  setBossInstance,
+  clearBossInstance,
+} from '@flow/agents/orchestrator/boss-di';
 import { isSupabaseAvailable } from '@flow/test-utils';
 
-function buildTimeEntry(overrides: Partial<TimeEntryForDetection> = {}): TimeEntryForDetection {
+function buildTimeEntry(
+  overrides: Partial<TimeEntryForDetection> = {},
+): TimeEntryForDetection {
   return {
     id: crypto.randomUUID(),
     date: '2026-05-09',
@@ -133,27 +143,40 @@ describe('Story 5.4: Time Integrity Agent', () => {
 
     test('[P0] [5.4-AC4-001] should throw if boss not initialized', () => {
       clearBossInstance();
-      expect(() => getBossInstance()).toThrow('PgBoss instance not initialized');
+      expect(() => getBossInstance()).toThrow(
+        'PgBoss instance not initialized',
+      );
     });
 
     test('[P0] [5.4-AC4-002] should return instance after setBossInstance', () => {
-      const mockBoss = { start: vi.fn(), stop: vi.fn() } as unknown as import('pg-boss').PgBoss;
+      const mockBoss = {
+        start: vi.fn(),
+        stop: vi.fn(),
+      } as unknown as import('pg-boss').PgBoss;
       setBossInstance(mockBoss);
       expect(getBossInstance()).toBe(mockBoss);
     });
 
     test('[P0] [5.4-AC4-003] should clear instance on clearBossInstance', () => {
-      const mockBoss = { start: vi.fn(), stop: vi.fn() } as unknown as import('pg-boss').PgBoss;
+      const mockBoss = {
+        start: vi.fn(),
+        stop: vi.fn(),
+      } as unknown as import('pg-boss').PgBoss;
       setBossInstance(mockBoss);
       expect(getBossInstance()).toBe(mockBoss);
       clearBossInstance();
-      expect(() => getBossInstance()).toThrow('PgBoss instance not initialized');
+      expect(() => getBossInstance()).toThrow(
+        'PgBoss instance not initialized',
+      );
     });
   });
 
   describe('AC5: Time integrity input schema validation', () => {
     test('[P0] [5.4-AC5-001] should validate time integrity input schema', () => {
-      const valid = { workspaceId: crypto.randomUUID(), sweepDate: '2026-05-09' };
+      const valid = {
+        workspaceId: crypto.randomUUID(),
+        sweepDate: '2026-05-09',
+      };
       const result = timeIntegrityInputSchema.safeParse(valid);
       expect(result.success).toBe(true);
     });
@@ -165,7 +188,10 @@ describe('Story 5.4: Time Integrity Agent', () => {
     });
 
     test('[P1] [5.4-AC5-003] should reject input with invalid date format', () => {
-      const invalid = { workspaceId: crypto.randomUUID(), sweepDate: 'not-a-date' };
+      const invalid = {
+        workspaceId: crypto.randomUUID(),
+        sweepDate: 'not-a-date',
+      };
       const result = timeIntegrityInputSchema.safeParse(invalid);
       expect(result.success).toBe(false);
     });

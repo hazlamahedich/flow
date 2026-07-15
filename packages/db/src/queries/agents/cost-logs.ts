@@ -19,7 +19,9 @@ export interface CostLogRow extends CostLogEntry {
 }
 
 export async function insertCostEstimate(
-  entry: Omit<CostLogEntry, 'actualCostCents' | 'outputTokens'> & { outputTokens?: number },
+  entry: Omit<CostLogEntry, 'actualCostCents' | 'outputTokens'> & {
+    outputTokens?: number;
+  },
 ): Promise<CostLogRow> {
   const client = createServiceClient();
   const row: Record<string, unknown> = {
@@ -43,9 +45,7 @@ export async function insertCostEstimate(
   return mapRow(data);
 }
 
-export async function insertCostLog(
-  entry: CostLogEntry,
-): Promise<CostLogRow> {
+export async function insertCostLog(entry: CostLogEntry): Promise<CostLogRow> {
   const client = createServiceClient();
   const row: Record<string, unknown> = {
     workspace_id: entry.workspaceId,
@@ -81,9 +81,12 @@ export async function getWorkspaceSpend(
     .gte('created_at', periodStart.toISOString())
     .lte('created_at', periodEnd.toISOString());
   if (error) throw error;
-  return data.reduce((sum: number, row: { actual_cost_cents: number | null }) => {
-    return sum + (row.actual_cost_cents ?? 0);
-  }, 0);
+  return data.reduce(
+    (sum: number, row: { actual_cost_cents: number | null }) => {
+      return sum + (row.actual_cost_cents ?? 0);
+    },
+    0,
+  );
 }
 
 export async function getDailySpend(
@@ -101,7 +104,11 @@ export async function checkBudgetThreshold(
   workspaceId: string,
   monthlyBudgetCents: number,
   periodStart: Date,
-): Promise<{ allowed: boolean; percentUsed: number; alertLevel: 'none' | 'warning' | 'critical' }> {
+): Promise<{
+  allowed: boolean;
+  percentUsed: number;
+  alertLevel: 'none' | 'warning' | 'critical';
+}> {
   if (monthlyBudgetCents <= 0) {
     return { allowed: true, percentUsed: 0, alertLevel: 'none' };
   }

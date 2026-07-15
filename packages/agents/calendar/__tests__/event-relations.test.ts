@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { writeEventRelation, writeRescheduledFromRelation, findDependentEvents } from '../event-relations';
+import {
+  writeEventRelation,
+  writeRescheduledFromRelation,
+  findDependentEvents,
+} from '../event-relations';
 
 const mockUpsert = vi.fn();
 const mockSelect = vi.fn();
@@ -17,7 +21,9 @@ function createMockSupabase() {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              in: vi.fn().mockResolvedValue({ data: [{ id: 'evt-1' }, { id: 'evt-2' }] }),
+              in: vi.fn().mockResolvedValue({
+                data: [{ id: 'evt-1' }, { id: 'evt-2' }],
+              }),
             }),
           }),
         };
@@ -54,7 +60,9 @@ describe('writeEventRelation', () => {
   });
 
   it('throws on upsert error', async () => {
-    mockUpsert.mockResolvedValue({ error: { message: 'constraint violation' } });
+    mockUpsert.mockResolvedValue({
+      error: { message: 'constraint violation' },
+    });
     const supabase = createMockSupabase();
 
     await expect(
@@ -89,7 +97,12 @@ describe('writeRescheduledFromRelation', () => {
 describe('findDependentEvents', () => {
   it('queries for relations matching event ID', async () => {
     const mockData = [
-      { id: 'r-1', parent_event_id: 'evt-1', child_event_id: 'evt-2', relation_type: 'rescheduled_from' },
+      {
+        id: 'r-1',
+        parent_event_id: 'evt-1',
+        child_event_id: 'evt-2',
+        relation_type: 'rescheduled_from',
+      },
     ];
     mockSelect.mockReturnValue({
       or: vi.fn().mockResolvedValue({ data: mockData }),
@@ -119,6 +132,8 @@ describe('findDependentEvents', () => {
     });
     const supabase = createMockSupabase();
 
-    await expect(findDependentEvents('evt-1', 'ws-1', supabase)).rejects.toThrow();
+    await expect(
+      findDependentEvents('evt-1', 'ws-1', supabase),
+    ).rejects.toThrow();
   });
 });

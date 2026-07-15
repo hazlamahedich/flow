@@ -20,10 +20,19 @@ beforeEach(() => {
   const store: Record<string, string> = {};
   vi.stubGlobal('localStorage', {
     getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => Object.keys(store).forEach((k) => { delete store[k]; }),
-    get length() { return Object.keys(store).length; },
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () =>
+      Object.keys(store).forEach((k) => {
+        delete store[k];
+      }),
+    get length() {
+      return Object.keys(store).length;
+    },
     key: (index: number) => Object.keys(store)[index] ?? null,
   });
   Object.defineProperty(window, 'matchMedia', {
@@ -93,7 +102,9 @@ describe('ThemeProvider', () => {
       return (
         <div>
           <span data-testid="current">{ctx.resolvedTheme}</span>
-          <button data-testid="switch" onClick={() => ctx.setTheme('light')}>switch</button>
+          <button data-testid="switch" onClick={() => ctx.setTheme('light')}>
+            switch
+          </button>
         </div>
       );
     }

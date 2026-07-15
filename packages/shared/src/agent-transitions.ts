@@ -1,6 +1,9 @@
 import type { AgentBackendStatus } from '@flow/types';
 
-export const ALLOWED_TRANSITIONS: Record<AgentBackendStatus, AgentBackendStatus[]> = {
+export const ALLOWED_TRANSITIONS: Record<
+  AgentBackendStatus,
+  AgentBackendStatus[]
+> = {
   inactive: ['activating', 'suspended'],
   activating: ['active', 'inactive', 'suspended'],
   active: ['draining', 'suspended'],

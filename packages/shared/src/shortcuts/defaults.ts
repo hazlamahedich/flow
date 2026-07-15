@@ -85,7 +85,8 @@ export function getDefaultShortcuts(handlers: {
       remappable: false,
       guard: (e) => {
         if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return false;
-        if (isInputFocused(e.target) || isBlockNoteFocused(e.target)) return false;
+        if (isInputFocused(e.target) || isBlockNoteFocused(e.target))
+          return false;
         return true;
       },
     });

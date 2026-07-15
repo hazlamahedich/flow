@@ -33,7 +33,9 @@ function makeBaseParams() {
   };
 }
 
-function setupServiceClient(tables: Record<string, Record<string, unknown>> = {}) {
+function setupServiceClient(
+  tables: Record<string, Record<string, unknown>> = {},
+) {
   const client = {
     from: vi.fn((table: string) => {
       const t = tables[table] ?? {};
@@ -58,7 +60,9 @@ function setupServiceClient(tables: Record<string, Record<string, unknown>> = {}
     rpc: vi.fn(() => tables.rpc ?? { error: null }),
   };
 
-  vi.mocked(createServiceClient).mockReturnValue(client as unknown as ReturnType<typeof createServiceClient>);
+  vi.mocked(createServiceClient).mockReturnValue(
+    client as unknown as ReturnType<typeof createServiceClient>,
+  );
   return client;
 }
 
@@ -83,7 +87,10 @@ describe('executeOwnershipTransfer', () => {
     const { params, transfer } = makeBaseParams();
     setupServiceClient({
       transfer_requests: {
-        selectSingle: { data: { ...transfer, status: 'accepted' }, error: null },
+        selectSingle: {
+          data: { ...transfer, status: 'accepted' },
+          error: null,
+        },
       },
     });
 
@@ -96,7 +103,10 @@ describe('executeOwnershipTransfer', () => {
     setupServiceClient({
       transfer_requests: {
         selectSingle: {
-          data: { ...transfer, expires_at: new Date(Date.now() - 1000).toISOString() },
+          data: {
+            ...transfer,
+            expires_at: new Date(Date.now() - 1000).toISOString(),
+          },
           error: null,
         },
       },
@@ -128,7 +138,10 @@ describe('executeOwnershipTransfer', () => {
         selectSingle: { data: transfer, error: null },
       },
       workspace_members: {
-        selectSingle: { data: { role: 'admin', status: 'active' }, error: null },
+        selectSingle: {
+          data: { role: 'admin', status: 'active' },
+          error: null,
+        },
       },
     });
 
@@ -158,7 +171,10 @@ describe('executeOwnershipTransfer', () => {
         selectSingle: { data: transfer, error: null },
       },
       workspace_members: {
-        selectSingle: { data: { role: 'owner', status: 'active' }, error: null },
+        selectSingle: {
+          data: { role: 'owner', status: 'active' },
+          error: null,
+        },
       },
       rpc: { error: { message: 'RPC failed' } },
     });
@@ -174,7 +190,10 @@ describe('executeOwnershipTransfer', () => {
         selectSingle: { data: transfer, error: null },
       },
       workspace_members: {
-        selectSingle: { data: { role: 'owner', status: 'active' }, error: null },
+        selectSingle: {
+          data: { role: 'owner', status: 'active' },
+          error: null,
+        },
       },
       rpc: { error: null },
     });

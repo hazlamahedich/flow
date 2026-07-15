@@ -21,21 +21,29 @@ interface PayInvoiceButtonProps {
   currency: string;
 }
 
-export function PayInvoiceButton({ portalCtx, slug, invoiceId, balanceCents, currency }: PayInvoiceButtonProps) {
-  const [state, formAction, isPending] = useActionState(
-    async () => {
-      const result = await payInvoicePortalAction(portalCtx, { invoiceId, slug });
-      if (result.success && result.data.checkoutUrl) {
-        window.location.href = result.data.checkoutUrl;
-        return { success: true, data: { redirected: true } } as { success: true; data: { redirected: true } };
-      }
-      return result;
-    },
-    null,
-  );
+export function PayInvoiceButton({
+  portalCtx,
+  slug,
+  invoiceId,
+  balanceCents,
+  currency,
+}: PayInvoiceButtonProps) {
+  const [state, formAction, isPending] = useActionState(async () => {
+    const result = await payInvoicePortalAction(portalCtx, { invoiceId, slug });
+    if (result.success && result.data.checkoutUrl) {
+      window.location.href = result.data.checkoutUrl;
+      return { success: true, data: { redirected: true } } as {
+        success: true;
+        data: { redirected: true };
+      };
+    }
+    return result;
+  }, null);
 
   const errorMsg = state && !state.success ? state.error.message : null;
-  const isRedirecting = state?.success && (state.data as Record<string, unknown> | undefined)?.redirected === true;
+  const isRedirecting =
+    state?.success &&
+    (state.data as Record<string, unknown> | undefined)?.redirected === true;
 
   return (
     <form action={formAction}>
@@ -51,7 +59,9 @@ export function PayInvoiceButton({ portalCtx, slug, invoiceId, balanceCents, cur
           : `Pay ${formatCents(balanceCents)} ${currency.toUpperCase()}`}
       </button>
       {errorMsg && (
-        <p className="mt-2 text-sm text-red-600" role="alert">{errorMsg}</p>
+        <p className="mt-2 text-sm text-red-600" role="alert">
+          {errorMsg}
+        </p>
       )}
     </form>
   );

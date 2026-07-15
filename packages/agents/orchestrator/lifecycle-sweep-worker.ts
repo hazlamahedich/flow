@@ -31,14 +31,18 @@ interface LifecycleTriggerPayload {
 async function registerLifecycleTrigger(
   boss: PgBoss,
   queueName: string,
-  importer: () => Promise<{ default?: () => Promise<unknown> } | (() => Promise<unknown>)>,
+  importer: () => Promise<
+    { default?: () => Promise<unknown> } | (() => Promise<unknown>)
+  >,
   label: string,
 ): Promise<void> {
   await boss.work<LifecycleTriggerPayload>(queueName, async () => {
     try {
       const mod = await importer();
       const runner =
-        typeof mod === 'function' ? mod : (mod.default as () => Promise<unknown>);
+        typeof mod === 'function'
+          ? mod
+          : (mod.default as () => Promise<unknown>);
       const result = await runner();
       writeAuditLog({
         workspaceId: 'system',
@@ -64,7 +68,9 @@ async function registerLifecycleTrigger(
  * Entry point — called from `factory.ts` alongside `registerSweepWorkers`.
  * Registers all three lifecycle cron handlers.
  */
-export async function registerLifecycleSweepWorkers(boss: PgBoss): Promise<void> {
+export async function registerLifecycleSweepWorkers(
+  boss: PgBoss,
+): Promise<void> {
   await registerLifecycleTrigger(
     boss,
     'subscription-grace-sweep-trigger',

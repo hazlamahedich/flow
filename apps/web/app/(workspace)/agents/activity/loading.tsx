@@ -4,7 +4,10 @@ export default function ActivityLoading() {
       <div className="h-4 w-48 bg-[var(--flow-color-surface-elevated)] rounded" />
       <div className="flex gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-9 w-32 bg-[var(--flow-color-surface-elevated)] rounded-md" />
+          <div
+            key={i}
+            className="h-9 w-32 bg-[var(--flow-color-surface-elevated)] rounded-md"
+          />
         ))}
       </div>
       <div className="h-6 w-72 bg-[var(--flow-color-surface-elevated)] rounded" />

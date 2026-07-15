@@ -82,40 +82,44 @@ describe('Friday Feeling Agent — executor integration tests', () => {
     });
 
     const { execute } = await import('../src/executor');
-    const result = await execute({
+    const result = (await execute({
       workspaceId: 'ws-1',
       userId: 'user-1',
       weekStart: '2026-05-19',
       weekEnd: '2026-05-25',
       agentRunId: 'run-0',
       trigger: 'cron',
-    }) as FridayFeelingResult;
+    })) as FridayFeelingResult;
 
     expect(result.tasksHandled).toBe(3);
     expect(result.timeSavedMinutes).toBe(15);
-    expect(result.headline).toBe("Here's what you accomplished. Now go live your life.");
+    expect(result.headline).toBe(
+      "Here's what you accomplished. Now go live your life.",
+    );
   });
 
   test('captures trust milestones from trust_transitions table', async () => {
     setupMocks({
       runs: [{ id: 'run-1' }],
-      transitions: [{
-        agent_id: 'time_integrity',
-        from_level: 'supervised',
-        to_level: 'confirm',
-        created_at: '2026-05-22T14:00:00Z',
-      }],
+      transitions: [
+        {
+          agent_id: 'time_integrity',
+          from_level: 'supervised',
+          to_level: 'confirm',
+          created_at: '2026-05-22T14:00:00Z',
+        },
+      ],
     });
 
     const { execute } = await import('../src/executor');
-    const result = await execute({
+    const result = (await execute({
       workspaceId: 'ws-1',
       userId: 'user-1',
       weekStart: '2026-05-19',
       weekEnd: '2026-05-25',
       agentRunId: 'run-0',
       trigger: 'cron',
-    }) as FridayFeelingResult;
+    })) as FridayFeelingResult;
 
     expect(result.trustMilestones).toHaveLength(1);
     expect(result.trustMilestones[0]!.agent_type).toBe('time_integrity');
@@ -129,14 +133,14 @@ describe('Friday Feeling Agent — executor integration tests', () => {
     });
 
     const { execute } = await import('../src/executor');
-    const result = await execute({
+    const result = (await execute({
       workspaceId: 'ws-1',
       userId: 'user-1',
       weekStart: '2026-05-19',
       weekEnd: '2026-05-25',
       agentRunId: 'run-0',
       trigger: 'cron',
-    }) as FridayFeelingResult;
+    })) as FridayFeelingResult;
 
     expect(result.tasksHandled).toBe(0);
     expect(result.timeSavedMinutes).toBe(0);
@@ -156,14 +160,14 @@ describe('Friday Feeling Agent — executor integration tests', () => {
     });
 
     const { execute } = await import('../src/executor');
-    const result = await execute({
+    const result = (await execute({
       workspaceId: 'ws-1',
       userId: 'user-1',
       weekStart: '2026-05-19',
       weekEnd: '2026-05-25',
       agentRunId: 'run-0',
       trigger: 'cron',
-    }) as FridayFeelingResult;
+    })) as FridayFeelingResult;
 
     expect(result.summaryId).toBe('ff-existing');
   });

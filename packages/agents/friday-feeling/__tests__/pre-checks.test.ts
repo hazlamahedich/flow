@@ -41,7 +41,9 @@ describe('Friday Feeling Agent — preCheck Unit Tests', () => {
 
   test('passes when agent config is active and subscription is active', async () => {
     mockGetAgentConfiguration.mockResolvedValue({ status: 'active' });
-    mockFrom.mockReturnValue(makeWorkspaceChain({ subscriptionStatus: 'active' }));
+    mockFrom.mockReturnValue(
+      makeWorkspaceChain({ subscriptionStatus: 'active' }),
+    );
 
     const result = await preCheck(validInput);
     expect(result.passed).toBe(true);
@@ -50,7 +52,9 @@ describe('Friday Feeling Agent — preCheck Unit Tests', () => {
 
   test('fails when friday-feeling agent config is inactive', async () => {
     mockGetAgentConfiguration.mockResolvedValue({ status: 'inactive' });
-    mockFrom.mockReturnValue(makeWorkspaceChain({ subscriptionStatus: 'active' }));
+    mockFrom.mockReturnValue(
+      makeWorkspaceChain({ subscriptionStatus: 'active' }),
+    );
 
     const result = await preCheck(validInput);
     expect(result.passed).toBe(false);
@@ -59,7 +63,9 @@ describe('Friday Feeling Agent — preCheck Unit Tests', () => {
 
   test('fails when workspace subscription is suspended', async () => {
     mockGetAgentConfiguration.mockResolvedValue({ status: 'active' });
-    mockFrom.mockReturnValue(makeWorkspaceChain({ subscriptionStatus: 'suspended' }));
+    mockFrom.mockReturnValue(
+      makeWorkspaceChain({ subscriptionStatus: 'suspended' }),
+    );
 
     const result = await preCheck(validInput);
     expect(result.passed).toBe(false);
@@ -68,7 +74,9 @@ describe('Friday Feeling Agent — preCheck Unit Tests', () => {
 
   test('fails when workspace subscription is past_due', async () => {
     mockGetAgentConfiguration.mockResolvedValue({ status: 'active' });
-    mockFrom.mockReturnValue(makeWorkspaceChain({ subscriptionStatus: 'past_due' }));
+    mockFrom.mockReturnValue(
+      makeWorkspaceChain({ subscriptionStatus: 'past_due' }),
+    );
 
     const result = await preCheck(validInput);
     expect(result.passed).toBe(false);
@@ -80,7 +88,9 @@ describe('Friday Feeling Agent — preCheck Unit Tests', () => {
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+      single: vi
+        .fn()
+        .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
     });
 
     const result = await preCheck(validInput);
@@ -90,7 +100,9 @@ describe('Friday Feeling Agent — preCheck Unit Tests', () => {
 
   test('fails when agent config is missing (null)', async () => {
     mockGetAgentConfiguration.mockResolvedValue(null);
-    mockFrom.mockReturnValue(makeWorkspaceChain({ subscriptionStatus: 'active' }));
+    mockFrom.mockReturnValue(
+      makeWorkspaceChain({ subscriptionStatus: 'active' }),
+    );
 
     const result = await preCheck(validInput);
     expect(result.passed).toBe(false);

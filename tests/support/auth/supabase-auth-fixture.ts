@@ -21,12 +21,20 @@ function getCookieName(): string {
   return `sb-${firstSegment}-auth-token`;
 }
 
-async function signInAs(email: string, password: string): Promise<AuthenticatedUser> {
+async function signInAs(
+  email: string,
+  password: string,
+): Promise<AuthenticatedUser> {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (error || !data.user) {
-    throw new Error(`Failed to sign in as ${email}: ${error?.message ?? 'no user returned'}`);
+    throw new Error(
+      `Failed to sign in as ${email}: ${error?.message ?? 'no user returned'}`,
+    );
   }
 
   return {

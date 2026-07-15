@@ -6,13 +6,20 @@ export interface PreCheckResult {
   errors: string[];
 }
 
-export async function preCheck(input: FridayFeelingInput): Promise<PreCheckResult> {
+export async function preCheck(
+  input: FridayFeelingInput,
+): Promise<PreCheckResult> {
   const errors: string[] = [];
 
   try {
-    const config = await getAgentConfiguration(input.workspaceId, 'friday-feeling');
+    const config = await getAgentConfiguration(
+      input.workspaceId,
+      'friday-feeling',
+    );
     if (!config || config.status !== 'active') {
-      errors.push(`Agent 'friday-feeling' is inactive or not configured in workspace ${input.workspaceId}`);
+      errors.push(
+        `Agent 'friday-feeling' is inactive or not configured in workspace ${input.workspaceId}`,
+      );
     }
 
     const supabase = createServiceClient();
@@ -25,8 +32,12 @@ export async function preCheck(input: FridayFeelingInput): Promise<PreCheckResul
     if (wsErr || !ws) {
       errors.push(`Workspace not found: ${input.workspaceId}`);
     } else {
-      const settings = (ws.settings as { subscriptionStatus?: string } | null) ?? {};
-      if (settings.subscriptionStatus === 'suspended' || settings.subscriptionStatus === 'past_due') {
+      const settings =
+        (ws.settings as { subscriptionStatus?: string } | null) ?? {};
+      if (
+        settings.subscriptionStatus === 'suspended' ||
+        settings.subscriptionStatus === 'past_due'
+      ) {
         errors.push(`Workspace subscription is ${settings.subscriptionStatus}`);
       }
     }

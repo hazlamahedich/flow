@@ -66,49 +66,54 @@ export async function aggregateReportData(
 ): Promise<AggregatedReportData> {
   const { workspaceId, clientId, periodStart, periodEnd } = options;
 
-  const nextDayStr = new Date(new Date(periodStart).getTime() + 86400000).toISOString().split('T')[0]!;
+  const nextDayStr = new Date(new Date(periodStart).getTime() + 86400000)
+    .toISOString()
+    .split('T')[0]!;
   // Calculate next day after periodEnd for strict timestamp comparisons
   const d = new Date(`${periodEnd}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + 1);
   const periodEndNext = d.toISOString().split('T')[0]!;
 
-  const [timeResult, invResult, agentResult, inboxResult, overdueResult] = await Promise.all([
-    supabase
-      .from('time_entries')
-      .select('duration_minutes, notes, date, client_id, project_id, projects(name)')
-      .eq('client_id', clientId)
-      .eq('workspace_id', workspaceId)
-      .gte('date', periodStart)
-      .lte('date', periodEnd)
-      .is('deleted_at', null),
-    supabase
-      .from('invoices')
-      .select('id, total_cents, status')
-      .eq('client_id', clientId)
-      .eq('workspace_id', workspaceId)
-      .gte('issue_date', periodStart)
-      .lte('issue_date', periodEnd)
-      .neq('status', 'voided'),
-    supabase
-      .from('agent_runs')
-      .select('action_type, status')
-      .eq('client_id', clientId)
-      .eq('workspace_id', workspaceId)
-      .gte('created_at', `${periodStart}T00:00:00Z`)
-      .lt('created_at', `${periodEndNext}T00:00:00Z`),
-    supabase
-      .from('client_inboxes')
-      .select('id')
-      .eq('client_id', clientId)
-      .eq('workspace_id', workspaceId)
-      .maybeSingle(),
-    supabase
-      .from('invoices')
-      .select('id, total_cents, issue_date, status')
-      .eq('client_id', clientId)
-      .eq('workspace_id', workspaceId)
-      .eq('status', 'overdue'),
-  ]);
+  const [timeResult, invResult, agentResult, inboxResult, overdueResult] =
+    await Promise.all([
+      supabase
+        .from('time_entries')
+        .select(
+          'duration_minutes, notes, date, client_id, project_id, projects(name)',
+        )
+        .eq('client_id', clientId)
+        .eq('workspace_id', workspaceId)
+        .gte('date', periodStart)
+        .lte('date', periodEnd)
+        .is('deleted_at', null),
+      supabase
+        .from('invoices')
+        .select('id, total_cents, status')
+        .eq('client_id', clientId)
+        .eq('workspace_id', workspaceId)
+        .gte('issue_date', periodStart)
+        .lte('issue_date', periodEnd)
+        .neq('status', 'voided'),
+      supabase
+        .from('agent_runs')
+        .select('action_type, status')
+        .eq('client_id', clientId)
+        .eq('workspace_id', workspaceId)
+        .gte('created_at', `${periodStart}T00:00:00Z`)
+        .lt('created_at', `${periodEndNext}T00:00:00Z`),
+      supabase
+        .from('client_inboxes')
+        .select('id')
+        .eq('client_id', clientId)
+        .eq('workspace_id', workspaceId)
+        .maybeSingle(),
+      supabase
+        .from('invoices')
+        .select('id, total_cents, issue_date, status')
+        .eq('client_id', clientId)
+        .eq('workspace_id', workspaceId)
+        .eq('status', 'overdue'),
+    ]);
 
   if (timeResult.error) throw timeResult.error;
   if (invResult.error) throw invResult.error;
@@ -124,10 +129,17 @@ export async function aggregateReportData(
 
   // Truncate note lists to prevent LLM context pollution
   const maxEntriesPerProject = 50;
-  const projectMap = new Map<string, { projectName: string; entries: Array<{ date: string; durationMinutes: number; notes: string }> }>();
+  const projectMap = new Map<
+    string,
+    {
+      projectName: string;
+      entries: Array<{ date: string; durationMinutes: number; notes: string }>;
+    }
+  >();
   for (const r of timeRows) {
     const pid = safeStr(r.project_id);
-    const pname = (((r.projects as unknown) as { name?: string } | null)?.name) ?? 'Default';
+    const pname =
+      (r.projects as unknown as { name?: string } | null)?.name ?? 'Default';
     if (!projectMap.has(pid)) {
       projectMap.set(pid, { projectName: pname, entries: [] });
     }
@@ -146,19 +158,24 @@ export async function aggregateReportData(
     } else {
       // Consolidate remaining entries into the final slot
       if (list.length === maxEntriesPerProject - 1) {
-          list.push({
-              date: safeStr(r.date),
-              durationMinutes: safeNum(r.duration_minutes),
-              notes: 'And additional unlisted entries...',
-          });
+        list.push({
+          date: safeStr(r.date),
+          durationMinutes: safeNum(r.duration_minutes),
+          notes: 'And additional unlisted entries...',
+        });
       } else {
-          list[maxEntriesPerProject - 1]!.durationMinutes += safeNum(r.duration_minutes);
+        list[maxEntriesPerProject - 1]!.durationMinutes += safeNum(
+          r.duration_minutes,
+        );
       }
     }
   }
 
   // Invoice calculations
-  const totalInvoiceCents = invRows.reduce((sum, r) => sum + safeNum(r.total_cents), 0);
+  const totalInvoiceCents = invRows.reduce(
+    (sum, r) => sum + safeNum(r.total_cents),
+    0,
+  );
   const invoiceIds = invRows.map((r) => r.id as string);
   let totalPaidCents = 0;
   if (invoiceIds.length > 0) {
@@ -170,11 +187,17 @@ export async function aggregateReportData(
       .gte('created_at', `${periodStart}T00:00:00Z`)
       .lt('created_at', `${periodEndNext}T00:00:00Z`);
     if (payError) throw payError;
-    totalPaidCents = (payRows ?? []).reduce((sum, r) => sum + safeNum(r.amount_cents), 0);
+    totalPaidCents = (payRows ?? []).reduce(
+      (sum, r) => sum + safeNum(r.amount_cents),
+      0,
+    );
   }
 
   // Agent activity calculations
-  const counts = new Map<string, { actionType: string; status: string; count: number }>();
+  const counts = new Map<
+    string,
+    { actionType: string; status: string; count: number }
+  >();
   for (const r of agentRows) {
     const actionType = (r.action_type as string) ?? '';
     const status = (r.status as string) ?? '';
@@ -192,7 +215,11 @@ export async function aggregateReportData(
     stalledItems.push({
       type: 'overdue_invoice',
       description: `Invoice for $${(safeNum(inv.total_cents) / 100).toFixed(2)} is currently overdue (issued on ${inv.issue_date}).`,
-      meta: { invoiceId: inv.id, totalCents: inv.total_cents, issueDate: inv.issue_date },
+      meta: {
+        invoiceId: inv.id,
+        totalCents: inv.total_cents,
+        issueDate: inv.issue_date,
+      },
     });
   }
 
@@ -215,14 +242,27 @@ export async function aggregateReportData(
       }
       stalledItems.push({
         type: 'extracted_action',
-        description: `Outstanding action item: "${desc}"` + (act.due_date ? ` (due ${act.due_date.slice(0, 10)})` : ''),
-        meta: { actionId: act.id, dueDate: act.due_date, confidence: act.confidence },
+        description:
+          `Outstanding action item: "${desc}"` +
+          (act.due_date ? ` (due ${act.due_date.slice(0, 10)})` : ''),
+        meta: {
+          actionId: act.id,
+          dueDate: act.due_date,
+          confidence: act.confidence,
+        },
       });
     }
   }
 
-  const totalMinutes = timeRows.reduce((sum, r) => sum + safeNum(r.duration_minutes), 0);
-  const hasActivity = totalMinutes > 0 || invRows.length > 0 || agentRows.length > 0 || stalledItems.length > 0;
+  const totalMinutes = timeRows.reduce(
+    (sum, r) => sum + safeNum(r.duration_minutes),
+    0,
+  );
+  const hasActivity =
+    totalMinutes > 0 ||
+    invRows.length > 0 ||
+    agentRows.length > 0 ||
+    stalledItems.length > 0;
 
   return {
     timeSummary: {

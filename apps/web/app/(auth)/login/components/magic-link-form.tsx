@@ -23,7 +23,9 @@ export function MagicLinkForm() {
   const [sentEmail, setSentEmail] = useState('');
   const [urlError, setUrlError] = useState<string | null>(null);
   const [trustDevice, setTrustDevice] = useState(false);
-  const [emailChangedMessage, setEmailChangedMessage] = useState<string | null>(null);
+  const [emailChangedMessage, setEmailChangedMessage] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -41,7 +43,10 @@ export function MagicLinkForm() {
       return;
     }
 
-    if ((errorParam === 'access_denied' || errorParam === 'expired') && !urlError) {
+    if (
+      (errorParam === 'access_denied' || errorParam === 'expired') &&
+      !urlError
+    ) {
       setUrlError(errorParam);
       const emailParam = params.get('email');
       if (emailParam) setEmail(emailParam);
@@ -126,7 +131,9 @@ export function MagicLinkForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-md border border-[var(--flow-color-border-default)] bg-[var(--flow-color-bg-secondary)] px-3 py-2 text-sm text-[var(--flow-color-text-primary)] placeholder:text-[var(--flow-color-text-tertiary)] focus:border-[var(--flow-color-accent-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--flow-color-accent-primary)]"
-            aria-describedby={state && !state.success ? 'email-error' : undefined}
+            aria-describedby={
+              state && !state.success ? 'email-error' : undefined
+            }
           />
         </div>
 

@@ -5,7 +5,11 @@ import type { ActionResult, Workspace } from '@flow/types';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, createFlowError, cacheTag } from '@flow/db';
 import { revalidateTag } from 'next/cache';
-import { generateSlug, mapWorkspaceRow, type WorkspaceRow } from '@/lib/workspace-utils';
+import {
+  generateSlug,
+  mapWorkspaceRow,
+  type WorkspaceRow,
+} from '@/lib/workspace-utils';
 import { logWorkspaceEvent } from '@/lib/workspace-audit';
 
 const MAX_SLUG_RETRIES = 3;
@@ -17,7 +21,12 @@ export async function createWorkspace(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
@@ -45,7 +54,12 @@ export async function createWorkspace(
       }
       return {
         success: false,
-        error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to create workspace', 'system'),
+        error: createFlowError(
+          500,
+          'INTERNAL_ERROR',
+          'Failed to create workspace',
+          'system',
+        ),
       };
     }
 
@@ -63,11 +77,19 @@ export async function createWorkspace(
       // Audit logging best-effort — do not fail the action
     }
 
-    return { success: true, data: mapWorkspaceRow(row as unknown as WorkspaceRow) };
+    return {
+      success: true,
+      data: mapWorkspaceRow(row as unknown as WorkspaceRow),
+    };
   }
 
   return {
     success: false,
-    error: createFlowError(500, 'WORKSPACE_SLUG_COLLISION', `Failed to create workspace after ${MAX_SLUG_RETRIES} attempts: ${lastError}`, 'system'),
+    error: createFlowError(
+      500,
+      'WORKSPACE_SLUG_COLLISION',
+      `Failed to create workspace after ${MAX_SLUG_RETRIES} attempts: ${lastError}`,
+      'system',
+    ),
   };
 }

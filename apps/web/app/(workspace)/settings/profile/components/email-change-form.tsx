@@ -4,12 +4,17 @@ import { useActionState } from 'react';
 import type { ActionResult } from '@flow/types';
 
 interface EmailChangeFormProps {
-  requestAction: (input: unknown) => Promise<ActionResult<{ pendingEmail: string }>>;
+  requestAction: (
+    input: unknown,
+  ) => Promise<ActionResult<{ pendingEmail: string }>>;
 }
 
 export function EmailChangeForm({ requestAction }: EmailChangeFormProps) {
   const [state, submitAction, isPending] = useActionState(
-    async (prev: ActionResult<{ pendingEmail: string }> | null, formData: FormData) => {
+    async (
+      prev: ActionResult<{ pendingEmail: string }> | null,
+      formData: FormData,
+    ) => {
       const newEmail = String(formData.get('newEmail') ?? '');
       return requestAction({ newEmail });
     },
@@ -52,7 +57,9 @@ export function EmailChangeForm({ requestAction }: EmailChangeFormProps) {
       </form>
 
       {successMessage && (
-        <p className="text-sm text-[var(--flow-status-success)]">{successMessage}</p>
+        <p className="text-sm text-[var(--flow-status-success)]">
+          {successMessage}
+        </p>
       )}
       {errorMessage && (
         <p className="text-sm text-[var(--flow-status-error)]" role="alert">

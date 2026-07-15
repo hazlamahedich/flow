@@ -27,7 +27,10 @@ interface UndoProviderProps {
 export function UndoProvider({ children, undoAction }: UndoProviderProps) {
   const workspaceId = useUndoWorkspaceId();
   const [stacks, setStacks] = useAtom(undoStacksAtom);
-  const actions = useMemo(() => createUndoStackActions(workspaceId), [workspaceId]);
+  const actions = useMemo(
+    () => createUndoStackActions(workspaceId),
+    [workspaceId],
+  );
   const stack = actions.getStack(stacks);
   const router = useRouter();
 
@@ -107,7 +110,9 @@ export function UndoProvider({ children, undoAction }: UndoProviderProps) {
           onDismiss={handleDismiss}
           severity={latestEntry.severity}
           irreversible={latestEntry.irreversible}
-          {...(stack.entries.length > 1 ? { stackedCount: stack.entries.length } : {})}
+          {...(stack.entries.length > 1
+            ? { stackedCount: stack.entries.length }
+            : {})}
         />
       )}
     </>

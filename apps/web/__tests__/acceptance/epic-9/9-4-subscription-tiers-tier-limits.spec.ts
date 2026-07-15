@@ -19,8 +19,18 @@ vi.mock('@/lib/supabase-server', () => ({ getServerSupabase: vi.fn() }));
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }));
 vi.mock('next/navigation', () => ({ redirect: vi.fn() }));
 
-const { mockRequireTenant, mockCountClients, mockCountTeam, mockCountAgents, mockCheckout } = vi.hoisted(() => ({
-  mockRequireTenant: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' }),
+const {
+  mockRequireTenant,
+  mockCountClients,
+  mockCountTeam,
+  mockCountAgents,
+  mockCheckout,
+} = vi.hoisted(() => ({
+  mockRequireTenant: vi.fn().mockResolvedValue({
+    workspaceId: 'ws-1',
+    userId: 'user-1',
+    role: 'owner',
+  }),
   mockCountClients: vi.fn().mockResolvedValue(0),
   mockCountTeam: vi.fn().mockResolvedValue(0),
   mockCountAgents: vi.fn().mockResolvedValue(0),
@@ -126,17 +136,27 @@ describe('[P0] [9.4-ATDD-002] tier limits loaded from app_config, not hardcoded'
     expect(limits.maxAgents).toBeGreaterThan(0);
   });
   test('Pro tier allows more clients than Free tier', async () => {
-    expect((await getTierLimits('pro')).maxClients).toBeGreaterThan((await getTierLimits('free')).maxClients);
+    expect((await getTierLimits('pro')).maxClients).toBeGreaterThan(
+      (await getTierLimits('free')).maxClients,
+    );
   });
   test('Agency tier is unlimited (null in raw, MAX_SAFE_INTEGER normalized)', async () => {
     const agency = await getTierLimits('agency');
     expect(agency.maxClients).toBe(Number.MAX_SAFE_INTEGER);
     expect(agency.maxTeamMembers).toBe(Number.MAX_SAFE_INTEGER);
     // Agency "exceeds" Pro because unlimited is the highest possible value.
-    expect(agency.maxTeamMembers).toBeGreaterThan((await getTierLimits('pro')).maxTeamMembers);
+    expect(agency.maxTeamMembers).toBeGreaterThan(
+      (await getTierLimits('pro')).maxTeamMembers,
+    );
   });
   test('tierLimitSchema validates normalized limit shape', () => {
-    expect(tierLimitSchema.safeParse({ maxClients: 3, maxTeamMembers: 1, maxAgents: 2 }).success).toBe(true);
+    expect(
+      tierLimitSchema.safeParse({
+        maxClients: 3,
+        maxTeamMembers: 1,
+        maxAgents: 2,
+      }).success,
+    ).toBe(true);
   });
 });
 
@@ -172,7 +192,9 @@ describe('[P0] [9.4-ATDD-004] subscription changes are prorated per transition (
     expect(typeof changeTierAction).toBe('function');
   });
   test('upgrade Free → Pro returns prorated checkout URL', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('free') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('free') as never,
+    );
     vi.mocked(mockCheckout).mockResolvedValue({
       success: true,
       data: { url: 'https://checkout.stripe.com/cs_1' },
@@ -182,14 +204,19 @@ describe('[P0] [9.4-ATDD-004] subscription changes are prorated per transition (
     if (result.success) expect(result.data.checkoutUrl).toBeDefined();
   });
   test('proration handled by Stripe defaults — changeTierAction delegates to createCheckoutSessionAction', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('free') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('free') as never,
+    );
     vi.mocked(mockCheckout).mockClear();
     vi.mocked(mockCheckout).mockResolvedValue({
       success: true,
       data: { url: 'https://checkout.stripe.com/cs_prorated' },
     });
     await changeTierAction({ targetTier: 'pro' });
-    expect(mockCheckout).toHaveBeenCalledWith({ tier: 'pro', interval: 'monthly' });
+    expect(mockCheckout).toHaveBeenCalledWith({
+      tier: 'pro',
+      interval: 'monthly',
+    });
   });
 });
 
@@ -203,19 +230,24 @@ describe('[P0] [9.4-ATDD-005] Free tier shows 5% fee notice at invoice creation 
     expect(config.freeTransactionFeePercent).toBe(5);
   });
   test('fee notice is informational, not blocking — createInvoiceAction attaches notice for Free tier', async () => {
-    const { createInvoiceAction: mockedCreateInvoice } = await import('@/lib/actions/invoices/create-invoice');
+    const { createInvoiceAction: mockedCreateInvoice } =
+      await import('@/lib/actions/invoices/create-invoice');
     vi.mocked(mockedCreateInvoice).mockResolvedValue({
       success: true,
       data: {
         id: 'inv-1',
-        notices: ['A 5% processing fee applies to Stripe payments on the Free plan.'],
+        notices: [
+          'A 5% processing fee applies to Stripe payments on the Free plan.',
+        ],
       } as unknown as Awaited<ReturnType<typeof mockedCreateInvoice>>['data'],
     });
 
     const result = await mockedCreateInvoice({} as never);
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.notices).toContain('A 5% processing fee applies to Stripe payments on the Free plan.');
+      expect(result.data.notices).toContain(
+        'A 5% processing fee applies to Stripe payments on the Free plan.',
+      );
     }
   });
 });
@@ -225,7 +257,9 @@ describe('[P0] [9.4-ATDD-005] Free tier shows 5% fee notice at invoice creation 
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [9.4-ATDD-CONTRACT] same-tier rejection, downgrade schema, TIER_LIMIT_EXCEEDED details', () => {
   test('EC6 — changeTierAction same-tier returns INVALID_STATE 409', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('pro') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('pro') as never,
+    );
     const result = await changeTierAction({ targetTier: 'pro' });
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -235,14 +269,21 @@ describe('[P0] [9.4-ATDD-CONTRACT] same-tier rejection, downgrade schema, TIER_L
   });
 
   test('EC7 — changeTierSchema rejects downgrade to free at schema level', () => {
-    expect(changeTierSchema.safeParse({ targetTier: 'free' }).success).toBe(false);
+    expect(changeTierSchema.safeParse({ targetTier: 'free' }).success).toBe(
+      false,
+    );
   });
 
   test('TIER_LIMIT_EXCEEDED — enforceTierLimit returns limit/current/tier on block', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(makeSupabaseReturningTier('free') as never);
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      makeSupabaseReturningTier('free') as never,
+    );
     mockCountClients.mockResolvedValue(3);
 
-    const result = await enforceTierLimit({ workspaceId: 'ws-1', resource: 'clients' });
+    const result = await enforceTierLimit({
+      workspaceId: 'ws-1',
+      resource: 'clients',
+    });
     expect(result.allowed).toBe(false);
     expect(result.limit).toBe(3);
     expect(result.current).toBe(3);

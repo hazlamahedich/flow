@@ -2,10 +2,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { execute } from '../src/executor';
 import type { ClientHealthInput } from '../src/schemas';
 
-const {
-  mockCreateServiceClient,
-  mockInsertSignal,
-} = vi.hoisted(() => ({
+const { mockCreateServiceClient, mockInsertSignal } = vi.hoisted(() => ({
   mockCreateServiceClient: vi.fn(),
   mockInsertSignal: vi.fn(),
 }));
@@ -51,9 +48,21 @@ describe('Client Health Agent — execute Integration Tests', () => {
     const from = vi.fn((table: string) => {
       const mocks: Record<string, { data: unknown; error: unknown }> = {
         time_entries: { data: [{ duration_minutes: 600 }], error: null },
-        inbox_emails: { data: [{ id: 'e1' }, { id: 'e2' }, { id: 'e3' }, { id: 'e4' }, { id: 'e5' }], error: null },
+        inbox_emails: {
+          data: [
+            { id: 'e1' },
+            { id: 'e2' },
+            { id: 'e3' },
+            { id: 'e4' },
+            { id: 'e5' },
+          ],
+          error: null,
+        },
         invoices: { data: [], error: null },
-        clients: { data: { id: 'cli-1', created_at: '2025-01-01T00:00:00Z' }, error: null },
+        clients: {
+          data: { id: 'cli-1', created_at: '2025-01-01T00:00:00Z' },
+          error: null,
+        },
         client_health_snapshots: { data: null, error: null },
       };
       return makeAutoResolvingChain(mocks[table] ?? { data: [], error: null });
@@ -76,7 +85,10 @@ describe('Client Health Agent — execute Integration Tests', () => {
         time_entries: { data: [], error: null },
         inbox_emails: { data: [], error: null },
         invoices: { data: [], error: null },
-        clients: { data: { id: 'cli-1', created_at: '2025-01-01T00:00:00Z' }, error: null },
+        clients: {
+          data: { id: 'cli-1', created_at: '2025-01-01T00:00:00Z' },
+          error: null,
+        },
         client_health_snapshots: { data: null, error: null },
       };
       return makeAutoResolvingChain(mocks[table] ?? { data: [], error: null });
@@ -94,9 +106,18 @@ describe('Client Health Agent — execute Integration Tests', () => {
       const mocks: Record<string, { data: unknown; error: unknown }> = {
         time_entries: { data: [{ duration_minutes: 120 }], error: null },
         inbox_emails: { data: [{ id: 'e1' }], error: null },
-        invoices: { data: [{ status: 'overdue', due_date: '2026-01-01', paid_at: null }], error: null },
-        clients: { data: { id: 'cli-1', created_at: '2025-01-01T00:00:00Z' }, error: null },
-        client_health_snapshots: { data: { overall_health: 'healthy' }, error: null },
+        invoices: {
+          data: [{ status: 'overdue', due_date: '2026-01-01', paid_at: null }],
+          error: null,
+        },
+        clients: {
+          data: { id: 'cli-1', created_at: '2025-01-01T00:00:00Z' },
+          error: null,
+        },
+        client_health_snapshots: {
+          data: { overall_health: 'healthy' },
+          error: null,
+        },
       };
       return makeAutoResolvingChain(mocks[table] ?? { data: [], error: null });
     });
@@ -114,10 +135,25 @@ describe('Client Health Agent — execute Integration Tests', () => {
     const from = vi.fn((table: string) => {
       const mocks: Record<string, { data: unknown; error: unknown }> = {
         time_entries: { data: [{ duration_minutes: 600 }], error: null },
-        inbox_emails: { data: [{ id: 'e1' }, { id: 'e2' }, { id: 'e3' }, { id: 'e4' }, { id: 'e5' }], error: null },
+        inbox_emails: {
+          data: [
+            { id: 'e1' },
+            { id: 'e2' },
+            { id: 'e3' },
+            { id: 'e4' },
+            { id: 'e5' },
+          ],
+          error: null,
+        },
         invoices: { data: [], error: null },
-        clients: { data: { id: 'cli-1', created_at: '2025-01-01T00:00:00Z' }, error: null },
-        client_health_snapshots: { data: { overall_health: 'healthy' }, error: null },
+        clients: {
+          data: { id: 'cli-1', created_at: '2025-01-01T00:00:00Z' },
+          error: null,
+        },
+        client_health_snapshots: {
+          data: { overall_health: 'healthy' },
+          error: null,
+        },
       };
       return makeAutoResolvingChain(mocks[table] ?? { data: [], error: null });
     });

@@ -39,7 +39,10 @@ describe('setActiveWorkspace', () => {
       },
     } as unknown as ReturnType<typeof createServiceClient>);
 
-    await setActiveWorkspace('550e8400-e29b-41d4-a716-446655440000', '660e8400-e29b-41d4-a716-446655440001');
+    await setActiveWorkspace(
+      '550e8400-e29b-41d4-a716-446655440000',
+      '660e8400-e29b-41d4-a716-446655440001',
+    );
 
     expect(mockUpdateUserById).toHaveBeenCalledWith(
       '550e8400-e29b-41d4-a716-446655440000',
@@ -55,14 +58,19 @@ describe('setActiveWorkspace', () => {
     vi.mocked(createServiceClient).mockReturnValue({
       auth: {
         admin: {
-          getUserById: vi.fn().mockResolvedValue({ data: null, error: { message: 'not found' } }),
+          getUserById: vi
+            .fn()
+            .mockResolvedValue({ data: null, error: { message: 'not found' } }),
           updateUserById: vi.fn(),
         },
       },
     } as unknown as ReturnType<typeof createServiceClient>);
 
     await expect(
-      setActiveWorkspace('550e8400-e29b-41d4-a716-446655440000', '660e8400-e29b-41d4-a716-446655440001'),
+      setActiveWorkspace(
+        '550e8400-e29b-41d4-a716-446655440000',
+        '660e8400-e29b-41d4-a716-446655440001',
+      ),
     ).rejects.toThrow('Failed to fetch user');
   });
 
@@ -70,14 +78,21 @@ describe('setActiveWorkspace', () => {
     vi.mocked(createServiceClient).mockReturnValue({
       auth: {
         admin: {
-          getUserById: vi.fn().mockResolvedValue({ data: { user: { app_metadata: {} } } }),
-          updateUserById: vi.fn().mockResolvedValue({ error: { message: 'update failed' } }),
+          getUserById: vi
+            .fn()
+            .mockResolvedValue({ data: { user: { app_metadata: {} } } }),
+          updateUserById: vi
+            .fn()
+            .mockResolvedValue({ error: { message: 'update failed' } }),
         },
       },
     } as unknown as ReturnType<typeof createServiceClient>);
 
     await expect(
-      setActiveWorkspace('550e8400-e29b-41d4-a716-446655440000', '660e8400-e29b-41d4-a716-446655440001'),
+      setActiveWorkspace(
+        '550e8400-e29b-41d4-a716-446655440000',
+        '660e8400-e29b-41d4-a716-446655440001',
+      ),
     ).rejects.toThrow('Failed to set active workspace');
   });
 });

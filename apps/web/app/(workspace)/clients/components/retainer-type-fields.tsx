@@ -2,10 +2,26 @@
 
 import type { RetainerType } from '@flow/types';
 
-export const TYPE_CARDS: { type: RetainerType; title: string; description: string }[] = [
-  { type: 'hourly_rate', title: 'Hourly Rate', description: 'Bill by the hour at a fixed rate' },
-  { type: 'flat_monthly', title: 'Flat Monthly', description: 'Fixed fee per billing period' },
-  { type: 'package_based', title: 'Package', description: 'Set hours for a defined package' },
+export const TYPE_CARDS: {
+  type: RetainerType;
+  title: string;
+  description: string;
+}[] = [
+  {
+    type: 'hourly_rate',
+    title: 'Hourly Rate',
+    description: 'Bill by the hour at a fixed rate',
+  },
+  {
+    type: 'flat_monthly',
+    title: 'Flat Monthly',
+    description: 'Fixed fee per billing period',
+  },
+  {
+    type: 'package_based',
+    title: 'Package',
+    description: 'Set hours for a defined package',
+  },
 ];
 
 interface RetainerTypeFieldsProps {
@@ -14,14 +30,20 @@ interface RetainerTypeFieldsProps {
   defaultValue?: Record<string, string | number | null>;
 }
 
-export function RetainerTypeFields({ type, register, defaultValue }: RetainerTypeFieldsProps) {
+export function RetainerTypeFields({
+  type,
+  register,
+  defaultValue,
+}: RetainerTypeFieldsProps) {
   if (!type) return null;
 
   return (
     <div className="space-y-3">
-      {(type === 'hourly_rate') && (
+      {type === 'hourly_rate' && (
         <label className="block text-sm">
-          <span className="text-[var(--flow-color-text-secondary)]">Rate ($/hr)</span>
+          <span className="text-[var(--flow-color-text-secondary)]">
+            Rate ($/hr)
+          </span>
           <input
             {...register('hourlyRateCents')}
             type="number"
@@ -34,10 +56,12 @@ export function RetainerTypeFields({ type, register, defaultValue }: RetainerTyp
         </label>
       )}
 
-      {(type === 'flat_monthly') && (
+      {type === 'flat_monthly' && (
         <>
           <label className="block text-sm">
-            <span className="text-[var(--flow-color-text-secondary)]">Monthly Fee ($)</span>
+            <span className="text-[var(--flow-color-text-secondary)]">
+              Monthly Fee ($)
+            </span>
             <input
               {...register('monthlyFeeCents')}
               type="number"
@@ -49,7 +73,9 @@ export function RetainerTypeFields({ type, register, defaultValue }: RetainerTyp
             />
           </label>
           <label className="block text-sm">
-            <span className="text-[var(--flow-color-text-secondary)]">Hours Threshold</span>
+            <span className="text-[var(--flow-color-text-secondary)]">
+              Hours Threshold
+            </span>
             <input
               {...register('monthlyHoursThreshold')}
               type="text"
@@ -62,10 +88,12 @@ export function RetainerTypeFields({ type, register, defaultValue }: RetainerTyp
         </>
       )}
 
-      {(type === 'package_based') && (
+      {type === 'package_based' && (
         <>
           <label className="block text-sm">
-            <span className="text-[var(--flow-color-text-secondary)]">Package Name</span>
+            <span className="text-[var(--flow-color-text-secondary)]">
+              Package Name
+            </span>
             <input
               {...register('packageName')}
               type="text"
@@ -75,7 +103,9 @@ export function RetainerTypeFields({ type, register, defaultValue }: RetainerTyp
             />
           </label>
           <label className="block text-sm">
-            <span className="text-[var(--flow-color-text-secondary)]">Package Hours</span>
+            <span className="text-[var(--flow-color-text-secondary)]">
+              Package Hours
+            </span>
             <input
               {...register('packageHours')}
               type="text"
@@ -86,7 +116,9 @@ export function RetainerTypeFields({ type, register, defaultValue }: RetainerTyp
             />
           </label>
           <label className="block text-sm">
-            <span className="text-[var(--flow-color-text-secondary)]">Overage Rate ($/hr, optional)</span>
+            <span className="text-[var(--flow-color-text-secondary)]">
+              Overage Rate ($/hr, optional)
+            </span>
             <input
               {...register('hourlyRateCents')}
               type="number"
@@ -100,7 +132,9 @@ export function RetainerTypeFields({ type, register, defaultValue }: RetainerTyp
       )}
 
       <label className="block text-sm">
-        <span className="text-[var(--flow-color-text-secondary)]">Billing Period (days)</span>
+        <span className="text-[var(--flow-color-text-secondary)]">
+          Billing Period (days)
+        </span>
         <input
           {...register('billingPeriodDays')}
           type="number"
@@ -112,7 +146,9 @@ export function RetainerTypeFields({ type, register, defaultValue }: RetainerTyp
       </label>
 
       <label className="block text-sm">
-        <span className="text-[var(--flow-color-text-secondary)]">End Date (optional)</span>
+        <span className="text-[var(--flow-color-text-secondary)]">
+          End Date (optional)
+        </span>
         <input
           {...register('endDate')}
           type="date"

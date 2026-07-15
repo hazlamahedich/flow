@@ -9,14 +9,18 @@ test.describe('[P0] Persistent Sidebar Timer — Expanded', () => {
     await expect(ownerPage.getByTestId('sidebar-timer-slot')).toBeVisible();
   });
 
-  test('start button is disabled when no client is selected', async ({ ownerPage }) => {
+  test('start button is disabled when no client is selected', async ({
+    ownerPage,
+  }) => {
     const startBtn = ownerPage.getByTestId('sidebar-timer-start');
     if (await startBtn.isVisible()) {
       await expect(startBtn).toBeDisabled();
     }
   });
 
-  test('full start/stop flow: select client, start, stop, verify time entry', async ({ ownerPage }) => {
+  test('full start/stop flow: select client, start, stop, verify time entry', async ({
+    ownerPage,
+  }) => {
     const pickerTrigger = ownerPage.getByTestId('timer-client-picker-trigger');
     await expect(pickerTrigger).toBeVisible();
     await pickerTrigger.click();
@@ -41,7 +45,9 @@ test.describe('[P0] Persistent Sidebar Timer — Expanded', () => {
 
     await stopBtn.click();
 
-    await expect(ownerPage.getByTestId('sidebar-timer-start')).toBeVisible({ timeout: 3000 });
+    await expect(ownerPage.getByTestId('sidebar-timer-start')).toBeVisible({
+      timeout: 3000,
+    });
   });
 
   test('timer persists across page refresh', async ({ ownerPage }) => {
@@ -52,16 +58,24 @@ test.describe('[P0] Persistent Sidebar Timer — Expanded', () => {
     await clientOption.click();
 
     await ownerPage.getByTestId('sidebar-timer-start').click();
-    await expect(ownerPage.getByTestId('sidebar-timer-stop')).toBeVisible({ timeout: 1000 });
+    await expect(ownerPage.getByTestId('sidebar-timer-stop')).toBeVisible({
+      timeout: 1000,
+    });
 
     await ownerPage.reload();
-    await expect(ownerPage.getByTestId('sidebar-timer-stop')).toBeVisible({ timeout: 10000 });
+    await expect(ownerPage.getByTestId('sidebar-timer-stop')).toBeVisible({
+      timeout: 10000,
+    });
 
     await ownerPage.getByTestId('sidebar-timer-stop').click();
-    await expect(ownerPage.getByTestId('sidebar-timer-start')).toBeVisible({ timeout: 3000 });
+    await expect(ownerPage.getByTestId('sidebar-timer-start')).toBeVisible({
+      timeout: 3000,
+    });
   });
 
-  test('timer persists across client-side navigation', async ({ ownerPage }) => {
+  test('timer persists across client-side navigation', async ({
+    ownerPage,
+  }) => {
     const pickerTrigger = ownerPage.getByTestId('timer-client-picker-trigger');
     await pickerTrigger.click();
     const clientOption = ownerPage.getByRole('option').first();
@@ -69,18 +83,24 @@ test.describe('[P0] Persistent Sidebar Timer — Expanded', () => {
     await clientOption.click();
 
     await ownerPage.getByTestId('sidebar-timer-start').click();
-    await expect(ownerPage.getByTestId('sidebar-timer-stop')).toBeVisible({ timeout: 1000 });
+    await expect(ownerPage.getByTestId('sidebar-timer-stop')).toBeVisible({
+      timeout: 1000,
+    });
 
     await ownerPage.getByTestId('sidebar').getByRole('link').first().click();
 
-    await expect(ownerPage.getByTestId('sidebar-timer-stop')).toBeVisible({ timeout: 5000 });
+    await expect(ownerPage.getByTestId('sidebar-timer-stop')).toBeVisible({
+      timeout: 5000,
+    });
 
     await ownerPage.getByTestId('sidebar-timer-stop').click();
   });
 });
 
 test.describe('[P0] Persistent Sidebar Timer — Collapsed', () => {
-  test('collapsed timer shows trigger and popover with stop button', async ({ ownerPage }) => {
+  test('collapsed timer shows trigger and popover with stop button', async ({
+    ownerPage,
+  }) => {
     await ownerPage.goto('/clients');
 
     const pickerTrigger = ownerPage.getByTestId('timer-client-picker-trigger');
@@ -90,22 +110,30 @@ test.describe('[P0] Persistent Sidebar Timer — Collapsed', () => {
     await clientOption.click();
 
     await ownerPage.getByTestId('sidebar-timer-start').click();
-    await expect(ownerPage.getByTestId('sidebar-timer-stop')).toBeVisible({ timeout: 1000 });
+    await expect(ownerPage.getByTestId('sidebar-timer-stop')).toBeVisible({
+      timeout: 1000,
+    });
 
     const collapseBtn = ownerPage.getByTestId('sidebar-collapse-toggle');
     await collapseBtn.click();
 
-    const collapsedTrigger = ownerPage.getByTestId('sidebar-timer-collapsed-trigger');
+    const collapsedTrigger = ownerPage.getByTestId(
+      'sidebar-timer-collapsed-trigger',
+    );
     await expect(collapsedTrigger).toBeVisible();
 
     await collapsedTrigger.click();
 
-    await expect(ownerPage.getByRole('button', { name: /stop/i })).toBeVisible({ timeout: 3000 });
+    await expect(ownerPage.getByRole('button', { name: /stop/i })).toBeVisible({
+      timeout: 3000,
+    });
   });
 });
 
 test.describe('[P0] Persistent Sidebar Timer — Error Handling', () => {
-  test('optimistic start rolls back on server failure', async ({ ownerPage }) => {
+  test('optimistic start rolls back on server failure', async ({
+    ownerPage,
+  }) => {
     await ownerPage.goto('/clients');
 
     await ownerPage.route('**/supabase**', (route) => route.abort());
@@ -120,6 +148,8 @@ test.describe('[P0] Persistent Sidebar Timer — Error Handling', () => {
 
     await ownerPage.waitForTimeout(3000);
 
-    await expect(ownerPage.getByTestId('sidebar-timer-start')).toBeVisible({ timeout: 5000 });
+    await expect(ownerPage.getByTestId('sidebar-timer-start')).toBeVisible({
+      timeout: 5000,
+    });
   });
 });

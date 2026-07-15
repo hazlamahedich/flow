@@ -4,10 +4,14 @@ import type { ActionResult } from '@flow/types';
 
 type SupabaseClient = Awaited<ReturnType<typeof getServerSupabase>>;
 
-export const sleep = (ms: number): Promise<void> => new Promise((res) => setTimeout(res, ms));
+export const sleep = (ms: number): Promise<void> =>
+  new Promise((res) => setTimeout(res, ms));
 
 export function hashIdempotencyKey(invoiceId: string, key: string): string {
-  return crypto.createHash('sha256').update(`${invoiceId}::${key}`).digest('hex');
+  return crypto
+    .createHash('sha256')
+    .update(`${invoiceId}::${key}`)
+    .digest('hex');
 }
 
 export function buildScope(workspaceId: string, invoiceId: string): string {
@@ -37,7 +41,10 @@ export async function checkIdempotencyKey<T>(
     .maybeSingle();
 
   if (existing) {
-    return { success: true, data: ((existing as Record<string, unknown>).response_json as unknown) as T };
+    return {
+      success: true,
+      data: (existing as Record<string, unknown>).response_json as unknown as T,
+    };
   }
 
   return null;

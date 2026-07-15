@@ -27,10 +27,19 @@ beforeEach(() => {
   const store: Record<string, string> = {};
   vi.stubGlobal('localStorage', {
     getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => Object.keys(store).forEach((k) => { delete store[k]; }),
-    get length() { return Object.keys(store).length; },
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () =>
+      Object.keys(store).forEach((k) => {
+        delete store[k];
+      }),
+    get length() {
+      return Object.keys(store).length;
+    },
     key: (index: number) => Object.keys(store)[index] ?? null,
   });
 });
@@ -44,7 +53,9 @@ describe('useTheme', () => {
 
   it('setTheme updates the theme', () => {
     const { result } = renderHook(() => useTheme(), { wrapper });
-    act(() => { result.current.setTheme('light'); });
+    act(() => {
+      result.current.setTheme('light');
+    });
     expect(result.current.theme).toBe('light');
     expect(result.current.resolvedTheme).toBe('light');
   });

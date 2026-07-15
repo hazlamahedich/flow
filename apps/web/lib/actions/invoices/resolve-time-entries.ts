@@ -25,12 +25,20 @@ export async function resolveTimeEntryDurations(
   if (teError || !timeRows) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to fetch time entries.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to fetch time entries.',
+        'system',
+      ),
     };
   }
 
   const map = new Map<string, { durationMinutes: number }>();
-  for (const row of timeRows as Array<{ id: string; duration_minutes: number }>) {
+  for (const row of timeRows as Array<{
+    id: string;
+    duration_minutes: number;
+  }>) {
     map.set(row.id, { durationMinutes: row.duration_minutes });
   }
   return { success: true, data: map };

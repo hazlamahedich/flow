@@ -112,7 +112,9 @@ describe('switchWorkspace', () => {
       error: { message: 'Not authenticated' },
     });
 
-    await expect(switchWorkspace(workspaceId)).rejects.toThrow('Authentication required');
+    await expect(switchWorkspace(workspaceId)).rejects.toThrow(
+      'Authentication required',
+    );
   });
 
   it('throws when update fails', async () => {
@@ -139,6 +141,8 @@ describe('switchWorkspace', () => {
       error: { message: 'Update failed' },
     });
 
-    await expect(switchWorkspace(workspaceId)).rejects.toThrow('Failed to update workspace');
+    await expect(switchWorkspace(workspaceId)).rejects.toThrow(
+      'Failed to update workspace',
+    );
   });
 });

@@ -50,7 +50,12 @@ interface EditTimeEntryModalProps {
   onUpdated: (updated: EditTimeEntryResult) => void;
 }
 
-export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditTimeEntryModalProps) {
+export function EditTimeEntryModal({
+  entry,
+  clients,
+  onClose,
+  onUpdated,
+}: EditTimeEntryModalProps) {
   const [clientId, setClientId] = useState(entry.clientId);
   const [projectId, setProjectId] = useState<string | null>(entry.projectId);
   const [projects, setProjects] = useState<ProjectOption[]>([]);
@@ -61,7 +66,9 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
   const [endTime, setEndTime] = useState<string | null>(
     entry.endMinutes != null ? minutesToTime(entry.endMinutes) : null,
   );
-  const [durationMinutes, setDurationMinutes] = useState(String(entry.durationMinutes));
+  const [durationMinutes, setDurationMinutes] = useState(
+    String(entry.durationMinutes),
+  );
   const [durationManuallySet, setDurationManuallySet] = useState(false);
   const [notes, setNotes] = useState(entry.notes ?? '');
   const [submitting, setSubmitting] = useState(false);
@@ -86,7 +93,9 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
       .finally(() => {
         if (invoicedMounted.current) setInvoicedLoading(false);
       });
-    return () => { invoicedMounted.current = false; };
+    return () => {
+      invoicedMounted.current = false;
+    };
   }, [entry.id]);
 
   useEffect(() => {
@@ -105,8 +114,12 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
           }
         }
       })
-      .catch(() => { if (projectsMounted.current) setProjects([]); });
-    return () => { projectsMounted.current = false; };
+      .catch(() => {
+        if (projectsMounted.current) setProjects([]);
+      });
+    return () => {
+      projectsMounted.current = false;
+    };
   }, [clientId]);
 
   useEffect(() => {
@@ -150,7 +163,10 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
         date,
         durationMinutes: duration,
         ...(hasStart && hasEnd
-          ? { startMinutes: timeToMinutes(startTime!), endMinutes: timeToMinutes(endTime!) }
+          ? {
+              startMinutes: timeToMinutes(startTime!),
+              endMinutes: timeToMinutes(endTime!),
+            }
           : { startMinutes: null, endMinutes: null }),
         clientId: clientId || null,
         projectId,
@@ -169,7 +185,9 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
           clientId: clientId || undefined,
           projectId,
           notes: notes || null,
-          projectName: projectId ? projects.find((p) => p.id === projectId)?.name ?? null : null,
+          projectName: projectId
+            ? (projects.find((p) => p.id === projectId)?.name ?? null)
+            : null,
         });
         onClose();
       } else if (!result.success) {
@@ -186,14 +204,30 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
     } finally {
       setSubmitting(false);
     }
-  }, [entry.id, date, durationMinutes, startTime, endTime, clientId, projectId, notes, invoicedAcknowledged, onUpdated, onClose, projects]);
+  }, [
+    entry.id,
+    date,
+    durationMinutes,
+    startTime,
+    endTime,
+    clientId,
+    projectId,
+    notes,
+    invoicedAcknowledged,
+    onUpdated,
+    onClose,
+    projects,
+  ]);
 
   const canSubmit = !submitting && (!invoiced || invoicedAcknowledged);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !submitting && canSubmit) handleSubmit();
-    if (e.key === 'Escape') onClose();
-  }, [handleSubmit, onClose, submitting, canSubmit]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !submitting && canSubmit) handleSubmit();
+      if (e.key === 'Escape') onClose();
+    },
+    [handleSubmit, onClose, submitting, canSubmit],
+  );
 
   const clientProjects = projects.filter((p) => p.clientId === clientId);
 
@@ -205,7 +239,10 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
   }, [submitting, onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={handleBackdropClick}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={handleBackdropClick}
+    >
       <div
         className="bg-background w-full max-w-lg rounded-lg border p-6 shadow-lg"
         onClick={(e) => e.stopPropagation()}
@@ -221,7 +258,9 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
         )}
 
         {error && (
-          <div className="mb-3 rounded bg-destructive/10 p-2 text-sm text-destructive">{error}</div>
+          <div className="mb-3 rounded bg-destructive/10 p-2 text-sm text-destructive">
+            {error}
+          </div>
         )}
 
         <div className="space-y-4">
@@ -230,11 +269,16 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
             <select
               className="w-full rounded border bg-background p-2"
               value={clientId}
-              onChange={(e) => { setClientId(e.target.value); setProjectId(null); }}
+              onChange={(e) => {
+                setClientId(e.target.value);
+                setProjectId(null);
+              }}
             >
               <option value="">Select client</option>
               {clients.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
@@ -249,7 +293,9 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
             >
               <option value="">No Project</option>
               {clientProjects.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
               ))}
             </select>
           </div>
@@ -267,12 +313,17 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-sm font-medium">Start Time</label>
+              <label className="mb-1 block text-sm font-medium">
+                Start Time
+              </label>
               <input
                 type="time"
                 className="w-full rounded border bg-background p-2"
                 value={startTime ?? ''}
-                onChange={(e) => { setStartTime(e.target.value || null); setTimeError(null); }}
+                onChange={(e) => {
+                  setStartTime(e.target.value || null);
+                  setTimeError(null);
+                }}
               />
             </div>
             <div>
@@ -281,7 +332,10 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
                 type="time"
                 className="w-full rounded border bg-background p-2"
                 value={endTime ?? ''}
-                onChange={(e) => { setEndTime(e.target.value || null); setTimeError(null); }}
+                onChange={(e) => {
+                  setEndTime(e.target.value || null);
+                  setTimeError(null);
+                }}
               />
             </div>
           </div>
@@ -313,7 +367,9 @@ export function EditTimeEntryModal({ entry, clients, onClose, onUpdated }: EditT
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
-            <span className="text-xs text-muted-foreground">{notes.length}/500</span>
+            <span className="text-xs text-muted-foreground">
+              {notes.length}/500
+            </span>
           </div>
         </div>
 

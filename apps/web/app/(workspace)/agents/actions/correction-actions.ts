@@ -11,19 +11,41 @@ async function getTenantClient() {
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   const client = createServerClient({
-    getAll: () => cookieStore.getAll().map((c: { name: string; value: string }) => ({ name: c.name, value: c.value })),
+    getAll: () =>
+      cookieStore.getAll().map((c: { name: string; value: string }) => ({
+        name: c.name,
+        value: c.value,
+      })),
     set: () => {},
   });
   const ctx = await requireTenantContext(client);
   return { client, workspaceId: ctx.workspaceId, userId: ctx.userId };
 }
 
-function validationError(message: string): ActionResult<{ correctedRunId: string }> {
-  return { success: false, error: { status: 400, code: 'VALIDATION_ERROR', message, category: 'validation' } };
+function validationError(
+  message: string,
+): ActionResult<{ correctedRunId: string }> {
+  return {
+    success: false,
+    error: {
+      status: 400,
+      code: 'VALIDATION_ERROR',
+      message,
+      category: 'validation',
+    },
+  };
 }
 
 function validationErrorRun(message: string): ActionResult<ActionHistoryRow> {
-  return { success: false, error: { status: 400, code: 'VALIDATION_ERROR', message, category: 'validation' } };
+  return {
+    success: false,
+    error: {
+      status: 400,
+      code: 'VALIDATION_ERROR',
+      message,
+      category: 'validation',
+    },
+  };
 }
 
 export async function issueCorrection(
@@ -43,12 +65,16 @@ export async function issueCorrection(
     .single();
   if (fetchErr || !original) return validationError('Original run not found');
 
-  if (original.status !== 'completed') return validationError('Only completed runs can be corrected');
-  if (!original.error) return validationError('Only runs with errors can be corrected');
-  if (original.correction_issued as boolean) return validationError('Correction already issued for this run');
+  if (original.status !== 'completed')
+    return validationError('Only completed runs can be corrected');
+  if (!original.error)
+    return validationError('Only runs with errors can be corrected');
+  if (original.correction_issued as boolean)
+    return validationError('Correction already issued for this run');
 
   const currentDepth = (original.correction_depth as number | null) ?? 0;
-  if (currentDepth >= 5) return validationError('Maximum correction depth reached');
+  if (currentDepth >= 5)
+    return validationError('Maximum correction depth reached');
   const newDepth = currentDepth + 1;
   const { data: corrected, error: insertErr } = await client
     .from('agent_runs')
@@ -71,7 +97,15 @@ export async function issueCorrection(
     .select('id')
     .single();
   if (insertErr || !corrected) {
-    return { success: false, error: { status: 500, code: 'INTERNAL_ERROR', message: 'Failed to create correction', category: 'system' } };
+    return {
+      success: false,
+      error: {
+        status: 500,
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to create correction',
+        category: 'system',
+      },
+    };
   }
 
   const { count } = await client
@@ -80,9 +114,16 @@ export async function issueCorrection(
     .eq('id', originalRunId)
     .eq('correction_issued', false);
   if (count === 0) {
-    const { error: rollbackErr } = await client.from('agent_runs').delete().eq('id', corrected.id as string);
+    const { error: rollbackErr } = await client
+      .from('agent_runs')
+      .delete()
+      .eq('id', corrected.id as string);
     if (rollbackErr) {
-      console.error('[correction-actions] rollback DELETE failed for correction', corrected.id, rollbackErr);
+      console.error(
+        '[correction-actions] rollback DELETE failed for correction',
+        corrected.id,
+        rollbackErr,
+      );
     }
     return validationError('Correction already issued for this run');
   }
@@ -103,7 +144,15 @@ export async function getOriginalRunForCorrection(
     .eq('workspace_id', workspaceId)
     .single();
   if (error || !data) {
-    return { success: false, error: { status: 404, code: 'NOT_FOUND', message: 'Run not found', category: 'system' } };
+    return {
+      success: false,
+      error: {
+        status: 404,
+        code: 'NOT_FOUND',
+        message: 'Run not found',
+        category: 'system',
+      },
+    };
   }
   if (data.status !== 'completed') {
     return validationErrorRun('Only completed runs can be corrected');
@@ -112,5 +161,8 @@ export async function getOriginalRunForCorrection(
     return validationErrorRun('Only runs with errors can be corrected');
   }
 
-  return { success: true, data: { ...mapRun(data as Record<string, unknown>), feedback: null } };
+  return {
+    success: true,
+    data: { ...mapRun(data as Record<string, unknown>), feedback: null },
+  };
 }

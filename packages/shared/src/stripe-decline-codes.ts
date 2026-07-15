@@ -34,7 +34,8 @@ const DECLINE_CODE_MAP: Record<string, DeclineCodeInfo> = {
 };
 
 const DEFAULT_DECLINE_INFO: DeclineCodeInfo = {
-  message: 'Your payment could not be processed. Please try again or use a different method.',
+  message:
+    'Your payment could not be processed. Please try again or use a different method.',
   retryable: true,
 };
 

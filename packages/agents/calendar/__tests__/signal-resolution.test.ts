@@ -64,7 +64,9 @@ describe('resolveOriginatingSignal', () => {
 
   it('suppresses errors without throwing', async () => {
     const supabase = {
-      from: vi.fn(() => { throw new Error('DB error'); }),
+      from: vi.fn(() => {
+        throw new Error('DB error');
+      }),
     } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
     await expect(

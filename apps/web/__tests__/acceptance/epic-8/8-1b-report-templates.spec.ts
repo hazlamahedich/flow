@@ -12,7 +12,11 @@ vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
   return {
     ...actual,
-    requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' }),
+    requireTenantContext: vi.fn().mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    }),
     createFlowError: actual.createFlowError,
   };
 });
@@ -43,41 +47,91 @@ function mockSupabase(options?: {
     in: vi.fn().mockReturnThis(),
     is: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockImplementation(() => Promise.resolve({ data: currentData ?? null, error: currentError })),
-    single: vi.fn().mockImplementation(() => Promise.resolve({ data: currentData ?? null, error: currentError })),
+    maybeSingle: vi
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve({ data: currentData ?? null, error: currentError }),
+      ),
+    single: vi
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve({ data: currentData ?? null, error: currentError }),
+      ),
     upsert: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
     delete: vi.fn().mockReturnThis(),
   };
   return {
-    rpc: vi.fn().mockResolvedValue({ data: opts.rpcData, error: opts.rpcError ?? null }),
+    rpc: vi
+      .fn()
+      .mockResolvedValue({ data: opts.rpcData, error: opts.rpcError ?? null }),
     from: vi.fn().mockReturnValue(chain),
     auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u1', app_metadata: { workspace_id: 'ws1', role: 'owner' } } } }),
+      getUser: vi.fn().mockResolvedValue({
+        data: {
+          user: {
+            id: 'u1',
+            app_metadata: { workspace_id: 'ws1', role: 'owner' },
+          },
+        },
+      }),
     },
-    _mock: { setData: (d: unknown) => { currentData = d; }, setError: (e: unknown) => { currentError = e; }, chain },
+    _mock: {
+      setData: (d: unknown) => {
+        currentData = d;
+      },
+      setError: (e: unknown) => {
+        currentError = e;
+      },
+      chain,
+    },
   };
 }
 
 function buildChain(data: unknown, error: unknown | null = null) {
   const result = { data, error };
   const self: Record<string, unknown> = {};
-  const methods = ['select', 'eq', 'neq', 'gte', 'lte', 'lt', 'is', 'in', 'order', 'upsert', 'insert', 'delete'];
+  const methods = [
+    'select',
+    'eq',
+    'neq',
+    'gte',
+    'lte',
+    'lt',
+    'is',
+    'in',
+    'order',
+    'upsert',
+    'insert',
+    'delete',
+  ];
   for (const m of methods) {
     self[m] = vi.fn().mockReturnValue(self);
   }
   self.maybeSingle = vi.fn().mockResolvedValue(result);
   self.single = vi.fn().mockResolvedValue(result);
-  self.then = function(onF: unknown, onR: unknown) {
+  self.then = function (onF: unknown, onR: unknown) {
     return Promise.resolve(result).then(onF as never, onR as never);
   };
   return self;
 }
 
-function buildMultiChain(responses: Array<{ data: unknown; error: unknown | null }>) {
+function buildMultiChain(
+  responses: Array<{ data: unknown; error: unknown | null }>,
+) {
   let idx = 0;
   const self: Record<string, unknown> = {};
-  const methods = ['select', 'eq', 'neq', 'gte', 'lte', 'lt', 'is', 'in', 'order'];
+  const methods = [
+    'select',
+    'eq',
+    'neq',
+    'gte',
+    'lte',
+    'lt',
+    'is',
+    'in',
+    'order',
+  ];
   for (const m of methods) {
     self[m] = vi.fn().mockReturnValue(self);
   }
@@ -91,7 +145,7 @@ function buildMultiChain(responses: Array<{ data: unknown; error: unknown | null
     idx++;
     return Promise.resolve(r);
   });
-  self.then = function(onF: unknown, onR: unknown) {
+  self.then = function (onF: unknown, onR: unknown) {
     const r = responses[idx] ?? { data: [], error: null };
     idx++;
     return Promise.resolve(r).then(onF as never, onR as never);
@@ -102,13 +156,23 @@ function buildMultiChain(responses: Array<{ data: unknown; error: unknown | null
 function buildAggChain(data: unknown, error: unknown | null = null) {
   const result = { data, error };
   const self: Record<string, unknown> = {};
-  const methods = ['select', 'eq', 'neq', 'gte', 'lte', 'lt', 'is', 'in', 'order'];
+  const methods = [
+    'select',
+    'eq',
+    'neq',
+    'gte',
+    'lte',
+    'lt',
+    'is',
+    'in',
+    'order',
+  ];
   for (const m of methods) {
     self[m] = vi.fn().mockReturnValue(self);
   }
   self.maybeSingle = vi.fn().mockResolvedValue(result);
   self.single = vi.fn().mockResolvedValue(result);
-  self.then = function(onF: unknown, onR: unknown) {
+  self.then = function (onF: unknown, onR: unknown) {
     return Promise.resolve(result).then(onF as never, onR as never);
   };
   return self;
@@ -143,17 +207,28 @@ describe('[P0] [8.1b-ATDD-001] template CRUD operations', () => {
       rpcData: null,
       rpcError: null,
     });
-    vi.mocked(getServerSupabase).mockResolvedValue(m as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      m as unknown as Awaited<ReturnType<typeof getServerSupabase>>,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
-    m.from.mockReturnValue(buildChain({
-      id: 'tpl-new',
-      workspace_id: 'ws-1',
-      client_id: null,
-      name: 'New Template',
-      sections_config: validSectionsConfig,
-      branding: validBranding,
-    }, null));
+    m.from.mockReturnValue(
+      buildChain(
+        {
+          id: 'tpl-new',
+          workspace_id: 'ws-1',
+          client_id: null,
+          name: 'New Template',
+          sections_config: validSectionsConfig,
+          branding: validBranding,
+        },
+        null,
+      ),
+    );
 
     const result = await saveReportTemplateAction({
       name: 'New Template',
@@ -175,8 +250,14 @@ describe('[P0] [8.1b-ATDD-001] template CRUD operations', () => {
       rpcData: null,
       rpcError: null,
     });
-    vi.mocked(getServerSupabase).mockResolvedValue(m as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      m as unknown as Awaited<ReturnType<typeof getServerSupabase>>,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
     let callCount = 0;
     m.from.mockImplementation(() => {
@@ -186,15 +267,18 @@ describe('[P0] [8.1b-ATDD-001] template CRUD operations', () => {
         return buildChain({ id: 'tpl-1' }, null);
       }
       // upsert
-      return buildChain({
-        id: 'tpl-1',
-        workspace_id: 'ws-1',
-        client_id: null,
-        name: 'Updated',
-        sections_config: validSectionsConfig,
-        branding: { accentColor: '#3b82f6' },
-        updated_at: '2026-05-28T12:00:00Z',
-      }, null);
+      return buildChain(
+        {
+          id: 'tpl-1',
+          workspace_id: 'ws-1',
+          client_id: null,
+          name: 'Updated',
+          sections_config: validSectionsConfig,
+          branding: { accentColor: '#3b82f6' },
+          updated_at: '2026-05-28T12:00:00Z',
+        },
+        null,
+      );
     });
 
     const result = await saveReportTemplateAction({
@@ -222,21 +306,32 @@ describe('[P0] [8.1b-ATDD-001] template CRUD operations', () => {
       rpcData: null,
       rpcError: null,
     });
-    vi.mocked(getServerSupabase).mockResolvedValue(m as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      m as unknown as Awaited<ReturnType<typeof getServerSupabase>>,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
     let callCount = 0;
     m.from.mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
         // existing check
-        return buildChain({ id: 'c2c2c2c2-c2c2-c2c2-c2c2-c2c2c2c2c2c2', client_id: 'cli-1' }, null);
+        return buildChain(
+          { id: 'c2c2c2c2-c2c2-c2c2-c2c2-c2c2c2c2c2c2', client_id: 'cli-1' },
+          null,
+        );
       }
       // delete
       return buildChain(null, null);
     });
 
-    const result = await deleteReportTemplateAction({ id: 'c2c2c2c2-c2c2-c2c2-c2c2-c2c2c2c2c2c2' });
+    const result = await deleteReportTemplateAction({
+      id: 'c2c2c2c2-c2c2-c2c2-c2c2-c2c2c2c2c2c2',
+    });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.id).toBe('c2c2c2c2-c2c2-c2c2-c2c2-c2c2c2c2c2c2');
@@ -250,15 +345,24 @@ describe('[P0] [8.1b-ATDD-001] template CRUD operations', () => {
       rpcData: null,
       rpcError: null,
     });
-    vi.mocked(getServerSupabase).mockResolvedValue(m as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      m as unknown as Awaited<ReturnType<typeof getServerSupabase>>,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
     let callCount = 0;
     m.from.mockImplementation(() => {
       callCount++;
       if (callCount === 1) {
         // existing check
-        return buildChain({ id: 'd1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1', client_id: null }, null);
+        return buildChain(
+          { id: 'd1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1', client_id: null },
+          null,
+        );
       }
       if (callCount === 2) {
         // count remaining defaults (returns 0 = there are no other defaults, so block)
@@ -269,7 +373,10 @@ describe('[P0] [8.1b-ATDD-001] template CRUD operations', () => {
           neq: vi.fn().mockReturnThis(),
         };
         countChain.then = function (onF: unknown, onR: unknown) {
-          return Promise.resolve({ count: 0, error: null }).then(onF as never, onR as never);
+          return Promise.resolve({ count: 0, error: null }).then(
+            onF as never,
+            onR as never,
+          );
         };
         return countChain;
       }
@@ -277,7 +384,9 @@ describe('[P0] [8.1b-ATDD-001] template CRUD operations', () => {
       return buildChain(null, null);
     });
 
-    const result = await deleteReportTemplateAction({ id: 'd1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1' });
+    const result = await deleteReportTemplateAction({
+      id: 'd1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1',
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('DEFAULT_TEMPLATE_REQUIRED');
@@ -291,13 +400,38 @@ describe('[P0] [8.1b-ATDD-001] template CRUD operations', () => {
       rpcData: null,
       rpcError: null,
     });
-    vi.mocked(getServerSupabase).mockResolvedValue(m as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      m as unknown as Awaited<ReturnType<typeof getServerSupabase>>,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
-    m.from.mockReturnValue(buildChain([
-      { id: 'tpl-def', client_id: null, name: 'Default', sections_config: {}, branding: {}, updated_at: '2026-05-01T00:00:00Z' },
-      { id: 'tpl-cli', client_id: 'cli-1', name: 'Acme Override', sections_config: {}, branding: {}, updated_at: '2026-05-02T00:00:00Z' },
-    ], null));
+    m.from.mockReturnValue(
+      buildChain(
+        [
+          {
+            id: 'tpl-def',
+            client_id: null,
+            name: 'Default',
+            sections_config: {},
+            branding: {},
+            updated_at: '2026-05-01T00:00:00Z',
+          },
+          {
+            id: 'tpl-cli',
+            client_id: 'cli-1',
+            name: 'Acme Override',
+            sections_config: {},
+            branding: {},
+            updated_at: '2026-05-02T00:00:00Z',
+          },
+        ],
+        null,
+      ),
+    );
 
     const result = await getReportTemplatesForWorkspaceAction();
     expect(result.success).toBe(true);
@@ -314,8 +448,16 @@ describe('[P0] [8.1b-ATDD-001] template CRUD operations', () => {
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [8.1b-ATDD-002] section customization with validation', () => {
   test('saveReportTemplate rejects all sections disabled', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase() as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase() as unknown as Awaited<
+        ReturnType<typeof getServerSupabase>
+      >,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
     const result = await saveReportTemplateAction({
       name: 'Bad',
@@ -337,11 +479,34 @@ describe('[P0] [8.1b-ATDD-002] section customization with validation', () => {
   });
 
   test('saveReportTemplate accepts valid section sort_order values', async () => {
-    const m = mockSupabase({ chainData: null, chainError: null, rpcData: null, rpcError: null });
-    vi.mocked(getServerSupabase).mockResolvedValue(m as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    const m = mockSupabase({
+      chainData: null,
+      chainError: null,
+      rpcData: null,
+      rpcError: null,
+    });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      m as unknown as Awaited<ReturnType<typeof getServerSupabase>>,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
-    m.from.mockReturnValue(buildChain({ id: 'tpl-new', workspace_id: 'ws-1', client_id: null, name: 'OK', sections_config: {}, branding: {} }, null));
+    m.from.mockReturnValue(
+      buildChain(
+        {
+          id: 'tpl-new',
+          workspace_id: 'ws-1',
+          client_id: null,
+          name: 'OK',
+          sections_config: {},
+          branding: {},
+        },
+        null,
+      ),
+    );
 
     const result = await saveReportTemplateAction({
       name: 'OK',
@@ -360,8 +525,16 @@ describe('[P0] [8.1b-ATDD-002] section customization with validation', () => {
   });
 
   test('saveReportTemplate rejects negative sort_order', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase() as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase() as unknown as Awaited<
+        ReturnType<typeof getServerSupabase>
+      >,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
     const result = await saveReportTemplateAction({
       name: 'Bad',
@@ -383,8 +556,16 @@ describe('[P0] [8.1b-ATDD-002] section customization with validation', () => {
   });
 
   test('accent color must match design system palette', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase() as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase() as unknown as Awaited<
+        ReturnType<typeof getServerSupabase>
+      >,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
     const result = await saveReportTemplateAction({
       name: 'Bad',
@@ -423,29 +604,98 @@ describe('[P0] [8.1b-ATDD-003] template resolution during report generation', ()
   const BASE_TPL_RESPONSES = [
     { data: { id: 'c1' }, error: null },
     { data: null, error: null },
-    { data: { id: 'tpl-cli', sections_config: { time_summary: { enabled: true, sort_order: 1 } }, branding: {} }, error: null },
+    {
+      data: {
+        id: 'tpl-cli',
+        sections_config: { time_summary: { enabled: true, sort_order: 1 } },
+        branding: {},
+      },
+      error: null,
+    },
     { data: null, error: null },
     { data: [], error: null },
     { data: [], error: null },
     { data: [], error: null },
-    { data: { id: 'r111', workspace_id: 'ws-1', client_id: 'c1', period_start: '2026-05-19', period_end: '2026-05-25', status: 'draft', template_id: 'tpl-cli', generated_by: 'user-1', template_snapshot: {}, version: 1, created_at: '2026-05-28T00:00:00Z', updated_at: '2026-05-28T00:00:00Z' }, error: null },
-    { data: [{ id: 's1', report_id: 'r111', section_type: 'time_summary', title: 'Time Summary', content: {}, sort_order: 1, created_at: '2026-05-28T00:00:00Z' }], error: null },
+    {
+      data: {
+        id: 'r111',
+        workspace_id: 'ws-1',
+        client_id: 'c1',
+        period_start: '2026-05-19',
+        period_end: '2026-05-25',
+        status: 'draft',
+        template_id: 'tpl-cli',
+        generated_by: 'user-1',
+        template_snapshot: {},
+        version: 1,
+        created_at: '2026-05-28T00:00:00Z',
+        updated_at: '2026-05-28T00:00:00Z',
+      },
+      error: null,
+    },
+    {
+      data: [
+        {
+          id: 's1',
+          report_id: 'r111',
+          section_type: 'time_summary',
+          title: 'Time Summary',
+          content: {},
+          sort_order: 1,
+          created_at: '2026-05-28T00:00:00Z',
+        },
+      ],
+      error: null,
+    },
   ];
 
   test('generateWeeklyReportAction uses per-client template when exists', async () => {
     const m = mockSupabase({ rpcData: 'r111' });
-    vi.mocked(getServerSupabase).mockResolvedValue(m as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      m as unknown as Awaited<ReturnType<typeof getServerSupabase>>,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
     m.from.mockImplementation((tableName: string) => {
       const dataMap: Record<string, unknown> = {
-        'clients': { id: 'c1' },
-        'report_templates': { id: 'tpl-cli', sections_config: { time_summary: { enabled: true, sort_order: 1 } }, branding: {} },
-        'time_entries': [],
-        'invoices': [],
-        'agent_runs': [],
-        'weekly_reports': { id: 'r111', workspace_id: 'ws-1', client_id: 'c1', period_start: '2026-05-19', period_end: '2026-05-25', status: 'draft', template_id: 'tpl-cli', generated_by: 'user-1', template_snapshot: {}, version: 1, created_at: '2026-05-28T00:00:00Z', updated_at: '2026-05-28T00:00:00Z' },
-        'weekly_report_sections': [{ id: 's1', report_id: 'r111', section_type: 'time_summary', title: 'Time Summary', content: {}, sort_order: 1, created_at: '2026-05-28T00:00:00Z' }],
+        clients: { id: 'c1' },
+        report_templates: {
+          id: 'tpl-cli',
+          sections_config: { time_summary: { enabled: true, sort_order: 1 } },
+          branding: {},
+        },
+        time_entries: [],
+        invoices: [],
+        agent_runs: [],
+        weekly_reports: {
+          id: 'r111',
+          workspace_id: 'ws-1',
+          client_id: 'c1',
+          period_start: '2026-05-19',
+          period_end: '2026-05-25',
+          status: 'draft',
+          template_id: 'tpl-cli',
+          generated_by: 'user-1',
+          template_snapshot: {},
+          version: 1,
+          created_at: '2026-05-28T00:00:00Z',
+          updated_at: '2026-05-28T00:00:00Z',
+        },
+        weekly_report_sections: [
+          {
+            id: 's1',
+            report_id: 'r111',
+            section_type: 'time_summary',
+            title: 'Time Summary',
+            content: {},
+            sort_order: 1,
+            created_at: '2026-05-28T00:00:00Z',
+          },
+        ],
       };
       // For per-client template query: filter by client_id returns template; default query (is client_id null) returns null
       // We need stateful handling for report_templates
@@ -460,7 +710,16 @@ describe('[P0] [8.1b-ATDD-003] template resolution during report generation', ()
       if (tableName === 'report_templates') {
         tplCallCount++;
         chain.maybeSingle = vi.fn().mockResolvedValue({
-          data: tplCallCount === 1 ? { id: 'tpl-cli', sections_config: { time_summary: { enabled: true, sort_order: 1 } }, branding: {} } : null,
+          data:
+            tplCallCount === 1
+              ? {
+                  id: 'tpl-cli',
+                  sections_config: {
+                    time_summary: { enabled: true, sort_order: 1 },
+                  },
+                  branding: {},
+                }
+              : null,
           error: null,
         });
       }
@@ -481,19 +740,50 @@ describe('[P0] [8.1b-ATDD-003] template resolution during report generation', ()
 
   test('generateWeeklyReportAction falls back to workspace default', async () => {
     const m = mockSupabase({ rpcData: 'r222' });
-    vi.mocked(getServerSupabase).mockResolvedValue(m as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      m as unknown as Awaited<ReturnType<typeof getServerSupabase>>,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
     const dataMap: Record<string, unknown> = {
-      'clients': { id: 'c1' },
-      'report_templates': null,
-      'time_entries': [],
-      'invoices': [],
-      'agent_runs': [],
-      'weekly_reports': { id: 'r222', workspace_id: 'ws-1', client_id: 'c1', period_start: '2026-05-19', period_end: '2026-05-25', status: 'draft', template_id: 'tpl-def', generated_by: 'user-1', template_snapshot: {}, version: 1, created_at: '2026-05-28T00:00:00Z', updated_at: '2026-05-28T00:00:00Z' },
-      'weekly_report_sections': [{ id: 's1', report_id: 'r222', section_type: 'time_summary', title: 'Time Summary', content: {}, sort_order: 1, created_at: '2026-05-28T00:00:00Z' }],
+      clients: { id: 'c1' },
+      report_templates: null,
+      time_entries: [],
+      invoices: [],
+      agent_runs: [],
+      weekly_reports: {
+        id: 'r222',
+        workspace_id: 'ws-1',
+        client_id: 'c1',
+        period_start: '2026-05-19',
+        period_end: '2026-05-25',
+        status: 'draft',
+        template_id: 'tpl-def',
+        generated_by: 'user-1',
+        template_snapshot: {},
+        version: 1,
+        created_at: '2026-05-28T00:00:00Z',
+        updated_at: '2026-05-28T00:00:00Z',
+      },
+      weekly_report_sections: [
+        {
+          id: 's1',
+          report_id: 'r222',
+          section_type: 'time_summary',
+          title: 'Time Summary',
+          content: {},
+          sort_order: 1,
+          created_at: '2026-05-28T00:00:00Z',
+        },
+      ],
     };
-    m.from.mockImplementation((tableName: string) => buildAggChain(dataMap[tableName] ?? [], null));
+    m.from.mockImplementation((tableName: string) =>
+      buildAggChain(dataMap[tableName] ?? [], null),
+    );
 
     let tplCallCount = 0;
     const originalFrom = m.from.getMockImplementation()!;
@@ -502,7 +792,14 @@ describe('[P0] [8.1b-ATDD-003] template resolution during report generation', ()
       if (tableName === 'report_templates') {
         tplCallCount++;
         chain.maybeSingle = vi.fn().mockResolvedValue({
-          data: tplCallCount === 2 ? { id: 'tpl-def', sections_config: validSectionsConfig, branding: {} } : null,
+          data:
+            tplCallCount === 2
+              ? {
+                  id: 'tpl-def',
+                  sections_config: validSectionsConfig,
+                  branding: {},
+                }
+              : null,
           error: null,
         });
       }
@@ -523,24 +820,73 @@ describe('[P0] [8.1b-ATDD-003] template resolution during report generation', ()
 
   test('generateWeeklyReportAction falls back to hardcoded default if no templates exist', async () => {
     const m = mockSupabase({ rpcData: 'r333' });
-    vi.mocked(getServerSupabase).mockResolvedValue(m as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      m as unknown as Awaited<ReturnType<typeof getServerSupabase>>,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
     const dataMap: Record<string, unknown> = {
-      'clients': { id: 'c1' },
-      'report_templates': null,
-      'time_entries': [],
-      'invoices': [],
-      'agent_runs': [],
-      'weekly_reports': { id: 'r333', workspace_id: 'ws-1', client_id: 'c1', period_start: '2026-05-19', period_end: '2026-05-25', status: 'draft', template_id: null, generated_by: 'user-1', template_snapshot: {}, version: 1, created_at: '2026-05-28T00:00:00Z', updated_at: '2026-05-28T00:00:00Z' },
-      'weekly_report_sections': [
-        { id: 's1', report_id: 'r333', section_type: 'time_summary', title: 'Time Summary', content: {}, sort_order: 1 },
-        { id: 's2', report_id: 'r333', section_type: 'task_log', title: 'Task Log', content: {}, sort_order: 2 },
-        { id: 's3', report_id: 'r333', section_type: 'agent_activity', title: 'Agent Activity', content: {}, sort_order: 3 },
-        { id: 's4', report_id: 'r333', section_type: 'invoice_summary', title: 'Invoice Summary', content: {}, sort_order: 4 },
+      clients: { id: 'c1' },
+      report_templates: null,
+      time_entries: [],
+      invoices: [],
+      agent_runs: [],
+      weekly_reports: {
+        id: 'r333',
+        workspace_id: 'ws-1',
+        client_id: 'c1',
+        period_start: '2026-05-19',
+        period_end: '2026-05-25',
+        status: 'draft',
+        template_id: null,
+        generated_by: 'user-1',
+        template_snapshot: {},
+        version: 1,
+        created_at: '2026-05-28T00:00:00Z',
+        updated_at: '2026-05-28T00:00:00Z',
+      },
+      weekly_report_sections: [
+        {
+          id: 's1',
+          report_id: 'r333',
+          section_type: 'time_summary',
+          title: 'Time Summary',
+          content: {},
+          sort_order: 1,
+        },
+        {
+          id: 's2',
+          report_id: 'r333',
+          section_type: 'task_log',
+          title: 'Task Log',
+          content: {},
+          sort_order: 2,
+        },
+        {
+          id: 's3',
+          report_id: 'r333',
+          section_type: 'agent_activity',
+          title: 'Agent Activity',
+          content: {},
+          sort_order: 3,
+        },
+        {
+          id: 's4',
+          report_id: 'r333',
+          section_type: 'invoice_summary',
+          title: 'Invoice Summary',
+          content: {},
+          sort_order: 4,
+        },
       ],
     };
-    m.from.mockImplementation((tableName: string) => buildAggChain(dataMap[tableName] ?? [], null));
+    m.from.mockImplementation((tableName: string) =>
+      buildAggChain(dataMap[tableName] ?? [], null),
+    );
 
     let tplCallCount = 0;
     const originalFrom = m.from.getMockImplementation()!;
@@ -548,7 +894,9 @@ describe('[P0] [8.1b-ATDD-003] template resolution during report generation', ()
       const chain = originalFrom(tableName);
       if (tableName === 'report_templates') {
         tplCallCount++;
-        chain.maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+        chain.maybeSingle = vi
+          .fn()
+          .mockResolvedValue({ data: null, error: null });
       }
       return chain;
     });
@@ -567,23 +915,65 @@ describe('[P0] [8.1b-ATDD-003] template resolution during report generation', ()
 
   test('disabled sections are omitted from generated report', async () => {
     const m = mockSupabase({ rpcData: 'r444' });
-    vi.mocked(getServerSupabase).mockResolvedValue(m as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      m as unknown as Awaited<ReturnType<typeof getServerSupabase>>,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
     const dataMap: Record<string, unknown> = {
-      'clients': { id: 'c1' },
-      'report_templates': null,
-      'time_entries': [],
-      'invoices': [],
-      'agent_runs': [],
-      'weekly_reports': { id: 'r444', workspace_id: 'ws-1', client_id: 'c1', period_start: '2026-05-19', period_end: '2026-05-25', status: 'draft', template_id: 'tpl-def', generated_by: 'user-1', template_snapshot: {}, version: 1, created_at: '2026-05-28T00:00:00Z', updated_at: '2026-05-28T00:00:00Z' },
-      'weekly_report_sections': [
-        { id: 's1', report_id: 'r444', section_type: 'time_summary', title: 'Time Summary', content: {}, sort_order: 1 },
-        { id: 's2', report_id: 'r444', section_type: 'task_log', title: 'Task Log', content: {}, sort_order: 2 },
-        { id: 's3', report_id: 'r444', section_type: 'agent_activity', title: 'Agent Activity', content: {}, sort_order: 3 },
+      clients: { id: 'c1' },
+      report_templates: null,
+      time_entries: [],
+      invoices: [],
+      agent_runs: [],
+      weekly_reports: {
+        id: 'r444',
+        workspace_id: 'ws-1',
+        client_id: 'c1',
+        period_start: '2026-05-19',
+        period_end: '2026-05-25',
+        status: 'draft',
+        template_id: 'tpl-def',
+        generated_by: 'user-1',
+        template_snapshot: {},
+        version: 1,
+        created_at: '2026-05-28T00:00:00Z',
+        updated_at: '2026-05-28T00:00:00Z',
+      },
+      weekly_report_sections: [
+        {
+          id: 's1',
+          report_id: 'r444',
+          section_type: 'time_summary',
+          title: 'Time Summary',
+          content: {},
+          sort_order: 1,
+        },
+        {
+          id: 's2',
+          report_id: 'r444',
+          section_type: 'task_log',
+          title: 'Task Log',
+          content: {},
+          sort_order: 2,
+        },
+        {
+          id: 's3',
+          report_id: 'r444',
+          section_type: 'agent_activity',
+          title: 'Agent Activity',
+          content: {},
+          sort_order: 3,
+        },
       ],
     };
-    m.from.mockImplementation((tableName: string) => buildAggChain(dataMap[tableName] ?? [], null));
+    m.from.mockImplementation((tableName: string) =>
+      buildAggChain(dataMap[tableName] ?? [], null),
+    );
 
     let tplCallCount = 0;
     const originalFrom = m.from.getMockImplementation()!;
@@ -592,12 +982,19 @@ describe('[P0] [8.1b-ATDD-003] template resolution during report generation', ()
       if (tableName === 'report_templates') {
         tplCallCount++;
         chain.maybeSingle = vi.fn().mockResolvedValue({
-          data: tplCallCount === 2 ? { id: 'tpl-def', sections_config: {
-            time_summary: { enabled: true, sort_order: 1 },
-            task_log: { enabled: true, sort_order: 2 },
-            agent_activity: { enabled: true, sort_order: 3 },
-            invoice_summary: { enabled: false, sort_order: 4 },
-          }, branding: {} } : null,
+          data:
+            tplCallCount === 2
+              ? {
+                  id: 'tpl-def',
+                  sections_config: {
+                    time_summary: { enabled: true, sort_order: 1 },
+                    task_log: { enabled: true, sort_order: 2 },
+                    agent_activity: { enabled: true, sort_order: 3 },
+                    invoice_summary: { enabled: false, sort_order: 4 },
+                  },
+                  branding: {},
+                }
+              : null,
           error: null,
         });
       }
@@ -612,25 +1009,61 @@ describe('[P0] [8.1b-ATDD-003] template resolution during report generation', ()
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.sections.some((s) => s.sectionType === 'invoice_summary')).toBe(false);
+      expect(
+        result.data.sections.some((s) => s.sectionType === 'invoice_summary'),
+      ).toBe(false);
     }
   });
 
   test('template_snapshot is stored on weekly_reports at generation time', async () => {
     const m = mockSupabase({ rpcData: 'r555' });
-    vi.mocked(getServerSupabase).mockResolvedValue(m as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      m as unknown as Awaited<ReturnType<typeof getServerSupabase>>,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    });
 
     const dataMap: Record<string, unknown> = {
-      'clients': { id: 'c1' },
-      'report_templates': null,
-      'time_entries': [],
-      'invoices': [],
-      'agent_runs': [],
-      'weekly_reports': { id: 'r555', workspace_id: 'ws-1', client_id: 'c1', period_start: '2026-05-19', period_end: '2026-05-25', status: 'draft', template_id: 'tpl-def', generated_by: 'user-1', template_snapshot: { sections_config: { time_summary: { enabled: true, sort_order: 1 } }, branding: { accentColor: '#6366f1' } }, version: 1, created_at: '2026-05-28T00:00:00Z', updated_at: '2026-05-28T00:00:00Z' },
-      'weekly_report_sections': [{ id: 's1', report_id: 'r555', section_type: 'time_summary', title: 'Time Summary', content: {}, sort_order: 1, created_at: '2026-05-28T00:00:00Z' }],
+      clients: { id: 'c1' },
+      report_templates: null,
+      time_entries: [],
+      invoices: [],
+      agent_runs: [],
+      weekly_reports: {
+        id: 'r555',
+        workspace_id: 'ws-1',
+        client_id: 'c1',
+        period_start: '2026-05-19',
+        period_end: '2026-05-25',
+        status: 'draft',
+        template_id: 'tpl-def',
+        generated_by: 'user-1',
+        template_snapshot: {
+          sections_config: { time_summary: { enabled: true, sort_order: 1 } },
+          branding: { accentColor: '#6366f1' },
+        },
+        version: 1,
+        created_at: '2026-05-28T00:00:00Z',
+        updated_at: '2026-05-28T00:00:00Z',
+      },
+      weekly_report_sections: [
+        {
+          id: 's1',
+          report_id: 'r555',
+          section_type: 'time_summary',
+          title: 'Time Summary',
+          content: {},
+          sort_order: 1,
+          created_at: '2026-05-28T00:00:00Z',
+        },
+      ],
     };
-    m.from.mockImplementation((tableName: string) => buildAggChain(dataMap[tableName] ?? [], null));
+    m.from.mockImplementation((tableName: string) =>
+      buildAggChain(dataMap[tableName] ?? [], null),
+    );
 
     let tplCallCount = 0;
     const originalFrom = m.from.getMockImplementation()!;
@@ -639,7 +1072,16 @@ describe('[P0] [8.1b-ATDD-003] template resolution during report generation', ()
       if (tableName === 'report_templates') {
         tplCallCount++;
         chain.maybeSingle = vi.fn().mockResolvedValue({
-          data: tplCallCount === 2 ? { id: 'tpl-def', sections_config: { time_summary: { enabled: true, sort_order: 1 } }, branding: { accentColor: '#6366f1' } } : null,
+          data:
+            tplCallCount === 2
+              ? {
+                  id: 'tpl-def',
+                  sections_config: {
+                    time_summary: { enabled: true, sort_order: 1 },
+                  },
+                  branding: { accentColor: '#6366f1' },
+                }
+              : null,
           error: null,
         });
       }
@@ -655,7 +1097,10 @@ describe('[P0] [8.1b-ATDD-003] template resolution during report generation', ()
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.report.templateSnapshot).toBeDefined();
-      expect((result.data.report.templateSnapshot as Record<string, unknown>).sections_config).toBeDefined();
+      expect(
+        (result.data.report.templateSnapshot as Record<string, unknown>)
+          .sections_config,
+      ).toBeDefined();
     }
   });
 });
@@ -671,12 +1116,14 @@ describe('[P0] [8.1b-ATDD-004] template UI components', () => {
   }, 30000);
 
   test('TemplateCard shows name, enabled sections, last updated', async () => {
-    const { TemplateCard } = await import('@/app/(workspace)/reports/templates/components/TemplateCard');
+    const { TemplateCard } =
+      await import('@/app/(workspace)/reports/templates/components/TemplateCard');
     expect(TemplateCard).toBeDefined();
   }, 30000);
 
   test('TemplateForm renders section toggles and accent color picker', async () => {
-    const { TemplateForm } = await import('@/app/(workspace)/reports/templates/components/TemplateForm');
+    const { TemplateForm } =
+      await import('@/app/(workspace)/reports/templates/components/TemplateForm');
     expect(TemplateForm).toBeDefined();
   }, 30000);
 });

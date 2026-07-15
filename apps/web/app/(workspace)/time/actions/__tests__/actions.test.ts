@@ -6,13 +6,26 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({
-    status, code, message, category,
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({
+    status,
+    code,
+    message,
+    category,
   }),
   createTimeEntry: vi.fn(),
   softDeleteTimeEntry: vi.fn(),
   createProject: vi.fn(),
-  ProjectNameDuplicateError: class extends Error { constructor() { super('duplicate'); this.name = 'ProjectNameDuplicateError'; } },
+  ProjectNameDuplicateError: class extends Error {
+    constructor() {
+      super('duplicate');
+      this.name = 'ProjectNameDuplicateError';
+    }
+  },
   getTimerState: vi.fn(),
   startTimer: vi.fn(),
   stopTimerRpc: vi.fn(),
@@ -22,9 +35,21 @@ vi.mock('@flow/db', () => ({
 import { createTimeEntryAction } from '../create-time-entry';
 import { softDeleteTimeEntryAction } from '../soft-delete-time-entry';
 import { createProjectAction } from '../create-project';
-import { startTimerAction, stopTimerAction, getTimerStateAction } from '../timer-actions';
+import {
+  startTimerAction,
+  stopTimerAction,
+  getTimerStateAction,
+} from '../timer-actions';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createTimeEntry, softDeleteTimeEntry, createProject, getTimerState, startTimer, stopTimerRpc } from '@flow/db';
+import {
+  requireTenantContext,
+  createTimeEntry,
+  softDeleteTimeEntry,
+  createProject,
+  getTimerState,
+  startTimer,
+  stopTimerRpc,
+} from '@flow/db';
 
 const clientSelectChain = {
   eq: vi.fn().mockReturnThis(),
@@ -39,40 +64,64 @@ const mockSupabase = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase as never);
-  vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'owner' } as never);
+  vi.mocked(requireTenantContext).mockResolvedValue({
+    workspaceId: 'ws1',
+    userId: 'u1',
+    role: 'owner',
+  } as never);
 });
 
 describe('createTimeEntryAction', () => {
   it('returns validation error for durationMinutes = 0', async () => {
     const result = await createTimeEntryAction({
-      clientId: '00000000-0000-0000-0000-000000000001', projectId: null, date: '2026-05-09', durationMinutes: 0,
+      clientId: '00000000-0000-0000-0000-000000000001',
+      projectId: null,
+      date: '2026-05-09',
+      durationMinutes: 0,
     });
     expect(result.success).toBe(false);
   });
 
   it('returns validation error for durationMinutes = 1441', async () => {
     const result = await createTimeEntryAction({
-      clientId: '00000000-0000-0000-0000-000000000001', projectId: null, date: '2026-05-09', durationMinutes: 1441,
+      clientId: '00000000-0000-0000-0000-000000000001',
+      projectId: null,
+      date: '2026-05-09',
+      durationMinutes: 1441,
     });
     expect(result.success).toBe(false);
   });
 
   it('returns validation error for missing clientId', async () => {
     const result = await createTimeEntryAction({
-      clientId: '', projectId: null, date: '2026-05-09', durationMinutes: 60,
+      clientId: '',
+      projectId: null,
+      date: '2026-05-09',
+      durationMinutes: 60,
     });
     expect(result.success).toBe(false);
   });
 
   it('returns created entry on success', async () => {
     vi.mocked(createTimeEntry).mockResolvedValue({
-      id: 'te1', workspaceId: 'ws1', clientId: 'c1', userId: 'u1',
-      projectId: null, date: '2026-05-09', durationMinutes: 90,
-      notes: null, deletedAt: null, createdAt: '2026-05-09', updatedAt: '2026-05-09',
+      id: 'te1',
+      workspaceId: 'ws1',
+      clientId: 'c1',
+      userId: 'u1',
+      projectId: null,
+      date: '2026-05-09',
+      durationMinutes: 90,
+      notes: null,
+      deletedAt: null,
+      createdAt: '2026-05-09',
+      updatedAt: '2026-05-09',
     } as never);
 
     const result = await createTimeEntryAction({
-      clientId: '00000000-0000-0000-0000-000000000001', projectId: null, date: '2026-05-09', durationMinutes: 90,
+      clientId: '00000000-0000-0000-0000-000000000001',
+      projectId: null,
+      date: '2026-05-09',
+      durationMinutes: 90,
     });
     expect(result.success).toBe(true);
     if (result.success) {
@@ -84,7 +133,9 @@ describe('createTimeEntryAction', () => {
 describe('softDeleteTimeEntryAction', () => {
   it('returns success on own entry delete', async () => {
     vi.mocked(softDeleteTimeEntry).mockResolvedValue(true as never);
-    const result = await softDeleteTimeEntryAction({ id: '00000000-0000-0000-0000-000000000001' });
+    const result = await softDeleteTimeEntryAction({
+      id: '00000000-0000-0000-0000-000000000001',
+    });
     expect(result.success).toBe(true);
   });
 
@@ -97,12 +148,21 @@ describe('softDeleteTimeEntryAction', () => {
 describe('createProjectAction', () => {
   it('returns created project on success', async () => {
     vi.mocked(createProject).mockResolvedValue({
-      id: 'p1', workspaceId: 'ws1', clientId: 'c1', name: 'Test',
-      description: null, status: 'active', archivedAt: null,
-      createdAt: '2026-05-09', updatedAt: '2026-05-09',
+      id: 'p1',
+      workspaceId: 'ws1',
+      clientId: 'c1',
+      name: 'Test',
+      description: null,
+      status: 'active',
+      archivedAt: null,
+      createdAt: '2026-05-09',
+      updatedAt: '2026-05-09',
     } as never);
 
-    const result = await createProjectAction({ clientId: '00000000-0000-0000-0000-000000000001', name: 'Test' });
+    const result = await createProjectAction({
+      clientId: '00000000-0000-0000-0000-000000000001',
+      name: 'Test',
+    });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.name).toBe('Test');
@@ -113,7 +173,10 @@ describe('createProjectAction', () => {
     const { ProjectNameDuplicateError: Err } = await import('@flow/db');
     vi.mocked(createProject).mockRejectedValue(new Err());
 
-    const result = await createProjectAction({ clientId: '00000000-0000-0000-0000-000000000001', name: 'Duplicate' });
+    const result = await createProjectAction({
+      clientId: '00000000-0000-0000-0000-000000000001',
+      name: 'Duplicate',
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('CONFLICT');
@@ -141,13 +204,19 @@ describe('startTimerAction', () => {
   });
 
   it('returns validation error for invalid clientId', async () => {
-    const result = await startTimerAction({ clientId: 'not-a-uuid', projectId: null });
+    const result = await startTimerAction({
+      clientId: 'not-a-uuid',
+      projectId: null,
+    });
     expect(result.success).toBe(false);
   });
 
   it('returns timer state on success', async () => {
     vi.mocked(startTimer).mockResolvedValue(mockTimerState as never);
-    const result = await startTimerAction({ clientId: '00000000-0000-0000-0000-000000000001', projectId: null });
+    const result = await startTimerAction({
+      clientId: '00000000-0000-0000-0000-000000000001',
+      projectId: null,
+    });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.id).toBe('t1');
@@ -159,7 +228,10 @@ describe('startTimerAction', () => {
     pgError.code = '23505';
     vi.mocked(startTimer).mockRejectedValue(pgError);
 
-    const result = await startTimerAction({ clientId: '00000000-0000-0000-0000-000000000001', projectId: null });
+    const result = await startTimerAction({
+      clientId: '00000000-0000-0000-0000-000000000001',
+      projectId: null,
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('TIMER_ALREADY_RUNNING');
@@ -169,7 +241,10 @@ describe('startTimerAction', () => {
   it('returns internal error on unexpected failure', async () => {
     vi.mocked(startTimer).mockRejectedValue(new Error('db down'));
 
-    const result = await startTimerAction({ clientId: '00000000-0000-0000-0000-000000000001', projectId: null });
+    const result = await startTimerAction({
+      clientId: '00000000-0000-0000-0000-000000000001',
+      projectId: null,
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('INTERNAL_ERROR');
@@ -184,8 +259,13 @@ describe('stopTimerAction', () => {
   });
 
   it('returns result on success', async () => {
-    vi.mocked(stopTimerRpc).mockResolvedValue({ timeEntryId: 'te1', durationMinutes: 30 } as never);
-    const result = await stopTimerAction({ timerId: '00000000-0000-0000-0000-000000000001' });
+    vi.mocked(stopTimerRpc).mockResolvedValue({
+      timeEntryId: 'te1',
+      durationMinutes: 30,
+    } as never);
+    const result = await stopTimerAction({
+      timerId: '00000000-0000-0000-0000-000000000001',
+    });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.timeEntryId).toBe('te1');
@@ -198,7 +278,9 @@ describe('stopTimerAction', () => {
     rpcError.code = 'TIMER_NOT_FOUND';
     vi.mocked(stopTimerRpc).mockRejectedValue(rpcError);
 
-    const result = await stopTimerAction({ timerId: '00000000-0000-0000-0000-000000000001' });
+    const result = await stopTimerAction({
+      timerId: '00000000-0000-0000-0000-000000000001',
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('TIMER_NOT_FOUND');

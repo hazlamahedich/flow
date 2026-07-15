@@ -2,9 +2,14 @@
 
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, createFlowError } from '@flow/db';
-import type { ActionResult, WeeklyReport, WeeklyReportSection } from '@flow/types';
+import type {
+  ActionResult,
+  WeeklyReport,
+  WeeklyReportSection,
+} from '@flow/types';
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface ReportDetailResult {
   report: WeeklyReport;
@@ -34,7 +39,12 @@ export async function getWeeklyReportByIdAction(
   if (!UUID_RE.test(reportId)) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Invalid report ID format.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Invalid report ID format.',
+        'validation',
+      ),
     };
   }
 
@@ -45,7 +55,12 @@ export async function getWeeklyReportByIdAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
@@ -59,14 +74,24 @@ export async function getWeeklyReportByIdAction(
   if (reportErr) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to fetch report.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to fetch report.',
+        'system',
+      ),
     };
   }
 
   if (!reportRow) {
     return {
       success: false,
-      error: createFlowError(404, 'NOT_FOUND', 'Report not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'NOT_FOUND',
+        'Report not found.',
+        'validation',
+      ),
     };
   }
 
@@ -79,7 +104,12 @@ export async function getWeeklyReportByIdAction(
   if (sectionErr) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to fetch report sections.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to fetch report sections.',
+        'system',
+      ),
     };
   }
 
@@ -97,20 +127,23 @@ export async function getWeeklyReportByIdAction(
     version: safeNum(reportRow.version),
     parentReportId: (reportRow.parent_report_id as string | null) ?? null,
     versionGroupId: (reportRow.version_group_id as string | null) ?? null,
-    templateSnapshot: (reportRow.template_snapshot as Record<string, unknown>) ?? {},
+    templateSnapshot:
+      (reportRow.template_snapshot as Record<string, unknown>) ?? {},
     createdAt: nullSafeStr(reportRow.created_at) ?? '',
     updatedAt: nullSafeStr(reportRow.updated_at) ?? '',
   };
 
-  const sections: WeeklyReportSection[] = (sectionRows ?? []).map((s: Record<string, unknown>) => ({
-    id: s.id as string,
-    reportId: s.report_id as string,
-    sectionType: s.section_type as WeeklyReportSection['sectionType'],
-    title: s.title as string,
-    content: (s.content as Record<string, unknown>) ?? {},
-    sortOrder: safeNum(s.sort_order),
-    createdAt: safeStr(s.created_at),
-  }));
+  const sections: WeeklyReportSection[] = (sectionRows ?? []).map(
+    (s: Record<string, unknown>) => ({
+      id: s.id as string,
+      reportId: s.report_id as string,
+      sectionType: s.section_type as WeeklyReportSection['sectionType'],
+      title: s.title as string,
+      content: (s.content as Record<string, unknown>) ?? {},
+      sortOrder: safeNum(s.sort_order),
+      createdAt: safeStr(s.created_at),
+    }),
+  );
 
   return {
     success: true,

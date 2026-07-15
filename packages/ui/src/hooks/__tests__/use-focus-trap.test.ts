@@ -58,7 +58,9 @@ describe('useFocusTrap', () => {
     document.body.appendChild(previous);
     previous.focus();
 
-    const { result, unmount } = renderHook(() => useFocusTrap({ restoreFocus: true }));
+    const { result, unmount } = renderHook(() =>
+      useFocusTrap({ restoreFocus: true }),
+    );
 
     const container = document.createElement('div');
     act(() => {

@@ -18,9 +18,15 @@ export async function createRetainerAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Invalid retainer data.', 'validation', {
-        issues: parsed.error.issues,
-      }),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Invalid retainer data.',
+        'validation',
+        {
+          issues: parsed.error.issues,
+        },
+      ),
     };
   }
 
@@ -30,7 +36,12 @@ export async function createRetainerAction(
   if (ctx.role !== 'owner' && ctx.role !== 'admin') {
     return {
       success: false,
-      error: createFlowError(403, 'INSUFFICIENT_ROLE', 'Only owners and admins can create retainers.', 'auth'),
+      error: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Only owners and admins can create retainers.',
+        'auth',
+      ),
     };
   }
 
@@ -44,11 +55,27 @@ export async function createRetainerAction(
     .maybeSingle();
 
   if (clientError || !client) {
-    return { success: false, error: createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found.', 'validation') };
+    return {
+      success: false,
+      error: createFlowError(
+        404,
+        'CLIENT_NOT_FOUND',
+        'Client not found.',
+        'validation',
+      ),
+    };
   }
 
   if (client.status === 'archived') {
-    return { success: false, error: createFlowError(400, 'RETAINER_CLIENT_ARCHIVED', 'Cannot create retainer for archived client.', 'validation') };
+    return {
+      success: false,
+      error: createFlowError(
+        400,
+        'RETAINER_CLIENT_ARCHIVED',
+        'Cannot create retainer for archived client.',
+        'validation',
+      ),
+    };
   }
 
   try {
@@ -57,11 +84,22 @@ export async function createRetainerAction(
       data: {
         clientId,
         type,
-        ...('hourlyRateCents' in rest && rest.hourlyRateCents != null ? { hourlyRateCents: rest.hourlyRateCents } : {}),
-        ...('monthlyFeeCents' in rest && rest.monthlyFeeCents != null ? { monthlyFeeCents: rest.monthlyFeeCents } : {}),
-        ...('monthlyHoursThreshold' in rest && rest.monthlyHoursThreshold != null ? { monthlyHoursThreshold: rest.monthlyHoursThreshold } : {}),
-        ...('packageHours' in rest && rest.packageHours != null ? { packageHours: rest.packageHours } : {}),
-        ...('packageName' in rest && rest.packageName != null ? { packageName: rest.packageName } : {}),
+        ...('hourlyRateCents' in rest && rest.hourlyRateCents != null
+          ? { hourlyRateCents: rest.hourlyRateCents }
+          : {}),
+        ...('monthlyFeeCents' in rest && rest.monthlyFeeCents != null
+          ? { monthlyFeeCents: rest.monthlyFeeCents }
+          : {}),
+        ...('monthlyHoursThreshold' in rest &&
+        rest.monthlyHoursThreshold != null
+          ? { monthlyHoursThreshold: rest.monthlyHoursThreshold }
+          : {}),
+        ...('packageHours' in rest && rest.packageHours != null
+          ? { packageHours: rest.packageHours }
+          : {}),
+        ...('packageName' in rest && rest.packageName != null
+          ? { packageName: rest.packageName }
+          : {}),
         billingPeriodDays: rest.billingPeriodDays,
         startDate: rest.startDate,
         endDate: rest.endDate ?? null,
@@ -74,15 +112,31 @@ export async function createRetainerAction(
     revalidateTag(cacheTag('dashboard', ctx.workspaceId));
     return { success: true, data: retainer };
   } catch (err: unknown) {
-    if (typeof err === 'object' && err !== null && 'retainerCode' in err && (err as { retainerCode?: string }).retainerCode === 'RETAINER_ACTIVE_EXISTS') {
+    if (
+      typeof err === 'object' &&
+      err !== null &&
+      'retainerCode' in err &&
+      (err as { retainerCode?: string }).retainerCode ===
+        'RETAINER_ACTIVE_EXISTS'
+    ) {
       return {
         success: false,
-        error: createFlowError(409, 'RETAINER_ACTIVE_EXISTS', 'This client already has an active retainer agreement.', 'validation'),
+        error: createFlowError(
+          409,
+          'RETAINER_ACTIVE_EXISTS',
+          'This client already has an active retainer agreement.',
+          'validation',
+        ),
       };
     }
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to create retainer.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to create retainer.',
+        'system',
+      ),
     };
   }
 }

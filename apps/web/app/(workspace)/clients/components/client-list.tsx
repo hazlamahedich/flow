@@ -35,7 +35,9 @@ export function ClientList({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(filters.search ?? '');
-  const [statusFilter, setStatusFilter] = useState<string>(filters.status ?? 'all');
+  const [statusFilter, setStatusFilter] = useState<string>(
+    filters.status ?? 'all',
+  );
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -80,12 +82,14 @@ export function ClientList({
         <h1 className="text-2xl font-semibold text-[var(--flow-color-text-primary)]">
           Clients
         </h1>
-        {role !== 'member' && (
-          <CreateClientDialog activeCount={activeCount} />
-        )}
+        {role !== 'member' && <CreateClientDialog activeCount={activeCount} />}
       </div>
 
-      <TierLimitBanner activeCount={activeCount} limit={tierLimit} tierName={tierName} />
+      <TierLimitBanner
+        activeCount={activeCount}
+        limit={tierLimit}
+        tierName={tierName}
+      />
 
       <div className="flex items-center gap-3">
         <div className="flex flex-1 items-center gap-2">
@@ -125,24 +129,37 @@ export function ClientList({
         <ClientEmptyState variant="no-assigned" />
       )}
       {noFilterResults && !noClientsAtAll && (
-        <ClientEmptyState variant="no-results" onReset={() => router.push('/clients')} />
+        <ClientEmptyState
+          variant="no-results"
+          onReset={() => router.push('/clients')}
+        />
       )}
       {!noClientsAtAll && !noFilterResults && (
         <>
-          <ClientTable clients={clients} sortBy={filters.sortBy ?? 'created_at'} sortOrder={filters.sortOrder ?? 'desc'} onSort={(col) => {
-            const params = new URLSearchParams(searchParams.toString());
-            const currentSort = params.get('sort');
-            if (currentSort === col) {
-              params.set('order', filters.sortOrder === 'asc' ? 'desc' : 'asc');
-            } else {
-              params.set('sort', col);
-              params.set('order', 'asc');
-            }
-            params.delete('page');
-            router.push(`/clients?${params.toString()}`);
-          }} />
+          <ClientTable
+            clients={clients}
+            sortBy={filters.sortBy ?? 'created_at'}
+            sortOrder={filters.sortOrder ?? 'desc'}
+            onSort={(col) => {
+              const params = new URLSearchParams(searchParams.toString());
+              const currentSort = params.get('sort');
+              if (currentSort === col) {
+                params.set(
+                  'order',
+                  filters.sortOrder === 'asc' ? 'desc' : 'asc',
+                );
+              } else {
+                params.set('sort', col);
+                params.set('order', 'asc');
+              }
+              params.delete('page');
+              router.push(`/clients?${params.toString()}`);
+            }}
+          />
           <div className="flex items-center justify-between text-sm text-[var(--flow-color-text-secondary)]">
-            <span>{total} client{total !== 1 ? 's' : ''}</span>
+            <span>
+              {total} client{total !== 1 ? 's' : ''}
+            </span>
             <div className="flex gap-2">
               <button
                 onClick={() => goToPage(page - 1)}

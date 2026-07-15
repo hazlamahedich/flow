@@ -86,7 +86,9 @@ describe('createWorkspaceSchema', () => {
   });
 
   it('[P0] rejects name over 100 chars', () => {
-    expect(() => createWorkspaceSchema.parse({ name: 'x'.repeat(101) })).toThrow();
+    expect(() =>
+      createWorkspaceSchema.parse({ name: 'x'.repeat(101) }),
+    ).toThrow();
   });
 });
 
@@ -101,15 +103,21 @@ describe('inviteMemberSchema', () => {
   });
 
   it('[P0] rejects invalid email', () => {
-    expect(() => inviteMemberSchema.parse({ email: 'not-email', role: 'member' })).toThrow();
+    expect(() =>
+      inviteMemberSchema.parse({ email: 'not-email', role: 'member' }),
+    ).toThrow();
   });
 
   it('[P0] rejects owner role (not in InvitationRoleEnum)', () => {
-    expect(() => inviteMemberSchema.parse({ email: 'a@b.com', role: 'owner' })).toThrow();
+    expect(() =>
+      inviteMemberSchema.parse({ email: 'a@b.com', role: 'owner' }),
+    ).toThrow();
   });
 
   it('[P0] accepts future expiry date', () => {
-    const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    const futureDate = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    ).toISOString();
     const result = inviteMemberSchema.parse({
       email: 'a@b.com',
       role: 'member',
@@ -121,26 +129,41 @@ describe('inviteMemberSchema', () => {
   it('[P0] rejects past expiry date', () => {
     const pastDate = new Date(Date.now() - 86400000).toISOString();
     expect(() =>
-      inviteMemberSchema.parse({ email: 'a@b.com', role: 'member', expiresAt: pastDate }),
+      inviteMemberSchema.parse({
+        email: 'a@b.com',
+        role: 'member',
+        expiresAt: pastDate,
+      }),
     ).toThrow();
   });
 
   it('[P0] rejects expiry more than 1 year in future', () => {
-    const farFuture = new Date(Date.now() + 400 * 24 * 60 * 60 * 1000).toISOString();
+    const farFuture = new Date(
+      Date.now() + 400 * 24 * 60 * 60 * 1000,
+    ).toISOString();
     expect(() =>
-      inviteMemberSchema.parse({ email: 'a@b.com', role: 'member', expiresAt: farFuture }),
+      inviteMemberSchema.parse({
+        email: 'a@b.com',
+        role: 'member',
+        expiresAt: farFuture,
+      }),
     ).toThrow();
   });
 });
 
 describe('updateRoleSchema', () => {
   it('[P0] accepts valid input', () => {
-    const result = updateRoleSchema.parse({ memberId: crypto.randomUUID(), role: 'admin' });
+    const result = updateRoleSchema.parse({
+      memberId: crypto.randomUUID(),
+      role: 'admin',
+    });
     expect(result.role).toBe('admin');
   });
 
   it('[P0] rejects non-UUID memberId', () => {
-    expect(() => updateRoleSchema.parse({ memberId: 'not-uuid', role: 'admin' })).toThrow();
+    expect(() =>
+      updateRoleSchema.parse({ memberId: 'not-uuid', role: 'admin' }),
+    ).toThrow();
   });
 });
 

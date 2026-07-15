@@ -37,11 +37,11 @@ export async function checkRateLimit(
   try {
     const supabase = await getServerSupabase();
 
-    const resolvedAction = action ?? (
-      config === MAGIC_LINK_VERIFICATION_CONFIG
+    const resolvedAction =
+      action ??
+      (config === MAGIC_LINK_VERIFICATION_CONFIG
         ? 'magic_link_verification'
-        : 'magic_link_request'
-    );
+        : 'magic_link_request');
 
     const { data, error } = await supabase.rpc('check_rate_limit', {
       p_identifier: identifier,
@@ -52,7 +52,10 @@ export async function checkRateLimit(
     });
 
     if (error) {
-      console.warn('Rate limit check failed, allowing request through:', error.message);
+      console.warn(
+        'Rate limit check failed, allowing request through:',
+        error.message,
+      );
       return { allowed: true, retryAfterMs: 0 };
     }
 

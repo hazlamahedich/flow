@@ -17,10 +17,21 @@
  */
 import type { Metadata } from 'next';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, countActiveClients, countArchivedClients, getLatestArchivedAt, countActiveTeamMembers, countActiveAgents } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  countActiveClients,
+  countArchivedClients,
+  getLatestArchivedAt,
+  countActiveTeamMembers,
+  countActiveAgents,
+} from '@flow/db';
 import type { ActionResult, SubscriptionTier } from '@flow/types';
 import { getTierConfig } from '@/lib/config/tier-config';
-import { getTierLimits, type TierLimit } from '@/lib/actions/billing/enforce-tier-limit';
+import {
+  getTierLimits,
+  type TierLimit,
+} from '@/lib/actions/billing/enforce-tier-limit';
 import { createCheckoutSessionAction } from '@/lib/actions/billing/create-checkout-session';
 import { changeTierAction } from '@/lib/actions/billing/change-tier';
 import { createPortalSessionAction } from '@/lib/actions/billing/create-portal-session';
@@ -64,13 +75,19 @@ interface PageData {
     subscription_cancel_at_period_end: boolean;
   };
   recentInvoices: BillingHistoryItem[];
-  planDisplayPrices: Record<'pro' | 'agency', { label: string; interval: string }>;
+  planDisplayPrices: Record<
+    'pro' | 'agency',
+    { label: string; interval: string }
+  >;
   usage: { clients: number; teamMembers: number; agents: number };
   archived: { count: number; latestArchivedAt: string | null };
   tierLimits: TierLimit;
 }
 
-async function loadPageData(workspaceId: string, supabase: Awaited<ReturnType<typeof getServerSupabase>>): Promise<PageData | null> {
+async function loadPageData(
+  workspaceId: string,
+  supabase: Awaited<ReturnType<typeof getServerSupabase>>,
+): Promise<PageData | null> {
   const { data: workspace } = await supabase
     .from('workspaces')
     .select(
@@ -82,7 +99,9 @@ async function loadPageData(workspaceId: string, supabase: Awaited<ReturnType<ty
 
   const { data: invoiceRows } = await supabase
     .from('invoices')
-    .select('id, invoice_number, status, total_cents, amount_paid_cents, currency, issue_date')
+    .select(
+      'id, invoice_number, status, total_cents, amount_paid_cents, currency, issue_date',
+    )
     .eq('workspace_id', workspaceId)
     .order('created_at', { ascending: false })
     .limit(10);
@@ -92,22 +111,28 @@ async function loadPageData(workspaceId: string, supabase: Awaited<ReturnType<ty
   try {
     const tierConfig = await getTierConfig();
     planDisplayPrices = tierConfig.planDisplayPrices;
-    tierLimits = await getTierLimits(workspace.subscription_tier as SubscriptionTier);
+    tierLimits = await getTierLimits(
+      workspace.subscription_tier as SubscriptionTier,
+    );
   } catch {
-    planDisplayPrices = { pro: { label: '$29 / month', interval: 'month' }, agency: { label: '$99 / month', interval: 'month' } };
+    planDisplayPrices = {
+      pro: { label: '$29 / month', interval: 'month' },
+      agency: { label: '$99 / month', interval: 'month' },
+    };
     tierLimits = { maxClients: 5, maxTeamMembers: 1, maxAgents: 2 };
   }
 
   // Usage counts use the same RLS-safe helpers consumed by enforceTierLimit
   // (Story 9.4 AC6 — do not duplicate count logic). All three accept the
   // user-scoped supabase client.
-  const [clients, archivedCount, latestArchivedAt, teamMembers, agents] = await Promise.all([
-    countActiveClients(supabase, workspaceId).catch(() => 0),
-    countArchivedClients(supabase, workspaceId).catch(() => 0),
-    getLatestArchivedAt(supabase, workspaceId).catch(() => null),
-    countActiveTeamMembers(supabase, workspaceId).catch(() => 0),
-    countActiveAgents(supabase, workspaceId).catch(() => 0),
-  ]);
+  const [clients, archivedCount, latestArchivedAt, teamMembers, agents] =
+    await Promise.all([
+      countActiveClients(supabase, workspaceId).catch(() => 0),
+      countArchivedClients(supabase, workspaceId).catch(() => 0),
+      getLatestArchivedAt(supabase, workspaceId).catch(() => null),
+      countActiveTeamMembers(supabase, workspaceId).catch(() => 0),
+      countActiveAgents(supabase, workspaceId).catch(() => 0),
+    ]);
 
   return {
     workspace: workspace as PageData['workspace'],
@@ -121,32 +146,44 @@ async function loadPageData(workspaceId: string, supabase: Awaited<ReturnType<ty
 
 // Inline Server Action wrappers — keeps the page a single deployable unit
 // (project-context.md:315 — colocate with the route group).
-async function handleCheckout(input: unknown): Promise<ActionResult<{ url: string }>> {
+async function handleCheckout(
+  input: unknown,
+): Promise<ActionResult<{ url: string }>> {
   'use server';
   return createCheckoutSessionAction(input);
 }
 
-async function handleUpgrade(input: unknown): Promise<ActionResult<{ checkoutUrl: string }>> {
+async function handleUpgrade(
+  input: unknown,
+): Promise<ActionResult<{ checkoutUrl: string }>> {
   'use server';
   return changeTierAction(input);
 }
 
-async function handlePortal(input?: unknown): Promise<ActionResult<{ url: string }>> {
+async function handlePortal(
+  input?: unknown,
+): Promise<ActionResult<{ url: string }>> {
   'use server';
   return createPortalSessionAction(input);
 }
 
-async function handleCancel(input?: unknown): Promise<ActionResult<{ cancelAtPeriodEnd: true }>> {
+async function handleCancel(
+  input?: unknown,
+): Promise<ActionResult<{ cancelAtPeriodEnd: true }>> {
   'use server';
   return cancelSubscriptionAction(input);
 }
 
-async function handleReactivate(input?: unknown): Promise<ActionResult<{ reactivated: true }>> {
+async function handleReactivate(
+  input?: unknown,
+): Promise<ActionResult<{ reactivated: true }>> {
   'use server';
   return reactivateSubscriptionAction(input);
 }
 
-async function handleSync(input: { sessionId?: string }): Promise<ActionResult<{ synced: true }>> {
+async function handleSync(input: {
+  sessionId?: string;
+}): Promise<ActionResult<{ synced: true }>> {
   'use server';
   return syncStripeDataAction(input);
 }
@@ -154,7 +191,11 @@ async function handleSync(input: { sessionId?: string }): Promise<ActionResult<{
 export default async function BillingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sync?: string; session_id?: string; status?: string }>;
+  searchParams: Promise<{
+    sync?: string;
+    session_id?: string;
+    status?: string;
+  }>;
 }) {
   const params = await searchParams;
   const supabase = await getServerSupabase();
@@ -166,8 +207,12 @@ export default async function BillingPage({
     const error = err as ReturnType<typeof createFlowError>;
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-semibold text-[var(--flow-color-text-primary)]">Billing</h1>
-        <p className="text-sm text-[var(--flow-status-error)]" role="alert">{error.message}</p>
+        <h1 className="text-2xl font-semibold text-[var(--flow-color-text-primary)]">
+          Billing
+        </h1>
+        <p className="text-sm text-[var(--flow-status-error)]" role="alert">
+          {error.message}
+        </p>
       </div>
     );
   }
@@ -176,7 +221,9 @@ export default async function BillingPage({
   if (!data) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-semibold text-[var(--flow-color-text-primary)]">Billing</h1>
+        <h1 className="text-2xl font-semibold text-[var(--flow-color-text-primary)]">
+          Billing
+        </h1>
         <p className="text-sm text-[var(--flow-status-error)]" role="alert">
           Failed to load billing data. Please try again.
         </p>
@@ -189,7 +236,9 @@ export default async function BillingPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-[var(--flow-color-text-primary)]">Billing</h1>
+      <h1 className="text-2xl font-semibold text-[var(--flow-color-text-primary)]">
+        Billing
+      </h1>
 
       <SyncBanner
         isSyncRequested={isSyncRequested}
@@ -207,7 +256,9 @@ export default async function BillingPage({
       />
 
       <section className="rounded-[var(--flow-radius-lg)] border border-[var(--flow-color-border-default)] p-5">
-        <h2 className="text-lg font-medium text-[var(--flow-color-text-primary)]">Current plan</h2>
+        <h2 className="text-lg font-medium text-[var(--flow-color-text-primary)]">
+          Current plan
+        </h2>
         <p className="mt-1 text-sm text-[var(--flow-color-text-secondary)]">
           Tier:{' '}
           <span className="font-medium text-[var(--flow-color-text-primary)]">
@@ -226,12 +277,18 @@ export default async function BillingPage({
         {data.workspace.subscription_current_period_end && (
           <p className="mt-1 text-xs text-[var(--flow-color-text-muted)]">
             Current period ends{' '}
-            {new Date(data.workspace.subscription_current_period_end).toLocaleDateString()}
+            {new Date(
+              data.workspace.subscription_current_period_end,
+            ).toLocaleDateString()}
           </p>
         )}
       </section>
 
-      <PlanCard checkoutAction={handleCheckout} currentTier={data.workspace.subscription_tier} planDisplayPrices={data.planDisplayPrices} />
+      <PlanCard
+        checkoutAction={handleCheckout}
+        currentTier={data.workspace.subscription_tier}
+        planDisplayPrices={data.planDisplayPrices}
+      />
 
       <UsageMeter
         tier={data.workspace.subscription_tier as SubscriptionTier}
@@ -247,7 +304,10 @@ export default async function BillingPage({
         cancelAtPeriodEnd={data.workspace.subscription_cancel_at_period_end}
       />
 
-      <ManageBillingButton portalAction={handlePortal} hasCustomerId={!!data.workspace.stripe_customer_id} />
+      <ManageBillingButton
+        portalAction={handlePortal}
+        hasCustomerId={!!data.workspace.stripe_customer_id}
+      />
 
       <BillingHistory invoices={data.recentInvoices} />
     </div>

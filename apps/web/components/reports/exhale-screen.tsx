@@ -37,7 +37,9 @@ export function ExhaleScreen({ summary }: { summary: FridayFeelingData }) {
   return (
     <div className="exhale-screen rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-8 shadow-sm">
       <div className="mb-6 border-b-2 border-amber-400 pb-4">
-        <h2 className="text-2xl font-semibold text-gray-900">{summary.headline}</h2>
+        <h2 className="text-2xl font-semibold text-gray-900">
+          {summary.headline}
+        </h2>
         <p className="mt-1 text-sm text-gray-500">
           Week of {summary.weekStart} — {summary.weekEnd}
         </p>
@@ -47,11 +49,15 @@ export function ExhaleScreen({ summary }: { summary: FridayFeelingData }) {
         <>
           <div className="mb-6 grid grid-cols-2 gap-4">
             <div className="rounded-lg bg-emerald-50 p-4">
-              <p className="text-3xl font-bold text-emerald-700">{summary.tasksHandled}</p>
+              <p className="text-3xl font-bold text-emerald-700">
+                {summary.tasksHandled}
+              </p>
               <p className="text-sm text-emerald-600">Tasks handled</p>
             </div>
             <div className="rounded-lg bg-blue-50 p-4">
-              <p className="text-3xl font-bold text-blue-700">{summary.timeSavedMinutes}</p>
+              <p className="text-3xl font-bold text-blue-700">
+                {summary.timeSavedMinutes}
+              </p>
               <p className="text-sm text-blue-600">Minutes saved</p>
             </div>
           </div>
@@ -70,7 +76,8 @@ export function ExhaleScreen({ summary }: { summary: FridayFeelingData }) {
                     {formatAgentLabel(m.agent_type)}
                   </span>
                   <span className="text-gray-600">
-                    {formatTrustLevel(m.from_level)} → {formatTrustLevel(m.to_level)}
+                    {formatTrustLevel(m.from_level)} →{' '}
+                    {formatTrustLevel(m.to_level)}
                   </span>
                 </div>
               ))}

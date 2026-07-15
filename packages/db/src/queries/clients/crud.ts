@@ -2,7 +2,11 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Client, ClientListFilters } from '@flow/types';
 import { mapClientRow } from './crud-helpers';
 
-export { countActiveClients, checkDuplicateEmail, hasActiveAgentRuns } from './crud-helpers';
+export {
+  countActiveClients,
+  checkDuplicateEmail,
+  hasActiveAgentRuns,
+} from './crud-helpers';
 
 interface ClientIdInput {
   clientId: string;
@@ -40,7 +44,13 @@ interface ListClientsInput {
 export async function listClients(
   supabase: SupabaseClient,
   input: ListClientsInput,
-): Promise<{ items: Client[]; total: number; page: number; pageSize: number; hasNextPage: boolean }> {
+): Promise<{
+  items: Client[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasNextPage: boolean;
+}> {
   const { workspaceId, role, filters } = input;
   const page = filters.page ?? 1;
   const pageSize = filters.pageSize ?? 25;
@@ -78,17 +88,30 @@ export async function listClients(
   }
 
   if (sortBy === 'name') {
-    query = query.order('name', { ascending: sortOrder === 'asc' }).order('id', { ascending: false });
+    query = query
+      .order('name', { ascending: sortOrder === 'asc' })
+      .order('id', { ascending: false });
   } else {
-    query = query.order('created_at', { ascending: sortOrder === 'asc' }).order('id', { ascending: false });
+    query = query
+      .order('created_at', { ascending: sortOrder === 'asc' })
+      .order('id', { ascending: false });
   }
 
-  const { data, error, count } = await query.range(offset, offset + pageSize - 1);
+  const { data, error, count } = await query.range(
+    offset,
+    offset + pageSize - 1,
+  );
   if (error) throw error;
 
   const items = (data ?? []).map(mapClientRow);
   const total = count ?? 0;
-  return { items, total, page, pageSize, hasNextPage: offset + pageSize < total };
+  return {
+    items,
+    total,
+    page,
+    pageSize,
+    hasNextPage: offset + pageSize < total,
+  };
 }
 
 interface InsertClientInput {
@@ -136,9 +159,13 @@ interface UpdateClientInput {
 }
 
 const FIELD_MAP: Record<string, string> = {
-  name: 'name', email: 'email', phone: 'phone',
-  company_name: 'company_name', address: 'address',
-  notes: 'notes', billing_email: 'billing_email',
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  company_name: 'company_name',
+  address: 'address',
+  notes: 'notes',
+  billing_email: 'billing_email',
   hourly_rate_cents: 'hourly_rate_cents',
 };
 

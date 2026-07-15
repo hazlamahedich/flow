@@ -19,7 +19,12 @@ export async function cancelRetainerAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Invalid cancel data.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Invalid cancel data.',
+        'validation',
+      ),
     };
   }
 
@@ -29,7 +34,12 @@ export async function cancelRetainerAction(
   if (ctx.role !== 'owner' && ctx.role !== 'admin') {
     return {
       success: false,
-      error: createFlowError(403, 'INSUFFICIENT_ROLE', 'Only owners and admins can end retainers.', 'auth'),
+      error: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Only owners and admins can end retainers.',
+        'auth',
+      ),
     };
   }
 
@@ -39,7 +49,15 @@ export async function cancelRetainerAction(
   });
 
   if (!existing) {
-    return { success: false, error: createFlowError(404, 'RETAINER_NOT_FOUND', 'Retainer not found.', 'validation') };
+    return {
+      success: false,
+      error: createFlowError(
+        404,
+        'RETAINER_NOT_FOUND',
+        'Retainer not found.',
+        'validation',
+      ),
+    };
   }
 
   if (existing.status === 'cancelled') {
@@ -64,12 +82,22 @@ export async function cancelRetainerAction(
     if (err instanceof Error && err.message === 'RETAINER_NOT_ACTIVE') {
       return {
         success: false,
-        error: createFlowError(400, 'RETAINER_NOT_ACTIVE', 'Only active retainers can be cancelled.', 'validation'),
+        error: createFlowError(
+          400,
+          'RETAINER_NOT_ACTIVE',
+          'Only active retainers can be cancelled.',
+          'validation',
+        ),
       };
     }
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to end retainer.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to end retainer.',
+        'system',
+      ),
     };
   }
 }

@@ -12,7 +12,8 @@ describe('sanitizer', () => {
     });
 
     it('removes tracking pixels and external images', () => {
-      const html = '<p>Content</p><img src="https://tracker.com/pixel.gif" width="1" height="1"><img src="https://example.com/image.jpg">';
+      const html =
+        '<p>Content</p><img src="https://tracker.com/pixel.gif" width="1" height="1"><img src="https://example.com/image.jpg">';
       const { text, safeHtml } = sanitizeEmail(html);
       expect(text).toBe('Content');
       expect(safeHtml).not.toContain('tracker.com');
@@ -22,7 +23,8 @@ describe('sanitizer', () => {
 
   describe('Signature and Disclaimer stripping', () => {
     it('strips common signatures', () => {
-      const text = 'Hello team,\n\nHow are we doing?\n\nBest regards,\nJohn Doe\nCEO at Flow';
+      const text =
+        'Hello team,\n\nHow are we doing?\n\nBest regards,\nJohn Doe\nCEO at Flow';
       const { cleanText } = sanitizeEmail('', text);
       expect(cleanText).not.toContain('Best regards');
       expect(cleanText).not.toContain('John Doe');
@@ -30,7 +32,8 @@ describe('sanitizer', () => {
     });
 
     it('strips legal disclaimers', () => {
-      const text = 'Project update attached.\n\nThis email and any files transmitted with it are confidential...';
+      const text =
+        'Project update attached.\n\nThis email and any files transmitted with it are confidential...';
       const { cleanText } = sanitizeEmail('', text);
       expect(cleanText).toContain('Project update attached');
       expect(cleanText).not.toContain('confidential');
@@ -45,7 +48,8 @@ describe('sanitizer', () => {
     });
 
     it('strips content after --- Original Message ---', () => {
-      const text = 'Sounds good.\n\n--- Original Message ---\nFrom: John\nSent: Monday';
+      const text =
+        'Sounds good.\n\n--- Original Message ---\nFrom: John\nSent: Monday';
       const { cleanText } = sanitizeEmail('', text);
       expect(cleanText).toBe('Sounds good.');
     });

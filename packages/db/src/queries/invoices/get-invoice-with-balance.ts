@@ -72,27 +72,32 @@ export async function getInvoiceWithBalance(
   if (error) throw error;
   if (!invoice) return null;
 
-  const [{ data: items }, { data: deliveries }, { data: payments }] = await Promise.all([
-    client
-      .from('invoice_line_items')
-      .select('*')
-      .eq('invoice_id', invoiceId)
-      .order('sort_order', { ascending: true }),
-    client
-      .from('invoice_deliveries')
-      .select('id, status, sent_at, retry_count, last_error, message_id, created_at')
-      .eq('invoice_id', invoiceId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    client
-      .from('invoice_payments')
-      .select('id, amount_cents, payment_method, payment_date, notes, created_at, users(name)')
-      .eq('invoice_id', invoiceId)
-      .eq('workspace_id', workspaceId)
-      .order('payment_date', { ascending: false })
-      .order('created_at', { ascending: false }),
-  ]);
+  const [{ data: items }, { data: deliveries }, { data: payments }] =
+    await Promise.all([
+      client
+        .from('invoice_line_items')
+        .select('*')
+        .eq('invoice_id', invoiceId)
+        .order('sort_order', { ascending: true }),
+      client
+        .from('invoice_deliveries')
+        .select(
+          'id, status, sent_at, retry_count, last_error, message_id, created_at',
+        )
+        .eq('invoice_id', invoiceId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      client
+        .from('invoice_payments')
+        .select(
+          'id, amount_cents, payment_method, payment_date, notes, created_at, users(name)',
+        )
+        .eq('invoice_id', invoiceId)
+        .eq('workspace_id', workspaceId)
+        .order('payment_date', { ascending: false })
+        .order('created_at', { ascending: false }),
+    ]);
 
   const clientData = invoice.clients as Record<string, unknown> | null;
 
@@ -157,7 +162,8 @@ export async function getInvoiceWithBalance(
       paymentDate: String(p.payment_date),
       notes: p.notes as string | null,
       createdAt: String(p.created_at),
-      recordedByName: ((p.users as Record<string, unknown> | null)?.name ?? null) as string | null,
+      recordedByName: ((p.users as Record<string, unknown> | null)?.name ??
+        null) as string | null,
     })),
   };
 }

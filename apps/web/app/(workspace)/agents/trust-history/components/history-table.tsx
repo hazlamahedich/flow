@@ -13,7 +13,12 @@ interface HistoryTableProps {
   pageSize: number;
 }
 
-export function HistoryTable({ events, total, page, pageSize }: HistoryTableProps) {
+export function HistoryTable({
+  events,
+  total,
+  page,
+  pageSize,
+}: HistoryTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const totalPages = Math.ceil(total / pageSize);
@@ -40,21 +45,24 @@ export function HistoryTable({ events, total, page, pageSize }: HistoryTableProp
     router.push(`?${params.toString()}`);
   };
 
-  const handleTableKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      const next = Math.min(focusedRow + 1, events.length - 1);
-      setFocusedRow(next);
-      const nextId = events[next]?.id;
-      if (nextId) rowRefs.current[nextId]?.focus();
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      const prev = Math.max(focusedRow - 1, 0);
-      setFocusedRow(prev);
-      const prevId = events[prev]?.id;
-      if (prevId) rowRefs.current[prevId]?.focus();
-    }
-  }, [focusedRow, events]);
+  const handleTableKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = Math.min(focusedRow + 1, events.length - 1);
+        setFocusedRow(next);
+        const nextId = events[next]?.id;
+        if (nextId) rowRefs.current[nextId]?.focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = Math.max(focusedRow - 1, 0);
+        setFocusedRow(prev);
+        const prevId = events[prev]?.id;
+        if (prevId) rowRefs.current[prevId]?.focus();
+      }
+    },
+    [focusedRow, events],
+  );
 
   return (
     <div data-testid="history-table">
@@ -82,7 +90,9 @@ export function HistoryTable({ events, total, page, pageSize }: HistoryTableProp
                 key={event.id}
                 event={event}
                 tabIndex={focusedRow === idx ? 0 : -1}
-                rowRef={(el: HTMLTableRowElement | null) => { rowRefs.current[event.id] = el; }}
+                rowRef={(el: HTMLTableRowElement | null) => {
+                  rowRefs.current[event.id] = el;
+                }}
                 onFocus={() => setFocusedRow(idx)}
               />
             ))}
@@ -92,7 +102,10 @@ export function HistoryTable({ events, total, page, pageSize }: HistoryTableProp
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-4">
-          <p className="text-xs text-[var(--flow-color-text-secondary)]" aria-live="polite">
+          <p
+            className="text-xs text-[var(--flow-color-text-secondary)]"
+            aria-live="polite"
+          >
             Page {page} of {totalPages} ({total} events)
           </p>
           <div className="flex gap-2">

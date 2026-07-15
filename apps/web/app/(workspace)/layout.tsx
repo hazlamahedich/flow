@@ -22,7 +22,9 @@ export default async function WorkspaceLayout({
   }
 
   let agentCount = 0;
-  const workspaceId = session.user.app_metadata.workspace_id as string | undefined;
+  const workspaceId = session.user.app_metadata.workspace_id as
+    | string
+    | undefined;
 
   if (typeof workspaceId === 'string' && workspaceId.length > 0) {
     try {
@@ -32,7 +34,10 @@ export default async function WorkspaceLayout({
     }
   }
 
-  if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DEV_AGENT_COUNT) {
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.NEXT_PUBLIC_DEV_AGENT_COUNT
+  ) {
     const parsed = Number(process.env.NEXT_PUBLIC_DEV_AGENT_COUNT);
     if (Number.isFinite(parsed)) {
       agentCount = parsed;
@@ -69,7 +74,8 @@ export default async function WorkspaceLayout({
         .select('subscription_status')
         .eq('id', workspaceId)
         .maybeSingle();
-      const raw = (wsRow as { subscription_status?: string } | null)?.subscription_status;
+      const raw = (wsRow as { subscription_status?: string } | null)
+        ?.subscription_status;
       if (
         raw === 'free' ||
         raw === 'active' ||

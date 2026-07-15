@@ -8,7 +8,9 @@ import type { WebhookEvent, WebhookProcessingResult } from '../webhook-types';
 
 function getMetadata(object: Record<string, unknown>): Record<string, string> {
   const metadata = object.metadata ?? {};
-  return typeof metadata === 'object' && metadata !== null && !Array.isArray(metadata)
+  return typeof metadata === 'object' &&
+    metadata !== null &&
+    !Array.isArray(metadata)
     ? (metadata as Record<string, string>)
     : {};
 }
@@ -65,7 +67,8 @@ async function fetchPreviousTier(
     .eq('id', workspaceId)
     .maybeSingle();
   if (!data) return null;
-  return (data as { subscription_tier: 'free' | 'pro' | 'agency' }).subscription_tier;
+  return (data as { subscription_tier: 'free' | 'pro' | 'agency' })
+    .subscription_tier;
 }
 
 async function syncSubscriptionFromEvent(
@@ -86,7 +89,10 @@ async function syncSubscriptionFromEvent(
     workspaceId = await findWorkspaceIdByCustomer(supabase, customerId);
   }
   if (!workspaceId) {
-    return { processed: false, reason: 'workspace not found for subscription event' };
+    return {
+      processed: false,
+      reason: 'workspace not found for subscription event',
+    };
   }
 
   // Capture the previous tier BEFORE the upsert flips it (Story 9.5b AC3).
@@ -103,7 +109,10 @@ async function syncSubscriptionFromEvent(
 
   const mappedStatus = mapSubscriptionStatus(subscription.status);
   if (!mappedStatus) {
-    return { processed: false, reason: `unmapped subscription status: ${subscription.status}` };
+    return {
+      processed: false,
+      reason: `unmapped subscription status: ${subscription.status}`,
+    };
   }
 
   const priceIdValue = subscription.priceId;
@@ -114,14 +123,21 @@ async function syncSubscriptionFromEvent(
   const config = await getTierConfig();
   const tier = mapPriceIdToTier(priceIdValue, config);
   if (!tier) {
-    return { processed: false, reason: `price ${priceIdValue} does not map to a known tier` };
+    return {
+      processed: false,
+      reason: `price ${priceIdValue} does not map to a known tier`,
+    };
   }
   const effectiveTier = tier as 'free' | 'pro' | 'agency';
 
   const periodStartMs = Date.parse(subscription.currentPeriodStart);
   const periodEndMs = Date.parse(subscription.currentPeriodEnd);
-  const currentPeriodStart = Number.isNaN(periodStartMs) ? null : new Date(periodStartMs).toISOString();
-  const currentPeriodEnd = Number.isNaN(periodEndMs) ? null : new Date(periodEndMs).toISOString();
+  const currentPeriodStart = Number.isNaN(periodStartMs)
+    ? null
+    : new Date(periodStartMs).toISOString();
+  const currentPeriodEnd = Number.isNaN(periodEndMs)
+    ? null
+    : new Date(periodEndMs).toISOString();
 
   // (1) Tier-flip RPC (atomic row-level FOR UPDATE lock).
   const { error } = await supabase.rpc('upsert_workspace_subscription', {
@@ -203,7 +219,10 @@ export async function handleSubscriptionDeleted(
     workspaceId = await findWorkspaceIdByCustomer(supabase, customerId);
   }
   if (!workspaceId) {
-    return { processed: false, reason: 'missing workspace_id or customer for lookup' };
+    return {
+      processed: false,
+      reason: 'missing workspace_id or customer for lookup',
+    };
   }
 
   // FR59 + spike §6.1 — `customer.subscription.deleted` triggers the SUSPENSION

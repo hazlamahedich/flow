@@ -9,7 +9,11 @@ interface DeviceNamingPromptProps {
   onComplete: () => void;
 }
 
-export function DeviceNamingPrompt({ deviceId, userAgent, onComplete }: DeviceNamingPromptProps) {
+export function DeviceNamingPrompt({
+  deviceId,
+  userAgent,
+  onComplete,
+}: DeviceNamingPromptProps) {
   const defaultLabel = parseUserAgentSafe(userAgent);
   const [label, setLabel] = useState(defaultLabel);
   const [state, formAction, isPending] = useActionState(nameDevice, null);
@@ -30,7 +34,8 @@ export function DeviceNamingPrompt({ deviceId, userAgent, onComplete }: DeviceNa
           Name this device
         </h2>
         <p className="mt-1 text-sm text-[var(--flow-color-text-secondary)]">
-          We&apos;ll remember this device. Give it a name so you can manage it later.
+          We&apos;ll remember this device. Give it a name so you can manage it
+          later.
         </p>
 
         <form
@@ -92,7 +97,8 @@ function parseUserAgentSafe(ua: string | undefined): string {
   if (ua.includes('Firefox/')) {
     const m = ua.match(/Firefox\/(\d+)/);
     if (ua.includes('Mac')) return `Firefox${m ? ` ${m[1]}` : ''} on macOS`;
-    if (ua.includes('Windows')) return `Firefox${m ? ` ${m[1]}` : ''} on Windows`;
+    if (ua.includes('Windows'))
+      return `Firefox${m ? ` ${m[1]}` : ''} on Windows`;
     return `Firefox${m ? ` ${m[1]}` : ''}`;
   }
   if (ua.includes('Edg/')) {
@@ -103,7 +109,8 @@ function parseUserAgentSafe(ua: string | undefined): string {
   if (ua.includes('Chrome/')) {
     const m = ua.match(/Chrome\/(\d+)/);
     if (ua.includes('Mac')) return `Chrome${m ? ` ${m[1]}` : ''} on macOS`;
-    if (ua.includes('Windows')) return `Chrome${m ? ` ${m[1]}` : ''} on Windows`;
+    if (ua.includes('Windows'))
+      return `Chrome${m ? ` ${m[1]}` : ''} on Windows`;
     return `Chrome${m ? ` ${m[1]}` : ''}`;
   }
   if (ua.includes('Safari/') && !ua.includes('Chrome')) {

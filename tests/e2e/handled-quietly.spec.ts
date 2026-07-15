@@ -39,7 +39,10 @@ test.describe('[P1] Handled Quietly Section', () => {
   test('audit nudge is visible when items exist', async ({ ownerPage }) => {
     const auditCard = ownerPage.getByTestId('weekly-quiet-audit');
     const isVisible = await auditCard.isVisible().catch(() => false);
-    test.skip(!isVisible, 'No audit card — may only appear on specific days or with data');
+    test.skip(
+      !isVisible,
+      'No audit card — may only appear on specific days or with data',
+    );
     await expect(auditCard).toBeVisible();
   });
 });

@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { ABSOLUTE_SESSION_MS, TRUSTED_ABSOLUTE_SESSION_MS, IDLE_SESSION_MS } from '@/lib/session-constants';
+import {
+  ABSOLUTE_SESSION_MS,
+  TRUSTED_ABSOLUTE_SESSION_MS,
+  IDLE_SESSION_MS,
+} from '@/lib/session-constants';
 
 describe('Story 1.7: Home Dashboard', () => {
   describe('AC: dashboard sections exist', () => {
@@ -59,7 +63,12 @@ describe('Story 1.7: Home Dashboard', () => {
 
   describe('AC: all sections keyboard-navigable', () => {
     it('sections have tab-indexable containers', () => {
-      const sections = ['pendingApprovals', 'agentActivity', 'outstandingInvoices', 'clientHealthAlerts'];
+      const sections = [
+        'pendingApprovals',
+        'agentActivity',
+        'outstandingInvoices',
+        'clientHealthAlerts',
+      ];
       const keyboardAccessible = sections.every((s) => s.length > 0);
       expect(keyboardAccessible).toBe(true);
     });

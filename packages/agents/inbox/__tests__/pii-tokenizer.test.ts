@@ -18,7 +18,7 @@ describe('pii-tokenizer', () => {
       const input = 'Invoice total: $1,234.56 due by Friday.';
       const result = tokenizePII(input, 'ws-1');
 
-      expect(result.tokens.some(t => t.type === 'financial')).toBe(true);
+      expect(result.tokens.some((t) => t.type === 'financial')).toBe(true);
       expect(result.text).not.toContain('$1,234.56');
       expect(result.text).toContain('[FINANCIAL_1]');
     });
@@ -27,7 +27,7 @@ describe('pii-tokenizer', () => {
       const input = 'Transfer 500.00 EUR to the account.';
       const result = tokenizePII(input, 'ws-1');
 
-      expect(result.tokens.some(t => t.type === 'financial')).toBe(true);
+      expect(result.tokens.some((t) => t.type === 'financial')).toBe(true);
       expect(result.text).not.toContain('500.00 EUR');
     });
 
@@ -35,7 +35,7 @@ describe('pii-tokenizer', () => {
       const input = 'Call me at +1-555-1234 or 555-567-8900.';
       const result = tokenizePII(input, 'ws-1');
 
-      expect(result.tokens.some(t => t.type === 'phone')).toBe(true);
+      expect(result.tokens.some((t) => t.type === 'phone')).toBe(true);
       expect(result.text).not.toContain('555-1234');
     });
 
@@ -61,9 +61,14 @@ describe('pii-tokenizer', () => {
       const input = 'Email alice@work.com and cc alice@work.com again.';
       const result = tokenizePII(input, 'ws-1');
 
-      const emailTokens = result.tokens.filter(t => t.type === 'email');
+      const emailTokens = result.tokens.filter((t) => t.type === 'email');
       expect(emailTokens).toHaveLength(1);
-      const occurrences = result.text.match(new RegExp(emailTokens[0]!.token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'));
+      const occurrences = result.text.match(
+        new RegExp(
+          emailTokens[0]!.token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+          'g',
+        ),
+      );
       expect(occurrences).toHaveLength(2);
     });
   });
@@ -92,7 +97,11 @@ describe('pii-tokenizer', () => {
 
     it('handles partial token replacement without corruption', () => {
       const tokens = [
-        { original: 'long@example.com', token: '[EMAIL_1]', type: 'email' as const },
+        {
+          original: 'long@example.com',
+          token: '[EMAIL_1]',
+          type: 'email' as const,
+        },
         { original: 'short@x.io', token: '[EMAIL_2]', type: 'email' as const },
       ];
 

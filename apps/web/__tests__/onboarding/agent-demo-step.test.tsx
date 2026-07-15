@@ -28,7 +28,9 @@ describe('AgentDemoStep', () => {
 
   it('renders "Your Day, Organized" header', () => {
     render(<AgentDemoStep demoDelayMs={0} />);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Your Day, Organized');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Your Day, Organized',
+    );
   });
 
   it('renders Marcus scenario', () => {
@@ -75,16 +77,24 @@ describe('AgentDemoStep', () => {
 
   it('renders honest framing', () => {
     render(<AgentDemoStep demoDelayMs={0} />);
-    expect(screen.getByText(/Your Inbox Agent is learning how you write/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Your Inbox Agent is learning how you write/),
+    ).toBeInTheDocument();
   });
 
   it('renders sample agent draft label', () => {
     render(<AgentDemoStep demoDelayMs={0} />);
-    expect(screen.getByText('Sample Agent Draft — your real drafts will learn your voice')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Sample Agent Draft — your real drafts will learn your voice',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('renders Continue CTA', () => {
     render(<AgentDemoStep demoDelayMs={0} />);
-    expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Continue' }),
+    ).toBeInTheDocument();
   });
 });

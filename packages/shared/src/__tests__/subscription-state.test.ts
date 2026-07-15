@@ -28,7 +28,12 @@ describe('shouldDequeueForWorkspace', () => {
 
   test('covers every SubscriptionStatus value (no missing branches)', () => {
     const allStatuses: SubscriptionStatus[] = [
-      'free', 'active', 'past_due', 'cancelled', 'suspended', 'deleted',
+      'free',
+      'active',
+      'past_due',
+      'cancelled',
+      'suspended',
+      'deleted',
     ];
     for (const status of allStatuses) {
       expect(() => shouldDequeueForWorkspace(status)).not.toThrow();
@@ -37,7 +42,12 @@ describe('shouldDequeueForWorkspace', () => {
 
   test('active and free are the only dequeuing statuses', () => {
     const allStatuses: SubscriptionStatus[] = [
-      'free', 'active', 'past_due', 'cancelled', 'suspended', 'deleted',
+      'free',
+      'active',
+      'past_due',
+      'cancelled',
+      'suspended',
+      'deleted',
     ];
     const dequeuing = allStatuses.filter((s) => shouldDequeueForWorkspace(s));
     expect(dequeuing).toEqual(['free', 'active']);

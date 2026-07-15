@@ -11,7 +11,12 @@ interface VoidInvoiceButtonProps {
   amountPaidCents: number;
 }
 
-export function VoidInvoiceButton({ invoiceId, invoiceNumber, timeEntryCount, amountPaidCents }: VoidInvoiceButtonProps) {
+export function VoidInvoiceButton({
+  invoiceId,
+  invoiceNumber,
+  timeEntryCount,
+  amountPaidCents,
+}: VoidInvoiceButtonProps) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
@@ -58,7 +63,10 @@ export function VoidInvoiceButton({ invoiceId, invoiceNumber, timeEntryCount, am
       return;
     }
     setLoading(true);
-    const result = await voidInvoiceAction({ invoiceId, reason: reason.trim() });
+    const result = await voidInvoiceAction({
+      invoiceId,
+      reason: reason.trim(),
+    });
     setLoading(false);
     if (!result.success) {
       setError(result.error.message);
@@ -89,27 +97,39 @@ export function VoidInvoiceButton({ invoiceId, invoiceNumber, timeEntryCount, am
           aria-labelledby="void-title"
           onKeyDown={handleKeyDown}
         >
-          <div ref={dialogRef} className="w-full max-w-lg rounded-lg bg-background p-6 shadow-lg space-y-4">
-            <h2 id="void-title" className="text-lg font-semibold">Void Invoice {invoiceNumber}</h2>
+          <div
+            ref={dialogRef}
+            className="w-full max-w-lg rounded-lg bg-background p-6 shadow-lg space-y-4"
+          >
+            <h2 id="void-title" className="text-lg font-semibold">
+              Void Invoice {invoiceNumber}
+            </h2>
 
             {timeEntryCount > 0 && (
               <div className="rounded-md bg-muted p-3 text-sm">
-                This invoice contains <strong>{timeEntryCount} time entries</strong>. These will become available for re-invoicing.
+                This invoice contains{' '}
+                <strong>{timeEntryCount} time entries</strong>. These will
+                become available for re-invoicing.
               </div>
             )}
 
             {amountPaidCents > 0 && (
               <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
-                Payments already recorded: <strong>${paidDollars}</strong>. These payments remain on this voided invoice. You must manually account for them on a replacement invoice.
+                Payments already recorded: <strong>${paidDollars}</strong>.
+                These payments remain on this voided invoice. You must manually
+                account for them on a replacement invoice.
               </div>
             )}
 
             <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
-              Voiding permanently cancels this invoice. It cannot be reactivated or edited afterward.
+              Voiding permanently cancels this invoice. It cannot be reactivated
+              or edited afterward.
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="void-reason" className="text-sm font-medium">Reason for voiding (required for audit log)</label>
+              <label htmlFor="void-reason" className="text-sm font-medium">
+                Reason for voiding (required for audit log)
+              </label>
               <textarea
                 ref={textareaRef}
                 id="void-reason"
@@ -120,15 +140,30 @@ export function VoidInvoiceButton({ invoiceId, invoiceNumber, timeEntryCount, am
                 className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 aria-describedby="void-error void-counter void-warning"
               />
-              <p id="void-counter" className="text-xs text-muted-foreground text-right">{reason.length}/500</p>
+              <p
+                id="void-counter"
+                className="text-xs text-muted-foreground text-right"
+              >
+                {reason.length}/500
+              </p>
             </div>
 
-            <p id="void-error" className={`text-sm text-destructive min-h-[1.25rem] ${error ? '' : 'invisible'}`} role={error ? 'alert' : undefined}>
+            <p
+              id="void-error"
+              className={`text-sm text-destructive min-h-[1.25rem] ${error ? '' : 'invisible'}`}
+              role={error ? 'alert' : undefined}
+            >
               {error || '\u00A0'}
             </p>
 
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setOpen(false)} className="rounded-md border px-4 py-2 text-sm hover:bg-muted">Cancel</button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-md border px-4 py-2 text-sm hover:bg-muted"
+              >
+                Cancel
+              </button>
               <button
                 type="button"
                 onClick={handleVoid}

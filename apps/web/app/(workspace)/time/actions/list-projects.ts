@@ -16,7 +16,12 @@ export async function listProjectsAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
@@ -31,12 +36,21 @@ export async function listProjectsAction(
 
     return {
       success: true,
-      data: projects.map((p) => ({ id: p.id, name: p.name, clientId: p.clientId })),
+      data: projects.map((p) => ({
+        id: p.id,
+        name: p.name,
+        clientId: p.clientId,
+      })),
     };
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to load projects', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to load projects',
+        'system',
+      ),
     };
   }
 }

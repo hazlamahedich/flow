@@ -19,7 +19,8 @@ function mockClient(tables: Record<string, MockedResult>) {
       get: () => {
         callCount++;
         if (callCount > 1) return undefined;
-        return (resolve: (v: MockedResult) => void) => resolve(entry ?? { count: 0, error: null });
+        return (resolve: (v: MockedResult) => void) =>
+          resolve(entry ?? { count: 0, error: null });
       },
     });
     return builder;
@@ -93,14 +94,19 @@ describe('getDashboardSummary', () => {
 
   it('throws non-42P01 errors', async () => {
     const client = mockClient({
-      agent_approvals: { count: null, error: { code: '42501', message: 'permission denied' } },
+      agent_approvals: {
+        count: null,
+        error: { code: '42501', message: 'permission denied' },
+      },
       agent_runs: { count: 0, error: null },
       invoices: { count: 0, error: null },
       client_health_snapshots: { count: 0, error: null },
       clients: { count: 0, error: null },
     });
 
-    await expect(getDashboardSummary(client, workspaceId)).rejects.toThrow('permission denied');
+    await expect(getDashboardSummary(client, workspaceId)).rejects.toThrow(
+      'permission denied',
+    );
   });
 
   it('queries with correct workspace_id', async () => {
@@ -126,7 +132,9 @@ describe('getDashboardSummary', () => {
       return builder;
     });
 
-    const client = { from } as unknown as Parameters<typeof getDashboardSummary>[0];
+    const client = { from } as unknown as Parameters<
+      typeof getDashboardSummary
+    >[0];
     await getDashboardSummary(client, workspaceId);
 
     expect(eqArgs.length).toBe(4);

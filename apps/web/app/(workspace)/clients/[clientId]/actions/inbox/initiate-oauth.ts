@@ -4,11 +4,7 @@ import { randomBytes, createHash } from 'node:crypto';
 import { getIronSession } from 'iron-session';
 import { getCookieStore } from '@/lib/cookie-store';
 import { getServerSupabase } from '@/lib/supabase-server';
-import {
-  requireTenantContext,
-  createFlowError,
-  cacheTag,
-} from '@flow/db';
+import { requireTenantContext, createFlowError, cacheTag } from '@flow/db';
 import { connectInboxInputSchema } from '@flow/types';
 import type { ActionResult } from '@flow/types';
 import type { OAuthStateCookie } from '@flow/types';
@@ -39,7 +35,8 @@ function checkRateLimit(userId: string, clientId: string): boolean {
 }
 
 function safeReturnTo(returnTo: string | undefined, fallback: string): string {
-  if (!returnTo || !returnTo.startsWith('/') || returnTo.startsWith('//')) return fallback;
+  if (!returnTo || !returnTo.startsWith('/') || returnTo.startsWith('//'))
+    return fallback;
   return returnTo;
 }
 
@@ -70,7 +67,12 @@ export async function initiateOAuth(
   if (ctx.role === 'member') {
     return {
       success: false,
-      error: createFlowError(403, 'INSUFFICIENT_ROLE', 'Members cannot connect inboxes.', 'auth'),
+      error: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Members cannot connect inboxes.',
+        'auth',
+      ),
     };
   }
 
@@ -84,7 +86,12 @@ export async function initiateOAuth(
   if (!clientExists) {
     return {
       success: false,
-      error: createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found in this workspace.', 'validation'),
+      error: createFlowError(
+        404,
+        'CLIENT_NOT_FOUND',
+        'Client not found in this workspace.',
+        'validation',
+      ),
     };
   }
 
@@ -102,7 +109,9 @@ export async function initiateOAuth(
 
   const state = randomBytes(16).toString('hex');
   const codeVerifier = randomBytes(32).toString('base64url');
-  const codeChallenge = createHash('sha256').update(codeVerifier).digest('base64url');
+  const codeChallenge = createHash('sha256')
+    .update(codeVerifier)
+    .digest('base64url');
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   const redirectUri = `${appUrl}/api/auth/gmail/callback`;
@@ -119,7 +128,12 @@ export async function initiateOAuth(
   if (!ironPassword || ironPassword.length < 32) {
     return {
       success: false,
-      error: createFlowError(500, 'ENCRYPTION_KEY_MISSING', 'Server configuration error. Please contact support.', 'system'),
+      error: createFlowError(
+        500,
+        'ENCRYPTION_KEY_MISSING',
+        'Server configuration error. Please contact support.',
+        'system',
+      ),
     };
   }
 
@@ -141,7 +155,10 @@ export async function initiateOAuth(
   session.clientId = parsed.data.clientId;
   session.accessType = parsed.data.accessType;
   session.workspaceId = ctx.workspaceId;
-  session.returnTo = safeReturnTo(parsed.data.returnTo, `/clients/${parsed.data.clientId}`);
+  session.returnTo = safeReturnTo(
+    parsed.data.returnTo,
+    `/clients/${parsed.data.clientId}`,
+  );
   await session.save();
 
   return {

@@ -17,7 +17,12 @@ export async function getInvoicesAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
@@ -32,7 +37,9 @@ export async function getInvoicesAction(
 
   let listQuery = supabase
     .from('invoices')
-    .select('id, invoice_number, status, issue_date, due_date, total_cents, amount_paid_cents, credit_balance_cents, currency, client_id, created_at, clients(name)')
+    .select(
+      'id, invoice_number, status, issue_date, due_date, total_cents, amount_paid_cents, credit_balance_cents, currency, client_id, created_at, clients(name)',
+    )
     .eq('workspace_id', ctx.workspaceId)
     .order('created_at', { ascending: false })
     .range(from, to);
@@ -48,15 +55,17 @@ export async function getInvoicesAction(
     listQuery = listQuery.gt('credit_balance_cents', 0);
   }
 
-  const [countResult, queryResult] = await Promise.all([
-    countQuery,
-    listQuery,
-  ]);
+  const [countResult, queryResult] = await Promise.all([countQuery, listQuery]);
 
   if (queryResult.error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to fetch invoices.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to fetch invoices.',
+        'system',
+      ),
     };
   }
 
@@ -77,7 +86,8 @@ export async function getInvoicesAction(
           creditBalanceCents: Number(r.credit_balance_cents ?? 0),
           currency: r.currency as string,
           clientId: r.client_id as string,
-          clientName: ((r.clients as Record<string, unknown> | null)?.name ?? '') as string,
+          clientName: ((r.clients as Record<string, unknown> | null)?.name ??
+            '') as string,
           createdAt: String(r.created_at),
         };
       }),

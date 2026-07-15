@@ -13,7 +13,9 @@ describe('Story 1.5: User Profile Editing', () => {
     });
 
     it('accepts Unicode name', () => {
-      expect(ProfileNameSchema.safeParse('José García-López').success).toBe(true);
+      expect(ProfileNameSchema.safeParse('José García-López').success).toBe(
+        true,
+      );
     });
 
     it('accepts 100-char name', () => {
@@ -47,7 +49,9 @@ describe('Story 1.5: User Profile Editing', () => {
     });
 
     it('rejects GIF', () => {
-      const isValid = (AvatarMimeTypes as readonly string[]).includes('image/gif');
+      const isValid = (AvatarMimeTypes as readonly string[]).includes(
+        'image/gif',
+      );
       expect(isValid).toBe(false);
     });
 
@@ -62,7 +66,9 @@ describe('Story 1.5: User Profile Editing', () => {
       const timestamp = Date.now();
       const ext = 'png';
       const path = `avatars/${userId}/${timestamp}-abc123.${ext}`;
-      expect(path).toMatch(/^avatars\/[0-9a-f-]+\/\d+-[a-z0-9]+\.(jpeg|png|webp)$/);
+      expect(path).toMatch(
+        /^avatars\/[0-9a-f-]+\/\d+-[a-z0-9]+\.(jpeg|png|webp)$/,
+      );
     });
   });
 

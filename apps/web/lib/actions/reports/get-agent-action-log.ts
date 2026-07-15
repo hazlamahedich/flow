@@ -20,7 +20,12 @@ export async function getAgentActionLogAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
@@ -49,7 +54,12 @@ export async function getAgentActionLogAction(
   if (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to retrieve agent action logs', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to retrieve agent action logs',
+        'system',
+      ),
     };
   }
 

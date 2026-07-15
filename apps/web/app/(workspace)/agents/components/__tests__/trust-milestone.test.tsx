@@ -1,9 +1,18 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  cleanup,
+} from '@testing-library/react';
 import { Provider } from 'jotai';
 import { createStore } from 'jotai';
-import { overlayStackAtom, type OverlayEntry } from '../../../../../lib/atoms/overlay';
+import {
+  overlayStackAtom,
+  type OverlayEntry,
+} from '../../../../../lib/atoms/overlay';
 import { mockMatchMedia } from './helpers/match-media-mock';
 
 mockMatchMedia();
@@ -14,9 +23,7 @@ vi.mock('../../../../lib/hooks/use-trust-announcer', () => ({
 
 import { TrustMilestone } from '../trust-milestone';
 
-function makeMilestoneEntry(
-  milestoneType: string = 'FIRST_10',
-): OverlayEntry {
+function makeMilestoneEntry(milestoneType: string = 'FIRST_10'): OverlayEntry {
   return {
     id: `milestone-${milestoneType}`,
     type: 'trust-milestone',
@@ -29,7 +36,10 @@ function makeMilestoneEntry(
   };
 }
 
-function renderWithStore(store: ReturnType<typeof createStore>, entry: OverlayEntry) {
+function renderWithStore(
+  store: ReturnType<typeof createStore>,
+  entry: OverlayEntry,
+) {
   return render(
     <Provider store={store}>
       <TrustMilestone entry={entry} />
@@ -103,14 +113,20 @@ describe('TrustMilestone', () => {
   it('pauses auto-dismiss timer on visibility hidden', () => {
     store.set(overlayStackAtom, { type: 'push', entry: makeMilestoneEntry() });
     renderWithStore(store, makeMilestoneEntry());
-    act(() => { vi.advanceTimersByTime(4_000); });
+    act(() => {
+      vi.advanceTimersByTime(4_000);
+    });
     vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
     fireEvent(document, new Event('visibilitychange'));
-    act(() => { vi.advanceTimersByTime(8_000); });
+    act(() => {
+      vi.advanceTimersByTime(8_000);
+    });
     expect(store.get(overlayStackAtom)).toHaveLength(1);
     vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
     fireEvent(document, new Event('visibilitychange'));
-    act(() => { vi.advanceTimersByTime(4_000); });
+    act(() => {
+      vi.advanceTimersByTime(4_000);
+    });
     expect(store.get(overlayStackAtom)).toHaveLength(0);
   });
 });

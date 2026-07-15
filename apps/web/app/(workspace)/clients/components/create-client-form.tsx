@@ -9,7 +9,10 @@ interface CreateClientFormProps {
   onSuccess: () => void;
 }
 
-export function CreateClientForm({ activeCount: _activeCount, onSuccess }: CreateClientFormProps) {
+export function CreateClientForm({
+  activeCount: _activeCount,
+  onSuccess,
+}: CreateClientFormProps) {
   const [state, submitAction, isPending] = useActionState(
     async (_prev: ActionResult<Client> | null, formData: FormData) => {
       const hourlyRate = formData.get('hourlyRateCents');
@@ -21,7 +24,10 @@ export function CreateClientForm({ activeCount: _activeCount, onSuccess }: Creat
         address: String(formData.get('address') ?? '') || null,
         notes: String(formData.get('notes') ?? '') || null,
         billingEmail: String(formData.get('billingEmail') ?? '') || null,
-        hourlyRateCents: hourlyRate && !isNaN(Number(hourlyRate)) ? Math.round(Number(hourlyRate) * 100) : null,
+        hourlyRateCents:
+          hourlyRate && !isNaN(Number(hourlyRate))
+            ? Math.round(Number(hourlyRate) * 100)
+            : null,
       });
       if (result.success) onSuccess();
       return result;
@@ -97,7 +103,10 @@ export function CreateClientForm({ activeCount: _activeCount, onSuccess }: Creat
       </div>
 
       <div>
-        <label htmlFor="billingEmail" className="mb-1 block text-sm font-medium">
+        <label
+          htmlFor="billingEmail"
+          className="mb-1 block text-sm font-medium"
+        >
           Billing Email
         </label>
         <input
@@ -109,7 +118,10 @@ export function CreateClientForm({ activeCount: _activeCount, onSuccess }: Creat
       </div>
 
       <div>
-        <label htmlFor="hourlyRateCents" className="mb-1 block text-sm font-medium">
+        <label
+          htmlFor="hourlyRateCents"
+          className="mb-1 block text-sm font-medium"
+        >
           Hourly Rate ($)
         </label>
         <input

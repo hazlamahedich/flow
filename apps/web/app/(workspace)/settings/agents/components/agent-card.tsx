@@ -3,7 +3,19 @@
 import Link from 'next/link';
 import { Badge } from '@flow/ui';
 
-const STATUS_DISPLAY: Record<string, { label: string; variant: 'default' | 'secondary' | 'error' | 'outline' | 'success' | 'warning' }> = {
+const STATUS_DISPLAY: Record<
+  string,
+  {
+    label: string;
+    variant:
+      | 'default'
+      | 'secondary'
+      | 'error'
+      | 'outline'
+      | 'success'
+      | 'warning';
+  }
+> = {
   inactive: { label: 'Inactive', variant: 'secondary' },
   activating: { label: 'Activating', variant: 'outline' },
   active: { label: 'Active', variant: 'success' },
@@ -30,7 +42,10 @@ export function AgentCard({
   setupCompleted,
 }: AgentCardProps) {
   const resolvedStatus = status ?? 'inactive';
-  const display = STATUS_DISPLAY[resolvedStatus] ?? { label: resolvedStatus, variant: 'secondary' as const };
+  const display = STATUS_DISPLAY[resolvedStatus] ?? {
+    label: resolvedStatus,
+    variant: 'secondary' as const,
+  };
   const isDraft = !setupCompleted && resolvedStatus !== 'active';
 
   return (
@@ -41,7 +56,9 @@ export function AgentCard({
       <div className="flex items-start justify-between gap-3">
         <div
           className="flex h-10 w-10 items-center justify-center rounded-lg"
-          style={{ backgroundColor: `color-mix(in srgb, var(--flow-agent-${icon}) 15%, transparent)` }}
+          style={{
+            backgroundColor: `color-mix(in srgb, var(--flow-agent-${icon}) 15%, transparent)`,
+          }}
         >
           <div
             className="h-3 w-3 rounded-full"

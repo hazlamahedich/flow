@@ -1,4 +1,13 @@
-import { pgTable, pgEnum, uuid, text, smallint, jsonb, timestamp, index } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  pgEnum,
+  uuid,
+  text,
+  smallint,
+  jsonb,
+  timestamp,
+  index,
+} from 'drizzle-orm/pg-core';
 import { workspaces } from './workspaces';
 
 export const agentIdTypeEnum = pgEnum('agent_id_type', [
@@ -26,12 +35,20 @@ export const agentSignals = pgTable(
     workspaceId: uuid('workspace_id')
       .notNull()
       .references(() => workspaces.id, { onDelete: 'cascade' }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('idx_agent_signals_correlation_id').on(table.correlationId),
-    index('idx_agent_signals_workspace_created').on(table.workspaceId, table.createdAt),
+    index('idx_agent_signals_workspace_created').on(
+      table.workspaceId,
+      table.createdAt,
+    ),
     index('idx_agent_signals_causation_id').on(table.causationId),
-    index('idx_agent_signals_agent_workspace').on(table.workspaceId, table.agentId),
+    index('idx_agent_signals_agent_workspace').on(
+      table.workspaceId,
+      table.agentId,
+    ),
   ],
 );

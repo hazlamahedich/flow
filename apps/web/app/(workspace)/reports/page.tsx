@@ -129,5 +129,7 @@ async function ReportListLoader({
 }) {
   const paramsResolved = await params;
   const page = Math.max(Number(paramsResolved.page) || 1, 1);
-  return <ReportList page={page} clientId={paramsResolved.clientId ?? undefined} />;
+  return (
+    <ReportList page={page} clientId={paramsResolved.clientId ?? undefined} />
+  );
 }

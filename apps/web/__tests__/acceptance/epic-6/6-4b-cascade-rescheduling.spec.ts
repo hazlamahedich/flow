@@ -39,7 +39,10 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
           child_event_id: 'new-evt-1',
           relation_type: 'rescheduled_from',
         },
-        { onConflict: 'parent_event_id,child_event_id,relation_type', ignoreDuplicates: true },
+        {
+          onConflict: 'parent_event_id,child_event_id,relation_type',
+          ignoreDuplicates: true,
+        },
       );
     });
   });
@@ -58,16 +61,37 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
       };
 
       const relatedEvents = [
-        { id: 'rel-1', parent_event_id: 'evt-1', child_event_id: 'evt-2', relation_type: 'travel_time' },
+        {
+          id: 'rel-1',
+          parent_event_id: 'evt-1',
+          child_event_id: 'evt-2',
+          relation_type: 'travel_time',
+        },
       ];
 
-      const proximityEvents = [
-        { id: 'evt-3' },
-      ];
+      const proximityEvents = [{ id: 'evt-3' }];
 
       const affectedEventDetails = [
-        { id: 'evt-2', client_calendar_id: 'cal-1', provider_event_id: 'prov-2', title: 'Dependent', start_at: '2026-06-01T11:00:00Z', end_at: '2026-06-01T12:00:00Z', source: 'client_created', created_via: null },
-        { id: 'evt-3', client_calendar_id: 'cal-1', provider_event_id: 'prov-3', title: 'Proximate', start_at: '2026-06-01T09:30:00Z', end_at: '2026-06-01T10:30:00Z', source: 'client_created', created_via: null },
+        {
+          id: 'evt-2',
+          client_calendar_id: 'cal-1',
+          provider_event_id: 'prov-2',
+          title: 'Dependent',
+          start_at: '2026-06-01T11:00:00Z',
+          end_at: '2026-06-01T12:00:00Z',
+          source: 'client_created',
+          created_via: null,
+        },
+        {
+          id: 'evt-3',
+          client_calendar_id: 'cal-1',
+          provider_event_id: 'prov-3',
+          title: 'Proximate',
+          start_at: '2026-06-01T09:30:00Z',
+          end_at: '2026-06-01T10:30:00Z',
+          source: 'client_created',
+          created_via: null,
+        },
       ];
 
       const insertMock = vi.fn().mockResolvedValue({ error: null });
@@ -81,7 +105,9 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
               return {
                 eq: vi.fn().mockReturnValue({
                   eq: vi.fn().mockReturnValue({
-                    maybeSingle: vi.fn().mockResolvedValue({ data: originEvent, error: null }),
+                    maybeSingle: vi
+                      .fn()
+                      .mockResolvedValue({ data: originEvent, error: null }),
                   }),
                 }),
               };
@@ -92,7 +118,10 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
                   eq: vi.fn().mockReturnValue({
                     neq: vi.fn().mockReturnValue({
                       gte: vi.fn().mockReturnValue({
-                        lte: vi.fn().mockResolvedValue({ data: proximityEvents, error: null }),
+                        lte: vi.fn().mockResolvedValue({
+                          data: proximityEvents,
+                          error: null,
+                        }),
                       }),
                     }),
                   }),
@@ -102,7 +131,10 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
             if (eventsQueryCallCount === 3) {
               return {
                 in: vi.fn().mockReturnValue({
-                  eq: vi.fn().mockResolvedValue({ data: affectedEventDetails, error: null }),
+                  eq: vi.fn().mockResolvedValue({
+                    data: affectedEventDetails,
+                    error: null,
+                  }),
                 }),
               };
             }
@@ -149,7 +181,16 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
       };
 
       const affectedDetails = [
-        { id: 'evt-2', client_calendar_id: 'cal-1', provider_event_id: 'prov-2', title: 'Meeting A', start_at: '2026-06-01T11:00:00Z', end_at: '2026-06-01T12:00:00Z', source: 'client_created', created_via: null },
+        {
+          id: 'evt-2',
+          client_calendar_id: 'cal-1',
+          provider_event_id: 'prov-2',
+          title: 'Meeting A',
+          start_at: '2026-06-01T11:00:00Z',
+          end_at: '2026-06-01T12:00:00Z',
+          source: 'client_created',
+          created_via: null,
+        },
       ];
 
       const insertMock = vi.fn().mockResolvedValue({ error: null });
@@ -163,14 +204,18 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
               return {
                 eq: vi.fn().mockReturnValue({
                   eq: vi.fn().mockReturnValue({
-                    maybeSingle: vi.fn().mockResolvedValue({ data: originEvent, error: null }),
+                    maybeSingle: vi
+                      .fn()
+                      .mockResolvedValue({ data: originEvent, error: null }),
                   }),
                 }),
               };
             }
             return {
               in: vi.fn().mockReturnValue({
-                eq: vi.fn().mockResolvedValue({ data: affectedDetails, error: null }),
+                eq: vi
+                  .fn()
+                  .mockResolvedValue({ data: affectedDetails, error: null }),
               }),
             };
           }),
@@ -178,7 +223,14 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
         calendar_event_relations: {
           select: vi.fn().mockReturnValue({
             or: vi.fn().mockResolvedValue({
-              data: [{ id: 'rel-1', parent_event_id: 'evt-1', child_event_id: 'evt-2', relation_type: 'prep_time' }],
+              data: [
+                {
+                  id: 'rel-1',
+                  parent_event_id: 'evt-1',
+                  child_event_id: 'evt-2',
+                  relation_type: 'prep_time',
+                },
+              ],
               error: null,
             }),
           }),
@@ -230,10 +282,31 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
         ],
       };
 
-      const calData = [{ id: 'cal-1', calendar_id: 'gcal-1', provider: 'google_calendar', oauth_state: {} }];
+      const calData = [
+        {
+          id: 'cal-1',
+          calendar_id: 'gcal-1',
+          provider: 'google_calendar',
+          oauth_state: {},
+        },
+      ];
       const eventData = [
-        { id: 'evt-2', title: 'Meeting A', start_at: '2026-06-01T10:00:00Z', end_at: '2026-06-01T11:00:00Z', provider_event_id: 'prov-2', client_calendar_id: 'cal-1' },
-        { id: 'evt-3', title: 'Meeting B', start_at: '2026-06-01T14:00:00Z', end_at: '2026-06-01T15:00:00Z', provider_event_id: 'prov-3', client_calendar_id: 'cal-1' },
+        {
+          id: 'evt-2',
+          title: 'Meeting A',
+          start_at: '2026-06-01T10:00:00Z',
+          end_at: '2026-06-01T11:00:00Z',
+          provider_event_id: 'prov-2',
+          client_calendar_id: 'cal-1',
+        },
+        {
+          id: 'evt-3',
+          title: 'Meeting B',
+          start_at: '2026-06-01T14:00:00Z',
+          end_at: '2026-06-01T15:00:00Z',
+          provider_event_id: 'prov-3',
+          client_calendar_id: 'cal-1',
+        },
       ];
 
       const supabase = createChainableMock({
@@ -241,7 +314,9 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
-                limit: vi.fn().mockResolvedValue({ data: calData, error: null }),
+                limit: vi
+                  .fn()
+                  .mockResolvedValue({ data: calData, error: null }),
               }),
             }),
           }),
@@ -256,7 +331,9 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
         agent_signals: { insert: vi.fn().mockResolvedValue({ error: null }) },
       });
 
-      mockProvider.deleteEvent.mockRejectedValueOnce(new Error('Provider down'));
+      mockProvider.deleteEvent.mockRejectedValueOnce(
+        new Error('Provider down'),
+      );
 
       await expect(
         executeCascadeOption('run-1', 'ws-1', option, supabase, getProvider),
@@ -274,10 +351,31 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
         ],
       };
 
-      const calData = [{ id: 'cal-1', calendar_id: 'gcal-1', provider: 'google_calendar', oauth_state: {} }];
+      const calData = [
+        {
+          id: 'cal-1',
+          calendar_id: 'gcal-1',
+          provider: 'google_calendar',
+          oauth_state: {},
+        },
+      ];
       const eventData = [
-        { id: 'evt-2', title: 'Meeting A', start_at: '2026-06-01T10:00:00Z', end_at: '2026-06-01T11:00:00Z', provider_event_id: 'prov-2', client_calendar_id: 'cal-1' },
-        { id: 'evt-3', title: 'Meeting B', start_at: '2026-06-01T14:00:00Z', end_at: '2026-06-01T15:00:00Z', provider_event_id: 'prov-3', client_calendar_id: 'cal-1' },
+        {
+          id: 'evt-2',
+          title: 'Meeting A',
+          start_at: '2026-06-01T10:00:00Z',
+          end_at: '2026-06-01T11:00:00Z',
+          provider_event_id: 'prov-2',
+          client_calendar_id: 'cal-1',
+        },
+        {
+          id: 'evt-3',
+          title: 'Meeting B',
+          start_at: '2026-06-01T14:00:00Z',
+          end_at: '2026-06-01T15:00:00Z',
+          provider_event_id: 'prov-3',
+          client_calendar_id: 'cal-1',
+        },
       ];
 
       const supabase = createChainableMock({
@@ -285,7 +383,9 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
-                limit: vi.fn().mockResolvedValue({ data: calData, error: null }),
+                limit: vi
+                  .fn()
+                  .mockResolvedValue({ data: calData, error: null }),
               }),
             }),
           }),
@@ -300,7 +400,13 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
         agent_signals: { insert: vi.fn().mockResolvedValue({ error: null }) },
       });
 
-      const result = await executeCascadeOption('run-1', 'ws-1', option, supabase, getProvider);
+      const result = await executeCascadeOption(
+        'run-1',
+        'ws-1',
+        option,
+        supabase,
+        getProvider,
+      );
 
       expect(result.success).toBe(true);
       expect(result.executed).toHaveLength(2);

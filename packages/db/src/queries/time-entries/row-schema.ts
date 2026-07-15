@@ -1,21 +1,23 @@
 import { z } from 'zod';
 import type { TimeEntry } from './create';
 
-export const timeEntryRowSchema = z.object({
-  id: z.string(),
-  workspace_id: z.string(),
-  client_id: z.string(),
-  user_id: z.string(),
-  project_id: z.string().nullable(),
-  date: z.string(),
-  duration_minutes: z.number(),
-  start_minutes: z.number().nullable(),
-  end_minutes: z.number().nullable(),
-  notes: z.string().nullable(),
-  deleted_at: z.string().nullable(),
-  created_at: z.string(),
-  updated_at: z.string(),
-}).strip();
+export const timeEntryRowSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string(),
+    client_id: z.string(),
+    user_id: z.string(),
+    project_id: z.string().nullable(),
+    date: z.string(),
+    duration_minutes: z.number(),
+    start_minutes: z.number().nullable(),
+    end_minutes: z.number().nullable(),
+    notes: z.string().nullable(),
+    deleted_at: z.string().nullable(),
+    created_at: z.string(),
+    updated_at: z.string(),
+  })
+  .strip();
 
 export function mapTimeEntryRow(
   parsed: z.infer<typeof timeEntryRowSchema>,

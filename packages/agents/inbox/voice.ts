@@ -1,5 +1,10 @@
 import { createServiceClient } from '@flow/db';
-import { DEFAULT_STYLE_DATA, ToneLevel, StyleData, toneLevelSchema } from './schemas/voice';
+import {
+  DEFAULT_STYLE_DATA,
+  ToneLevel,
+  StyleData,
+  toneLevelSchema,
+} from './schemas/voice';
 
 export interface VoiceContext {
   tone: ToneLevel;
@@ -15,7 +20,10 @@ export const EMPTY_VOICE_CONTEXT: VoiceContext = {
   exemplarBlock: '',
 };
 
-export async function loadVoiceContext(workspaceId: string, clientId: string): Promise<VoiceContext> {
+export async function loadVoiceContext(
+  workspaceId: string,
+  clientId: string,
+): Promise<VoiceContext> {
   const supabase = createServiceClient();
 
   // Try client override first
@@ -40,10 +48,14 @@ export async function loadVoiceContext(workspaceId: string, clientId: string): P
     };
   }
 
-  const styleData = (profile.style_data as unknown as StyleData) || DEFAULT_STYLE_DATA;
-  
-  const rawTone = (override?.tone as ToneLevel) || (profile.default_tone as ToneLevel);
-  const tone = toneLevelSchema.safeParse(rawTone).success ? rawTone : EMPTY_VOICE_CONTEXT.tone;
+  const styleData =
+    (profile.style_data as unknown as StyleData) || DEFAULT_STYLE_DATA;
+
+  const rawTone =
+    (override?.tone as ToneLevel) || (profile.default_tone as ToneLevel);
+  const tone = toneLevelSchema.safeParse(rawTone).success
+    ? rawTone
+    : EMPTY_VOICE_CONTEXT.tone;
 
   const exemplars = (profile.exemplar_emails as string[]) || [];
   const exemplarBlock =
@@ -55,8 +67,10 @@ export async function loadVoiceContext(workspaceId: string, clientId: string): P
 
   return {
     tone,
-    formalityScore: styleData.formalityScore ?? DEFAULT_STYLE_DATA.formalityScore,
-    toneDescriptors: styleData.toneDescriptors ?? DEFAULT_STYLE_DATA.toneDescriptors,
+    formalityScore:
+      styleData.formalityScore ?? DEFAULT_STYLE_DATA.formalityScore,
+    toneDescriptors:
+      styleData.toneDescriptors ?? DEFAULT_STYLE_DATA.toneDescriptors,
     exemplarBlock,
   };
 }
@@ -65,7 +79,7 @@ export function buildDraftPrompt(
   voiceContext: VoiceContext,
   emailContent: string,
   subject: string,
-  actions: { description: string; actionType: string }[]
+  actions: { description: string; actionType: string }[],
 ): string {
   const actionSummary =
     actions.length > 0

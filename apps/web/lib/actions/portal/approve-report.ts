@@ -30,27 +30,49 @@ export async function approveReportAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
   const supabase = await getServerSupabase();
 
-  const rlResult = await checkApproveRateLimit(supabase, portalCtx.portalTokenId);
+  const rlResult = await checkApproveRateLimit(
+    supabase,
+    portalCtx.portalTokenId,
+  );
   if (rlResult.limited) {
-    return { success: false, error: createRateLimitError(rlResult.retryAfterMs) };
+    return {
+      success: false,
+      error: createRateLimitError(rlResult.retryAfterMs),
+    };
   }
 
-  const portalClient = await createPortalClient(portalCtx, PORTAL_SESSION_MAX_AGE_SECONDS);
-  const { data: rpcResult, error } = await portalClient.rpc('approve_report_via_portal', {
-    p_report_id: parsed.data.reportId,
-    p_client_id: portalCtx.clientId,
-  });
+  const portalClient = await createPortalClient(
+    portalCtx,
+    PORTAL_SESSION_MAX_AGE_SECONDS,
+  );
+  const { data: rpcResult, error } = await portalClient.rpc(
+    'approve_report_via_portal',
+    {
+      p_report_id: parsed.data.reportId,
+      p_client_id: portalCtx.clientId,
+    },
+  );
 
   if (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to approve report.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to approve report.',
+        'system',
+      ),
     };
   }
 
@@ -62,19 +84,34 @@ export async function approveReportAction(
   if (status === 'INVALID_STATE') {
     return {
       success: false,
-      error: createFlowError(409, 'INVALID_STATE', 'Report cannot be approved in its current state.', 'validation'),
+      error: createFlowError(
+        409,
+        'INVALID_STATE',
+        'Report cannot be approved in its current state.',
+        'validation',
+      ),
     };
   }
   if (status === 'FORBIDDEN') {
     return {
       success: false,
-      error: createFlowError(403, 'FORBIDDEN', 'You do not have access to this report.', 'auth'),
+      error: createFlowError(
+        403,
+        'FORBIDDEN',
+        'You do not have access to this report.',
+        'auth',
+      ),
     };
   }
 
   return {
     success: false,
-    error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to approve report.', 'system'),
+    error: createFlowError(
+      500,
+      'INTERNAL_ERROR',
+      'Failed to approve report.',
+      'system',
+    ),
   };
 }
 

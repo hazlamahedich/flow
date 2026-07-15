@@ -1,5 +1,9 @@
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, getActiveRetainerForClient, getRetainerUtilization } from '@flow/db';
+import {
+  requireTenantContext,
+  getActiveRetainerForClient,
+  getRetainerUtilization,
+} from '@flow/db';
 import type { Retainer } from '@flow/types';
 
 export interface RetainerDetail {

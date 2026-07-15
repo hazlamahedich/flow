@@ -15,8 +15,19 @@ interface WizardContainerProps {
   onDataChange?: (hasData: boolean) => void;
 }
 
-function buildToastUrl(clientId: string, toast: { code: string; message: string; linkLabel?: string; linkHref?: string }): string {
-  const params = new URLSearchParams({ toast_code: toast.code, toast_msg: toast.message });
+function buildToastUrl(
+  clientId: string,
+  toast: {
+    code: string;
+    message: string;
+    linkLabel?: string;
+    linkHref?: string;
+  },
+): string {
+  const params = new URLSearchParams({
+    toast_code: toast.code,
+    toast_msg: toast.message,
+  });
   if (toast.linkLabel) params.set('toast_link_label', toast.linkLabel);
   if (toast.linkHref) params.set('toast_link_href', toast.linkHref);
   return `/clients/${clientId}?${params.toString()}`;
@@ -24,7 +35,17 @@ function buildToastUrl(clientId: string, toast: { code: string; message: string;
 
 export function WizardContainer({ onDataChange }: WizardContainerProps) {
   const router = useRouter();
-  const { state, goToStep, nextStep, prevStep, skipRetainer, updateContact, updateBilling, updateRetainer, resetState } = useWizardState();
+  const {
+    state,
+    goToStep,
+    nextStep,
+    prevStep,
+    skipRetainer,
+    updateContact,
+    updateBilling,
+    updateRetainer,
+    resetState,
+  } = useWizardState();
   const [isPending, startTransition] = useTransition();
   const isSubmittingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,10 +53,14 @@ export function WizardContainer({ onDataChange }: WizardContainerProps) {
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    const hasData = state.contactData.name.trim() !== '' ||
-      (state.contactData.email !== undefined && state.contactData.email.trim() !== '') ||
-      (state.billingData.address !== undefined && state.billingData.address.trim() !== '') ||
-      (state.billingData.notes !== undefined && state.billingData.notes.trim() !== '') ||
+    const hasData =
+      state.contactData.name.trim() !== '' ||
+      (state.contactData.email !== undefined &&
+        state.contactData.email.trim() !== '') ||
+      (state.billingData.address !== undefined &&
+        state.billingData.address.trim() !== '') ||
+      (state.billingData.notes !== undefined &&
+        state.billingData.notes.trim() !== '') ||
       state.billingData.hourly_rate_cents != null ||
       state.retainerData !== null;
     onDataChange?.(hasData);
@@ -47,10 +72,13 @@ export function WizardContainer({ onDataChange }: WizardContainerProps) {
     });
   }, []);
 
-  const handleGoToStep = useCallback((step: WizardStep) => {
-    goToStep(step);
-    focusStepHeading(step);
-  }, [goToStep, focusStepHeading]);
+  const handleGoToStep = useCallback(
+    (step: WizardStep) => {
+      goToStep(step);
+      focusStepHeading(step);
+    },
+    [goToStep, focusStepHeading],
+  );
 
   const handleNext = useCallback(() => {
     nextStep();
@@ -102,21 +130,30 @@ export function WizardContainer({ onDataChange }: WizardContainerProps) {
         isSubmittingRef.current = false;
 
         if (result.data.warning) {
-          router.push(buildToastUrl(clientId, {
-            code: result.data.warning.code,
-            message: 'Client created! Retainer setup didn\'t complete.',
-            linkLabel: 'Try again',
-            linkHref: `/clients/${clientId}`,
-          }));
+          router.push(
+            buildToastUrl(clientId, {
+              code: result.data.warning.code,
+              message: "Client created! Retainer setup didn't complete.",
+              linkLabel: 'Try again',
+              linkHref: `/clients/${clientId}`,
+            }),
+          );
         } else if (!result.data.retainer) {
-          router.push(buildToastUrl(clientId, {
-            code: 'NO_RETAINER',
-            message: 'Client created!',
-            linkLabel: 'Set up retainer',
-            linkHref: `/clients/${clientId}`,
-          }));
+          router.push(
+            buildToastUrl(clientId, {
+              code: 'NO_RETAINER',
+              message: 'Client created!',
+              linkLabel: 'Set up retainer',
+              linkHref: `/clients/${clientId}`,
+            }),
+          );
         } else {
-          router.push(buildToastUrl(clientId, { code: 'CREATED', message: 'Client created!' }));
+          router.push(
+            buildToastUrl(clientId, {
+              code: 'CREATED',
+              message: 'Client created!',
+            }),
+          );
         }
 
         resetState();
@@ -180,9 +217,7 @@ export function WizardContainer({ onDataChange }: WizardContainerProps) {
   return (
     <div className="mx-auto max-w-xl">
       <WizardProgress currentStep={state.step} />
-      <div className="mt-6">
-        {renderStep()}
-      </div>
+      <div className="mt-6">{renderStep()}</div>
     </div>
   );
 }

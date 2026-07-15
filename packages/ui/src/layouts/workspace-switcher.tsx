@@ -18,7 +18,11 @@ export interface WorkspaceSwitcherProps {
   onSwitch: (workspaceId: string) => Promise<void>;
 }
 
-export function WorkspaceSwitcher({ workspaces, activeWorkspaceId, onSwitch }: WorkspaceSwitcherProps) {
+export function WorkspaceSwitcher({
+  workspaces,
+  activeWorkspaceId,
+  onSwitch,
+}: WorkspaceSwitcherProps) {
   const [isPending, startTransition] = useTransition();
 
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId);
@@ -37,7 +41,9 @@ export function WorkspaceSwitcher({ workspaces, activeWorkspaceId, onSwitch }: W
       try {
         await onSwitch(workspaceId);
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Failed to switch workspace');
+        toast.error(
+          err instanceof Error ? err.message : 'Failed to switch workspace',
+        );
       }
     });
   }
@@ -56,7 +62,10 @@ export function WorkspaceSwitcher({ workspaces, activeWorkspaceId, onSwitch }: W
         data-testid="workspace-switcher-trigger"
       >
         {isPending ? (
-          <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden="true" />
+          <Loader2
+            className="h-3.5 w-3.5 shrink-0 animate-spin"
+            aria-hidden="true"
+          />
         ) : (
           <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         )}
@@ -84,7 +93,9 @@ export function WorkspaceSwitcher({ workspaces, activeWorkspaceId, onSwitch }: W
             >
               <span className="truncate">{workspace.name}</span>
               {workspace.id === activeWorkspaceId && (
-                <span className="ml-auto text-xs text-[var(--flow-color-text-tertiary)]">Active</span>
+                <span className="ml-auto text-xs text-[var(--flow-color-text-tertiary)]">
+                  Active
+                </span>
               )}
             </DropdownMenu.Item>
           ))}

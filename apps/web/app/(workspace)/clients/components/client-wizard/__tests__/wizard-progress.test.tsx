@@ -16,7 +16,9 @@ describe('WizardProgress', () => {
     expect(progressbar?.getAttribute('aria-valuenow')).toBe('2');
     expect(progressbar?.getAttribute('aria-valuemin')).toBe('1');
     expect(progressbar?.getAttribute('aria-valuemax')).toBe('4');
-    expect(progressbar?.getAttribute('aria-valuetext')).toContain('Step 2 of 4');
+    expect(progressbar?.getAttribute('aria-valuetext')).toContain(
+      'Step 2 of 4',
+    );
   });
 
   it('has sr-only text for screen readers', () => {

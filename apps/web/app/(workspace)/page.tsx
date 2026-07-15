@@ -1,5 +1,10 @@
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, getUserProfile, getDashboardSummary, getScopeCreepAlerts } from '@flow/db';
+import {
+  requireTenantContext,
+  getUserProfile,
+  getDashboardSummary,
+  getScopeCreepAlerts,
+} from '@flow/db';
 import { DashboardContent } from '@flow/ui';
 import { WelcomeCard } from './_components/welcome-card';
 import { DayTwoInput } from './_components/day-two-input';
@@ -26,23 +31,21 @@ export default async function WorkspacePage() {
   const isDayOne =
     completedOnboarding &&
     userData.data?.created_at &&
-    new Date(userData.data.created_at).toDateString() === new Date().toDateString();
+    new Date(userData.data.created_at).toDateString() ===
+      new Date().toDateString();
 
   return (
     <>
       <Suspense fallback={null}>
         <MorningBrief />
       </Suspense>
-      {completedOnboarding && (
-        isDayOne ? (
+      {completedOnboarding &&
+        (isDayOne ? (
           <WelcomeCard name={profile?.name ?? null} />
         ) : (
           <DayTwoInput />
-        )
-      )}
-      {scopeAlerts.length > 0 && (
-        <ScopeAlertsSection alerts={scopeAlerts} />
-      )}
+        ))}
+      {scopeAlerts.length > 0 && <ScopeAlertsSection alerts={scopeAlerts} />}
       <DashboardContent summary={summary} profile={profile} />
     </>
   );

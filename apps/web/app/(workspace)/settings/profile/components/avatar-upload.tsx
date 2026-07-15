@@ -5,18 +5,29 @@ import type { UserProfile, ActionResult } from '@flow/types';
 
 interface AvatarUploadProps {
   profile: UserProfile;
-  uploadAction: (formData: FormData) => Promise<ActionResult<{ avatarUrl: string }>>;
+  uploadAction: (
+    formData: FormData,
+  ) => Promise<ActionResult<{ avatarUrl: string }>>;
   removeAction: () => Promise<ActionResult<void>>;
 }
 
-export function AvatarUpload({ profile, uploadAction, removeAction }: AvatarUploadProps) {
+export function AvatarUpload({
+  profile,
+  uploadAction,
+  removeAction,
+}: AvatarUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [removeState, setRemoveState] = useState<ActionResult<void> | null>(null);
+  const [removeState, setRemoveState] = useState<ActionResult<void> | null>(
+    null,
+  );
   const prevPreviewRef = useRef<string | null>(null);
 
   const [uploadState, uploadFormAction, isUploading] = useActionState(
-    async (_prev: ActionResult<{ avatarUrl: string }> | null, formData: FormData) => {
+    async (
+      _prev: ActionResult<{ avatarUrl: string }> | null,
+      formData: FormData,
+    ) => {
       setPreviewUrl(null);
       return uploadAction(formData);
     },
@@ -49,11 +60,12 @@ export function AvatarUpload({ profile, uploadAction, removeAction }: AvatarUplo
   }, [previewUrl]);
 
   const displayUrl = previewUrl ?? profile.avatarUrl;
-  const errorMessage = !uploadState?.success && uploadState?.error?.message
-    ? uploadState.error.message
-    : !removeState?.success && removeState?.error?.message
-      ? removeState.error.message
-      : null;
+  const errorMessage =
+    !uploadState?.success && uploadState?.error?.message
+      ? uploadState.error.message
+      : !removeState?.success && removeState?.error?.message
+        ? removeState.error.message
+        : null;
 
   return (
     <div className="space-y-3">
@@ -67,7 +79,9 @@ export function AvatarUpload({ profile, uploadAction, removeAction }: AvatarUplo
         ) : (
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--flow-color-bg-surface-raised)] border border-[var(--flow-color-border-default)]">
             <span className="text-2xl text-[var(--flow-color-text-muted)]">
-              {profile.name?.[0]?.toUpperCase() ?? profile.email[0]?.toUpperCase() ?? '?'}
+              {profile.name?.[0]?.toUpperCase() ??
+                profile.email[0]?.toUpperCase() ??
+                '?'}
             </span>
           </div>
         )}
@@ -112,7 +126,9 @@ export function AvatarUpload({ profile, uploadAction, removeAction }: AvatarUplo
       </div>
 
       {errorMessage && (
-        <p className="text-sm text-[var(--flow-status-error)]">{errorMessage}</p>
+        <p className="text-sm text-[var(--flow-status-error)]">
+          {errorMessage}
+        </p>
       )}
     </div>
   );

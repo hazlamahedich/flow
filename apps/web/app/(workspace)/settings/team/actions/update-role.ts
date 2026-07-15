@@ -8,9 +8,7 @@ import { getServerSupabase } from '@/lib/supabase-server';
 import { logWorkspaceEvent } from '@/lib/workspace-audit';
 import { invalidateUserSessions } from '@flow/auth/server-admin';
 
-export async function updateRole(
-  input: unknown,
-): Promise<ActionResult<void>> {
+export async function updateRole(input: unknown): Promise<ActionResult<void>> {
   const parsed = updateRoleSchema.safeParse(input);
   if (!parsed.success) {
     return {

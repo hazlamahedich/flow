@@ -10,20 +10,33 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
-  
+
   const buildChain = (data: any, error: any = null) => {
     const result = { data, error };
     const self: Record<string, any> = {};
     const methods = [
-      'select', 'eq', 'neq', 'gte', 'lte', 'lt', 'is', 'in', 'order', 
-      'upsert', 'insert', 'update', 'delete', 'limit', 'range'
+      'select',
+      'eq',
+      'neq',
+      'gte',
+      'lte',
+      'lt',
+      'is',
+      'in',
+      'order',
+      'upsert',
+      'insert',
+      'update',
+      'delete',
+      'limit',
+      'range',
     ];
     for (const m of methods) {
       self[m] = vi.fn().mockReturnValue(self);
     }
     self.maybeSingle = vi.fn().mockResolvedValue(result);
     self.single = vi.fn().mockResolvedValue(result);
-    self.then = function(onF: any, onR: any) {
+    self.then = function (onF: any, onR: any) {
       return Promise.resolve(result).then(onF, onR);
     };
     return self;
@@ -36,20 +49,26 @@ vi.mock('@flow/db', async () => {
 
   return {
     ...actual,
-    requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' }),
+    requireTenantContext: vi.fn().mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    }),
     createFlowError: actual.createFlowError,
     cacheTag: vi.fn((entity: string, ws: string) => `${entity}:${ws}`),
     invalidateAfterMutation: vi.fn(),
     createServiceClient: vi.fn().mockReturnValue(mockSupabaseClient),
     getUsageAnalytics: vi.fn().mockResolvedValue({
       agentCompletionRate: 0.85,
-      agentApprovalRate: 0.90,
+      agentApprovalRate: 0.9,
       trustDistribution: { auto_approve: 5, suggest: 3, require_approval: 1 },
       tasksCompleted: 10,
       timeSavedMinutes: 120,
     }),
     recordValidationMetric: vi.fn().mockResolvedValue({ success: true }),
-    getValidationMetrics: vi.fn().mockResolvedValue({ success: true, data: [] }),
+    getValidationMetrics: vi
+      .fn()
+      .mockResolvedValue({ success: true, data: [] }),
   };
 });
 
@@ -61,7 +80,9 @@ function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
   const fromChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: rowData ?? null, error: null }),
+    maybeSingle: vi
+      .fn()
+      .mockResolvedValue({ data: rowData ?? null, error: null }),
     single: vi.fn().mockResolvedValue({ data: rowData ?? null, error: null }),
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
@@ -72,7 +93,9 @@ function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
     limit: vi.fn().mockReturnThis(),
   };
   return {
-    rpc: vi.fn().mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
+    rpc: vi
+      .fn()
+      .mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
     from: vi.fn().mockReturnValue(fromChain),
   } as unknown as import('@supabase/supabase-js').SupabaseClient;
 }
@@ -130,7 +153,8 @@ function mockValidationMetric() {
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [8.3-ATDD-001] client health agent surfaces health indicators based on engagement, payment, and communication', () => {
   test('ClientHealthAgent execute is exported from @flow/agents/client-health', async () => {
-    const mod = await import('../../../../../packages/agents/client-health/index');
+    const mod =
+      await import('../../../../../packages/agents/client-health/index');
     expect(mod.execute).toBeDefined();
     expect(typeof mod.execute).toBe('function');
   });
@@ -148,7 +172,8 @@ describe('[P0] [8.3-ATDD-001] client health agent surfaces health indicators bas
   });
 
   test('computeHealthScores is exported from client-health module', async () => {
-    const mod = await import('../../../../../packages/agents/client-health/src/compute-health');
+    const mod =
+      await import('../../../../../packages/agents/client-health/src/compute-health');
     expect(mod.computeEngagementScore).toBeDefined();
     expect(mod.computePaymentScore).toBeDefined();
     expect(mod.computeCommunicationScore).toBeDefined();

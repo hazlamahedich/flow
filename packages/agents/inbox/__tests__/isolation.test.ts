@@ -8,7 +8,9 @@ vi.mock('../../shared/index.js', async (importOriginal) => {
     ...actual,
     ContextBoundary: vi.fn().mockImplementation((id) => ({
       clientId: id,
-      wrapContent: vi.fn().mockImplementation((content, tag) => `<${tag}>${content}</${tag}>`),
+      wrapContent: vi
+        .fn()
+        .mockImplementation((content, tag) => `<${tag}>${content}</${tag}>`),
     })),
     createLLMRouter: vi.fn(),
   };
@@ -18,7 +20,11 @@ describe('inbox isolation', () => {
   it('strictly scopes categorization to a single client_id (AC8)', async () => {
     const mockRouter = {
       complete: vi.fn().mockResolvedValue({
-        text: JSON.stringify({ category: 'info', confidence: 1.0, reasoning: 'test' }),
+        text: JSON.stringify({
+          category: 'info',
+          confidence: 1.0,
+          reasoning: 'test',
+        }),
       }),
     };
 
@@ -30,7 +36,7 @@ describe('inbox isolation', () => {
         workspace_id: 'ws-1',
         client_id: clientId,
       },
-      mockRouter as any
+      mockRouter as any,
     );
 
     expect(ContextBoundary).toHaveBeenCalledWith(clientId);
@@ -39,7 +45,11 @@ describe('inbox isolation', () => {
   it('ensures no cross-client context leakage in prompt wrapping', async () => {
     const mockRouter = {
       complete: vi.fn().mockResolvedValue({
-        text: JSON.stringify({ category: 'info', confidence: 1.0, reasoning: 'test' }),
+        text: JSON.stringify({
+          category: 'info',
+          confidence: 1.0,
+          reasoning: 'test',
+        }),
       }),
     };
 
@@ -51,12 +61,12 @@ describe('inbox isolation', () => {
         workspace_id: 'ws-1',
         client_id: clientId,
       },
-      mockRouter as any
+      mockRouter as any,
     );
 
     // Verify ContextBoundary was instantiated with the correct client
     expect(ContextBoundary).toHaveBeenCalledWith(clientId);
-    
+
     // Verify user message contains the wrapped content
     const calls = (mockRouter.complete as any).mock.calls;
     const userMessage = calls[0][0].find((m: any) => m.role === 'user');
@@ -65,14 +75,18 @@ describe('inbox isolation', () => {
   });
 
   it('rejects categorization when email client_id does not match inbox scope', async () => {
-    const { ContextBoundary: RealBoundary } = await import('../../shared/context-boundary.js');
+    const { ContextBoundary: RealBoundary } =
+      await import('../../shared/context-boundary.js');
     const boundary = new RealBoundary('client-A');
 
-    expect(() => boundary.assertClient('client-B')).toThrow('Context boundary violation');
+    expect(() => boundary.assertClient('client-B')).toThrow(
+      'Context boundary violation',
+    );
   });
 
   it('ensures two different clients cannot share one inbox mapping', async () => {
-    const { ContextBoundary: RealBoundary } = await import('../../shared/context-boundary.js');
+    const { ContextBoundary: RealBoundary } =
+      await import('../../shared/context-boundary.js');
 
     const boundaryA = new RealBoundary('client-A');
     const boundaryB = new RealBoundary('client-B');
@@ -81,7 +95,11 @@ describe('inbox isolation', () => {
     expect(boundaryB.getClientId()).toBe('client-B');
     expect(boundaryA.getClientId()).not.toBe(boundaryB.getClientId());
 
-    expect(() => boundaryA.assertClient('client-B')).toThrow('Context boundary violation');
-    expect(() => boundaryB.assertClient('client-A')).toThrow('Context boundary violation');
+    expect(() => boundaryA.assertClient('client-B')).toThrow(
+      'Context boundary violation',
+    );
+    expect(() => boundaryB.assertClient('client-A')).toThrow(
+      'Context boundary violation',
+    );
   });
 });

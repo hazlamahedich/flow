@@ -5,7 +5,11 @@ import { cn } from '../../lib/utils';
 import { useFocusTrap } from '../../hooks/use-focus-trap';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { mergeNonConflicting } from '@flow/db/queries/undo/conflict-detection';
-import type { ConflictInfo, FieldResolution, ConflictResolution } from '@flow/db/queries/undo/conflict-types';
+import type {
+  ConflictInfo,
+  FieldResolution,
+  ConflictResolution,
+} from '@flow/db/queries/undo/conflict-types';
 
 interface ConflictDialogProps {
   conflictInfo: ConflictInfo;
@@ -13,7 +17,10 @@ interface ConflictDialogProps {
   serverState?: Record<string, unknown>;
   clientLabel?: string;
   serverLabel?: string;
-  onResolve: (resolution: ConflictResolution, mergedData: Record<string, unknown>) => void;
+  onResolve: (
+    resolution: ConflictResolution,
+    mergedData: Record<string, unknown>,
+  ) => void;
   onDismiss: () => void;
 }
 
@@ -88,7 +95,8 @@ export function ConflictDialog({
             Resolve Edit Conflict
           </h2>
           <p className="mt-1 text-sm text-[var(--flow-color-text-secondary)]">
-            This record was modified by someone else. Choose which changes to keep.
+            This record was modified by someone else. Choose which changes to
+            keep.
           </p>
         </div>
 
@@ -102,13 +110,20 @@ export function ConflictDialog({
             <div key={field.fieldName} className="space-y-2">
               <p className="text-sm text-[var(--flow-color-text-primary)]">
                 You changed <strong>{field.fieldLabel}</strong> to{' '}
-                <span className="font-mono text-sm">{formatValue(field.clientValue)}</span>.
-                The current value is{' '}
-                <span className="font-mono text-sm">{formatValue(field.serverValue)}</span>.
+                <span className="font-mono text-sm">
+                  {formatValue(field.clientValue)}
+                </span>
+                . The current value is{' '}
+                <span className="font-mono text-sm">
+                  {formatValue(field.serverValue)}
+                </span>
+                .
               </p>
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => handleFieldChoice(field.fieldName, 'keep_client')}
+                  onClick={() =>
+                    handleFieldChoice(field.fieldName, 'keep_client')
+                  }
                   className={cn(
                     'rounded px-3 py-1 text-sm border',
                     resolution[field.fieldName] === 'keep_client'
@@ -119,10 +134,13 @@ export function ConflictDialog({
                   Keep yours
                 </button>
                 <button
-                  onClick={() => handleFieldChoice(field.fieldName, 'keep_server')}
+                  onClick={() =>
+                    handleFieldChoice(field.fieldName, 'keep_server')
+                  }
                   className={cn(
                     'rounded px-3 py-1 text-sm border',
-                    resolution[field.fieldName] === 'keep_server' || !resolution[field.fieldName]
+                    resolution[field.fieldName] === 'keep_server' ||
+                      !resolution[field.fieldName]
                       ? 'border-[var(--flow-color-border-primary)] bg-[var(--flow-color-bg-surface-hover)] text-[var(--flow-color-text-primary)]'
                       : 'border-[var(--flow-color-border-primary)] text-[var(--flow-color-text-secondary)] hover:bg-[var(--flow-color-bg-surface-hover)]',
                   )}

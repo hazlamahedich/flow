@@ -101,7 +101,10 @@ export function StickyUndoToast({
             : 'border-[var(--flow-color-border-primary)] bg-[var(--flow-color-bg-surface-raised)]',
           reducedMotion ? '' : 'animate-in slide-in-from-bottom-2',
         )}
-        style={{ animationDuration: reducedMotion ? '0ms' : '300ms', animationTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)' }}
+        style={{
+          animationDuration: reducedMotion ? '0ms' : '300ms',
+          animationTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
       >
         <div className="flex flex-col gap-0.5">
           <span

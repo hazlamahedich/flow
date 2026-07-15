@@ -1,7 +1,11 @@
 'use server';
 
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, getInvoiceWithBalance } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  getInvoiceWithBalance,
+} from '@flow/db';
 import type { ActionResult } from '@flow/types';
 
 export async function getInvoiceDetailAction(
@@ -15,16 +19,30 @@ export async function getInvoiceDetailAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
-  const detail = await getInvoiceWithBalance(supabase, invoiceId, ctx.workspaceId);
+  const detail = await getInvoiceWithBalance(
+    supabase,
+    invoiceId,
+    ctx.workspaceId,
+  );
 
   if (!detail) {
     return {
       success: false,
-      error: createFlowError(404, 'NOT_FOUND', 'Invoice not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'NOT_FOUND',
+        'Invoice not found.',
+        'validation',
+      ),
     };
   }
 

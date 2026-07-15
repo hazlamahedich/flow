@@ -1,4 +1,11 @@
-import { pgTable, uuid, text, timestamp, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  index,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 import { workspaces } from './workspaces';
 import { clients } from './clients';
 import { users } from './users';
@@ -17,13 +24,22 @@ export const timerState = pgTable(
     clientId: uuid('client_id')
       .notNull()
       .references(() => clients.id, { onDelete: 'restrict' }),
-    projectId: uuid('project_id').references(() => projects.id, { onDelete: 'set null' }),
+    projectId: uuid('project_id').references(() => projects.id, {
+      onDelete: 'set null',
+    }),
     notes: text('notes'),
-    startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    startedAt: timestamp('started_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
-    uniqueIndex('timer_state_unique_user_per_workspace').on(table.workspaceId, table.userId),
+    uniqueIndex('timer_state_unique_user_per_workspace').on(
+      table.workspaceId,
+      table.userId,
+    ),
     index('idx_timer_state_workspace_user').on(table.workspaceId, table.userId),
   ],
 );

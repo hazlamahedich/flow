@@ -13,7 +13,11 @@ vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
   return {
     ...actual,
-    requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' }),
+    requireTenantContext: vi.fn().mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    }),
     createFlowError: actual.createFlowError,
     cacheTag: vi.fn((entity: string, ws: string) => `${entity}:${ws}`),
     invalidateAfterMutation: vi.fn(),
@@ -46,7 +50,9 @@ function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
   const fromChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: rowData ?? null, error: null }),
+    maybeSingle: vi
+      .fn()
+      .mockResolvedValue({ data: rowData ?? null, error: null }),
     single: vi.fn().mockResolvedValue({ data: rowData ?? null, error: null }),
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
@@ -57,12 +63,18 @@ function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
     limit: vi.fn().mockReturnThis(),
   };
   return {
-    rpc: vi.fn().mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
+    rpc: vi
+      .fn()
+      .mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
     from: vi.fn().mockReturnValue(fromChain),
   } as unknown as import('@supabase/supabase-js').SupabaseClient;
 }
 
-function mockInvoiceRow(status: string, totalCents: number, amountPaidCents: number) {
+function mockInvoiceRow(
+  status: string,
+  totalCents: number,
+  amountPaidCents: number,
+) {
   return {
     id: 'inv-1',
     status,
@@ -97,12 +109,13 @@ describe('[P0] [7.4-ATDD-001] voidInvoice action transitions invoice to voided',
 
   test('voidInvoiceAction returns success with voided status', async () => {
     const { getServerSupabase } = await import('@/lib/supabase-server');
-    const { voidInvoiceAction } = await import('@/lib/actions/invoices/void-invoice');
+    const { voidInvoiceAction } =
+      await import('@/lib/actions/invoices/void-invoice');
 
     const mockClient = mockSupabase(
       { success: true, status: 'voided', time_entries_cleared: 2 },
       undefined,
-      mockInvoiceRow('draft', 10000, 0)
+      mockInvoiceRow('draft', 10000, 0),
     );
 
     vi.mocked(getServerSupabase).mockResolvedValue(mockClient);
@@ -129,12 +142,13 @@ describe('[P0] [7.4-ATDD-002] voidInvoice rejects paid invoice with INVOICE_PAID
 
   test('paid invoice returns INVOICE_PAID_CANNOT_VOID', async () => {
     const { getServerSupabase } = await import('@/lib/supabase-server');
-    const { voidInvoiceAction } = await import('@/lib/actions/invoices/void-invoice');
+    const { voidInvoiceAction } =
+      await import('@/lib/actions/invoices/void-invoice');
 
     const mockClient = mockSupabase(
       { error: 'INVOICE_PAID_CANNOT_VOID' },
       undefined,
-      mockInvoiceRow('paid', 10000, 10000)
+      mockInvoiceRow('paid', 10000, 10000),
     );
 
     vi.mocked(getServerSupabase).mockResolvedValue(mockClient);
@@ -165,7 +179,12 @@ describe('[P0] [7.4-ATDD-003] voidInvoice is idempotent on already-voided invoic
       time_entries_cleared: 0,
     });
 
-    const result = await voidInvoiceViaRpc(mockClient, 'inv-1', 'ws-1', 'reason');
+    const result = await voidInvoiceViaRpc(
+      mockClient,
+      'inv-1',
+      'ws-1',
+      'reason',
+    );
     expect(result).not.toBeNull();
     expect(result?.success).toBe(true);
     expect(result?.timeEntriesCleared).toBe(0);
@@ -185,7 +204,12 @@ describe('[P0] [7.4-ATDD-004] voidInvoice clears time_entries.invoiced_at for li
       time_entries_cleared: 3,
     });
 
-    const result = await voidInvoiceViaRpc(mockClient, 'inv-1', 'ws-1', 'Client cancelled');
+    const result = await voidInvoiceViaRpc(
+      mockClient,
+      'inv-1',
+      'ws-1',
+      'Client cancelled',
+    );
     expect(result?.timeEntriesCleared).toBe(3);
   });
 });
@@ -203,7 +227,14 @@ describe('[P0] [7.4-ATDD-005] issueCreditNote creates credit note and updates cr
       line_item_sort_order: 4,
     });
 
-    const result = await issueCreditNoteViaRpc(mockClient, 'inv-1', 'ws-1', 2500, 'Partial credit', 'user-1');
+    const result = await issueCreditNoteViaRpc(
+      mockClient,
+      'inv-1',
+      'ws-1',
+      2500,
+      'Partial credit',
+      'user-1',
+    );
     expect(result).toEqual({
       creditNoteId: 'cn-1',
       newCreditBalanceCents: 2500,
@@ -223,7 +254,14 @@ describe('[P0] [7.4-ATDD-006] issueCreditNote rejects amount exceeding balance',
       error: 'CREDIT_EXCEEDS_BALANCE',
     });
 
-    const result = await issueCreditNoteViaRpc(mockClient, 'inv-1', 'ws-1', 50000, 'Too much', 'user-1');
+    const result = await issueCreditNoteViaRpc(
+      mockClient,
+      'inv-1',
+      'ws-1',
+      50000,
+      'Too much',
+      'user-1',
+    );
     expect(result).toBeNull();
   });
 });
@@ -256,7 +294,8 @@ describe('[P0] [7.4-ATDD-007] issueCreditNote rejects paid invoice', () => {
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [7.4-ATDD-008] invoice list filter excludes voided by default', () => {
   test('Active filter omits voided invoices', async () => {
-    const { getInvoicesAction } = await import('@/lib/actions/invoices/get-invoices');
+    const { getInvoicesAction } =
+      await import('@/lib/actions/invoices/get-invoices');
     expect(getInvoicesAction).toBeDefined();
   });
 
@@ -278,7 +317,12 @@ describe('[P0] [7.4-ATDD-009] time entry reconciliation shows Ready to re-bill f
       time_entries_cleared: 2,
     });
 
-    const result = await voidInvoiceViaRpc(mockClient, 'inv-1', 'ws-1', 'reason');
+    const result = await voidInvoiceViaRpc(
+      mockClient,
+      'inv-1',
+      'ws-1',
+      'reason',
+    );
     expect(result?.timeEntriesCleared).toBeGreaterThan(0);
   });
 });

@@ -2,13 +2,8 @@
 
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, createFlowError } from '@flow/db';
-import {
-  saveReportTemplateSchema,
-} from '@flow/types';
-import type {
-  ActionResult,
-  ReportTemplate,
-} from '@flow/types';
+import { saveReportTemplateSchema } from '@flow/types';
+import type { ActionResult, ReportTemplate } from '@flow/types';
 
 export async function saveReportTemplateAction(
   input: unknown,
@@ -35,7 +30,13 @@ export async function saveReportTemplateAction(
     }
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation', { issues }),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+        { issues },
+      ),
     };
   }
 
@@ -46,14 +47,24 @@ export async function saveReportTemplateAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
   if (!['owner', 'admin'].includes(ctx.role)) {
     return {
       success: false,
-      error: createFlowError(403, 'FORBIDDEN', 'Only workspace owners and admins can manage templates.', 'auth'),
+      error: createFlowError(
+        403,
+        'FORBIDDEN',
+        'Only workspace owners and admins can manage templates.',
+        'auth',
+      ),
     };
   }
 
@@ -69,7 +80,12 @@ export async function saveReportTemplateAction(
     if (!client) {
       return {
         success: false,
-        error: createFlowError(400, 'VALIDATION_ERROR', 'Client not found in workspace.', 'validation'),
+        error: createFlowError(
+          400,
+          'VALIDATION_ERROR',
+          'Client not found in workspace.',
+          'validation',
+        ),
       };
     }
   }
@@ -84,7 +100,12 @@ export async function saveReportTemplateAction(
     if (!existing) {
       return {
         success: false,
-        error: createFlowError(404, 'NOT_FOUND', 'Template not found.', 'validation'),
+        error: createFlowError(
+          404,
+          'NOT_FOUND',
+          'Template not found.',
+          'validation',
+        ),
       };
     }
   }
@@ -107,7 +128,12 @@ export async function saveReportTemplateAction(
   if (upsertErr || !upserted) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', upsertErr?.message ?? 'Failed to save template.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        upsertErr?.message ?? 'Failed to save template.',
+        'system',
+      ),
     };
   }
 

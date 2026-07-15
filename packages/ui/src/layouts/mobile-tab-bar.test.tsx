@@ -21,7 +21,9 @@ describe('MobileTabBar', () => {
     const { container } = renderTabBar();
     expect(container.querySelector('a[href="/inbox"]')).not.toBeNull();
     expect(container.querySelector('a[href="/calendar"]')).not.toBeNull();
-    expect(container.querySelector('button[aria-label="More navigation"]')).not.toBeNull();
+    expect(
+      container.querySelector('button[aria-label="More navigation"]'),
+    ).not.toBeNull();
   });
 
   it('highlights active tab with aria-current', () => {
@@ -33,15 +35,30 @@ describe('MobileTabBar', () => {
 
   it('opens bottom sheet on More click', () => {
     const { container } = renderTabBar();
-    fireEvent.click(container.querySelector('button[aria-label="More navigation"]')!);
-    expect(container.querySelector('[data-testid="mobile-bottom-sheet"]')).not.toBeNull();
+    fireEvent.click(
+      container.querySelector('button[aria-label="More navigation"]')!,
+    );
+    expect(
+      container.querySelector('[data-testid="mobile-bottom-sheet"]'),
+    ).not.toBeNull();
   });
 
   it('renders 6 overflow items in sheet', () => {
     const { container } = renderTabBar();
-    fireEvent.click(container.querySelector('button[aria-label="More navigation"]')!);
-    const sheet = container.querySelector('[data-testid="mobile-bottom-sheet"]');
-    const expectedHrefs = ['/agents', '/clients', '/invoices', '/time', '/reports', '/settings'];
+    fireEvent.click(
+      container.querySelector('button[aria-label="More navigation"]')!,
+    );
+    const sheet = container.querySelector(
+      '[data-testid="mobile-bottom-sheet"]',
+    );
+    const expectedHrefs = [
+      '/agents',
+      '/clients',
+      '/invoices',
+      '/time',
+      '/reports',
+      '/settings',
+    ];
     expectedHrefs.forEach((href) => {
       expect(sheet?.querySelector(`a[href="${href}"]`)).not.toBeNull();
     });
@@ -49,22 +66,38 @@ describe('MobileTabBar', () => {
 
   it('closes sheet on Escape', () => {
     const { container } = renderTabBar();
-    fireEvent.click(container.querySelector('button[aria-label="More navigation"]')!);
-    expect(container.querySelector('[data-testid="mobile-bottom-sheet"]')).not.toBeNull();
+    fireEvent.click(
+      container.querySelector('button[aria-label="More navigation"]')!,
+    );
+    expect(
+      container.querySelector('[data-testid="mobile-bottom-sheet"]'),
+    ).not.toBeNull();
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(container.querySelector('[data-testid="mobile-bottom-sheet"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="mobile-bottom-sheet"]'),
+    ).toBeNull();
   });
 
   it('closes sheet on backdrop click', () => {
     const { container } = renderTabBar();
-    fireEvent.click(container.querySelector('button[aria-label="More navigation"]')!);
-    expect(container.querySelector('[data-testid="mobile-bottom-sheet"]')).not.toBeNull();
-    fireEvent.click(container.querySelector('[data-testid="mobile-sheet-backdrop"]')!);
-    expect(container.querySelector('[data-testid="mobile-bottom-sheet"]')).toBeNull();
+    fireEvent.click(
+      container.querySelector('button[aria-label="More navigation"]')!,
+    );
+    expect(
+      container.querySelector('[data-testid="mobile-bottom-sheet"]'),
+    ).not.toBeNull();
+    fireEvent.click(
+      container.querySelector('[data-testid="mobile-sheet-backdrop"]')!,
+    );
+    expect(
+      container.querySelector('[data-testid="mobile-bottom-sheet"]'),
+    ).toBeNull();
   });
 
   it('has mobile navigation landmark', () => {
     const { container } = renderTabBar();
-    expect(container.querySelector('nav[aria-label="Mobile navigation"]')).not.toBeNull();
+    expect(
+      container.querySelector('nav[aria-label="Mobile navigation"]'),
+    ).not.toBeNull();
   });
 });

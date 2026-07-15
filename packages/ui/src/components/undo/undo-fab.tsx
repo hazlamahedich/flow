@@ -9,7 +9,10 @@ import { useReducedMotion } from '../../hooks/use-reduced-motion';
 export function UndoFab() {
   const workspaceId = useUndoWorkspaceId();
   const [stacks, setStacks] = useAtom(undoStacksAtom);
-  const actions = useMemo(() => createUndoStackActions(workspaceId), [workspaceId]);
+  const actions = useMemo(
+    () => createUndoStackActions(workspaceId),
+    [workspaceId],
+  );
   const stack = actions.getStack(stacks);
   const reducedMotion = useReducedMotion();
 
@@ -28,11 +31,7 @@ export function UndoFab() {
       onClick={handleUndo}
       className="fixed bottom-20 right-4 z-[var(--flow-z-sticky)] flex h-12 w-12 items-center justify-center rounded-full border border-[var(--flow-color-border-primary)] bg-[var(--flow-color-bg-surface-raised)] shadow-lg hover:bg-[var(--flow-color-bg-surface-hover)] focus:outline focus:outline-[var(--flow-focus-ring-width)_solid_var(--flow-focus-ring-color)] md:hidden"
       aria-label="Undo last action"
-      style={
-        reducedMotion
-          ? undefined
-          : { animation: 'fadeIn 150ms ease-out' }
-      }
+      style={reducedMotion ? undefined : { animation: 'fadeIn 150ms ease-out' }}
     >
       <svg
         width="20"

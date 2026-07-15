@@ -64,10 +64,13 @@ describe('Story 1.8: Command Palette & Keyboard Shortcuts', () => {
       { action: 'reject', key: 'n', modifier: 'none' },
     ];
 
-    it.each(shortcuts)('action "$action" has shortcut binding', ({ action, key }) => {
-      expect(key).toBeTruthy();
-      expect(action).toBeTruthy();
-    });
+    it.each(shortcuts)(
+      'action "$action" has shortcut binding',
+      ({ action, key }) => {
+        expect(key).toBeTruthy();
+        expect(action).toBeTruthy();
+      },
+    );
   });
 
   describe('AC: visible focus indicators (WCAG 2.1 AA)', () => {

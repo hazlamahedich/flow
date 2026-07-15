@@ -1,6 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-export type EventSource = 'va_created' | 'client_created' | 'third_party' | 'auto_generated';
+export type EventSource =
+  | 'va_created'
+  | 'client_created'
+  | 'third_party'
+  | 'auto_generated';
 
 interface CalendarEventInput {
   organizerEmail?: string | null;
@@ -15,15 +19,25 @@ interface CalendarInfo {
 }
 
 const THIRD_PARTY_DOMAINS = [
-  'calendly.com', 'acuityscheduling.com', 'zoom.us',
-  'scheduleonce.com', 'youcanbook.me', 'doodle.com',
-  'harmonizely.com', 'cal.com',
+  'calendly.com',
+  'acuityscheduling.com',
+  'zoom.us',
+  'scheduleonce.com',
+  'youcanbook.me',
+  'doodle.com',
+  'harmonizely.com',
+  'cal.com',
 ];
 
 const HOLIDAY_PATTERNS = [
-  /\bholiday\b/i, /\booo\b/i, /\bout of office\b/i,
-  /\bvacation\b/i, /\btime off\b/i, /\bbleeding day\b/i,
-  /\bbank holiday\b/i, /\bpublic holiday\b/i,
+  /\bholiday\b/i,
+  /\booo\b/i,
+  /\bout of office\b/i,
+  /\bvacation\b/i,
+  /\btime off\b/i,
+  /\bbleeding day\b/i,
+  /\bbank holiday\b/i,
+  /\bpublic holiday\b/i,
 ];
 
 export function classifyEventSource(
@@ -31,7 +45,10 @@ export function classifyEventSource(
   calendars: CalendarInfo[],
   vaEmail: string,
 ): EventSource {
-  if (event.createdVia === 'flow_os' || event.createdVia?.startsWith('agent:')) {
+  if (
+    event.createdVia === 'flow_os' ||
+    event.createdVia?.startsWith('agent:')
+  ) {
     return 'va_created';
   }
 
@@ -48,7 +65,9 @@ export function classifyEventSource(
 
   if (organizerEmail) {
     const domain = organizerEmail.split('@')[1] ?? '';
-    if (THIRD_PARTY_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`))) {
+    if (
+      THIRD_PARTY_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`))
+    ) {
       return 'third_party';
     }
 

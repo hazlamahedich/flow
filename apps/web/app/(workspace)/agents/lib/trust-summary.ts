@@ -4,27 +4,31 @@ import { z } from 'zod';
 
 export const CANONICAL_ACTION_TYPE = 'general';
 
-const trustMatrixRowSchema = z.object({
-  workspace_id: z.string(),
-  agent_id: z.string(),
-  action_type: z.string(),
-  current_level: z.enum(['supervised', 'confirm', 'auto']),
-  score: z.number(),
-  consecutive_successes: z.number(),
-  total_executions: z.number(),
-  successful_executions: z.number(),
-  violation_count: z.number(),
-  last_transition_at: z.string(),
-  last_violation_at: z.string().nullable().optional(),
-}).passthrough();
+const trustMatrixRowSchema = z
+  .object({
+    workspace_id: z.string(),
+    agent_id: z.string(),
+    action_type: z.string(),
+    current_level: z.enum(['supervised', 'confirm', 'auto']),
+    score: z.number(),
+    consecutive_successes: z.number(),
+    total_executions: z.number(),
+    successful_executions: z.number(),
+    violation_count: z.number(),
+    last_transition_at: z.string(),
+    last_violation_at: z.string().nullable().optional(),
+  })
+  .passthrough();
 
-const trustMilestoneRowSchema = z.object({
-  agent_id: z.string(),
-  milestone_type: z.string(),
-  threshold: z.number(),
-  achieved_at: z.string(),
-  acknowledged_at: z.string().nullable().optional(),
-}).passthrough();
+const trustMilestoneRowSchema = z
+  .object({
+    agent_id: z.string(),
+    milestone_type: z.string(),
+    threshold: z.number(),
+    achieved_at: z.string(),
+    acknowledged_at: z.string().nullable().optional(),
+  })
+  .passthrough();
 
 export interface TrustSummaryRow {
   workspaceId: string;
@@ -46,7 +50,9 @@ export async function getTrustSummaryForWorkspace(
 
   let query = client
     .from('trust_matrix')
-    .select('workspace_id, agent_id, action_type, current_level, score, consecutive_successes, total_executions, successful_executions, violation_count, last_transition_at, last_violation_at')
+    .select(
+      'workspace_id, agent_id, action_type, current_level, score, consecutive_successes, total_executions, successful_executions, violation_count, last_transition_at, last_violation_at',
+    )
     .eq('workspace_id', workspaceId);
 
   query = query.eq('action_type', CANONICAL_ACTION_TYPE);
@@ -76,7 +82,15 @@ export async function getTrustSummaryForWorkspace(
 export async function getTrustMilestones(
   workspaceId: string,
   agentId?: AgentId,
-): Promise<Array<{ agentId: AgentId; milestoneType: string; threshold: number; achievedAt: string; acknowledgedAt: string | null }>> {
+): Promise<
+  Array<{
+    agentId: AgentId;
+    milestoneType: string;
+    threshold: number;
+    achievedAt: string;
+    acknowledgedAt: string | null;
+  }>
+> {
   const client = await getServerSupabase();
   let query = client
     .from('trust_milestones')

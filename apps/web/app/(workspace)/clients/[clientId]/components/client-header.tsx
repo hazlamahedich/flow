@@ -24,9 +24,10 @@ export function ClientHeader({ client, role }: ClientHeaderProps) {
   const [isPending, setIsPending] = useState(false);
   const isOwnerOrAdmin = role === 'owner' || role === 'admin';
 
-  const statusDisplay = client.status === 'active'
-    ? { label: 'Active', variant: 'success' as const }
-    : { label: 'Archived', variant: 'secondary' as const };
+  const statusDisplay =
+    client.status === 'active'
+      ? { label: 'Active', variant: 'success' as const }
+      : { label: 'Archived', variant: 'secondary' as const };
 
   const handleToggleArchive = async () => {
     setIsPending(true);
@@ -75,8 +76,9 @@ export function ClientHeader({ client, role }: ClientHeaderProps) {
           <DialogHeader>
             <DialogTitle>Archive Client</DialogTitle>
             <DialogDescription>
-              This client will be hidden from active views. Time entries, invoices, and reports are preserved.
-              You can restore this client at any time.
+              This client will be hidden from active views. Time entries,
+              invoices, and reports are preserved. You can restore this client
+              at any time.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 pt-4">

@@ -71,7 +71,12 @@ export function ClientTimeline({
       if (result.success) {
         setEvents((prev) => {
           const seen = new Set(prev.map((e) => `${e.kind}-${e.data.id}`));
-          return [...prev, ...result.data.events.filter((e) => !seen.has(`${e.kind}-${e.data.id}`))];
+          return [
+            ...prev,
+            ...result.data.events.filter(
+              (e) => !seen.has(`${e.kind}-${e.data.id}`),
+            ),
+          ];
         });
         setCursor(result.data.nextCursor);
       }
@@ -94,7 +99,9 @@ export function ClientTimeline({
         <div className="space-y-0">
           {events.length === 0 ? (
             <div className="py-20 text-center bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
-              <p className="text-slate-500 font-medium">No communication history yet for this client.</p>
+              <p className="text-slate-500 font-medium">
+                No communication history yet for this client.
+              </p>
             </div>
           ) : (
             events.map((event, index) => {
@@ -112,9 +119,7 @@ export function ClientTimeline({
               } else {
                 return (
                   <div key={key} data-testid="timeline-item">
-                    <AgentActionTimelineItem
-                      run={event.data}
-                    />
+                    <AgentActionTimelineItem run={event.data} />
                   </div>
                 );
               }

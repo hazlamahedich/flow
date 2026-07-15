@@ -6,7 +6,9 @@ export async function getServerSupabase() {
 
   return createServerClient({
     getAll() {
-      return cookieStore.getAll().map((c) => ({ name: c.name, value: c.value }));
+      return cookieStore
+        .getAll()
+        .map((c) => ({ name: c.name, value: c.value }));
     },
     set(name: string, value: string, options?: Record<string, unknown>) {
       try {

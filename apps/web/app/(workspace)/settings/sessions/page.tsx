@@ -50,7 +50,9 @@ export default async function SessionsPage() {
   }
 
   const memberUserIds = (members ?? []).map((m) => m.user_id);
-  const memberUserIdsExcludingSelf = memberUserIds.filter((id) => id !== ctx.userId);
+  const memberUserIdsExcludingSelf = memberUserIds.filter(
+    (id) => id !== ctx.userId,
+  );
   const memberCount = memberUserIdsExcludingSelf.length;
 
   if (memberUserIdsExcludingSelf.length === 0) {

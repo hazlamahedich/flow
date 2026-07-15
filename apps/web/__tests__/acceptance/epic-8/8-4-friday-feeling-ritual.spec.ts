@@ -13,7 +13,11 @@ vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
   return {
     ...actual,
-    requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' }),
+    requireTenantContext: vi.fn().mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    }),
     createFlowError: actual.createFlowError,
     cacheTag: vi.fn((entity: string, ws: string) => `${entity}:${ws}`),
     invalidateAfterMutation: vi.fn(),
@@ -29,11 +33,20 @@ vi.mock('@flow/agents/friday-feeling', () => ({
     summaryId: 'ff-1',
     tasksHandled: 23,
     timeSavedMinutes: 185,
-    trustMilestones: [{ agent_type: 'time_integrity', from_level: 'suggest', to_level: 'auto_approve', reached_at: '2026-05-22T14:00:00Z' }],
+    trustMilestones: [
+      {
+        agent_type: 'time_integrity',
+        from_level: 'suggest',
+        to_level: 'auto_approve',
+        reached_at: '2026-05-22T14:00:00Z',
+      },
+    ],
     headline: "Here's what you accomplished. Now go live your life.",
   }),
   preCheck: vi.fn().mockResolvedValue({ passed: true, errors: [] }),
-  executeWednesdayAffirmation: vi.fn().mockResolvedValue({ affirmationIds: ['wa-1'], generated: 1 }),
+  executeWednesdayAffirmation: vi
+    .fn()
+    .mockResolvedValue({ affirmationIds: ['wa-1'], generated: 1 }),
 }));
 
 function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
@@ -60,7 +73,9 @@ function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
     configurable: true,
   });
   return {
-    rpc: vi.fn().mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
+    rpc: vi
+      .fn()
+      .mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
     from: vi.fn().mockReturnValue(fromChain),
   } as unknown as import('@supabase/supabase-js').SupabaseClient;
 }
@@ -76,7 +91,12 @@ function mockFridayFeelingSummary() {
     tasks_handled: 23,
     time_saved_minutes: 185,
     trust_milestones: [
-      { agent_type: 'time_integrity', from_level: 'suggest', to_level: 'auto_approve', reached_at: '2026-05-22T14:00:00Z' },
+      {
+        agent_type: 'time_integrity',
+        from_level: 'suggest',
+        to_level: 'auto_approve',
+        reached_at: '2026-05-22T14:00:00Z',
+      },
     ],
     generated_at: '2026-05-26T16:00:00Z',
     dismissed_at: null,
@@ -88,7 +108,8 @@ function mockWednesdayAffirmation() {
     id: 'wa-1',
     workspace_id: 'ws-1',
     team_member_id: 'user-2',
-    story: 'Alice reached auto_approve trust level for the Calendar Agent this week.',
+    story:
+      'Alice reached auto_approve trust level for the Calendar Agent this week.',
     milestone: { agent_type: 'calendar', trust_level: 'auto_approve' },
     generated_at: '2026-05-21T09:00:00Z',
     dismissed_at: null,
@@ -112,12 +133,15 @@ describe('[P0] [8.4-ATDD-001] friday feeling summary generated with headline and
       mockSupabase(null, undefined, summary),
     );
 
-    const { getFridayFeelingAction } = await import('@/lib/actions/reports/get-friday-feeling');
+    const { getFridayFeelingAction } =
+      await import('@/lib/actions/reports/get-friday-feeling');
     const result = await getFridayFeelingAction();
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.headline).toBe("Here's what you accomplished. Now go live your life.");
+      expect(result.data.headline).toBe(
+        "Here's what you accomplished. Now go live your life.",
+      );
       expect(result.data.tasksHandled).toBe(23);
       expect(result.data.timeSavedMinutes).toBe(185);
     }
@@ -134,7 +158,8 @@ describe('[P0] [8.4-ATDD-002] the exhale completion screen shows visible impact 
   });
 
   test('exhale screen renders impact stories from summary data', async () => {
-    const { renderExhaleScreen } = await import('@/components/reports/exhale-screen');
+    const { renderExhaleScreen } =
+      await import('@/components/reports/exhale-screen');
     const summary = mockFridayFeelingSummary();
     const html = renderExhaleScreen({
       id: summary.id,
@@ -170,7 +195,8 @@ describe('[P1] [8.4-ATDD-003] wednesday micro-affirmation highlights team member
       mockSupabase(null, undefined, affirmation),
     );
 
-    const { getWednesdayAffirmationAction } = await import('@/lib/actions/reports/get-wednesday-affirmation');
+    const { getWednesdayAffirmationAction } =
+      await import('@/lib/actions/reports/get-wednesday-affirmation');
     const result = await getWednesdayAffirmationAction();
 
     expect(result.success).toBe(true);
@@ -191,12 +217,15 @@ describe('[P0] [8.4-ATDD-004] friday feeling summary surfaces in orchestrated wo
       mockSupabase(null, undefined, [mockFridayFeelingSummary()]),
     );
 
-    const { getInboxItems } = await import('@/lib/actions/inbox/get-inbox-items');
+    const { getInboxItems } =
+      await import('@/lib/actions/inbox/get-inbox-items');
     const result = await getInboxItems();
 
     expect(result.success).toBe(true);
     if (result.success) {
-      const ffItems = result.data.filter((item: { type: string }) => item.type === 'friday_feeling');
+      const ffItems = result.data.filter(
+        (item: { type: string }) => item.type === 'friday_feeling',
+      );
       expect(ffItems.length).toBeGreaterThan(0);
     }
   });
@@ -207,8 +236,11 @@ describe('[P0] [8.4-ATDD-004] friday feeling summary surfaces in orchestrated wo
       mockSupabase(null, undefined, { id: 'ff-1', tasks_handled: 1 }),
     );
 
-    const { dismissFridayFeelingAction } = await import('@/lib/actions/reports/dismiss-friday-feeling');
-    const result = await dismissFridayFeelingAction({ summaryId: 'ffffffff-ffff-ffff-ffff-ffffffffffff' });
+    const { dismissFridayFeelingAction } =
+      await import('@/lib/actions/reports/dismiss-friday-feeling');
+    const result = await dismissFridayFeelingAction({
+      summaryId: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+    });
 
     expect(result.success).toBe(true);
   });

@@ -2,10 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { useAtom } from 'jotai';
-import {
-  undoStacksAtom,
-  createUndoStackActions,
-} from '@flow/shared';
+import { undoStacksAtom, createUndoStackActions } from '@flow/shared';
 import type { UndoActionSeverity, UndoActionType } from '@flow/shared';
 import { useUndoWorkspaceId } from './undo-workspace-context';
 
@@ -24,7 +21,10 @@ interface UseUndoMutationOptions {
 export function useUndoMutation() {
   const workspaceId = useUndoWorkspaceId();
   const [, setStacks] = useAtom(undoStacksAtom);
-  const actions = useMemo(() => createUndoStackActions(workspaceId), [workspaceId]);
+  const actions = useMemo(
+    () => createUndoStackActions(workspaceId),
+    [workspaceId],
+  );
 
   const recordUndo = useCallback(
     (options: UseUndoMutationOptions) => {

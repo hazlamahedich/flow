@@ -34,7 +34,9 @@ vi.mock('iron-session', () => ({
 
 vi.mock('@flow/agents/providers', () => ({
   GmailProvider: vi.fn().mockImplementation(() => ({
-    getOAuthUrl: vi.fn().mockReturnValue('https://accounts.google.com/o/oauth2/v2/auth?fake=1'),
+    getOAuthUrl: vi
+      .fn()
+      .mockReturnValue('https://accounts.google.com/o/oauth2/v2/auth?fake=1'),
   })),
 }));
 
@@ -62,11 +64,14 @@ describe('initiateOAuth', () => {
       userId: 'u-1',
       role: 'owner',
     });
-    (connectInboxInputSchema.safeParse as any).mockReturnValue({ success: true, data: {
-      clientId: 'c1111111-1111-1111-1111-111111111111',
-      accessType: 'direct',
-      returnTo: '/clients/c1111111-1111-1111-1111-111111111111',
-    }});
+    (connectInboxInputSchema.safeParse as any).mockReturnValue({
+      success: true,
+      data: {
+        clientId: 'c1111111-1111-1111-1111-111111111111',
+        accessType: 'direct',
+        returnTo: '/clients/c1111111-1111-1111-1111-111111111111',
+      },
+    });
   });
 
   it('returns validation error for invalid input', async () => {
@@ -93,7 +98,12 @@ describe('initiateOAuth', () => {
     });
 
     expect(result.success).toBe(false);
-    expect(createFlowError).toHaveBeenCalledWith(403, expect.any(String), expect.any(String), expect.any(String));
+    expect(createFlowError).toHaveBeenCalledWith(
+      403,
+      expect.any(String),
+      expect.any(String),
+      expect.any(String),
+    );
   });
 
   it('returns 404 when client not found in workspace', async () => {
@@ -105,7 +115,12 @@ describe('initiateOAuth', () => {
     });
 
     expect(result.success).toBe(false);
-    expect(createFlowError).toHaveBeenCalledWith(404, expect.any(String), expect.any(String), expect.any(String));
+    expect(createFlowError).toHaveBeenCalledWith(
+      404,
+      expect.any(String),
+      expect.any(String),
+      expect.any(String),
+    );
   });
 
   it('returns OAuth URL on success', async () => {

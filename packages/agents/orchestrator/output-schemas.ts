@@ -12,7 +12,8 @@ export function createOutputSchemaRegistry(): OutputSchemaRegistry {
   const schemas = new Map<string, z.ZodType>();
   const registeredActions = new Map<string, Set<string>>();
 
-  const key = (agentId: AgentId, actionType: string) => `${agentId}:${actionType}`;
+  const key = (agentId: AgentId, actionType: string) =>
+    `${agentId}:${actionType}`;
 
   return {
     register(agentId: AgentId, actionType: string, schema: z.ZodType): void {

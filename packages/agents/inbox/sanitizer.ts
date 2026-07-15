@@ -27,7 +27,20 @@ const DISCLAIMER_PATTERNS = [
 
 export function sanitizeEmail(html: string, rawText?: string): SanitizeResult {
   const safeHtml = DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['p', 'br', 'b', 'i', 'em', 'strong', 'ul', 'ol', 'li', 'h1', 'h2', 'h3'],
+    ALLOWED_TAGS: [
+      'p',
+      'br',
+      'b',
+      'i',
+      'em',
+      'strong',
+      'ul',
+      'ol',
+      'li',
+      'h1',
+      'h2',
+      'h3',
+    ],
     KEEP_CONTENT: true,
   });
 
@@ -55,10 +68,16 @@ function stripQuotedReplies(text: string): string {
   for (const line of lines) {
     const trimmedLine = line.trim();
 
-    if ((trimmedLine.startsWith('>') && trimmedLine.length > 1 && trimmedLine[1] === ' ') ||
-        trimmedLine.includes('--- Original Message ---') ||
-        /^On.*wrote:$/i.test(trimmedLine) ||
-        (trimmedLine.startsWith('From:') && result.length > 0 && /^[A-Z]/.test(trimmedLine.slice(5).trim()))) {
+    if (
+      (trimmedLine.startsWith('>') &&
+        trimmedLine.length > 1 &&
+        trimmedLine[1] === ' ') ||
+      trimmedLine.includes('--- Original Message ---') ||
+      /^On.*wrote:$/i.test(trimmedLine) ||
+      (trimmedLine.startsWith('From:') &&
+        result.length > 0 &&
+        /^[A-Z]/.test(trimmedLine.slice(5).trim()))
+    ) {
       break;
     }
 

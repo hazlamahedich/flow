@@ -25,34 +25,53 @@ interface InvoiceSummaryContent {
   invoiceCount: number;
 }
 
-export function TaskLogSection({ content }: { content: { projects?: ProjectGroup[] } }) {
+export function TaskLogSection({
+  content,
+}: {
+  content: { projects?: ProjectGroup[] };
+}) {
   const projects = content?.projects ?? [];
   const totalEntries = projects.reduce((sum, p) => sum + p.entries.length, 0);
   return (
     <section data-testid="section-task-log" className="space-y-2">
       <h2 className="text-lg font-semibold tracking-tight">Task Log</h2>
       {totalEntries === 0 ? (
-        <p className="text-sm text-muted-foreground">No tasks logged this period</p>
+        <p className="text-sm text-muted-foreground">
+          No tasks logged this period
+        </p>
       ) : (
         <div className="space-y-4">
           {projects.map((group) => (
             <div key={group.projectName || 'uncategorized'}>
-              <h3 className="text-base font-medium mb-2">{group.projectName || 'Uncategorized'}</h3>
+              <h3 className="text-base font-medium mb-2">
+                {group.projectName || 'Uncategorized'}
+              </h3>
               <div className="rounded-md border">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b bg-muted/50">
                       <th className="px-4 py-3 text-left font-medium">Date</th>
-                      <th className="px-4 py-3 text-right font-medium">Duration</th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Duration
+                      </th>
                       <th className="px-4 py-3 text-left font-medium">Notes</th>
                     </tr>
                   </thead>
                   <tbody>
                     {group.entries.map((entry, i) => (
-                      <tr key={`${group.projectName}-${i}`} className="border-b last:border-0">
-                        <td className="px-4 py-3 text-muted-foreground">{entry.date}</td>
-                        <td className="px-4 py-3 text-right font-mono">{formatDuration(entry.durationMinutes)}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{entry.notes || '—'}</td>
+                      <tr
+                        key={`${group.projectName}-${i}`}
+                        className="border-b last:border-0"
+                      >
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {entry.date}
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono">
+                          {formatDuration(entry.durationMinutes)}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {entry.notes || '—'}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -66,13 +85,19 @@ export function TaskLogSection({ content }: { content: { projects?: ProjectGroup
   );
 }
 
-export function AgentActivitySection({ content }: { content: { runs?: AgentRun[] } }) {
+export function AgentActivitySection({
+  content,
+}: {
+  content: { runs?: AgentRun[] };
+}) {
   const runs = content?.runs ?? [];
   return (
     <section data-testid="section-agent-activity" className="space-y-2">
       <h2 className="text-lg font-semibold tracking-tight">Agent Activity</h2>
       {runs.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No agent activity this period</p>
+        <p className="text-sm text-muted-foreground">
+          No agent activity this period
+        </p>
       ) : (
         <div className="rounded-md border">
           <table className="w-full text-sm">
@@ -85,14 +110,19 @@ export function AgentActivitySection({ content }: { content: { runs?: AgentRun[]
             </thead>
             <tbody>
               {runs.map((run) => (
-                <tr key={`${run.actionType}-${run.status}`} className="border-b last:border-0">
+                <tr
+                  key={`${run.actionType}-${run.status}`}
+                  className="border-b last:border-0"
+                >
                   <td className="px-4 py-3">{run.actionType}</td>
                   <td className="px-4 py-3">
                     <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
                       {run.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right font-mono">{run.count}</td>
+                  <td className="px-4 py-3 text-right font-mono">
+                    {run.count}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -103,7 +133,11 @@ export function AgentActivitySection({ content }: { content: { runs?: AgentRun[]
   );
 }
 
-export function InvoiceSummarySection({ content }: { content: InvoiceSummaryContent }) {
+export function InvoiceSummarySection({
+  content,
+}: {
+  content: InvoiceSummaryContent;
+}) {
   const total = content?.totalCents ?? 0;
   const paid = content?.amountPaidCents ?? 0;
   const count = content?.invoiceCount ?? 0;
@@ -111,7 +145,9 @@ export function InvoiceSummarySection({ content }: { content: InvoiceSummaryCont
     <section data-testid="section-invoice-summary" className="space-y-2">
       <h2 className="text-lg font-semibold tracking-tight">Invoice Summary</h2>
       {count === 0 ? (
-        <p className="text-sm text-muted-foreground">No invoices issued this period</p>
+        <p className="text-sm text-muted-foreground">
+          No invoices issued this period
+        </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-md border p-4 space-y-1">

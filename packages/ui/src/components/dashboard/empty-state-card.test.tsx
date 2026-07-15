@@ -34,7 +34,9 @@ describe('EmptyStateCard', () => {
     );
 
     expect(container.textContent).toContain('Nothing here yet');
-    expect(container.textContent).toContain('This section will populate over time.');
+    expect(container.textContent).toContain(
+      'This section will populate over time.',
+    );
     expect(container.querySelector('svg')).toBeTruthy();
   });
 

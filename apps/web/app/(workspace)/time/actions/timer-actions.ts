@@ -29,7 +29,12 @@ export async function startTimerAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
@@ -43,10 +48,19 @@ export async function startTimerAction(
       .eq('id', parsed.data.projectId)
       .eq('workspace_id', ctx.workspaceId)
       .single();
-    if (projErr || !proj || (proj as { client_id: string }).client_id !== parsed.data.clientId) {
+    if (
+      projErr ||
+      !proj ||
+      (proj as { client_id: string }).client_id !== parsed.data.clientId
+    ) {
       return {
         success: false,
-        error: createFlowError(400, 'VALIDATION_ERROR', 'Project does not belong to the selected client', 'validation'),
+        error: createFlowError(
+          400,
+          'VALIDATION_ERROR',
+          'Project does not belong to the selected client',
+          'validation',
+        ),
       };
     }
   } else {
@@ -59,7 +73,12 @@ export async function startTimerAction(
     if (clientErr || !client) {
       return {
         success: false,
-        error: createFlowError(400, 'VALIDATION_ERROR', 'Client does not belong to this workspace', 'validation'),
+        error: createFlowError(
+          400,
+          'VALIDATION_ERROR',
+          'Client does not belong to this workspace',
+          'validation',
+        ),
       };
     }
   }
@@ -79,12 +98,22 @@ export async function startTimerAction(
     if (pgError.code === '23505') {
       return {
         success: false,
-        error: createFlowError(409, 'TIMER_ALREADY_RUNNING', 'You already have a running timer', 'validation'),
+        error: createFlowError(
+          409,
+          'TIMER_ALREADY_RUNNING',
+          'You already have a running timer',
+          'validation',
+        ),
       };
     }
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to start timer — try again', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to start timer — try again',
+        'system',
+      ),
     };
   }
 }
@@ -96,7 +125,12 @@ export async function stopTimerAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
@@ -116,12 +150,22 @@ export async function stopTimerAction(
     if (rpcError.code === 'TIMER_NOT_FOUND') {
       return {
         success: false,
-        error: createFlowError(404, 'TIMER_NOT_FOUND', 'No active timer found', 'validation'),
+        error: createFlowError(
+          404,
+          'TIMER_NOT_FOUND',
+          'No active timer found',
+          'validation',
+        ),
       };
     }
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to stop timer — try again', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to stop timer — try again',
+        'system',
+      ),
     };
   }
 }

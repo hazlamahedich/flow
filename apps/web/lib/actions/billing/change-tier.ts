@@ -77,7 +77,12 @@ export async function changeTierAction(
   if (ctx.role !== 'owner') {
     return {
       success: false,
-      error: createFlowError(403, 'FORBIDDEN', 'Only owners can change the subscription tier.', 'auth'),
+      error: createFlowError(
+        403,
+        'FORBIDDEN',
+        'Only owners can change the subscription tier.',
+        'auth',
+      ),
     };
   }
 
@@ -85,7 +90,12 @@ export async function changeTierAction(
   if (!currentTier) {
     return {
       success: false,
-      error: createFlowError(404, 'WORKSPACE_NOT_FOUND', 'Workspace not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'WORKSPACE_NOT_FOUND',
+        'Workspace not found.',
+        'validation',
+      ),
     };
   }
 
@@ -93,13 +103,21 @@ export async function changeTierAction(
   if (targetTier === currentTier) {
     return {
       success: false,
-      error: createFlowError(409, 'INVALID_STATE', 'You are already on this tier.', 'validation'),
+      error: createFlowError(
+        409,
+        'INVALID_STATE',
+        'You are already on this tier.',
+        'validation',
+      ),
     };
   }
 
   // Delegate to 9-3b — Stripe applies default proration. Do NOT recompute
   // locally (spike §9.1). Propagate any checkout failure as-is.
-  const checkout = await createCheckoutSessionAction({ tier: targetTier, interval: 'monthly' });
+  const checkout = await createCheckoutSessionAction({
+    tier: targetTier,
+    interval: 'monthly',
+  });
   if (!checkout.success) {
     return checkout;
   }

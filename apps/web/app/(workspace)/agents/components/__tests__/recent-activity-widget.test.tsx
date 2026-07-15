@@ -10,7 +10,10 @@ vi.mock('@/lib/supabase-server', () => ({
 }));
 
 describe('RecentActivityWidget', () => {
-  afterEach(() => { cleanup(); vi.clearAllMocks(); });
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
 
   it('renders feed with fetched entries', async () => {
     const { getRecentActivity } = await import('@flow/db');

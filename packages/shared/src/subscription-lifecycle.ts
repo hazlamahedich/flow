@@ -57,7 +57,9 @@ export function transitionSubscriptionStatus(
  * Type guard — `deleted` is the only terminal lifecycle status. Once a
  * workspace is `deleted`, no further transitions are permitted.
  */
-export function isTerminalStatus(status: SubscriptionStatus): status is 'deleted' {
+export function isTerminalStatus(
+  status: SubscriptionStatus,
+): status is 'deleted' {
   return status === 'deleted';
 }
 
@@ -81,12 +83,16 @@ export function isTerminalStatus(status: SubscriptionStatus): status is 'deleted
  * Extracted from `apps/web/lib/stripe/handlers/subscription-updated.ts` so
  * reconciliation can reuse it (DRY — spike §6.1).
  */
-export function mapStripeStatusToDb(stripeStatus: string): SubscriptionStatus | null {
+export function mapStripeStatusToDb(
+  stripeStatus: string,
+): SubscriptionStatus | null {
   if (stripeStatus === 'active' || stripeStatus === 'trialing') return 'active';
   if (stripeStatus === 'past_due') return 'past_due';
   if (stripeStatus === 'canceled') return 'cancelled';
-  if (stripeStatus === 'unpaid' || stripeStatus === 'incomplete_expired') return 'suspended';
-  if (stripeStatus === 'suspended' || stripeStatus === 'deleted') return stripeStatus;
+  if (stripeStatus === 'unpaid' || stripeStatus === 'incomplete_expired')
+    return 'suspended';
+  if (stripeStatus === 'suspended' || stripeStatus === 'deleted')
+    return stripeStatus;
   return null;
 }
 

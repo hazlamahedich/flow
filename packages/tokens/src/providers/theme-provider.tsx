@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
 export type ResolvedTheme = 'light' | 'dark';
@@ -17,12 +25,16 @@ const STORAGE_KEY = 'flow-theme';
 const PROVIDER_ATTR = 'data-flow-theme-provider';
 
 function hasMatchMedia(): boolean {
-  return typeof window !== 'undefined' && typeof window.matchMedia === 'function';
+  return (
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+  );
 }
 
 function getSystemPreference(): ResolvedTheme {
   if (!hasMatchMedia()) return 'dark';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light';
 }
 
 function resolveTheme(theme: Theme): ResolvedTheme {
@@ -47,7 +59,8 @@ function safeSetStorage(key: string, value: string): void {
 
 function readStoredTheme(): Theme {
   const stored = safeGetStorage(STORAGE_KEY);
-  if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
+  if (stored === 'light' || stored === 'dark' || stored === 'system')
+    return stored;
   return 'system';
 }
 
@@ -72,7 +85,9 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
 
   useEffect(() => {
     if (document.documentElement.hasAttribute(PROVIDER_ATTR)) {
-      console.warn('[ThemeProvider] Multiple instances detected. Only one ThemeProvider should be mounted.');
+      console.warn(
+        '[ThemeProvider] Multiple instances detected. Only one ThemeProvider should be mounted.',
+      );
     }
     document.documentElement.setAttribute(PROVIDER_ATTR, '');
     mounted.current = true;
@@ -108,7 +123,9 @@ export function ThemeProvider({ children, defaultTheme }: ThemeProviderProps) {
     [theme, resolvedTheme, setTheme],
   );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
 
 export { ThemeContext };

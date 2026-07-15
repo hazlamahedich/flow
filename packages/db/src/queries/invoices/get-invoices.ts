@@ -30,21 +30,21 @@ export async function getInvoices(
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  const [
-    { count, error: countError },
-    { data: rows, error: queryError },
-  ] = await Promise.all([
-    client
-      .from('invoices')
-      .select('id', { count: 'exact', head: true })
-      .eq('workspace_id', params.workspaceId),
-    client
-      .from('invoices')
-      .select('id, invoice_number, status, issue_date, due_date, total_cents, amount_paid_cents, credit_balance_cents, currency, client_id, created_at, clients(name)')
-      .eq('workspace_id', params.workspaceId)
-      .order('created_at', { ascending: false })
-      .range(from, to),
-  ]);
+  const [{ count, error: countError }, { data: rows, error: queryError }] =
+    await Promise.all([
+      client
+        .from('invoices')
+        .select('id', { count: 'exact', head: true })
+        .eq('workspace_id', params.workspaceId),
+      client
+        .from('invoices')
+        .select(
+          'id, invoice_number, status, issue_date, due_date, total_cents, amount_paid_cents, credit_balance_cents, currency, client_id, created_at, clients(name)',
+        )
+        .eq('workspace_id', params.workspaceId)
+        .order('created_at', { ascending: false })
+        .range(from, to),
+    ]);
 
   if (countError) throw countError;
   if (queryError) throw queryError;
@@ -64,7 +64,8 @@ export async function getInvoices(
         creditBalanceCents: Number(r.credit_balance_cents ?? 0),
         currency: r.currency as string,
         clientId: r.client_id as string,
-        clientName: ((r.clients as Record<string, unknown> | null)?.name ?? '') as string,
+        clientName: ((r.clients as Record<string, unknown> | null)?.name ??
+          '') as string,
         createdAt: String(r.created_at),
       };
     }),

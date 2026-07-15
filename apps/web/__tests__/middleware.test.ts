@@ -35,13 +35,18 @@ const PROCESS_PATTERNS = [
 describe('middleware route handling', () => {
   it('skips static assets and webhook routes', () => {
     for (const { pattern } of SKIP_PATTERNS) {
-      expect(shouldSkip(pattern), `Expected "${pattern}" to be skipped`).toBe(true);
+      expect(shouldSkip(pattern), `Expected "${pattern}" to be skipped`).toBe(
+        true,
+      );
     }
   });
 
   it('processes app routes', () => {
     for (const pattern of PROCESS_PATTERNS) {
-      expect(shouldSkip(pattern), `Expected "${pattern}" to NOT be skipped`).toBe(false);
+      expect(
+        shouldSkip(pattern),
+        `Expected "${pattern}" to NOT be skipped`,
+      ).toBe(false);
     }
   });
 });
@@ -82,13 +87,17 @@ describe('revoked device fallback', () => {
     const isTrusted = false;
     const issuedAt = Date.now() - 25 * 60 * 60 * 1000;
 
-    expect(!isTrusted && (Date.now() - issuedAt > ABSOLUTE_SESSION_MS)).toBe(true);
+    expect(!isTrusted && Date.now() - issuedAt > ABSOLUTE_SESSION_MS).toBe(
+      true,
+    );
   });
 
   it('active device at 23h is still valid', () => {
     const isTrusted = false;
     const issuedAt = Date.now() - 23 * 60 * 60 * 1000;
 
-    expect(!isTrusted && (Date.now() - issuedAt > ABSOLUTE_SESSION_MS)).toBe(false);
+    expect(!isTrusted && Date.now() - issuedAt > ABSOLUTE_SESSION_MS).toBe(
+      false,
+    );
   });
 });

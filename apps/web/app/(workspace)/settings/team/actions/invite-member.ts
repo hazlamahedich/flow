@@ -72,7 +72,10 @@ export async function inviteMember(
   // Tier limit enforcement (Story 9.4 AC3 — FR56). Counted against active
   // workspace_members only (EC11); pending invitations do NOT consume seats.
   // Existing members are never evicted; only new invites are blocked at limit.
-  const tierCheck = await enforceTierLimit({ workspaceId: ctx.workspaceId, resource: 'team_members' });
+  const tierCheck = await enforceTierLimit({
+    workspaceId: ctx.workspaceId,
+    resource: 'team_members',
+  });
   if (!tierCheck.allowed) {
     const limitText = tierCheck.limit != null ? `(${tierCheck.limit})` : '';
     return {
@@ -141,7 +144,9 @@ export async function inviteMember(
       .update({
         token_hash: tokenHash,
         role,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
         invited_by: ctx.userId,
         membership_expires_at: expiresAt ?? null,
       })
@@ -228,5 +233,8 @@ export async function inviteMember(
     timestamp: new Date().toISOString(),
   });
 
-  return { success: true, data: newInvitation as unknown as WorkspaceInvitation };
+  return {
+    success: true,
+    data: newInvitation as unknown as WorkspaceInvitation,
+  };
 }

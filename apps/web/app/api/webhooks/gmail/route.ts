@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@flow/db';
-import {
-  insertRawPayload,
-  markMessageProcessed,
-} from '@flow/db';
+import { insertRawPayload, markMessageProcessed } from '@flow/db';
 import { verifyGoogleOidcToken } from '@flow/agents/providers';
 
 export async function POST(request: Request): Promise<Response> {
@@ -15,12 +12,19 @@ export async function POST(request: Request): Promise<Response> {
   const expectedAudience = process.env.GMAIL_PUBSUB_AUDIENCE ?? '';
   if (!expectedAudience) {
     if (process.env.NODE_ENV === 'production') {
-      console.error('GMAIL_PUBSUB_AUDIENCE not configured — webhook authentication disabled in production');
+      console.error(
+        'GMAIL_PUBSUB_AUDIENCE not configured — webhook authentication disabled in production',
+      );
       return new Response('Service misconfigured', { status: 500 });
     }
-    console.warn('GMAIL_PUBSUB_AUDIENCE not configured — webhook authentication skipped in development');
+    console.warn(
+      'GMAIL_PUBSUB_AUDIENCE not configured — webhook authentication skipped in development',
+    );
   } else {
-    const verified = await verifyGoogleOidcToken(authHeader.slice(7), expectedAudience);
+    const verified = await verifyGoogleOidcToken(
+      authHeader.slice(7),
+      expectedAudience,
+    );
     if (!verified) {
       return new Response('Unauthorized', { status: 401 });
     }
@@ -43,9 +47,7 @@ export async function POST(request: Request): Promise<Response> {
 
   let decoded: { emailAddress?: string; historyId?: string };
   try {
-    decoded = JSON.parse(
-      Buffer.from(message.data, 'base64').toString('utf-8'),
-    );
+    decoded = JSON.parse(Buffer.from(message.data, 'base64').toString('utf-8'));
   } catch {
     return new Response('OK', { status: 200 });
   }
@@ -76,7 +78,12 @@ export async function POST(request: Request): Promise<Response> {
           clientInboxId: inbox.id,
         });
       } catch (err: unknown) {
-        if (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === '23505') {
+        if (
+          err &&
+          typeof err === 'object' &&
+          'code' in err &&
+          (err as { code: string }).code === '23505'
+        ) {
           return new Response('OK', { status: 200 });
         }
         throw err;

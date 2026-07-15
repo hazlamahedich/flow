@@ -11,7 +11,7 @@ export interface PreCheckResult {
  * or checks proposal validity depending on argument type.
  */
 export async function preCheck(
-  input: WeeklyReportInput | WeeklyReportProposal
+  input: WeeklyReportInput | WeeklyReportProposal,
 ): Promise<PreCheckResult> {
   const errors: string[] = [];
 
@@ -21,7 +21,9 @@ export async function preCheck(
     try {
       const config = await getAgentConfiguration(workspaceId, 'weekly-report');
       if (!config || config.status !== 'active') {
-        errors.push(`Agent 'weekly-report' is inactive or not configured in workspace ${workspaceId}`);
+        errors.push(
+          `Agent 'weekly-report' is inactive or not configured in workspace ${workspaceId}`,
+        );
       }
 
       // Check subscription active in workspaces settings
@@ -31,11 +33,12 @@ export async function preCheck(
         .select('id, settings')
         .eq('id', workspaceId)
         .single();
-      
+
       if (wsErr || !ws) {
         errors.push(`Workspace not found: ${workspaceId}`);
       } else {
-        const settings = (ws.settings as { subscriptionStatus?: string } | null) ?? {};
+        const settings =
+          (ws.settings as { subscriptionStatus?: string } | null) ?? {};
         if (settings.subscriptionStatus === 'suspended') {
           errors.push(`Workspace subscription is suspended`);
         }
@@ -49,7 +52,11 @@ export async function preCheck(
     if (!input.title) {
       errors.push('Proposal title is missing');
     }
-    if (typeof input.confidence !== 'number' || input.confidence < 0 || input.confidence > 1) {
+    if (
+      typeof input.confidence !== 'number' ||
+      input.confidence < 0 ||
+      input.confidence > 1
+    ) {
       errors.push('Proposal confidence must be between 0 and 1');
     }
     if (!input.reasoning) {

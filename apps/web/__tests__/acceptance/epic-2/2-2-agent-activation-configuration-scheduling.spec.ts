@@ -5,7 +5,14 @@ describe('Story 2.2: Agent Activation, Configuration & Scheduling', () => {
   describe('Agent Activation & Configuration', () => {
     test('[P1] should support all 6 agent types: Inbox, Calendar, AR, Weekly Report, Client Health, Time Integrity', () => {
       const agentIds = AgentIdSchema.options;
-      expect(agentIds).toEqual(['inbox', 'calendar', 'ar-collection', 'weekly-report', 'client-health', 'time-integrity']);
+      expect(agentIds).toEqual([
+        'inbox',
+        'calendar',
+        'ar-collection',
+        'weekly-report',
+        'client-health',
+        'time-integrity',
+      ]);
       expect(agentIds).toHaveLength(6);
     });
 

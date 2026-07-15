@@ -9,7 +9,10 @@ export default function PortalInvoicesLoading() {
       <div className="h-8 w-32 rounded bg-[var(--flow-skeleton)] animate-pulse" />
       <div className="space-y-2">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="p-4 rounded-lg border border-[var(--flow-border-default)] space-y-2">
+          <div
+            key={i}
+            className="p-4 rounded-lg border border-[var(--flow-border-default)] space-y-2"
+          >
             <div className="flex justify-between">
               <div className="h-5 w-28 rounded bg-[var(--flow-skeleton)] animate-pulse" />
               <div className="h-5 w-20 rounded bg-[var(--flow-skeleton)] animate-pulse" />

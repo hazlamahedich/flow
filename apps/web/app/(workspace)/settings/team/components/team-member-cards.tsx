@@ -17,7 +17,11 @@ interface TeamMemberCardsProps {
   canRevoke: boolean;
   canTransfer: boolean;
   updatingRole: string | null;
-  onRoleChange: (memberId: string, newRole: string, currentRole: string) => void;
+  onRoleChange: (
+    memberId: string,
+    newRole: string,
+    currentRole: string,
+  ) => void;
   onRevoke: (member: TeamMember) => void;
   onTransfer: (member: TeamMember) => void;
 }
@@ -46,23 +50,34 @@ export function TeamMemberCards({
         >
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-medium text-[var(--flow-color-text-primary)]">{member.name}</div>
-              <div className="text-xs text-[var(--flow-color-text-secondary)]">{member.email}</div>
+              <div className="font-medium text-[var(--flow-color-text-primary)]">
+                {member.name}
+              </div>
+              <div className="text-xs text-[var(--flow-color-text-secondary)]">
+                {member.email}
+              </div>
             </div>
             {canManageRoles && member.role !== 'owner' ? (
               <select
                 value={member.role}
-                onChange={(e) => onRoleChange(member.id, e.target.value, member.role)}
+                onChange={(e) =>
+                  onRoleChange(member.id, e.target.value, member.role)
+                }
                 disabled={updatingRole === member.id}
                 aria-label={`Change role for ${member.name}`}
                 className="rounded-md border border-[var(--flow-color-border-default)] px-2 py-1 text-sm"
               >
                 {getAvailableRoles(member.role).map((r) => (
-                  <option key={r} value={r}>{r}</option>
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
                 ))}
               </select>
             ) : (
-              <span className="capitalize text-sm text-[var(--flow-color-text-secondary)]" aria-label={`Role: ${member.role}`}>
+              <span
+                className="capitalize text-sm text-[var(--flow-color-text-secondary)]"
+                aria-label={`Role: ${member.role}`}
+              >
                 {member.role}
               </span>
             )}

@@ -33,17 +33,21 @@ interface CreateInvoicePageProps {
 export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
   const router = useRouter();
   const [clientId, setClientId] = useState('');
-  const [issueDate, setIssueDate] = useState(new Date().toISOString().split('T')[0]);
+  const [issueDate, setIssueDate] = useState(
+    new Date().toISOString().split('T')[0],
+  );
   const [dueDate, setDueDate] = useState('');
   const [notes, setNotes] = useState('');
-  const [lineItems, setLineItems] = useState<Array<{
-    sourceType: 'time_entry' | 'fixed_service' | 'retainer';
-    description: string;
-    quantity: number;
-    amountCents: number;
-    timeEntryId?: string;
-    retainerId?: string;
-  }>>([]);
+  const [lineItems, setLineItems] = useState<
+    Array<{
+      sourceType: 'time_entry' | 'fixed_service' | 'retainer';
+      description: string;
+      quantity: number;
+      amountCents: number;
+      timeEntryId?: string;
+      retainerId?: string;
+    }>
+  >([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<DuplicateWarning[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -51,7 +55,12 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
   const addFixedServiceItem = () => {
     setLineItems((prev) => [
       ...prev,
-      { sourceType: 'fixed_service', description: '', quantity: 1, amountCents: 0 },
+      {
+        sourceType: 'fixed_service',
+        description: '',
+        quantity: 1,
+        amountCents: 0,
+      },
     ]);
   };
 
@@ -59,7 +68,11 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
     setLineItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const updateLineItem = (index: number, field: string, value: string | number) => {
+  const updateLineItem = (
+    index: number,
+    field: string,
+    value: string | number,
+  ) => {
     setLineItems((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
     );
@@ -137,14 +150,18 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
       {errors.length > 0 && (
         <div className="rounded-md bg-destructive/10 p-3">
           {errors.map((err, i) => (
-            <p key={i} className="text-sm text-destructive">{err}</p>
+            <p key={i} className="text-sm text-destructive">
+              {err}
+            </p>
           ))}
         </div>
       )}
 
       {warnings.length > 0 && (
         <div className="rounded-md bg-yellow-50 p-3">
-          <p className="text-sm font-medium text-yellow-800">Duplicate invoice warning</p>
+          <p className="text-sm font-medium text-yellow-800">
+            Duplicate invoice warning
+          </p>
           {warnings.map((w, i) => (
             <p key={i} className="text-sm text-yellow-700">
               {w.invoiceNumber}: similar invoice exists for this client
@@ -163,7 +180,9 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
           >
             <option value="">Select a client</option>
             {clients.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
         </div>
@@ -201,19 +220,30 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
         </div>
 
         {lineItems.map((item, index) => (
-          <div key={index} className="grid gap-2 rounded-md border p-3 sm:grid-cols-5">
+          <div
+            key={index}
+            className="grid gap-2 rounded-md border p-3 sm:grid-cols-5"
+          >
             <input
               type="text"
               placeholder="Description"
               value={item.description}
-              onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+              onChange={(e) =>
+                updateLineItem(index, 'description', e.target.value)
+              }
               className="rounded-md border bg-background px-2 py-1 text-sm sm:col-span-2"
             />
             <input
               type="number"
               placeholder="Qty"
               value={item.quantity || ''}
-              onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+              onChange={(e) =>
+                updateLineItem(
+                  index,
+                  'quantity',
+                  parseFloat(e.target.value) || 0,
+                )
+              }
               className="rounded-md border bg-background px-2 py-1 text-sm"
               min="0.01"
               step="0.01"
@@ -223,7 +253,11 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
               placeholder="Amount ($)"
               value={item.amountCents ? item.amountCents / 100 : ''}
               onChange={(e) =>
-                updateLineItem(index, 'amountCents', Math.round((parseFloat(e.target.value) || 0) * 100))
+                updateLineItem(
+                  index,
+                  'amountCents',
+                  Math.round((parseFloat(e.target.value) || 0) * 100),
+                )
               }
               className="rounded-md border bg-background px-2 py-1 text-sm"
               min="0"
@@ -253,7 +287,10 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
 
       <div className="flex items-center justify-between border-t pt-4">
         <div className="text-sm text-muted-foreground">
-          Total: ${(lineItems.reduce((s, li) => s + li.amountCents, 0) / 100).toFixed(2)}
+          Total: $
+          {(lineItems.reduce((s, li) => s + li.amountCents, 0) / 100).toFixed(
+            2,
+          )}
         </div>
         <div className="flex gap-3">
           <button

@@ -1,10 +1,24 @@
 import { describe, test, expect, vi } from 'vitest';
-import { formatCentsToDollar, parseDollarToCents, isScopeCreep, calculateThresholdMinutes } from '@flow/shared';
-import { detectGaps, detectLowHours, type TimeEntryForDetection } from '@flow/agents/time-integrity/anomaly-detection';
-import { LOW_HOURS_TARGET, timeIntegrityInputSchema } from '@flow/agents/time-integrity/schemas';
+import {
+  formatCentsToDollar,
+  parseDollarToCents,
+  isScopeCreep,
+  calculateThresholdMinutes,
+} from '@flow/shared';
+import {
+  detectGaps,
+  detectLowHours,
+  type TimeEntryForDetection,
+} from '@flow/agents/time-integrity/anomaly-detection';
+import {
+  LOW_HOURS_TARGET,
+  timeIntegrityInputSchema,
+} from '@flow/agents/time-integrity/schemas';
 import { isSupabaseAvailable, setupRLSFixture } from '@flow/test-utils';
 
-function buildTimeEntry(overrides: Partial<TimeEntryForDetection> = {}): TimeEntryForDetection {
+function buildTimeEntry(
+  overrides: Partial<TimeEntryForDetection> = {},
+): TimeEntryForDetection {
   return {
     id: crypto.randomUUID(),
     date: '2026-05-09',
@@ -88,33 +102,36 @@ describe('Story 5.1: Time Entry Data Model & Manual Logging', () => {
   describe('AC3: RLS — workspace isolation for time entries', () => {
     const supabaseAvailable = isSupabaseAvailable();
 
-    test.skipIf(!supabaseAvailable)('[P0] [5.1-AC3-001] should deny cross-workspace time entry access', async () => {
-      const tenantId = crypto.randomUUID();
-      const fixture = await setupRLSFixture(tenantId, 'member');
+    test.skipIf(!supabaseAvailable)(
+      '[P0] [5.1-AC3-001] should deny cross-workspace time entry access',
+      async () => {
+        const tenantId = crypto.randomUUID();
+        const fixture = await setupRLSFixture(tenantId, 'member');
 
-      try {
-        const adminClient = fixture.client;
-        const { data: entry } = await adminClient
-          .from('time_entries')
-          .insert({
-            workspace_id: tenantId,
-            client_id: crypto.randomUUID(),
-            user_id: crypto.randomUUID(),
-            date: '2026-05-09',
-            duration_minutes: 60,
-          })
-          .select('id')
-          .single();
+        try {
+          const adminClient = fixture.client;
+          const { data: entry } = await adminClient
+            .from('time_entries')
+            .insert({
+              workspace_id: tenantId,
+              client_id: crypto.randomUUID(),
+              user_id: crypto.randomUUID(),
+              date: '2026-05-09',
+              duration_minutes: 60,
+            })
+            .select('id')
+            .single();
 
-        const { data: crossTenantData } = await adminClient
-          .from('time_entries')
-          .select('*')
-          .eq('id', entry?.id ?? '');
+          const { data: crossTenantData } = await adminClient
+            .from('time_entries')
+            .select('*')
+            .eq('id', entry?.id ?? '');
 
-        expect(crossTenantData).toHaveLength(0);
-      } finally {
-        await fixture.cleanup();
-      }
-    });
+          expect(crossTenantData).toHaveLength(0);
+        } finally {
+          await fixture.cleanup();
+        }
+      },
+    );
   });
 });

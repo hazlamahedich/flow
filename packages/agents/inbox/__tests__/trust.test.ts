@@ -48,7 +48,11 @@ describe('trust', () => {
         eq: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({
             data: [
-              { metric_type: 'recategorization_rate', metric_value: 0.15, sample_count: 20 },
+              {
+                metric_type: 'recategorization_rate',
+                metric_value: 0.15,
+                sample_count: 20,
+              },
             ],
             error: null,
           }),
@@ -67,8 +71,16 @@ describe('trust', () => {
         eq: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({
             data: [
-              { metric_type: 'recategorization_rate', metric_value: 0.1, sample_count: 50 },
-              { metric_type: 'draft_acceptance_rate', metric_value: 0.8, sample_count: 10 },
+              {
+                metric_type: 'recategorization_rate',
+                metric_value: 0.1,
+                sample_count: 50,
+              },
+              {
+                metric_type: 'draft_acceptance_rate',
+                metric_value: 0.8,
+                sample_count: 10,
+              },
             ],
             error: null,
           }),
@@ -87,7 +99,11 @@ describe('trust', () => {
         eq: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({
             data: [
-              { metric_type: 'recategorization_rate', metric_value: 0.15, sample_count: 20 },
+              {
+                metric_type: 'recategorization_rate',
+                metric_value: 0.15,
+                sample_count: 20,
+              },
             ],
             error: null,
           }),
@@ -106,7 +122,11 @@ describe('trust', () => {
         eq: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({
             data: [
-              { metric_type: 'recategorization_rate', metric_value: 0.2, sample_count: 20 },
+              {
+                metric_type: 'recategorization_rate',
+                metric_value: 0.2,
+                sample_count: 20,
+              },
             ],
             error: null,
           }),

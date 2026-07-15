@@ -17,7 +17,7 @@ export class TrustTransitionError extends Error {
     super(message);
     this.name = 'TrustTransitionError';
     this.code = code;
-    this.retryable = options?.retryable ?? (code === 'QUERY_FAILED');
+    this.retryable = options?.retryable ?? code === 'QUERY_FAILED';
     if (options?.details !== undefined) {
       this.details = options.details;
     }

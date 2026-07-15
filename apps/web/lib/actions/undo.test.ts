@@ -33,7 +33,9 @@ describe('undoAction', () => {
   it('returns validation error for unknown entity type', async () => {
     vi.doMock('../supabase-server', () => ({
       getServerSupabase: vi.fn().mockResolvedValue({
-        auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u-1' } } }) },
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u-1' } } }),
+        },
       }),
     }));
 
@@ -55,7 +57,9 @@ describe('undoAction', () => {
   it('returns conflict when version mismatch', async () => {
     vi.doMock('../supabase-server', () => ({
       getServerSupabase: vi.fn().mockResolvedValue({
-        auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u-1' } } }) },
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u-1' } } }),
+        },
         from: vi.fn().mockReturnValue({
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
@@ -87,7 +91,9 @@ describe('undoAction', () => {
   it('returns NOT_FOUND when record does not exist', async () => {
     vi.doMock('../supabase-server', () => ({
       getServerSupabase: vi.fn().mockResolvedValue({
-        auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u-1' } } }) },
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u-1' } } }),
+        },
         from: vi.fn().mockReturnValue({
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
@@ -119,7 +125,9 @@ describe('undoAction', () => {
   it('returns TENANT_MISMATCH when RLS denies access', async () => {
     vi.doMock('../supabase-server', () => ({
       getServerSupabase: vi.fn().mockResolvedValue({
-        auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u-1' } } }) },
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u-1' } } }),
+        },
         from: vi.fn().mockReturnValue({
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
@@ -170,7 +178,9 @@ describe('undoAction', () => {
 
     vi.doMock('../supabase-server', () => ({
       getServerSupabase: vi.fn().mockResolvedValue({
-        auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u-1' } } }) },
+        auth: {
+          getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u-1' } } }),
+        },
         from: mockFrom,
       }),
     }));

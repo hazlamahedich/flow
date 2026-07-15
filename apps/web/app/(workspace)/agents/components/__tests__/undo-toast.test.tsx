@@ -3,10 +3,15 @@ import { render, screen, cleanup, act } from '@testing-library/react';
 import { UndoToast } from '../undo-toast';
 
 describe('UndoToast', () => {
-  afterEach(() => { cleanup(); vi.useRealTimers(); });
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
 
   it('returns null when not visible', () => {
-    const { container } = render(<UndoToast visible={false} onDismiss={vi.fn()} />);
+    const { container } = render(
+      <UndoToast visible={false} onDismiss={vi.fn()} />,
+    );
     expect(container.innerHTML).toBe('');
   });
 
@@ -24,16 +29,22 @@ describe('UndoToast', () => {
     vi.useFakeTimers();
     const onDismiss = vi.fn();
     render(<UndoToast visible={true} onDismiss={onDismiss} />);
-    act(() => { vi.advanceTimersByTime(10_001); });
+    act(() => {
+      vi.advanceTimersByTime(10_001);
+    });
     expect(onDismiss).toHaveBeenCalled();
   });
 
   it('clears timeout on unmount', () => {
     vi.useFakeTimers();
     const onDismiss = vi.fn();
-    const { unmount } = render(<UndoToast visible={true} onDismiss={onDismiss} />);
+    const { unmount } = render(
+      <UndoToast visible={true} onDismiss={onDismiss} />,
+    );
     unmount();
-    act(() => { vi.advanceTimersByTime(10000); });
+    act(() => {
+      vi.advanceTimersByTime(10000);
+    });
     expect(onDismiss).not.toHaveBeenCalled();
   });
 });

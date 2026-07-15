@@ -6,7 +6,12 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({ status, code, message, category }),
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({ status, code, message, category }),
   cacheTag: vi.fn((entity: string, id: string) => `${entity}:${id}`),
   createRetainer: vi.fn(),
 }));
@@ -37,14 +42,21 @@ const mockSupabase = {} as never;
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetServerSupabase.mockResolvedValue(mockSupabase);
-  mockRequireTenantContext.mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'owner' });
+  mockRequireTenantContext.mockResolvedValue({
+    workspaceId: 'ws1',
+    userId: 'u1',
+    role: 'owner',
+  });
 });
 
 describe('setupClientWizard', () => {
   const mockClient = buildClient({ id: 'client-1', workspaceId: 'ws1' });
 
   it('creates client only when no retainer data', async () => {
-    mockCreateWorkspaceClient.mockResolvedValue({ success: true, data: mockClient });
+    mockCreateWorkspaceClient.mockResolvedValue({
+      success: true,
+      data: mockClient,
+    });
 
     const result = await setupClientWizard({ clientData: { name: 'Test' } });
 
@@ -57,8 +69,14 @@ describe('setupClientWizard', () => {
   });
 
   it('creates client + retainer on success', async () => {
-    const mockRetainer = buildRetainer({ clientId: 'client-1', workspaceId: 'ws1' });
-    mockCreateWorkspaceClient.mockResolvedValue({ success: true, data: mockClient });
+    const mockRetainer = buildRetainer({
+      clientId: 'client-1',
+      workspaceId: 'ws1',
+    });
+    mockCreateWorkspaceClient.mockResolvedValue({
+      success: true,
+      data: mockClient,
+    });
     mockCreateRetainer.mockResolvedValue(mockRetainer);
 
     const result = await setupClientWizard({
@@ -75,8 +93,14 @@ describe('setupClientWizard', () => {
   });
 
   it('returns partial success when retainer 23505 unique constraint', async () => {
-    mockCreateWorkspaceClient.mockResolvedValue({ success: true, data: mockClient });
-    const err = new Error('unique violation') as Error & { code: string; retainerCode: string };
+    mockCreateWorkspaceClient.mockResolvedValue({
+      success: true,
+      data: mockClient,
+    });
+    const err = new Error('unique violation') as Error & {
+      code: string;
+      retainerCode: string;
+    };
     err.code = '23505';
     err.retainerCode = 'RETAINER_ACTIVE_EXISTS';
     mockCreateRetainer.mockRejectedValue(err);
@@ -93,7 +117,10 @@ describe('setupClientWizard', () => {
   });
 
   it('returns partial success when retainer Zod failure', async () => {
-    mockCreateWorkspaceClient.mockResolvedValue({ success: true, data: mockClient });
+    mockCreateWorkspaceClient.mockResolvedValue({
+      success: true,
+      data: mockClient,
+    });
 
     const result = await setupClientWizard({
       clientData: { name: 'Test' },
@@ -107,7 +134,10 @@ describe('setupClientWizard', () => {
   });
 
   it('returns partial success on retainer DB error', async () => {
-    mockCreateWorkspaceClient.mockResolvedValue({ success: true, data: mockClient });
+    mockCreateWorkspaceClient.mockResolvedValue({
+      success: true,
+      data: mockClient,
+    });
     const err = new Error('DB error') as Error & { code: string };
     err.code = 'UNKNOWN';
     mockCreateRetainer.mockRejectedValue(err);
@@ -126,7 +156,12 @@ describe('setupClientWizard', () => {
   it('returns failure when client creation fails', async () => {
     mockCreateWorkspaceClient.mockResolvedValue({
       success: false,
-      error: { status: 400, code: 'VALIDATION_ERROR', message: 'Validation failed', category: 'validation' },
+      error: {
+        status: 400,
+        code: 'VALIDATION_ERROR',
+        message: 'Validation failed',
+        category: 'validation',
+      },
     });
 
     const result = await setupClientWizard({ clientData: { name: '' } });
@@ -141,7 +176,12 @@ describe('setupClientWizard', () => {
   it('returns failure on tier limit', async () => {
     mockCreateWorkspaceClient.mockResolvedValue({
       success: false,
-      error: { status: 403, code: 'TIER_LIMIT_EXCEEDED', message: 'Limit reached', category: 'validation' },
+      error: {
+        status: 403,
+        code: 'TIER_LIMIT_EXCEEDED',
+        message: 'Limit reached',
+        category: 'validation',
+      },
     });
 
     const result = await setupClientWizard({ clientData: { name: 'Test' } });
@@ -153,7 +193,10 @@ describe('setupClientWizard', () => {
   });
 
   it('uses success discriminant (not ok)', async () => {
-    mockCreateWorkspaceClient.mockResolvedValue({ success: true, data: mockClient });
+    mockCreateWorkspaceClient.mockResolvedValue({
+      success: true,
+      data: mockClient,
+    });
 
     const result = await setupClientWizard({ clientData: { name: 'Test' } });
 
@@ -162,7 +205,10 @@ describe('setupClientWizard', () => {
   });
 
   it('partial success still has success: true with warning', async () => {
-    mockCreateWorkspaceClient.mockResolvedValue({ success: true, data: mockClient });
+    mockCreateWorkspaceClient.mockResolvedValue({
+      success: true,
+      data: mockClient,
+    });
 
     const result = await setupClientWizard({
       clientData: { name: 'Test' },
@@ -176,8 +222,14 @@ describe('setupClientWizard', () => {
   });
 
   it('revalidates retainer_agreement + dashboard on retainer success', async () => {
-    const mockRetainer = buildRetainer({ clientId: 'client-1', workspaceId: 'ws1' });
-    mockCreateWorkspaceClient.mockResolvedValue({ success: true, data: mockClient });
+    const mockRetainer = buildRetainer({
+      clientId: 'client-1',
+      workspaceId: 'ws1',
+    });
+    mockCreateWorkspaceClient.mockResolvedValue({
+      success: true,
+      data: mockClient,
+    });
     mockCreateRetainer.mockResolvedValue(mockRetainer);
 
     await setupClientWizard({

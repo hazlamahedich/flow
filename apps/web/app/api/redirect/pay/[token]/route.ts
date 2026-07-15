@@ -25,17 +25,22 @@ export async function GET(
   { params }: { params: Promise<{ token: string }> },
 ): Promise<NextResponse> {
   const { token } = await params;
-  const requestIp = _request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const requestIp =
+    _request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
 
   if (isRateLimited(requestIp)) {
-    return new NextResponse('Too many requests. Try again later.', { status: 429 });
+    return new NextResponse('Too many requests. Try again later.', {
+      status: 429,
+    });
   }
 
   let payload: { invoiceId: string; workspaceId: string };
   try {
     payload = await verifyDeliveryToken(token);
   } catch {
-    return new NextResponse('Invalid or expired payment link.', { status: 400 });
+    return new NextResponse('Invalid or expired payment link.', {
+      status: 400,
+    });
   }
 
   const supabase = createServiceClient();
@@ -56,7 +61,9 @@ export async function GET(
     return new NextResponse('This invoice has been voided.', { status: 410 });
   }
 
-  const paymentUrl = (invoice as Record<string, unknown>).payment_url as string | null;
+  const paymentUrl = (invoice as Record<string, unknown>).payment_url as
+    | string
+    | null;
   if (!paymentUrl) {
     return new NextResponse('Payment link unavailable.', { status: 404 });
   }

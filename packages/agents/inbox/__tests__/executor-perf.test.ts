@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { execute } from '../executor';
-import { createServiceClient, updateEmailCategorization, insertSignal } from '@flow/db';
+import {
+  createServiceClient,
+  updateEmailCategorization,
+  insertSignal,
+} from '@flow/db';
 import { categorizeEmail } from '../categorizer';
 import { transitionState } from '../state-machine';
 

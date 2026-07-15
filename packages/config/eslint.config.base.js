@@ -30,11 +30,13 @@ export default tseslint.config(
           patterns: [
             {
               group: ['packages/agents/*/*/../*'],
-              message: 'Cross-agent imports are forbidden. Agents communicate via shared signal records only.',
+              message:
+                'Cross-agent imports are forbidden. Agents communicate via shared signal records only.',
             },
             {
               group: ['*/agents/orchestrator/*'],
-              message: 'Agents must not import orchestrator internals. Use the interface types from @flow/agents instead.',
+              message:
+                'Agents must not import orchestrator internals. Use the interface types from @flow/agents instead.',
             },
             {
               group: ['*/agents/shared/*'],

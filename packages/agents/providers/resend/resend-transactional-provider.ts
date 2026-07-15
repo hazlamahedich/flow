@@ -18,7 +18,9 @@ export class ResendTransactionalProvider implements TransactionalEmailProvider {
     return 'resend';
   }
 
-  async send(payload: TransactionalEmailPayload): Promise<TransactionalEmailResult> {
+  async send(
+    payload: TransactionalEmailPayload,
+  ): Promise<TransactionalEmailResult> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
     try {
@@ -34,18 +36,25 @@ export class ResendTransactionalProvider implements TransactionalEmailProvider {
           subject: payload.subject,
           html: payload.htmlBody,
           text: payload.textBody,
-          tags: Object.entries(payload.metadata).map(([name, value]) => ({ name, value })),
+          tags: Object.entries(payload.metadata).map(([name, value]) => ({
+            name,
+            value,
+          })),
         }),
         signal: controller.signal,
       });
 
       if (!response.ok) {
-        const body = await response.json().catch(() => ({} as Record<string, unknown>));
-        const message = (body as { message?: string }).message ?? `Resend API error: ${response.status}`;
+        const body = await response
+          .json()
+          .catch(() => ({}) as Record<string, unknown>);
+        const message =
+          (body as { message?: string }).message ??
+          `Resend API error: ${response.status}`;
         throw new ResendApiError(message, response.status);
       }
 
-      const data = await response.json() as { id: string };
+      const data = (await response.json()) as { id: string };
       return { messageId: data.id };
     } finally {
       clearTimeout(timeout);

@@ -59,7 +59,10 @@ describe('PgBossWorker', () => {
   it('claims a job and returns handle', async () => {
     fakeBoss.fetch.mockResolvedValue([{ id: 'job-1', data: VALID_PAYLOAD }]);
     const db = await import('@flow/db');
-    (db.claimRunWithGuard as ReturnType<typeof vi.fn>).mockResolvedValue({ id: VALID_PAYLOAD.runId, status: 'running' });
+    (db.claimRunWithGuard as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: VALID_PAYLOAD.runId,
+      status: 'running',
+    });
 
     const handle = await worker.claim('inbox');
     expect(handle).toEqual({ runId: VALID_PAYLOAD.runId, status: 'running' });
@@ -84,26 +87,40 @@ describe('PgBossWorker', () => {
   it('completes a run', async () => {
     const db = await import('@flow/db');
     (db.getRunById as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: 'run-1', agent_id: 'inbox', job_id: 'job-1', workspace_id: 'ws-1',
+      id: 'run-1',
+      agent_id: 'inbox',
+      job_id: 'job-1',
+      workspace_id: 'ws-1',
     });
     (db.updateRunStatus as ReturnType<typeof vi.fn>).mockResolvedValue({});
 
     await worker.complete('run-1', { output: { result: 'done' } });
     expect(fakeBoss.complete).toHaveBeenCalledWith('agent:inbox', 'job-1');
-    expect(db.updateRunStatus).toHaveBeenCalledWith('run-1', 'completed', expect.objectContaining({
-      output: { result: 'done' },
-    }));
+    expect(db.updateRunStatus).toHaveBeenCalledWith(
+      'run-1',
+      'completed',
+      expect.objectContaining({
+        output: { result: 'done' },
+      }),
+    );
   });
 
   it('defers to pg-boss for retryable errors', async () => {
     const db = await import('@flow/db');
     (db.getRunById as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: 'run-1', agent_id: 'inbox', job_id: 'job-1', workspace_id: 'ws-1',
+      id: 'run-1',
+      agent_id: 'inbox',
+      job_id: 'job-1',
+      workspace_id: 'ws-1',
     });
 
     const error: FlowError = {
-      status: 500, code: 'AGENT_ERROR', message: 'retry me',
-      category: 'agent', agentType: 'inbox', retryable: true,
+      status: 500,
+      code: 'AGENT_ERROR',
+      message: 'retry me',
+      category: 'agent',
+      agentType: 'inbox',
+      retryable: true,
     };
     await worker.fail('run-1', error);
     expect(fakeBoss.fail).not.toHaveBeenCalled();
@@ -113,19 +130,30 @@ describe('PgBossWorker', () => {
   it('fails non-retryable error', async () => {
     const db = await import('@flow/db');
     (db.getRunById as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: 'run-1', agent_id: 'inbox', job_id: 'job-1', workspace_id: 'ws-1',
+      id: 'run-1',
+      agent_id: 'inbox',
+      job_id: 'job-1',
+      workspace_id: 'ws-1',
     });
     (db.updateRunStatus as ReturnType<typeof vi.fn>).mockResolvedValue({});
 
     const error: FlowError = {
-      status: 500, code: 'AGENT_ERROR', message: 'fatal',
-      category: 'agent', agentType: 'inbox', retryable: false,
+      status: 500,
+      code: 'AGENT_ERROR',
+      message: 'fatal',
+      category: 'agent',
+      agentType: 'inbox',
+      retryable: false,
     };
     await worker.fail('run-1', error);
     expect(fakeBoss.fail).toHaveBeenCalledWith('agent:inbox', 'job-1', error);
-    expect(db.updateRunStatus).toHaveBeenCalledWith('run-1', 'failed', expect.objectContaining({
-      error: expect.objectContaining({ retryExhausted: false }),
-    }));
+    expect(db.updateRunStatus).toHaveBeenCalledWith(
+      'run-1',
+      'failed',
+      expect.objectContaining({
+        error: expect.objectContaining({ retryExhausted: false }),
+      }),
+    );
   });
 
   it('proposes transitions to waiting_approval', async () => {
@@ -138,15 +166,22 @@ describe('PgBossWorker', () => {
       riskLevel: 'low',
       reasoning: 'Looks good',
     });
-    expect(db.updateRunStatus).toHaveBeenCalledWith('run-1', 'waiting_approval', expect.objectContaining({
-      output: expect.objectContaining({ title: 'Draft Response' }),
-    }));
+    expect(db.updateRunStatus).toHaveBeenCalledWith(
+      'run-1',
+      'waiting_approval',
+      expect.objectContaining({
+        output: expect.objectContaining({ title: 'Draft Response' }),
+      }),
+    );
   });
 
   it('records success on circuit breaker when completing', async () => {
     const db = await import('@flow/db');
     (db.getRunById as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: 'run-1', agent_id: 'inbox', job_id: 'job-1', workspace_id: 'ws-1',
+      id: 'run-1',
+      agent_id: 'inbox',
+      job_id: 'job-1',
+      workspace_id: 'ws-1',
     });
     (db.updateRunStatus as ReturnType<typeof vi.fn>).mockResolvedValue({});
     const cb = new CircuitBreaker();
@@ -164,22 +199,31 @@ describe('PgBossWorker', () => {
   it('records failure on circuit breaker when failing', async () => {
     const db = await import('@flow/db');
     (db.getRunById as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: 'run-1', agent_id: 'inbox', job_id: 'job-1', workspace_id: 'ws-1',
+      id: 'run-1',
+      agent_id: 'inbox',
+      job_id: 'job-1',
+      workspace_id: 'ws-1',
     });
     (db.updateRunStatus as ReturnType<typeof vi.fn>).mockResolvedValue({});
     const cb = new CircuitBreaker();
     breakers.set('inbox', cb);
 
     const error: FlowError = {
-      status: 500, code: 'AGENT_ERROR', message: 'fatal',
-      category: 'agent', agentType: 'inbox', retryable: false,
+      status: 500,
+      code: 'AGENT_ERROR',
+      message: 'fatal',
+      category: 'agent',
+      agentType: 'inbox',
+      retryable: false,
     };
     await worker.fail('run-1', error);
     expect(cb.state.failures).toBe(1);
   });
 
   it('re-claim of already-running job returns null without release (prevents claim-guard loop)', async () => {
-    fakeBoss.fetch.mockResolvedValue([{ id: 'job-1', data: { ...VALID_PAYLOAD, runId: VALID_PAYLOAD.runId } }]);
+    fakeBoss.fetch.mockResolvedValue([
+      { id: 'job-1', data: { ...VALID_PAYLOAD, runId: VALID_PAYLOAD.runId } },
+    ]);
     const db = await import('@flow/db');
     (db.claimRunWithGuard as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 

@@ -30,13 +30,23 @@ export interface EvaluationResult {
 }
 
 export function canGraduate(request: GraduationRequest): boolean {
-  const { currentLevel, score, consecutiveSuccesses, cooldownUntil, lastViolationAt, now = new Date() } = request;
+  const {
+    currentLevel,
+    score,
+    consecutiveSuccesses,
+    cooldownUntil,
+    lastViolationAt,
+    now = new Date(),
+  } = request;
 
   if (currentLevel === 'auto') return false;
 
   if (cooldownUntil && new Date(cooldownUntil) > now) return false;
 
-  const violationDays = currentLevel === 'supervised' ? NO_VIOLATION_DAYS_CONFIRM : NO_VIOLATION_DAYS_AUTO;
+  const violationDays =
+    currentLevel === 'supervised'
+      ? NO_VIOLATION_DAYS_CONFIRM
+      : NO_VIOLATION_DAYS_AUTO;
   if (lastViolationAt) {
     const violationDate = new Date(lastViolationAt);
     const msSinceViolation = now.getTime() - violationDate.getTime();
@@ -44,7 +54,10 @@ export function canGraduate(request: GraduationRequest): boolean {
   }
 
   if (currentLevel === 'supervised') {
-    return score >= CONFIRM_THRESHOLD_SCORE && consecutiveSuccesses >= CONFIRM_MIN_CONSECUTIVE;
+    return (
+      score >= CONFIRM_THRESHOLD_SCORE &&
+      consecutiveSuccesses >= CONFIRM_MIN_CONSECUTIVE
+    );
   }
 
   if (currentLevel === 'confirm') {
@@ -58,7 +71,9 @@ export function canGraduate(request: GraduationRequest): boolean {
   return false;
 }
 
-export function evaluateTransition(request: GraduationRequest): EvaluationResult {
+export function evaluateTransition(
+  request: GraduationRequest,
+): EvaluationResult {
   if (canGraduate(request)) {
     const target = request.currentLevel === 'supervised' ? 'confirm' : 'auto';
     return {
@@ -67,7 +82,11 @@ export function evaluateTransition(request: GraduationRequest): EvaluationResult
       reason: `Met ${target} thresholds: score=${request.score}, consecutive=${request.consecutiveSuccesses}`,
     };
   }
-  return { canGraduate: false, targetLevel: null, reason: 'Thresholds not met or cooldown active' };
+  return {
+    canGraduate: false,
+    targetLevel: null,
+    reason: 'Thresholds not met or cooldown active',
+  };
 }
 
 export function applyViolation(

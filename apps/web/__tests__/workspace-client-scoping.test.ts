@@ -59,7 +59,8 @@ describe('workspace client scoping', () => {
 
     it('client_user role cannot access clients', () => {
       const role: string = 'client_user';
-      const canAccess = role === 'owner' || role === 'admin' || role === 'member';
+      const canAccess =
+        role === 'owner' || role === 'admin' || role === 'member';
       expect(canAccess).toBe(false);
     });
   });

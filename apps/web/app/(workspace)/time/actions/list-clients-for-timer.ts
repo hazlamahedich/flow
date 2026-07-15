@@ -23,12 +23,20 @@ export async function listClientsForTimerAction(): Promise<
 
     return {
       success: true,
-      data: (data ?? []).map((c) => ({ id: c.id as string, name: c.name as string })),
+      data: (data ?? []).map((c) => ({
+        id: c.id as string,
+        name: c.name as string,
+      })),
     };
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to load clients', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to load clients',
+        'system',
+      ),
     };
   }
 }

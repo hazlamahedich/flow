@@ -2,7 +2,11 @@
 
 import { z } from 'zod';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, dismissFridayFeeling as dbDismiss } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  dismissFridayFeeling as dbDismiss,
+} from '@flow/db';
 import type { ActionResult } from '@flow/types';
 
 const dismissSchema = z.object({
@@ -16,7 +20,12 @@ export async function dismissFridayFeelingAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
@@ -27,7 +36,12 @@ export async function dismissFridayFeelingAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
@@ -35,7 +49,12 @@ export async function dismissFridayFeelingAction(
   if (!ok) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to dismiss Friday Feeling.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to dismiss Friday Feeling.',
+        'system',
+      ),
     };
   }
 

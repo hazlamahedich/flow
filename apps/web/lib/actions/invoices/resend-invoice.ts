@@ -14,7 +14,11 @@ import { getTransactionalEmailProvider } from '@flow/agents/providers';
 import { formatCentsToDollar } from '@flow/shared';
 
 function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function buildEmailPayload(args: {
@@ -50,7 +54,12 @@ export async function resendInvoiceAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
@@ -61,7 +70,9 @@ export async function resendInvoiceAction(
 
   const { data: invoice, error: fetchError } = await supabase
     .from('invoices')
-    .select('id, workspace_id, client_id, invoice_number, status, total_cents, currency, payment_url, clients(name, email), workspaces(name)')
+    .select(
+      'id, workspace_id, client_id, invoice_number, status, total_cents, currency, payment_url, clients(name, email), workspaces(name)',
+    )
     .eq('id', invoiceId)
     .eq('workspace_id', ctx.workspaceId)
     .single();
@@ -69,7 +80,12 @@ export async function resendInvoiceAction(
   if (fetchError || !invoice) {
     return {
       success: false,
-      error: createFlowError(404, 'NOT_FOUND', 'Invoice not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'NOT_FOUND',
+        'Invoice not found.',
+        'validation',
+      ),
     };
   }
 
@@ -77,27 +93,47 @@ export async function resendInvoiceAction(
   if (status !== 'sent' && status !== 'viewed') {
     return {
       success: false,
-      error: createFlowError(400, 'FINANCIAL_INVALID_STATE', 'Only sent or viewed invoices can be resent.', 'financial'),
+      error: createFlowError(
+        400,
+        'FINANCIAL_INVALID_STATE',
+        'Only sent or viewed invoices can be resent.',
+        'financial',
+      ),
     };
   }
 
-  const paymentUrl = (invoice as Record<string, unknown>).payment_url as string | null;
+  const paymentUrl = (invoice as Record<string, unknown>).payment_url as
+    | string
+    | null;
   if (!paymentUrl) {
     return {
       success: false,
-      error: createFlowError(500, 'MISSING_PAYMENT_URL', 'Payment URL is missing.', 'system'),
+      error: createFlowError(
+        500,
+        'MISSING_PAYMENT_URL',
+        'Payment URL is missing.',
+        'system',
+      ),
     };
   }
 
-  const client = (invoice as unknown as { clients: Record<string, unknown> }).clients ?? {};
+  const client =
+    (invoice as unknown as { clients: Record<string, unknown> }).clients ?? {};
   const clientEmail = (client.email as string) ?? '';
   const clientName = (client.name as string) ?? '';
-  const workspaceName = ((invoice as unknown as { workspaces: Record<string, unknown> }).workspaces?.name as string) ?? '';
+  const workspaceName =
+    ((invoice as unknown as { workspaces: Record<string, unknown> }).workspaces
+      ?.name as string) ?? '';
 
   if (!clientEmail) {
     return {
       success: false,
-      error: createFlowError(400, 'CLIENT_NO_EMAIL', 'Client has no primary email address.', 'validation'),
+      error: createFlowError(
+        400,
+        'CLIENT_NO_EMAIL',
+        'Client has no primary email address.',
+        'validation',
+      ),
     };
   }
 
@@ -107,9 +143,13 @@ export async function resendInvoiceAction(
     const result = await provider.send(
       buildEmailPayload({
         to: clientEmail,
-        invoiceNumber: ((invoice as Record<string, unknown>).invoice_number as string) ?? '',
-        totalCents: Number((invoice as Record<string, unknown>).total_cents ?? 0),
-        currency: ((invoice as Record<string, unknown>).currency as string) ?? 'usd',
+        invoiceNumber:
+          ((invoice as Record<string, unknown>).invoice_number as string) ?? '',
+        totalCents: Number(
+          (invoice as Record<string, unknown>).total_cents ?? 0,
+        ),
+        currency:
+          ((invoice as Record<string, unknown>).currency as string) ?? 'usd',
         clientName,
         paymentUrl,
         workspaceName,
@@ -118,19 +158,22 @@ export async function resendInvoiceAction(
     );
     messageId = result.messageId;
   } catch {
-    await supabase
-      .from('audit_log')
-      .insert({
-        workspace_id: ctx.workspaceId,
-        user_id: ctx.userId,
-        action: 'delivery_failed',
-        entity_type: 'invoice',
-        entity_id: invoiceId,
-        details: { error: 'Resend failed on resend attempt' },
-      });
+    await supabase.from('audit_log').insert({
+      workspace_id: ctx.workspaceId,
+      user_id: ctx.userId,
+      action: 'delivery_failed',
+      entity_type: 'invoice',
+      entity_id: invoiceId,
+      details: { error: 'Resend failed on resend attempt' },
+    });
     return {
       success: false,
-      error: createFlowError(500, 'EMAIL_ERROR', "We couldn't send the email — check the client's email address.", 'financial'),
+      error: createFlowError(
+        500,
+        'EMAIL_ERROR',
+        "We couldn't send the email — check the client's email address.",
+        'financial',
+      ),
     };
   }
 
@@ -146,7 +189,12 @@ export async function resendInvoiceAction(
   if (existingDelivery) {
     await supabase
       .from('invoice_deliveries')
-      .update({ status: 'sent', sent_at: nowIso, message_id: messageId, retry_count: 0 })
+      .update({
+        status: 'sent',
+        sent_at: nowIso,
+        message_id: messageId,
+        retry_count: 0,
+      })
       .eq('id', (existingDelivery as Record<string, unknown>).id as string);
   } else {
     await supabase.from('invoice_deliveries').insert({

@@ -25,7 +25,10 @@ import { revalidateTag } from 'next/cache';
 const mockGetServerSupabase = vi.mocked(getServerSupabase);
 const mockUpdateAvatarUrl = vi.mocked(updateAvatarUrl);
 
-function mockSupabaseWithUser(user: { id: string; email: string } | null, avatarUrl: string | null = null) {
+function mockSupabaseWithUser(
+  user: { id: string; email: string } | null,
+  avatarUrl: string | null = null,
+) {
   return {
     auth: {
       getUser: vi.fn().mockResolvedValue({
@@ -36,7 +39,10 @@ function mockSupabaseWithUser(user: { id: string; email: string } | null, avatar
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: { avatar_url: avatarUrl }, error: null }),
+          single: vi.fn().mockResolvedValue({
+            data: { avatar_url: avatarUrl },
+            error: null,
+          }),
         }),
       }),
     }),
@@ -54,7 +60,9 @@ describe('removeAvatar', () => {
   });
 
   it('returns unauthorized when no session', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser(null) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser(null) as never,
+    );
     const result = await removeAvatar();
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -64,7 +72,10 @@ describe('removeAvatar', () => {
 
   it('removes avatar and sets avatar_url to null', async () => {
     mockGetServerSupabase.mockResolvedValue(
-      mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }, '/avatars/user-1/old.jpg') as never,
+      mockSupabaseWithUser(
+        { id: 'user-1', email: 'test@test.com' },
+        '/avatars/user-1/old.jpg',
+      ) as never,
     );
     mockUpdateAvatarUrl.mockResolvedValue(undefined);
 
@@ -79,12 +90,19 @@ describe('removeAvatar', () => {
 
   it('succeeds even when no avatar to remove', async () => {
     mockGetServerSupabase.mockResolvedValue(
-      mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }, null) as never,
+      mockSupabaseWithUser(
+        { id: 'user-1', email: 'test@test.com' },
+        null,
+      ) as never,
     );
     mockUpdateAvatarUrl.mockResolvedValue(undefined);
 
     const result = await removeAvatar();
     expect(result.success).toBe(true);
-    expect(mockUpdateAvatarUrl).toHaveBeenCalledWith(expect.anything(), 'user-1', null);
+    expect(mockUpdateAvatarUrl).toHaveBeenCalledWith(
+      expect.anything(),
+      'user-1',
+      null,
+    );
   });
 });

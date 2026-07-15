@@ -1,5 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createServiceClient, insertEmail, insertSignal, updateClientInboxSyncStatus, updateClientInboxOAuthState, decryptInboxTokens, encryptInboxTokens, isMessageProcessed } from '@flow/db';
+import {
+  createServiceClient,
+  insertEmail,
+  insertSignal,
+  updateClientInboxSyncStatus,
+  updateClientInboxOAuthState,
+  decryptInboxTokens,
+  encryptInboxTokens,
+  isMessageProcessed,
+} from '@flow/db';
 import { GmailProvider } from '../../providers/index.js';
 import { startHistoryWorker, handleDrainHistory } from '../history-worker';
 
@@ -7,16 +16,28 @@ vi.mock('@flow/db', () => ({
   createServiceClient: vi.fn(),
   insertEmail: vi.fn().mockResolvedValue({ error: null }),
   insertSignal: vi.fn().mockResolvedValue({ error: null }),
-  updateClientInboxSyncStatus: vi.fn().mockResolvedValue({ data: {}, error: null }),
-  updateClientInboxOAuthState: vi.fn().mockResolvedValue({ data: {}, error: null }),
-  decryptInboxTokens: vi.fn().mockReturnValue({ accessToken: 'old-token', refreshToken: 'r', expiryDate: Date.now() + 3600000 }),
-  encryptInboxTokens: vi.fn().mockReturnValue({ encrypted: 'e', iv: 'i', version: 1 }),
+  updateClientInboxSyncStatus: vi
+    .fn()
+    .mockResolvedValue({ data: {}, error: null }),
+  updateClientInboxOAuthState: vi
+    .fn()
+    .mockResolvedValue({ data: {}, error: null }),
+  decryptInboxTokens: vi.fn().mockReturnValue({
+    accessToken: 'old-token',
+    refreshToken: 'r',
+    expiryDate: Date.now() + 3600000,
+  }),
+  encryptInboxTokens: vi
+    .fn()
+    .mockReturnValue({ encrypted: 'e', iv: 'i', version: 1 }),
   isMessageProcessed: vi.fn().mockResolvedValue(false),
 }));
 
 vi.mock('../../providers/index.js', () => ({
   GmailProvider: vi.fn().mockImplementation(() => ({
-    getHistorySince: vi.fn().mockResolvedValue([{ messageId: 'm1', threadId: 't1' }]),
+    getHistorySince: vi
+      .fn()
+      .mockResolvedValue([{ messageId: 'm1', threadId: 't1' }]),
     getMessage: vi.fn().mockResolvedValue({
       gmailMessageId: 'm1',
       gmailThreadId: 't1',
@@ -28,7 +49,10 @@ vi.mock('../../providers/index.js', () => ({
       receivedAt: new Date().toISOString(),
       headers: [],
     }),
-    refreshToken: vi.fn().mockResolvedValue({ accessToken: 'new-token', expiryDate: Date.now() + 3600000 }),
+    refreshToken: vi.fn().mockResolvedValue({
+      accessToken: 'new-token',
+      expiryDate: Date.now() + 3600000,
+    }),
   })),
 }));
 
@@ -72,7 +96,7 @@ describe('history-worker', () => {
         schema: 'public',
         table: 'raw_pubsub_payloads',
       }),
-      expect.any(Function)
+      expect.any(Function),
     );
     expect(mockSupabase.subscribe).toHaveBeenCalled();
   });
@@ -80,7 +104,13 @@ describe('history-worker', () => {
   describe('handleDrainHistory', () => {
     it('fetches history and stores emails', async () => {
       const mockSingleInbox = vi.fn().mockResolvedValue({
-        data: { id: 'inbox-1', workspace_id: 'ws-1', client_id: 'c-1', sync_cursor: '100', oauth_state: {} },
+        data: {
+          id: 'inbox-1',
+          workspace_id: 'ws-1',
+          client_id: 'c-1',
+          sync_cursor: '100',
+          oauth_state: {},
+        },
         error: null,
       });
       const mockSinglePayload = vi.fn().mockResolvedValue({
@@ -90,7 +120,11 @@ describe('history-worker', () => {
 
       mockSupabase.from.mockImplementation((table: string) => {
         if (table === 'client_inboxes') {
-          return { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: mockSingleInbox };
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: mockSingleInbox,
+          };
         }
         if (table === 'raw_pubsub_payloads') {
           return {
@@ -106,11 +140,14 @@ describe('history-worker', () => {
         };
       });
 
-      await handleDrainHistory({
-        workspace_id: 'ws-1',
-        payloadId: 'p-1',
-        clientInboxId: 'inbox-1',
-      }, mockBoss);
+      await handleDrainHistory(
+        {
+          workspace_id: 'ws-1',
+          payloadId: 'p-1',
+          clientInboxId: 'inbox-1',
+        },
+        mockBoss,
+      );
 
       expect(insertEmail).toHaveBeenCalled();
       expect(updateClientInboxSyncStatus).toHaveBeenCalledWith(
@@ -120,7 +157,7 @@ describe('history-worker', () => {
         'connected',
         expect.objectContaining({
           syncCursor: '200',
-        })
+        }),
       );
     });
   });

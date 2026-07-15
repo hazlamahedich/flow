@@ -1,4 +1,13 @@
-import { pgTable, uuid, text, timestamp, jsonb, index, doublePrecision, boolean } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  jsonb,
+  index,
+  doublePrecision,
+  boolean,
+} from 'drizzle-orm/pg-core';
 import { workspaces } from './workspaces';
 import { clientInboxes } from './client-inboxes';
 import { clients } from './clients';
@@ -31,12 +40,25 @@ export const emails = pgTable(
     bodyClean: text('body_clean'),
     bodyRawSafe: text('body_raw_safe'),
     headers: jsonb('headers'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
-    index('idx_emails_workspace_gmail_message').on(table.workspaceId, table.gmailMessageId),
-    index('idx_emails_workspace_inbox_received').on(table.workspaceId, table.clientInboxId, table.receivedAt),
-    index('idx_emails_workspace_client_received').on(table.workspaceId, table.clientId, table.receivedAt),
+    index('idx_emails_workspace_gmail_message').on(
+      table.workspaceId,
+      table.gmailMessageId,
+    ),
+    index('idx_emails_workspace_inbox_received').on(
+      table.workspaceId,
+      table.clientInboxId,
+      table.receivedAt,
+    ),
+    index('idx_emails_workspace_client_received').on(
+      table.workspaceId,
+      table.clientId,
+      table.receivedAt,
+    ),
     index('idx_emails_thread').on(table.workspaceId, table.gmailThreadId),
   ],
 );

@@ -21,7 +21,8 @@ export async function fetchUnacknowledgedRegressions(): Promise<
   ActionResult<RehydrationEntry[]>
 > {
   try {
-    const { createServerClient, requireTenantContext } = await import('@flow/db');
+    const { createServerClient, requireTenantContext } =
+      await import('@flow/db');
     const { cookies } = await import('next/headers');
     const cookieStore = await cookies();
     const client = createServerClient({

@@ -14,7 +14,9 @@ describe('Rate limiter: 30 req/min per IP', () => {
       const req = new Request('http://localhost/api/redirect/pay/test-token', {
         headers: { 'x-forwarded-for': '1.2.3.4' },
       });
-      const resp = await GET(req, { params: Promise.resolve({ token: 'tok' + i }) });
+      const resp = await GET(req, {
+        params: Promise.resolve({ token: 'tok' + i }),
+      });
       statuses.add(resp.status);
     }
     expect(statuses.has(429)).toBe(false);
@@ -22,7 +24,9 @@ describe('Rate limiter: 30 req/min per IP', () => {
     const req = new Request('http://localhost/api/redirect/pay/test-token', {
       headers: { 'x-forwarded-for': '1.2.3.4' },
     });
-    const blocked = await GET(req, { params: Promise.resolve({ token: 'tok-final' }) });
+    const blocked = await GET(req, {
+      params: Promise.resolve({ token: 'tok-final' }),
+    });
     expect(blocked.status).toBe(429);
     const text = await blocked.text();
     expect(text).toContain('Too many requests');
@@ -44,11 +48,18 @@ describe('Webhook signature verification', () => {
 
     const secret = 'whsec_valid';
     const timestamp = Math.floor(Date.now() / 1000);
-    const payload = JSON.stringify({ id: 'evt_123', type: 'payment_intent.succeeded', created: timestamp });
+    const payload = JSON.stringify({
+      id: 'evt_123',
+      type: 'payment_intent.succeeded',
+      created: timestamp,
+    });
 
     const crypto = await import('node:crypto');
     const signedPayload = `${timestamp}.${payload}`;
-    const hmac = crypto.createHmac('sha256', secret).update(signedPayload).digest('hex');
+    const hmac = crypto
+      .createHmac('sha256', secret)
+      .update(signedPayload)
+      .digest('hex');
     const signature = `t=${timestamp},v1=${hmac}`;
 
     const event = provider.constructWebhookEvent(payload, signature, secret);
@@ -57,7 +68,8 @@ describe('Webhook signature verification', () => {
   });
 
   test('rejects expired timestamp (>5min old)', async () => {
-    const { StripePaymentProvider, StripeApiError } = await import('@flow/agents/providers');
+    const { StripePaymentProvider, StripeApiError } =
+      await import('@flow/agents/providers');
     const provider = new StripePaymentProvider({
       secretKey: 'sk_test_secret',
       webhookSecret: 'whsec_valid',
@@ -69,9 +81,14 @@ describe('Webhook signature verification', () => {
 
     const crypto = await import('node:crypto');
     const signedPayload = `${oldTimestamp}.${payload}`;
-    const hmac = crypto.createHmac('sha256', secret).update(signedPayload).digest('hex');
+    const hmac = crypto
+      .createHmac('sha256', secret)
+      .update(signedPayload)
+      .digest('hex');
     const signature = `t=${oldTimestamp},v1=${hmac}`;
 
-    expect(() => provider.constructWebhookEvent(payload, signature, secret)).toThrow(StripeApiError);
+    expect(() =>
+      provider.constructWebhookEvent(payload, signature, secret),
+    ).toThrow(StripeApiError);
   });
 });

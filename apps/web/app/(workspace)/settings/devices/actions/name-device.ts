@@ -33,7 +33,9 @@ export async function nameDevice(
   }
 
   const supabase = await getServerSupabase();
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session?.user) {
     return {
       success: false,
@@ -43,18 +45,30 @@ export async function nameDevice(
 
   try {
     await renameDevice(
-      { userId: session.user.id, deviceId: parsed.data.deviceId, label: parsed.data.label },
+      {
+        userId: session.user.id,
+        deviceId: parsed.data.deviceId,
+        label: parsed.data.label,
+      },
       supabase,
     );
 
     return { success: true, data: { named: true } };
   } catch (err) {
     if (err instanceof Error && 'code' in err) {
-      return { success: false, error: err as unknown as import('@flow/types').FlowError };
+      return {
+        success: false,
+        error: err as unknown as import('@flow/types').FlowError,
+      };
     }
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to name device', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to name device',
+        'system',
+      ),
     };
   }
 }

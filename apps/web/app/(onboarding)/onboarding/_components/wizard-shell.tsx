@@ -59,9 +59,7 @@ export function WizardShell({ children, currentStep }: WizardShellProps) {
       <div className="w-full max-w-lg">
         <StepIndicator currentStep={currentStep} />
 
-        <div ref={setContentRef}>
-          {children}
-        </div>
+        <div ref={setContentRef}>{children}</div>
 
         {!isCompletion && (
           <div className="mt-8 flex justify-between">

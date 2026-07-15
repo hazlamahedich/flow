@@ -13,7 +13,10 @@ function extractStoragePath(avatarUrl: string, userId: string): string | null {
 
 export async function removeAvatar(): Promise<ActionResult<void>> {
   const supabase = await getServerSupabase();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return {
@@ -25,7 +28,12 @@ export async function removeAvatar(): Promise<ActionResult<void>> {
   if (!user.email) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Email is required.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Email is required.',
+        'validation',
+      ),
     };
   }
 
@@ -39,9 +47,14 @@ export async function removeAvatar(): Promise<ActionResult<void>> {
       .single();
 
     if (currentProfile?.avatar_url) {
-      const oldStoragePath = extractStoragePath(currentProfile.avatar_url, user.id);
+      const oldStoragePath = extractStoragePath(
+        currentProfile.avatar_url,
+        user.id,
+      );
       if (oldStoragePath) {
-        const { error: removeError } = await supabase.storage.from('avatars').remove([oldStoragePath]);
+        const { error: removeError } = await supabase.storage
+          .from('avatars')
+          .remove([oldStoragePath]);
         if (removeError) {
           console.error('Failed to delete avatar file:', removeError.message);
         }
@@ -55,7 +68,12 @@ export async function removeAvatar(): Promise<ActionResult<void>> {
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', "Couldn't remove avatar. Please try again.", 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        "Couldn't remove avatar. Please try again.",
+        'system',
+      ),
     };
   }
 }

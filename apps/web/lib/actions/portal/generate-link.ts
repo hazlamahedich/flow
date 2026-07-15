@@ -8,11 +8,7 @@
 import { randomBytes } from 'node:crypto';
 import { revalidateTag } from 'next/cache';
 import { getServerSupabase } from '@/lib/supabase-server';
-import {
-  requireTenantContext,
-  createFlowError,
-  cacheTag,
-} from '@flow/db';
+import { requireTenantContext, createFlowError, cacheTag } from '@flow/db';
 import type { ActionResult, FlowError } from '@flow/types';
 import type { TenantContext } from '@flow/db';
 import {
@@ -41,9 +37,15 @@ export async function generatePortalLinkAction(
   const parsed = generatePortalLinkSchema.safeParse(input);
   if (!parsed.success) {
     return failure(
-      createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation', {
-        issues: parsed.error.issues,
-      }),
+      createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+        {
+          issues: parsed.error.issues,
+        },
+      ),
     );
   }
 
@@ -54,12 +56,20 @@ export async function generatePortalLinkAction(
     return ctx;
   }
 
-  const client = await loadActiveClient(supabase, parsed.data.clientId, ctx.data.workspaceId);
+  const client = await loadActiveClient(
+    supabase,
+    parsed.data.clientId,
+    ctx.data.workspaceId,
+  );
   if (!client.success) {
     return client;
   }
 
-  const rateCheck = await checkLinkRateLimit(supabase, client.data, parsed.data.clientId);
+  const rateCheck = await checkLinkRateLimit(
+    supabase,
+    client.data,
+    parsed.data.clientId,
+  );
   if (!rateCheck.success) {
     return rateCheck;
   }
@@ -75,7 +85,11 @@ export async function generatePortalLinkAction(
     return tokenResult;
   }
 
-  const url = await buildMagicLinkUrl(supabase, ctx.data.workspaceId, tokenResult.data.plaintextToken);
+  const url = await buildMagicLinkUrl(
+    supabase,
+    ctx.data.workspaceId,
+    tokenResult.data.plaintextToken,
+  );
 
   revalidateTag(cacheTag('portal_token', ctx.data.workspaceId));
 
@@ -124,7 +138,12 @@ async function loadActiveClient(
 
   if (error || !data) {
     return failure(
-      createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found.', 'validation'),
+      createFlowError(
+        404,
+        'CLIENT_NOT_FOUND',
+        'Client not found.',
+        'validation',
+      ),
     );
   }
 

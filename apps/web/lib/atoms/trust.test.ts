@@ -1,11 +1,17 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createStore } from 'jotai';
-import { trustBadgeMapAtom, trustBadgeAtom, dominantTrustTierAtom } from './trust';
+import {
+  trustBadgeMapAtom,
+  trustBadgeAtom,
+  dominantTrustTierAtom,
+} from './trust';
 import type { TrustBadgeData } from './trust';
 import type { AgentId } from '@flow/types';
 import type { TrustBadgeState } from '@flow/trust';
 
-function makeBadgeData(overrides: Partial<TrustBadgeData> = {}): TrustBadgeData {
+function makeBadgeData(
+  overrides: Partial<TrustBadgeData> = {},
+): TrustBadgeData {
   return {
     agentId: 'inbox' as AgentId,
     state: 'supervised' as TrustBadgeState,
@@ -31,15 +37,27 @@ describe('trust atoms', () => {
     });
 
     it('stores badge data with composite key', () => {
-      const data = makeBadgeData({ agentId: 'inbox', state: 'supervised', score: 50 });
+      const data = makeBadgeData({
+        agentId: 'inbox',
+        state: 'supervised',
+        score: 50,
+      });
       const map = new Map([['ws-1:inbox', data]]);
       store.set(trustBadgeMapAtom, map);
       expect(store.get(trustBadgeMapAtom).get('ws-1:inbox')).toEqual(data);
     });
 
     it('overwrites entire map on set', () => {
-      store.set(trustBadgeMapAtom, new Map([['ws-1:inbox', makeBadgeData({ score: 10 })]]));
-      store.set(trustBadgeMapAtom, new Map([['ws-1:calendar', makeBadgeData({ agentId: 'calendar', score: 20 })]]));
+      store.set(
+        trustBadgeMapAtom,
+        new Map([['ws-1:inbox', makeBadgeData({ score: 10 })]]),
+      );
+      store.set(
+        trustBadgeMapAtom,
+        new Map([
+          ['ws-1:calendar', makeBadgeData({ agentId: 'calendar', score: 20 })],
+        ]),
+      );
       const map = store.get(trustBadgeMapAtom);
       expect(map.size).toBe(1);
       expect(map.get('ws-1:calendar')?.score).toBe(20);
@@ -54,14 +72,22 @@ describe('trust atoms', () => {
     });
 
     it('returns badge data when exists', () => {
-      const data = makeBadgeData({ agentId: 'inbox', state: 'confirm', score: 80 });
+      const data = makeBadgeData({
+        agentId: 'inbox',
+        state: 'confirm',
+        score: 80,
+      });
       store.set(trustBadgeMapAtom, new Map([['ws-1:inbox', data]]));
       const atom = trustBadgeAtom('ws-1', 'inbox');
       expect(store.get(atom)).toEqual(data);
     });
 
     it('isolates by workspace', () => {
-      const data = makeBadgeData({ agentId: 'inbox', state: 'auto', score: 150 });
+      const data = makeBadgeData({
+        agentId: 'inbox',
+        state: 'auto',
+        score: 150,
+      });
       store.set(trustBadgeMapAtom, new Map([['ws-1:inbox', data]]));
       const otherAtom = trustBadgeAtom('ws-2', 'inbox');
       expect(store.get(otherAtom)).toBeNull();
@@ -77,7 +103,10 @@ describe('trust atoms', () => {
     it('returns regressing as highest priority', () => {
       const map = new Map([
         ['ws-1:inbox', makeBadgeData({ agentId: 'inbox', state: 'auto' })],
-        ['ws-1:calendar', makeBadgeData({ agentId: 'calendar', state: 'regressing' })],
+        [
+          'ws-1:calendar',
+          makeBadgeData({ agentId: 'calendar', state: 'regressing' }),
+        ],
       ]);
       store.set(trustBadgeMapAtom, map);
       expect(store.get(dominantTrustTierAtom)).toBe('regressing');
@@ -85,8 +114,14 @@ describe('trust atoms', () => {
 
     it('returns supervised over confirm', () => {
       const map = new Map([
-        ['ws-1:inbox', makeBadgeData({ agentId: 'inbox', state: 'supervised' })],
-        ['ws-1:calendar', makeBadgeData({ agentId: 'calendar', state: 'confirm' })],
+        [
+          'ws-1:inbox',
+          makeBadgeData({ agentId: 'inbox', state: 'supervised' }),
+        ],
+        [
+          'ws-1:calendar',
+          makeBadgeData({ agentId: 'calendar', state: 'confirm' }),
+        ],
       ]);
       store.set(trustBadgeMapAtom, map);
       expect(store.get(dominantTrustTierAtom)).toBe('supervised');
@@ -95,7 +130,10 @@ describe('trust atoms', () => {
     it('returns auto when all agents are auto', () => {
       const map = new Map([
         ['ws-1:inbox', makeBadgeData({ agentId: 'inbox', state: 'auto' })],
-        ['ws-1:calendar', makeBadgeData({ agentId: 'calendar', state: 'auto' })],
+        [
+          'ws-1:calendar',
+          makeBadgeData({ agentId: 'calendar', state: 'auto' }),
+        ],
       ]);
       store.set(trustBadgeMapAtom, map);
       expect(store.get(dominantTrustTierAtom)).toBe('auto');
@@ -103,8 +141,14 @@ describe('trust atoms', () => {
 
     it('returns stick_time when all agents are at stick_time or auto', () => {
       const map = new Map([
-        ['ws-1:inbox', makeBadgeData({ agentId: 'inbox', state: 'stick_time' })],
-        ['ws-1:calendar', makeBadgeData({ agentId: 'calendar', state: 'auto' })],
+        [
+          'ws-1:inbox',
+          makeBadgeData({ agentId: 'inbox', state: 'stick_time' }),
+        ],
+        [
+          'ws-1:calendar',
+          makeBadgeData({ agentId: 'calendar', state: 'auto' }),
+        ],
       ]);
       store.set(trustBadgeMapAtom, map);
       expect(store.get(dominantTrustTierAtom)).toBe('stick_time');

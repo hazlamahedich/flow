@@ -34,9 +34,12 @@ function getTimeBucket(hour: number): 'morning' | 'afternoon' | 'evening' {
 
 function getGreeting(bucket: 'morning' | 'afternoon' | 'evening'): string {
   switch (bucket) {
-    case 'morning': return 'Good morning';
-    case 'afternoon': return 'Good afternoon';
-    case 'evening': return 'Good evening';
+    case 'morning':
+      return 'Good morning';
+    case 'afternoon':
+      return 'Good afternoon';
+    case 'evening':
+      return 'Good evening';
   }
 }
 
@@ -77,7 +80,11 @@ export function DashboardGreeting({
 
   const isFirstRun = clientCount === 0 && invoiceCount === 0;
   const totalNeedsAttention = summary.pendingApprovals;
-  const hasActivity = summary.agentActivityCount > 0 || totalNeedsAttention > 0 || summary.outstandingInvoices > 0 || summary.clientHealthAlerts > 0;
+  const hasActivity =
+    summary.agentActivityCount > 0 ||
+    totalNeedsAttention > 0 ||
+    summary.outstandingInvoices > 0 ||
+    summary.clientHealthAlerts > 0;
 
   let content: React.ReactNode;
 
@@ -86,7 +93,10 @@ export function DashboardGreeting({
       <div className="border-l-4 border-l-[color:rgba(var(--flow-color-accent-success-raw,16_185_129)/0.4)] pl-4">
         <h1 className="text-2xl font-semibold text-[var(--flow-color-text-primary)]">
           Welcome to Flow{firstName ? `, ${firstName}` : ''}!{' '}
-          <Link href="/clients" className="underline decoration-[var(--flow-color-accent-success)] underline-offset-2 hover:opacity-80">
+          <Link
+            href="/clients"
+            className="underline decoration-[var(--flow-color-accent-success)] underline-offset-2 hover:opacity-80"
+          >
             Let&apos;s get your first client set up.
           </Link>
         </h1>
@@ -101,10 +111,15 @@ export function DashboardGreeting({
         <p className="mt-1 text-sm text-[var(--flow-color-text-secondary)]">
           <button
             type="button"
-            onClick={() => document.getElementById('needs-attention')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() =>
+              document
+                .getElementById('needs-attention')
+                ?.scrollIntoView({ behavior: 'smooth' })
+            }
             className="underline decoration-[var(--flow-color-text-secondary)] underline-offset-2 hover:text-[var(--flow-color-text-primary)]"
           >
-            {totalNeedsAttention} {totalNeedsAttention === 1 ? 'item needs' : 'items need'} your eyes
+            {totalNeedsAttention}{' '}
+            {totalNeedsAttention === 1 ? 'item needs' : 'items need'} your eyes
           </button>
         </p>
       </div>
@@ -116,7 +131,8 @@ export function DashboardGreeting({
           {greeting}
         </h1>
         <p className="mt-1 text-sm text-[var(--flow-color-text-secondary)]">
-          You&apos;re all caught up{firstName ? `, ${firstName}` : ''}. Nothing needs your attention right now.
+          You&apos;re all caught up{firstName ? `, ${firstName}` : ''}. Nothing
+          needs your attention right now.
         </p>
       </div>
     );
@@ -126,7 +142,9 @@ export function DashboardGreeting({
     <div className="flex items-start justify-between">
       <div>
         {content}
-        <p className="mt-2 text-xs text-[var(--flow-color-text-tertiary)]">{dateStr}</p>
+        <p className="mt-2 text-xs text-[var(--flow-color-text-tertiary)]">
+          {dateStr}
+        </p>
       </div>
     </div>
   );

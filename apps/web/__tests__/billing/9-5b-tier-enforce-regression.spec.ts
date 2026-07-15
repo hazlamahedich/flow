@@ -14,8 +14,12 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/supabase-server', () => ({ getServerSupabase: vi.fn() }));
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }));
-vi.mock('next/headers', () => ({ cookies: vi.fn().mockResolvedValue({ getAll: () => [] }) }));
-vi.mock('@/lib/workspace-audit', () => ({ logWorkspaceEvent: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('next/headers', () => ({
+  cookies: vi.fn().mockResolvedValue({ getAll: () => [] }),
+}));
+vi.mock('@/lib/workspace-audit', () => ({
+  logWorkspaceEvent: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, retryAfterMs: 0 }),
   INVITATION_CONFIG: { maxAttempts: 10, windowMs: 3600000 },
@@ -23,7 +27,11 @@ vi.mock('@/lib/rate-limit', () => ({
 
 vi.mock('@flow/db/client', () => ({
   createServiceClient: vi.fn(() => ({
-    auth: { admin: { inviteUserByEmail: vi.fn().mockResolvedValue({ data: {}, error: null }) } },
+    auth: {
+      admin: {
+        inviteUserByEmail: vi.fn().mockResolvedValue({ data: {}, error: null }),
+      },
+    },
   })),
 }));
 
@@ -55,21 +63,30 @@ vi.mock('@flow/db', async () => {
 });
 
 vi.mock('@flow/shared', async () => {
-  const actual = await vi.importActual<typeof import('@flow/shared')>('@flow/shared');
+  const actual =
+    await vi.importActual<typeof import('@flow/shared')>('@flow/shared');
   return { ...actual, isValidTransition: actual.isValidTransition };
 });
 
-const { createWorkspaceClient } = await import('@/app/(workspace)/clients/actions/create-client');
-const { inviteMember } = await import('@/app/(workspace)/settings/team/actions/invite-member');
-const { activateWithChecks } = await import('@/lib/actions/agent-config/queries');
-const { enforceTierLimit } = await import('@/lib/actions/billing/enforce-tier-limit');
+const { createWorkspaceClient } =
+  await import('@/app/(workspace)/clients/actions/create-client');
+const { inviteMember } =
+  await import('@/app/(workspace)/settings/team/actions/invite-member');
+const { activateWithChecks } =
+  await import('@/lib/actions/agent-config/queries');
+const { enforceTierLimit } =
+  await import('@/lib/actions/billing/enforce-tier-limit');
 const { getServerSupabase } = await import('@/lib/supabase-server');
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockEnforceTierLimit.mockResolvedValue({ allowed: true });
   vi.mocked(getServerSupabase).mockResolvedValue({
-    auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { email: 'admin@test.com' } } }) },
+    auth: {
+      getUser: vi
+        .fn()
+        .mockResolvedValue({ data: { user: { email: 'admin@test.com' } } }),
+    },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -78,7 +95,10 @@ beforeEach(() => {
       maybeSingle: vi.fn().mockResolvedValue({ data: null }),
       insert: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: { id: 'inv-1', email: 'new@test.com', role: 'member' }, error: null }),
+          single: vi.fn().mockResolvedValue({
+            data: { id: 'inv-1', email: 'new@test.com', role: 'member' },
+            error: null,
+          }),
         }),
       }),
     }),
@@ -91,15 +111,21 @@ beforeEach(() => {
 describe('[T3.1] createWorkspaceClient — tier-enforce regression', () => {
   test('enforceTierLimit is called for clients', async () => {
     await createWorkspaceClient({ name: 'Acme Inc' });
-    expect(enforceTierLimit).toHaveBeenCalledWith(expect.objectContaining({
-      workspaceId: 'ws-1',
-      resource: 'clients',
-    }));
+    expect(enforceTierLimit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workspaceId: 'ws-1',
+        resource: 'clients',
+      }),
+    );
   });
 
   test('maps { allowed: false } → 403 TIER_LIMIT_EXCEEDED', async () => {
     mockEnforceTierLimit.mockResolvedValueOnce({
-      allowed: false, limit: 2, current: 2, tier: 'free', reason: 'limit_exceeded',
+      allowed: false,
+      limit: 2,
+      current: 2,
+      tier: 'free',
+      reason: 'limit_exceeded',
     });
     const result = await createWorkspaceClient({ name: 'Acme Inc' });
     expect(result.success).toBe(false);
@@ -116,17 +142,26 @@ describe('[T3.1] createWorkspaceClient — tier-enforce regression', () => {
 describe('[T3.2] inviteMember — tier-enforce regression', () => {
   test('enforceTierLimit is called for team_members', async () => {
     await inviteMember({ email: 'new@test.com', role: 'member' });
-    expect(enforceTierLimit).toHaveBeenCalledWith(expect.objectContaining({
-      workspaceId: 'ws-1',
-      resource: 'team_members',
-    }));
+    expect(enforceTierLimit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workspaceId: 'ws-1',
+        resource: 'team_members',
+      }),
+    );
   });
 
   test('maps { allowed: false } → 403 TIER_LIMIT_EXCEEDED', async () => {
     mockEnforceTierLimit.mockResolvedValueOnce({
-      allowed: false, limit: 1, current: 1, tier: 'free', reason: 'limit_exceeded',
+      allowed: false,
+      limit: 1,
+      current: 1,
+      tier: 'free',
+      reason: 'limit_exceeded',
     });
-    const result = await inviteMember({ email: 'new@test.com', role: 'member' });
+    const result = await inviteMember({
+      email: 'new@test.com',
+      role: 'member',
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.status).toBe(403);
@@ -140,24 +175,33 @@ describe('[T3.2] inviteMember — tier-enforce regression', () => {
 // ───────────────────────────────────────────────────────────────
 describe('[T3.3] activateWithChecks — tier-enforce regression', () => {
   test('enforceTierLimit is called for agents', async () => {
-    const { getAgentConfiguration, transitionAgentStatus } = await import('@flow/db');
+    const { getAgentConfiguration, transitionAgentStatus } =
+      await import('@flow/db');
     vi.mocked(getAgentConfiguration).mockResolvedValueOnce({
-      setup_completed: true, status: 'inactive', lifecycle_version: 1,
+      setup_completed: true,
+      status: 'inactive',
+      lifecycle_version: 1,
     } as never);
     vi.mocked(transitionAgentStatus)
       .mockResolvedValueOnce({ lifecycle_version: 2 } as never)
       .mockResolvedValueOnce({ lifecycle_version: 3 } as never);
 
     await activateWithChecks('ws-1', 'inbox', 1);
-    expect(enforceTierLimit).toHaveBeenCalledWith(expect.objectContaining({
-      workspaceId: 'ws-1',
-      resource: 'agents',
-    }));
+    expect(enforceTierLimit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workspaceId: 'ws-1',
+        resource: 'agents',
+      }),
+    );
   });
 
   test('maps { allowed: false } → 403 TIER_LIMIT_EXCEEDED', async () => {
     mockEnforceTierLimit.mockResolvedValueOnce({
-      allowed: false, limit: 2, current: 2, tier: 'free', reason: 'limit_exceeded',
+      allowed: false,
+      limit: 2,
+      current: 2,
+      tier: 'free',
+      reason: 'limit_exceeded',
     });
     const result = await activateWithChecks('ws-1', 'inbox', 1);
     expect(result.success).toBe(false);
@@ -196,7 +240,11 @@ describe('[T3.4] EC10 — status-independence of tier limits', () => {
     const { checkTierLimit } = await import('@flow/shared');
     const proLimit = checkTierLimit({ current: 14, adding: 1, limit: 15 });
     expect(proLimit.allowed).toBe(true);
-    const pastDueProDecision = checkTierLimit({ current: 14, adding: 1, limit: 15 });
+    const pastDueProDecision = checkTierLimit({
+      current: 14,
+      adding: 1,
+      limit: 15,
+    });
     expect(pastDueProDecision.allowed).toBe(proLimit.allowed);
   });
 });

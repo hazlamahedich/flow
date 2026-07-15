@@ -3,7 +3,9 @@ import { HandledQuietlyItem } from '../handled-quietly-item';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 
 vi.mock('../actions/handled-quietly-actions', () => ({
-  promoteToInbox: vi.fn().mockResolvedValue({ success: true, data: { emailId: 'e-1' } }),
+  promoteToInbox: vi
+    .fn()
+    .mockResolvedValue({ success: true, data: { emailId: 'e-1' } }),
 }));
 
 const baseEmail = {
@@ -43,12 +45,16 @@ describe('HandledQuietlyItem', () => {
   });
 
   it('defaults confidence to 0 when missing', () => {
-    render(<HandledQuietlyItem email={{ ...baseEmail, confidence: undefined }} />);
+    render(
+      <HandledQuietlyItem email={{ ...baseEmail, confidence: undefined }} />,
+    );
     expect(screen.getByText('0%')).toBeDefined();
   });
 
   it('renders promote button with accessible text', () => {
     render(<HandledQuietlyItem email={baseEmail} />);
-    expect(screen.getByText('Actually, this needed my attention')).toBeDefined();
+    expect(
+      screen.getByText('Actually, this needed my attention'),
+    ).toBeDefined();
   });
 });

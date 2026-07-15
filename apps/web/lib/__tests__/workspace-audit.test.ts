@@ -22,7 +22,10 @@ describe('logWorkspaceEvent', () => {
   });
 
   it('inserts correct fields into audit_log', async () => {
-    const event = { type: 'workspace.created', workspaceId: 'ws-1' } as unknown as WorkspaceAuditEvent;
+    const event = {
+      type: 'workspace.created',
+      workspaceId: 'ws-1',
+    } as unknown as WorkspaceAuditEvent;
     await logWorkspaceEvent(event);
     expect(mockFrom).toHaveBeenCalledWith('audit_log');
     expect(mockInsert).toHaveBeenCalledWith({
@@ -34,21 +37,29 @@ describe('logWorkspaceEvent', () => {
   });
 
   it('sets workspace_id from event when present', async () => {
-    const event = { type: 'workspace.updated', workspaceId: 'ws-42' } as unknown as WorkspaceAuditEvent;
+    const event = {
+      type: 'workspace.updated',
+      workspaceId: 'ws-42',
+    } as unknown as WorkspaceAuditEvent;
     await logWorkspaceEvent(event);
     const inserted = mockInsert.mock.calls[0]![0];
     expect(inserted.workspace_id).toBe('ws-42');
   });
 
   it('sets workspace_id to null when not in event', async () => {
-    const event = { type: 'workspace.deleted' } as unknown as WorkspaceAuditEvent;
+    const event = {
+      type: 'workspace.deleted',
+    } as unknown as WorkspaceAuditEvent;
     await logWorkspaceEvent(event);
     const inserted = mockInsert.mock.calls[0]![0];
     expect(inserted.workspace_id).toBeNull();
   });
 
   it('sets entity_type to workspace', async () => {
-    const event = { type: 'workspace.created', workspaceId: 'ws-1' } as unknown as WorkspaceAuditEvent;
+    const event = {
+      type: 'workspace.created',
+      workspaceId: 'ws-1',
+    } as unknown as WorkspaceAuditEvent;
     await logWorkspaceEvent(event);
     const inserted = mockInsert.mock.calls[0]![0];
     expect(inserted.entity_type).toBe('workspace');
@@ -57,7 +68,10 @@ describe('logWorkspaceEvent', () => {
   it('does not throw when supabase fails', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockInsert.mockRejectedValue(new Error('db down'));
-    const event = { type: 'workspace.created', workspaceId: 'ws-1' } as unknown as WorkspaceAuditEvent;
+    const event = {
+      type: 'workspace.created',
+      workspaceId: 'ws-1',
+    } as unknown as WorkspaceAuditEvent;
     await expect(logWorkspaceEvent(event)).resolves.toBeUndefined();
     expect(consoleSpy).toHaveBeenCalledWith(
       'Failed to log workspace event:',

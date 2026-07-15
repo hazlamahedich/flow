@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  cleanup,
+} from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
 import { DraftEditor } from '../draft-editor';
 import * as actions from '../../actions/draft-actions';
@@ -22,8 +28,14 @@ describe('DraftEditor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(actions.editDraft).mockResolvedValue({ success: true } as never);
-    vi.mocked(actions.quickEditTone).mockResolvedValue({ success: true, data: { content: 'Professional rewrite' } } as never);
-    vi.mocked(actions.quickEditLength).mockResolvedValue({ success: true, data: { content: 'Shorter content' } } as never);
+    vi.mocked(actions.quickEditTone).mockResolvedValue({
+      success: true,
+      data: { content: 'Professional rewrite' },
+    } as never);
+    vi.mocked(actions.quickEditLength).mockResolvedValue({
+      success: true,
+      data: { content: 'Shorter content' },
+    } as never);
   });
 
   afterEach(() => {
@@ -32,7 +44,9 @@ describe('DraftEditor', () => {
 
   it('renders initial content in textarea', () => {
     render(<DraftEditor {...defaultProps} />);
-    expect(screen.getByDisplayValue('Initial draft content')).toBeInTheDocument();
+    expect(
+      screen.getByDisplayValue('Initial draft content'),
+    ).toBeInTheDocument();
   });
 
   it('updates content when typing', () => {
@@ -89,7 +103,9 @@ describe('DraftEditor', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('Professional rewrite')).toBeInTheDocument();
+      expect(
+        screen.getByDisplayValue('Professional rewrite'),
+      ).toBeInTheDocument();
     });
   });
 });

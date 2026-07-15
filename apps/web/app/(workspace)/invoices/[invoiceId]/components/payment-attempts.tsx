@@ -72,12 +72,15 @@ function PaymentAttemptRow({
 
   const handleCopyLink = useCallback(() => {
     if (!paymentUrl) return;
-    void navigator.clipboard.writeText(paymentUrl).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }).catch(() => {
-      // Clipboard API may reject (permissions, not focused) — silently ignore
-    });
+    void navigator.clipboard
+      .writeText(paymentUrl)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {
+        // Clipboard API may reject (permissions, not focused) — silently ignore
+      });
   }, [paymentUrl]);
 
   const attemptDate = new Date(attempt.createdAt).toLocaleString();
@@ -95,7 +98,7 @@ function PaymentAttemptRow({
           <span className="text-xs text-muted-foreground">{attemptDate}</span>
         </div>
         <p className="text-sm text-muted-foreground">
-          Amount:{" "}
+          Amount:{' '}
           <span className="font-mono font-medium text-foreground">
             {formatCentsToDollar(attempt.amountCents)}
           </span>
@@ -115,7 +118,9 @@ function PaymentAttemptRow({
             ) : (
               <>
                 <Copy className="h-3 w-3" />
-                {retryable ? 'Copy Payment Link' : 'Payment Link (Not Retryable)'}
+                {retryable
+                  ? 'Copy Payment Link'
+                  : 'Payment Link (Not Retryable)'}
               </>
             )}
           </button>

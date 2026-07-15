@@ -24,8 +24,12 @@ describe('getServerSupabase', () => {
       getAll: vi.fn(),
       set: vi.fn(),
     };
-    vi.mocked(nextCookies).mockResolvedValue(mockCookieStore as unknown as Awaited<ReturnType<typeof nextCookies>>);
-    vi.mocked(createServerClient).mockReturnValue({ fake: 'client' } as unknown as ReturnType<typeof createServerClient>);
+    vi.mocked(nextCookies).mockResolvedValue(
+      mockCookieStore as unknown as Awaited<ReturnType<typeof nextCookies>>,
+    );
+    vi.mocked(createServerClient).mockReturnValue({
+      fake: 'client',
+    } as unknown as ReturnType<typeof createServerClient>);
   });
 
   it('calls createServerClient with cookie adapter', async () => {
@@ -41,7 +45,11 @@ describe('getServerSupabase', () => {
     await getServerSupabase();
     const adapter = vi.mocked(createServerClient).mock.calls[0]![0] as {
       getAll: () => Array<{ name: string; value: string }>;
-      set: (name: string, value: string, options?: Record<string, unknown>) => void;
+      set: (
+        name: string,
+        value: string,
+        options?: Record<string, unknown>,
+      ) => void;
     };
     const result = adapter.getAll();
     expect(result).toEqual([
@@ -54,7 +62,11 @@ describe('getServerSupabase', () => {
     await getServerSupabase();
     const adapter = vi.mocked(createServerClient).mock.calls[0]![0] as {
       getAll: () => Array<{ name: string; value: string }>;
-      set: (name: string, value: string, options?: Record<string, unknown>) => void;
+      set: (
+        name: string,
+        value: string,
+        options?: Record<string, unknown>,
+      ) => void;
     };
     adapter.set('sb-token', 'abc123', { httpOnly: true });
     expect(mockCookieStore.set).toHaveBeenCalledWith('sb-token', 'abc123', {
@@ -70,7 +82,11 @@ describe('getServerSupabase', () => {
     await getServerSupabase();
     const adapter = vi.mocked(createServerClient).mock.calls[0]![0] as {
       getAll: () => Array<{ name: string; value: string }>;
-      set: (name: string, value: string, options?: Record<string, unknown>) => void;
+      set: (
+        name: string,
+        value: string,
+        options?: Record<string, unknown>,
+      ) => void;
     };
     expect(() => adapter.set('sb-token', 'abc123')).not.toThrow();
   });
@@ -79,7 +95,9 @@ describe('getServerSupabase', () => {
     let resolved = false;
     vi.mocked(nextCookies).mockImplementation(async () => {
       resolved = true;
-      return mockCookieStore as unknown as Awaited<ReturnType<typeof nextCookies>>;
+      return mockCookieStore as unknown as Awaited<
+        ReturnType<typeof nextCookies>
+      >;
     });
     await getServerSupabase();
     expect(resolved).toBe(true);

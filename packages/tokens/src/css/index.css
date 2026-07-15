@@ -5,8 +5,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   :root,
-  [data-theme="dark"],
-  [data-theme="light"] {
+  [data-theme='dark'],
+  [data-theme='light'] {
     --flow-duration-instant: 0ms;
     --flow-duration-fast: 0ms;
     --flow-duration-normal: 0ms;

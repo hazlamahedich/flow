@@ -11,14 +11,19 @@ interface ActivityPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function ActivityPage({ searchParams }: ActivityPageProps) {
+export default async function ActivityPage({
+  searchParams,
+}: ActivityPageProps) {
   const supabase = await getServerSupabase();
   const { workspaceId, userId } = await requireTenantContext(supabase);
   const params = await searchParams;
 
   const filters = {
     agentId: typeof params.agent === 'string' ? params.agent : undefined,
-    status: typeof params.status === 'string' ? params.status as 'completed' | 'failed' | 'timed_out' | undefined : undefined,
+    status:
+      typeof params.status === 'string'
+        ? (params.status as 'completed' | 'failed' | 'timed_out' | undefined)
+        : undefined,
     dateFrom: typeof params.dateFrom === 'string' ? params.dateFrom : undefined,
     dateTo: typeof params.dateTo === 'string' ? params.dateTo : undefined,
     clientId: typeof params.client === 'string' ? params.client : undefined,
@@ -30,7 +35,9 @@ export default async function ActivityPage({ searchParams }: ActivityPageProps) 
   return (
     <div className="space-y-4">
       <nav className="text-sm text-[var(--flow-color-text-secondary)]">
-        <a href="/agents" className="hover:underline">Dashboard</a>
+        <a href="/agents" className="hover:underline">
+          Dashboard
+        </a>
         <span className="mx-1">&gt;</span>
         <span className="text-[var(--flow-color-text-primary)]">Activity</span>
       </nav>

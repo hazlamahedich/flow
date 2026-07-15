@@ -9,7 +9,10 @@ interface ExpandableReasoningProps {
   className?: string;
 }
 
-export function ExpandableReasoning({ reasoning, className }: ExpandableReasoningProps) {
+export function ExpandableReasoning({
+  reasoning,
+  className,
+}: ExpandableReasoningProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -33,10 +36,12 @@ export function ExpandableReasoning({ reasoning, className }: ExpandableReasonin
           </>
         )}
       </button>
-      
+
       {isExpanded && (
         <div className="rounded-[var(--flow-radius-md)] bg-[var(--flow-bg-surface-raised)] p-3 text-sm text-[var(--flow-text-secondary)] animate-in slide-in-from-top-2 duration-200">
-          <p className="font-medium text-[var(--flow-text-primary)] mb-1 text-xs uppercase tracking-wider">Agent Reasoning</p>
+          <p className="font-medium text-[var(--flow-text-primary)] mb-1 text-xs uppercase tracking-wider">
+            Agent Reasoning
+          </p>
           <p className="leading-relaxed">{reasoning}</p>
         </div>
       )}

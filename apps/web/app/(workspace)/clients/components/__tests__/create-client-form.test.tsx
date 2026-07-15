@@ -27,14 +27,18 @@ describe('CreateClientForm', () => {
   it('renders submit button with correct text', () => {
     render(<CreateClientForm activeCount={0} onSuccess={vi.fn()} />);
     const buttons = screen.getAllByRole('button');
-    const submitBtn = buttons.find((b) => b.textContent?.includes('Create Client'));
+    const submitBtn = buttons.find((b) =>
+      b.textContent?.includes('Create Client'),
+    );
     expect(submitBtn).toBeTruthy();
   });
 });
 
 describe('TierLimitBanner', () => {
   it('does not render when well under limit', () => {
-    const { container } = render(<TierLimitBanner activeCount={2} limit={5} tierName="free" />);
+    const { container } = render(
+      <TierLimitBanner activeCount={2} limit={5} tierName="free" />,
+    );
     expect(container.firstChild).toBeNull();
   });
 

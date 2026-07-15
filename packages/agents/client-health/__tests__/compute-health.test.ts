@@ -66,7 +66,10 @@ describe('computeHealthScores — Payment Score', () => {
   });
 
   test('floor at 0 for very poor payment', () => {
-    const input = fixture({ overdueInvoiceCount: 10, daysSinceLastPayment: 180 });
+    const input = fixture({
+      overdueInvoiceCount: 10,
+      daysSinceLastPayment: 180,
+    });
     const score = computePaymentScore(input);
     expect(score).toBe(0);
   });
@@ -86,7 +89,10 @@ describe('computeHealthScores — Communication Score', () => {
   });
 
   test('floor at 0', () => {
-    const input = fixture({ avgResponseTimeHours: 100, meetingBypassCount: 20 });
+    const input = fixture({
+      avgResponseTimeHours: 100,
+      meetingBypassCount: 20,
+    });
     const score = computeCommunicationScore(input);
     expect(score).toBe(0);
   });
@@ -107,27 +113,57 @@ describe('computeHealthScores — Overall Health Rules', () => {
   });
 
   test('any sub-score < 30 → critical', () => {
-    const result = computeOverallHealth(25, 80, 80, fixture({ clientCreatedAt: ESTABLISHED_CLIENT_CREATED }), REF_DATE);
+    const result = computeOverallHealth(
+      25,
+      80,
+      80,
+      fixture({ clientCreatedAt: ESTABLISHED_CLIENT_CREATED }),
+      REF_DATE,
+    );
     expect(result).toBe('critical');
   });
 
   test('payment score < 40 → critical', () => {
-    const result = computeOverallHealth(80, 35, 80, fixture({ clientCreatedAt: ESTABLISHED_CLIENT_CREATED }), REF_DATE);
+    const result = computeOverallHealth(
+      80,
+      35,
+      80,
+      fixture({ clientCreatedAt: ESTABLISHED_CLIENT_CREATED }),
+      REF_DATE,
+    );
     expect(result).toBe('critical');
   });
 
   test('any sub-score < 50 → at-risk', () => {
-    const result = computeOverallHealth(45, 80, 80, fixture({ clientCreatedAt: ESTABLISHED_CLIENT_CREATED }), REF_DATE);
+    const result = computeOverallHealth(
+      45,
+      80,
+      80,
+      fixture({ clientCreatedAt: ESTABLISHED_CLIENT_CREATED }),
+      REF_DATE,
+    );
     expect(result).toBe('at-risk');
   });
 
   test('payment < 60 AND communication < 60 → at-risk', () => {
-    const result = computeOverallHealth(80, 55, 55, fixture({ clientCreatedAt: ESTABLISHED_CLIENT_CREATED }), REF_DATE);
+    const result = computeOverallHealth(
+      80,
+      55,
+      55,
+      fixture({ clientCreatedAt: ESTABLISHED_CLIENT_CREATED }),
+      REF_DATE,
+    );
     expect(result).toBe('at-risk');
   });
 
   test('all scores >= 60 → healthy', () => {
-    const result = computeOverallHealth(60, 60, 60, fixture({ clientCreatedAt: ESTABLISHED_CLIENT_CREATED }), REF_DATE);
+    const result = computeOverallHealth(
+      60,
+      60,
+      60,
+      fixture({ clientCreatedAt: ESTABLISHED_CLIENT_CREATED }),
+      REF_DATE,
+    );
     expect(result).toBe('healthy');
   });
 
@@ -159,7 +195,13 @@ describe('computeHealthScores — Overall Health Rules', () => {
     // When a query fails, executor defaults scores to 50 (AC3: "gracefully defaults to 50").
     // computeOverallHealth with all-50: payment=50<60 AND communication=50<60 triggers at-risk rule.
     // "Neutral 50" refers to the score value (mid-range), not the health status — the rule still applies.
-    const overall = computeOverallHealth(50, 50, 50, fixture({ clientCreatedAt: ESTABLISHED_CLIENT_CREATED }), REF_DATE);
+    const overall = computeOverallHealth(
+      50,
+      50,
+      50,
+      fixture({ clientCreatedAt: ESTABLISHED_CLIENT_CREATED }),
+      REF_DATE,
+    );
     expect(overall).toBe('at-risk');
   });
 });

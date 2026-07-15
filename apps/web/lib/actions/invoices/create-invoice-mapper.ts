@@ -12,7 +12,10 @@ export async function mapCreatedInvoice(
   totalCents: number,
   notes: string | undefined,
   workspaceId: string,
-): Promise<{ success: true; data: Invoice } | { success: false; error: ReturnType<typeof createFlowError> }> {
+): Promise<
+  | { success: true; data: Invoice }
+  | { success: false; error: ReturnType<typeof createFlowError> }
+> {
   const { data: created } = await supabase
     .from('invoices')
     .select('*')
@@ -22,7 +25,12 @@ export async function mapCreatedInvoice(
   if (!created) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Invoice created but not found.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Invoice created but not found.',
+        'system',
+      ),
     };
   }
 

@@ -54,7 +54,11 @@ describe('Story 2.7: Agent Action History & Coordination Timeline', () => {
 
   describe('Validation Failure Notifications', () => {
     test('[P0] should define error codes for validation failures (FR24)', () => {
-      const errorCodes = ['AGENT_PRECHECK_FAILED', 'AGENT_POSTCHECK_VIOLATION', 'AGENT_EXECUTION_TIMEOUT'];
+      const errorCodes = [
+        'AGENT_PRECHECK_FAILED',
+        'AGENT_POSTCHECK_VIOLATION',
+        'AGENT_EXECUTION_TIMEOUT',
+      ];
       expect(errorCodes).toHaveLength(3);
       for (const code of errorCodes) {
         expect(code).toMatch(/^AGENT_/);

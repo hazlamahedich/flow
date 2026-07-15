@@ -22,15 +22,19 @@ export function HandledQuietlyItem({ email }: HandledQuietlyItemProps) {
   const isInfo = email.category === 'info';
 
   return (
-    <div className={cn(
-      'group relative p-3 rounded-lg border border-[var(--flow-color-border-subtle)] bg-[var(--flow-bg-surface-raised)] transition-all hover:border-[var(--flow-status-warning)]/30 hover:shadow-sm',
-      isPending && 'opacity-50 grayscale pointer-events-none',
-    )}>
+    <div
+      className={cn(
+        'group relative p-3 rounded-lg border border-[var(--flow-color-border-subtle)] bg-[var(--flow-bg-surface-raised)] transition-all hover:border-[var(--flow-status-warning)]/30 hover:shadow-sm',
+        isPending && 'opacity-50 grayscale pointer-events-none',
+      )}
+    >
       <div className="flex items-start gap-3">
-        <div className={cn(
-          'mt-1 flex items-center justify-center w-8 h-8 rounded-full',
-          isInfo ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-600',
-        )}>
+        <div
+          className={cn(
+            'mt-1 flex items-center justify-center w-8 h-8 rounded-full',
+            isInfo ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-600',
+          )}
+        >
           <Mail className="w-4 h-4" />
         </div>
 

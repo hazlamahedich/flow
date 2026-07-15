@@ -71,12 +71,15 @@ export async function executeOwnershipTransfer(params: {
     return { success: false, error: 'initiator_not_owner' };
   }
 
-  const { error: rpcError } = await serviceClient.rpc('execute_ownership_transfer', {
-    p_workspace_id: params.workspaceId,
-    p_from_user_id: transfer.from_user_id,
-    p_to_user_id: transfer.to_user_id,
-    p_transfer_id: params.transferId,
-  });
+  const { error: rpcError } = await serviceClient.rpc(
+    'execute_ownership_transfer',
+    {
+      p_workspace_id: params.workspaceId,
+      p_from_user_id: transfer.from_user_id,
+      p_to_user_id: transfer.to_user_id,
+      p_transfer_id: params.transferId,
+    },
+  );
 
   if (rpcError) {
     return { success: false, error: 'swap_failed' };

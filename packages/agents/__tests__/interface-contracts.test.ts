@@ -6,10 +6,16 @@ import { agentProposalSchema } from '@flow/types';
 describe('TC-13: AgentRunProducer mock compilation', () => {
   it('satisfies interface contract with all required methods', () => {
     const producer: AgentRunProducer = {
-      async submit() { return { runId: 'test', status: 'queued' }; },
+      async submit() {
+        return { runId: 'test', status: 'queued' };
+      },
       async cancel() {},
-      async getStatus() { return 'queued'; },
-      async listRuns() { return []; },
+      async getStatus() {
+        return 'queued';
+      },
+      async listRuns() {
+        return [];
+      },
     };
     expect(typeof producer.submit).toBe('function');
     expect(typeof producer.cancel).toBe('function');
@@ -21,7 +27,9 @@ describe('TC-13: AgentRunProducer mock compilation', () => {
 describe('TC-14: AgentRunWorker mock compilation', () => {
   it('satisfies interface contract with all required methods', () => {
     const worker: AgentRunWorker = {
-      async claim() { return null; },
+      async claim() {
+        return null;
+      },
       async complete() {},
       async fail() {},
       async propose() {},
@@ -71,11 +79,13 @@ describe('TC-15: FlowError exhaustiveness and AgentProposal validation', () => {
   });
 
   it('AgentProposal Zod validation rejects invalid proposals', () => {
-    expect(() => agentProposalSchema.parse({
-      title: '',
-      confidence: 1.5,
-      riskLevel: 'extreme',
-      reasoning: '',
-    })).toThrow();
+    expect(() =>
+      agentProposalSchema.parse({
+        title: '',
+        confidence: 1.5,
+        riskLevel: 'extreme',
+        reasoning: '',
+      }),
+    ).toThrow();
   });
 });

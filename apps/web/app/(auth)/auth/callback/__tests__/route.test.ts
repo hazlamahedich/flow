@@ -24,7 +24,11 @@ vi.mock('next/headers', () => ({
 }));
 
 vi.mock('@flow/auth/device-trust', () => ({
-  trustDevice: vi.fn().mockResolvedValue({ trusted: true, deviceToken: 'dt-1', deviceId: 'dev-1' }),
+  trustDevice: vi.fn().mockResolvedValue({
+    trusted: true,
+    deviceToken: 'dt-1',
+    deviceId: 'dev-1',
+  }),
 }));
 
 vi.mock('@flow/auth/device-types', () => ({
@@ -53,13 +57,18 @@ function mockSupabase(authOverrides: Record<string, unknown> = {}) {
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
-          is: vi.fn().mockResolvedValue({ data: [{ workspace_id: 'ws-1' }], error: null }),
+          is: vi.fn().mockResolvedValue({
+            data: [{ workspace_id: 'ws-1' }],
+            error: null,
+          }),
         }),
       }),
     }),
   };
 
-  vi.mocked(getServerSupabase).mockResolvedValue(mock as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
+  vi.mocked(getServerSupabase).mockResolvedValue(
+    mock as unknown as Awaited<ReturnType<typeof getServerSupabase>>,
+  );
   return mock;
 }
 
@@ -77,7 +86,9 @@ describe('GET /auth/callback', () => {
   });
 
   it('[P0] redirects to login with access_denied error', async () => {
-    const req = createRequest('http://localhost:3000/auth/callback?error=access_denied&email=test@test.com');
+    const req = createRequest(
+      'http://localhost:3000/auth/callback?error=access_denied&email=test@test.com',
+    );
     const response = await GET(req);
 
     expect(response.status).toBe(307);
@@ -96,7 +107,10 @@ describe('GET /auth/callback', () => {
   });
 
   it('[P0] redirects to login when rate limited', async () => {
-    vi.mocked(checkRateLimit).mockResolvedValueOnce({ allowed: false, retryAfterMs: 60000 });
+    vi.mocked(checkRateLimit).mockResolvedValueOnce({
+      allowed: false,
+      retryAfterMs: 60000,
+    });
     mockSupabase();
 
     const req = createRequest('http://localhost:3000/auth/callback?code=abc');
@@ -138,7 +152,10 @@ describe('GET /auth/callback', () => {
     const location = response.headers.get('location');
     expect(location).toContain('/onboarding');
     expect(logAuthEvent).toHaveBeenCalledWith(
-      expect.objectContaining({ action: 'magic_link_verified', outcome: 'success' }),
+      expect.objectContaining({
+        action: 'magic_link_verified',
+        outcome: 'success',
+      }),
     );
   });
 
@@ -188,7 +205,10 @@ describe('GET /auth/callback', () => {
     const mockFrom = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
-          is: vi.fn().mockResolvedValue({ data: [{ workspace_id: 'ws-1' }], error: null }),
+          is: vi.fn().mockResolvedValue({
+            data: [{ workspace_id: 'ws-1' }],
+            error: null,
+          }),
         }),
       }),
     });

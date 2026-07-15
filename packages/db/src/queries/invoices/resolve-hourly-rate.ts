@@ -24,14 +24,18 @@ export async function resolveHourlyRate(
     .eq('client_id', clientId)
     .eq('status', 'active')
     .gt('hourly_rate_cents', 0);
-  if (workspaceId) retainerQuery = retainerQuery.eq('workspace_id', workspaceId);
+  if (workspaceId)
+    retainerQuery = retainerQuery.eq('workspace_id', workspaceId);
   const { data: retainer } = await retainerQuery
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (retainer?.hourly_rate_cents) {
-    return { rateCents: Number(retainer.hourly_rate_cents), source: 'retainer' };
+    return {
+      rateCents: Number(retainer.hourly_rate_cents),
+      source: 'retainer',
+    };
   }
 
   // Priority 2: Client's own hourly_rate_cents

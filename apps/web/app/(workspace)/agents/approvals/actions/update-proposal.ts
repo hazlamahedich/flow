@@ -12,7 +12,12 @@ export async function updateProposal(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -37,7 +42,12 @@ export async function updateProposal(
   if (run.status !== 'waiting_approval') {
     return {
       success: false,
-      error: createFlowError(409, 'CONFLICT', 'This proposal changed since you started editing.', 'validation'),
+      error: createFlowError(
+        409,
+        'CONFLICT',
+        'This proposal changed since you started editing.',
+        'validation',
+      ),
     };
   }
 
@@ -79,14 +89,24 @@ export async function updateProposal(
   if (updateError) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to update proposal', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to update proposal',
+        'system',
+      ),
     };
   }
 
   if (!updated) {
     return {
       success: false,
-      error: createFlowError(409, 'CONFLICT', 'This proposal changed since you started editing.', 'validation'),
+      error: createFlowError(
+        409,
+        'CONFLICT',
+        'This proposal changed since you started editing.',
+        'validation',
+      ),
     };
   }
 

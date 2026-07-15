@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { calculateScoreChange, applyScoreChange, getRiskWeight } from '../src/scoring';
+import {
+  calculateScoreChange,
+  applyScoreChange,
+  getRiskWeight,
+} from '../src/scoring';
 import type { TrustLevel } from '../src/types';
 
 describe('scoring engine', () => {
@@ -21,11 +25,15 @@ describe('scoring engine', () => {
     });
 
     it('returns -5 for precheck failure', () => {
-      expect(calculateScoreChange('supervised', 'precheck_failure', 2.0)).toBe(-5);
+      expect(calculateScoreChange('supervised', 'precheck_failure', 2.0)).toBe(
+        -5,
+      );
     });
 
     it('returns -20 for post-execution violation', () => {
-      expect(calculateScoreChange('auto', 'post_execution_violation', 1.0)).toBe(-20);
+      expect(
+        calculateScoreChange('auto', 'post_execution_violation', 1.0),
+      ).toBe(-20);
     });
 
     it('applies risk weight to violation', () => {
@@ -35,7 +43,9 @@ describe('scoring engine', () => {
     });
 
     it('precheck failure ignores risk weight', () => {
-      expect(calculateScoreChange('supervised', 'precheck_failure', 5.0)).toBe(-5);
+      expect(calculateScoreChange('supervised', 'precheck_failure', 5.0)).toBe(
+        -5,
+      );
     });
   });
 

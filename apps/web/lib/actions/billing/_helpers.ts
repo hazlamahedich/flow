@@ -38,7 +38,12 @@ export function toFailure<T>(error: FlowErrorBase): ActionResult<T> {
 /** Returns a FORBIDDEN FlowError if the caller is not the workspace owner, else null. */
 export function requireOwner(ctx: TenantContext): FlowErrorBase | null {
   if (ctx.role !== 'owner') {
-    return createFlowError(403, 'FORBIDDEN', 'Only owners can manage billing.', 'auth');
+    return createFlowError(
+      403,
+      'FORBIDDEN',
+      'Only owners can manage billing.',
+      'auth',
+    );
   }
   return null;
 }

@@ -16,7 +16,12 @@ import { getCookieStore } from '@/lib/cookie-store';
 
 async function enqueueInitialSync(
   supabase: ReturnType<typeof createServiceClient>,
-  params: { clientInboxId: string; workspaceId: string; clientId: string; historyId: string },
+  params: {
+    clientInboxId: string;
+    workspaceId: string;
+    clientId: string;
+    historyId: string;
+  },
 ): Promise<void> {
   const runId = crypto.randomUUID();
   await supabase.from('agent_runs').insert({
@@ -29,8 +34,12 @@ async function enqueueInitialSync(
     client_id: params.clientId,
     correlation_id: crypto.randomUUID(),
   });
-  const { executeInitialSync } = await import('@flow/agents/inbox/initial-sync');
-  executeInitialSync({ clientInboxId: params.clientInboxId, historyId: params.historyId }).catch((err) => {
+  const { executeInitialSync } =
+    await import('@flow/agents/inbox/initial-sync');
+  executeInitialSync({
+    clientInboxId: params.clientInboxId,
+    historyId: params.historyId,
+  }).catch((err) => {
     console.error('[initial-sync] failed for', params.clientInboxId, err);
   });
 }
@@ -67,7 +76,9 @@ function htmlInterstitial(state: string, code: string, error?: string): string {
     </form>
   </noscript>
 </div>
-${!error ? `<script>
+${
+  !error
+    ? `<script>
   const params = new URLSearchParams(window.location.search);
   const form = document.createElement('form');
   form.method = 'POST';
@@ -79,17 +90,24 @@ ${!error ? `<script>
   form.appendChild(stateInput);
   document.body.appendChild(form);
   form.submit();
-</script>` : ''}
+</script>`
+    : ''
+}
 </body>
 </html>`;
 }
 
 function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function safeReturnTo(returnTo: string | undefined, fallback: string): string {
-  if (!returnTo || !returnTo.startsWith('/') || returnTo.startsWith('//')) return fallback;
+  if (!returnTo || !returnTo.startsWith('/') || returnTo.startsWith('//'))
+    return fallback;
   return returnTo;
 }
 
@@ -105,7 +123,10 @@ export async function GET(request: Request): Promise<Response> {
     const returnUrl = new URL(`${appUrl}/clients`);
     if (errorSubtype === 'not_verified') {
       returnUrl.searchParams.set('toast_code', 'gmail_app_not_verified');
-      returnUrl.searchParams.set('toast_msg', 'This app is in testing mode. Contact your workspace owner for access.');
+      returnUrl.searchParams.set(
+        'toast_msg',
+        'This app is in testing mode. Contact your workspace owner for access.',
+      );
     } else {
       returnUrl.searchParams.set('toast_code', 'gmail_access_denied');
       returnUrl.searchParams.set('toast_msg', 'Gmail access was not granted.');
@@ -114,10 +135,20 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   if (error) {
-    console.error(`[gmail-oauth] OAuth config error: ${error}`, url.searchParams.toString());
-    return new Response(htmlInterstitial(state, code, 'Gmail connection is not configured correctly. Please contact support.'), {
-      headers: { 'Content-Type': 'text/html' },
-    });
+    console.error(
+      `[gmail-oauth] OAuth config error: ${error}`,
+      url.searchParams.toString(),
+    );
+    return new Response(
+      htmlInterstitial(
+        state,
+        code,
+        'Gmail connection is not configured correctly. Please contact support.',
+      ),
+      {
+        headers: { 'Content-Type': 'text/html' },
+      },
+    );
   }
 
   return new Response(htmlInterstitial(state, code), {
@@ -138,41 +169,70 @@ export async function POST(request: Request): Promise<Response> {
 
   const ironPassword = process.env.IRON_SESSION_PASSWORD;
   if (!ironPassword || ironPassword.length < 32) {
-    return NextResponse.redirect(`${appUrl}/clients?toast_code=inbox_connection_failed`);
+    return NextResponse.redirect(
+      `${appUrl}/clients?toast_code=inbox_connection_failed`,
+    );
   }
 
   const cookieStore = await getCookieStore();
   const session = await getIronSession<OAuthStateCookie>(cookieStore as any, {
     password: ironPassword,
     cookieName: `oauth_pkce_${state}`,
-    cookieOptions: { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' as const, maxAge: 600, path: '/' },
+    cookieOptions: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      maxAge: 600,
+      path: '/',
+    },
   });
 
   if (!session.state || session.state !== state) {
     session.destroy();
-    return NextResponse.redirect(`${appUrl}/clients?toast_code=oauth_invalid_state`);
+    return NextResponse.redirect(
+      `${appUrl}/clients?toast_code=oauth_invalid_state`,
+    );
   }
 
-  const { codeVerifier, clientId, accessType, workspaceId, returnTo: rawReturnTo } = session;
+  const {
+    codeVerifier,
+    clientId,
+    accessType,
+    workspaceId,
+    returnTo: rawReturnTo,
+  } = session;
   const returnTo = safeReturnTo(rawReturnTo, `/clients/${clientId}`);
 
   try {
     const redirectUri = `${appUrl}/api/auth/gmail/callback`;
     const provider = new GmailProvider();
 
-    const { tokens, emailAddress } = await provider.exchangeCode(code, redirectUri, codeVerifier);
+    const { tokens, emailAddress } = await provider.exchangeCode(
+      code,
+      redirectUri,
+      codeVerifier,
+    );
 
     const supabase = createServiceClient();
 
     const normalizedEmail = emailAddress.toLowerCase();
 
-    const existingInbox = await getClientInboxByEmail(supabase, workspaceId, normalizedEmail);
+    const existingInbox = await getClientInboxByEmail(
+      supabase,
+      workspaceId,
+      normalizedEmail,
+    );
     if (existingInbox) {
-      if (existingInbox.syncStatus === 'error' || existingInbox.syncStatus === 'disconnected') {
+      if (
+        existingInbox.syncStatus === 'error' ||
+        existingInbox.syncStatus === 'disconnected'
+      ) {
         const encryptedState = encryptInboxTokens(tokens);
         const { data: updated } = await supabase
           .from('client_inboxes')
-          .update({ oauth_state: encryptedState as unknown as Record<string, unknown> })
+          .update({
+            oauth_state: encryptedState as unknown as Record<string, unknown>,
+          })
           .eq('id', existingInbox.id)
           .eq('workspace_id', workspaceId)
           .eq('updated_at', existingInbox.updatedAt ?? '')
@@ -184,13 +244,24 @@ export async function POST(request: Request): Promise<Response> {
           returnUrl.searchParams.set('toast_code', 'inbox_reconnected');
           return NextResponse.redirect(returnUrl.toString());
         }
-        await updateClientInboxSyncStatus(supabase, existingInbox.id, workspaceId, 'connected', { errorMessage: null });
+        await updateClientInboxSyncStatus(
+          supabase,
+          existingInbox.id,
+          workspaceId,
+          'connected',
+          { errorMessage: null },
+        );
 
         session.destroy();
         revalidateTag(cacheTag('workspace_client', workspaceId));
 
         const profile = await provider.getProfile(tokens.accessToken);
-        enqueueInitialSync(supabase, { clientInboxId: existingInbox.id, workspaceId, clientId, historyId: profile.historyId });
+        enqueueInitialSync(supabase, {
+          clientInboxId: existingInbox.id,
+          workspaceId,
+          clientId,
+          historyId: profile.historyId,
+        });
 
         const returnUrl = new URL(`${appUrl}${returnTo}`);
         returnUrl.searchParams.set('toast_code', 'inbox_reconnected');
@@ -219,7 +290,12 @@ export async function POST(request: Request): Promise<Response> {
         syncStatus: 'connected',
       });
     } catch (err: unknown) {
-      if (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === '23505') {
+      if (
+        err &&
+        typeof err === 'object' &&
+        'code' in err &&
+        (err as { code: string }).code === '23505'
+      ) {
         session.destroy();
         const returnUrl = new URL(`${appUrl}${returnTo}`);
         returnUrl.searchParams.set('toast_code', 'inbox_already_connected');
@@ -232,7 +308,12 @@ export async function POST(request: Request): Promise<Response> {
     revalidateTag(cacheTag('workspace_client', workspaceId));
 
     const profile = await provider.getProfile(tokens.accessToken);
-    enqueueInitialSync(supabase, { clientInboxId: inbox.id, workspaceId, clientId, historyId: profile.historyId });
+    enqueueInitialSync(supabase, {
+      clientInboxId: inbox.id,
+      workspaceId,
+      clientId,
+      historyId: profile.historyId,
+    });
 
     const returnUrl = new URL(`${appUrl}${returnTo}`);
     returnUrl.searchParams.set('toast_code', 'inbox_connected');

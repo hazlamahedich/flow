@@ -9,13 +9,17 @@ function getEncryptionKey(): Buffer {
   const key = process.env.GMAIL_ENCRYPTION_KEY;
   if (!key) {
     throw Object.assign(
-      new Error('GMAIL_ENCRYPTION_KEY is not set. Required for inbox token encryption.'),
+      new Error(
+        'GMAIL_ENCRYPTION_KEY is not set. Required for inbox token encryption.',
+      ),
       { code: 'ENCRYPTION_KEY_MISSING' as const, statusCode: 500 },
     );
   }
   if (!/^[0-9a-f]{64}$/i.test(key)) {
     throw Object.assign(
-      new Error('GMAIL_ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes).'),
+      new Error(
+        'GMAIL_ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes).',
+      ),
       { code: 'ENCRYPTION_KEY_MISSING' as const, statusCode: 500 },
     );
   }
@@ -48,10 +52,10 @@ export function decryptInboxTokens(state: OAuthStateEncrypted): OAuthTokens {
 
   const authTagLength = 16;
   if (combined.length < authTagLength) {
-    throw Object.assign(
-      new Error('Invalid encrypted state: too short'),
-      { code: 'INBOX_CONNECTION_FAILED' as const, statusCode: 500 },
-    );
+    throw Object.assign(new Error('Invalid encrypted state: too short'), {
+      code: 'INBOX_CONNECTION_FAILED' as const,
+      statusCode: 500,
+    });
   }
 
   const encrypted = combined.subarray(0, combined.length - authTagLength);
@@ -62,10 +66,13 @@ export function decryptInboxTokens(state: OAuthStateEncrypted): OAuthTokens {
 
   let decrypted: string;
   try {
-    decrypted = decipher.update(encrypted, undefined, 'utf8') + decipher.final('utf8');
+    decrypted =
+      decipher.update(encrypted, undefined, 'utf8') + decipher.final('utf8');
   } catch {
     throw Object.assign(
-      new Error('Token decryption failed: data may be tampered or key mismatch'),
+      new Error(
+        'Token decryption failed: data may be tampered or key mismatch',
+      ),
       { code: 'INBOX_CONNECTION_FAILED' as const, statusCode: 500 },
     );
   }
@@ -77,10 +84,10 @@ export function decryptInboxTokens(state: OAuthStateEncrypted): OAuthTokens {
     !('accessToken' in parsed) ||
     !('refreshToken' in parsed)
   ) {
-    throw Object.assign(
-      new Error('Decrypted data is not valid OAuth tokens'),
-      { code: 'INBOX_CONNECTION_FAILED' as const, statusCode: 500 },
-    );
+    throw Object.assign(new Error('Decrypted data is not valid OAuth tokens'), {
+      code: 'INBOX_CONNECTION_FAILED' as const,
+      statusCode: 500,
+    });
   }
 
   return parsed as OAuthTokens;

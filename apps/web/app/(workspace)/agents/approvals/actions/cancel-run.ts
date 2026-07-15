@@ -12,7 +12,12 @@ export async function cancelRun(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -37,14 +42,23 @@ export async function cancelRun(
   if (run.status === 'cancelled') {
     return {
       success: true,
-      data: { runId, newStatus: 'cancelled' as AgentRunStatus, alreadyProcessed: true },
+      data: {
+        runId,
+        newStatus: 'cancelled' as AgentRunStatus,
+        alreadyProcessed: true,
+      },
     };
   }
 
   if (run.status !== 'timed_out') {
     return {
       success: false,
-      error: createFlowError(409, 'CONFLICT', `Run is in '${run.status}' status, can only cancel timed_out runs`, 'validation'),
+      error: createFlowError(
+        409,
+        'CONFLICT',
+        `Run is in '${run.status}' status, can only cancel timed_out runs`,
+        'validation',
+      ),
     };
   }
 
@@ -62,7 +76,12 @@ export async function cancelRun(
   if (updateError) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to cancel run', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to cancel run',
+        'system',
+      ),
     };
   }
 
@@ -76,13 +95,22 @@ export async function cancelRun(
     if (current && current.status === 'cancelled') {
       return {
         success: true,
-        data: { runId, newStatus: 'cancelled' as AgentRunStatus, alreadyProcessed: true },
+        data: {
+          runId,
+          newStatus: 'cancelled' as AgentRunStatus,
+          alreadyProcessed: true,
+        },
       };
     }
 
     return {
       success: false,
-      error: createFlowError(409, 'CONFLICT', 'Run status changed concurrently', 'validation'),
+      error: createFlowError(
+        409,
+        'CONFLICT',
+        'Run status changed concurrently',
+        'validation',
+      ),
     };
   }
 

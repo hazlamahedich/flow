@@ -6,7 +6,12 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({ status, code, message, category }),
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({ status, code, message, category }),
   cacheTag: vi.fn((entity: string, id: string) => `${entity}:${id}`),
   restoreClient: vi.fn(),
 }));
@@ -28,12 +33,19 @@ const UUID = '550e8400-e29b-41d4-a716-446655440000';
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetServerSupabase.mockResolvedValue({} as never);
-  mockRequireTenantContext.mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'owner' });
+  mockRequireTenantContext.mockResolvedValue({
+    workspaceId: 'ws1',
+    userId: 'u1',
+    role: 'owner',
+  });
 });
 
 describe('restoreWorkspaceClient', () => {
   it('restores archived client successfully', async () => {
-    mockRestoreClient.mockResolvedValue({ id: UUID, status: 'active' } as never);
+    mockRestoreClient.mockResolvedValue({
+      id: UUID,
+      status: 'active',
+    } as never);
     const result = await restoreWorkspaceClient({ clientId: UUID });
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.status).toBe('active');
@@ -46,7 +58,11 @@ describe('restoreWorkspaceClient', () => {
   });
 
   it('rejects members from restoring clients', async () => {
-    mockRequireTenantContext.mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'member' });
+    mockRequireTenantContext.mockResolvedValue({
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'member',
+    });
     const result = await restoreWorkspaceClient({ clientId: UUID });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('INSUFFICIENT_ROLE');
@@ -67,8 +83,15 @@ describe('restoreWorkspaceClient', () => {
   });
 
   it('allows admin to restore', async () => {
-    mockRequireTenantContext.mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'admin' });
-    mockRestoreClient.mockResolvedValue({ id: UUID, status: 'active' } as never);
+    mockRequireTenantContext.mockResolvedValue({
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'admin',
+    });
+    mockRestoreClient.mockResolvedValue({
+      id: UUID,
+      status: 'active',
+    } as never);
     const result = await restoreWorkspaceClient({ clientId: UUID });
     expect(result.success).toBe(true);
   });

@@ -9,10 +9,18 @@ function mockLocalStorage() {
   const store: Record<string, string> = {};
   return {
     getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { Object.keys(store).forEach((k) => delete store[k]); },
-    get length() { return Object.keys(store).length; },
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      Object.keys(store).forEach((k) => delete store[k]);
+    },
+    get length() {
+      return Object.keys(store).length;
+    },
     key: () => null,
   };
 }
@@ -74,7 +82,9 @@ describe('ShortcutOverlay', () => {
     const store = createStore();
     store.set(shortcutOverlayOpenAtom, true);
     const { container } = renderOverlay(store);
-    const backdrop = container.querySelector('[data-testid="shortcut-overlay-backdrop"]');
+    const backdrop = container.querySelector(
+      '[data-testid="shortcut-overlay-backdrop"]',
+    );
     await act(async () => {
       fireEvent.click(backdrop!);
     });

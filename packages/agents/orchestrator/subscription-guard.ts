@@ -10,7 +10,11 @@
  * isolation without instantiating `PgBossWorker`.
  */
 import type { PgBoss, Job } from 'pg-boss';
-import { createServiceClient, cancelRun, getWorkspaceSubscriptionStatus } from '@flow/db';
+import {
+  createServiceClient,
+  cancelRun,
+  getWorkspaceSubscriptionStatus,
+} from '@flow/db';
 import { shouldDequeueForWorkspace } from '@flow/shared';
 import { writeAuditLog } from '../shared/audit-writer';
 import type { AgentJobPayload } from './schemas';
@@ -56,9 +60,12 @@ export async function releaseIfSubscriptionPaused(
   // EC5 — missing workspaceId (defence-in-depth; schema catches first).
   if (!payload.workspaceId) {
     writeAuditLog({
-      workspaceId: '', agentId: payload.agentId,
-      action: 'claim.missing_workspace', entityType: 'agent_run',
-      entityId: payload.runId, details: { jobId: job.id, outcome: 'released' },
+      workspaceId: '',
+      agentId: payload.agentId,
+      action: 'claim.missing_workspace',
+      entityType: 'agent_run',
+      entityId: payload.runId,
+      details: { jobId: job.id, outcome: 'released' },
     });
     try {
       await boss.fail(`agent:${payload.agentId}`, job.id, {
@@ -69,17 +76,27 @@ export async function releaseIfSubscriptionPaused(
     } catch (failErr) {
       // Non-fatal, but audit the failure so ops can see stuck jobs.
       writeAuditLog({
-        workspaceId: '', agentId: payload.agentId,
-        action: 'claim.missing_workspace.fail_error', entityType: 'agent_run',
+        workspaceId: '',
+        agentId: payload.agentId,
+        action: 'claim.missing_workspace.fail_error',
+        entityType: 'agent_run',
         entityId: payload.runId,
-        details: { jobId: job.id, error: failErr instanceof Error ? failErr.message : String(failErr) },
+        details: {
+          jobId: job.id,
+          error: failErr instanceof Error ? failErr.message : String(failErr),
+        },
       });
     }
     return true;
   }
 
-  const subscriptionStatus = await getWorkspaceSubscriptionStatus(payload.workspaceId);
-  if (subscriptionStatus !== null && shouldDequeueForWorkspace(subscriptionStatus)) {
+  const subscriptionStatus = await getWorkspaceSubscriptionStatus(
+    payload.workspaceId,
+  );
+  if (
+    subscriptionStatus !== null &&
+    shouldDequeueForWorkspace(subscriptionStatus)
+  ) {
     return false; // proceed with the claim
   }
 

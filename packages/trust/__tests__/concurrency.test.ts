@@ -29,12 +29,23 @@ function makeDeps(overrides: Record<string, unknown> = {}) {
   return {
     getTrustMatrixEntry: vi.fn(),
     upsertTrustMatrixEntry: vi.fn().mockResolvedValue(makeEntry()),
-    insertSnapshot: vi.fn().mockResolvedValue({ id: 'snap-1', created_at: new Date().toISOString() }),
+    insertSnapshot: vi.fn().mockResolvedValue({
+      id: 'snap-1',
+      created_at: new Date().toISOString(),
+    }),
     getPreconditions: vi.fn().mockResolvedValue([]),
-    recordSuccess: vi.fn().mockResolvedValue(makeEntry({ score: 51, version: 2 })),
-    recordViolation: vi.fn().mockResolvedValue(makeEntry({ score: 40, version: 2 })),
-    recordPrecheckFailure: vi.fn().mockResolvedValue(makeEntry({ score: 45, version: 2 })),
-    updateTrustMatrixEntry: vi.fn().mockResolvedValue(makeEntry({ version: 2 })),
+    recordSuccess: vi
+      .fn()
+      .mockResolvedValue(makeEntry({ score: 51, version: 2 })),
+    recordViolation: vi
+      .fn()
+      .mockResolvedValue(makeEntry({ score: 40, version: 2 })),
+    recordPrecheckFailure: vi
+      .fn()
+      .mockResolvedValue(makeEntry({ score: 45, version: 2 })),
+    updateTrustMatrixEntry: vi
+      .fn()
+      .mockResolvedValue(makeEntry({ version: 2 })),
     insertTransition: vi.fn().mockResolvedValue({}),
     ...overrides,
   };
@@ -44,39 +55,84 @@ describe('concurrency', () => {
   it('two concurrent recordSuccess calls both succeed', async () => {
     let callCount = 0;
     const deps = makeDeps({
-      upsertTrustMatrixEntry: vi.fn().mockResolvedValue(makeEntry({ version: 1 })),
+      upsertTrustMatrixEntry: vi
+        .fn()
+        .mockResolvedValue(makeEntry({ version: 1 })),
       insertSnapshot: vi
         .fn()
-        .mockResolvedValueOnce({ id: 'snap-a', created_at: new Date().toISOString() })
-        .mockResolvedValueOnce({ id: 'snap-b', created_at: new Date().toISOString() }),
+        .mockResolvedValueOnce({
+          id: 'snap-a',
+          created_at: new Date().toISOString(),
+        })
+        .mockResolvedValueOnce({
+          id: 'snap-b',
+          created_at: new Date().toISOString(),
+        }),
       recordSuccess: vi.fn().mockImplementation(async () => {
         callCount++;
         return makeEntry({ score: 50 + callCount, version: 1 + callCount });
       }),
     });
     const client = createTrustClient(deps);
-    const d1 = await client.canAct('inbox', 'categorize_email', 'ws-1', 'exec-1', {});
-    const d2 = await client.canAct('inbox', 'categorize_email', 'ws-1', 'exec-2', {});
-    await Promise.all([client.recordSuccess(d1.snapshotId!), client.recordSuccess(d2.snapshotId!)]);
+    const d1 = await client.canAct(
+      'inbox',
+      'categorize_email',
+      'ws-1',
+      'exec-1',
+      {},
+    );
+    const d2 = await client.canAct(
+      'inbox',
+      'categorize_email',
+      'ws-1',
+      'exec-2',
+      {},
+    );
+    await Promise.all([
+      client.recordSuccess(d1.snapshotId!),
+      client.recordSuccess(d2.snapshotId!),
+    ]);
     expect(callCount).toBe(2);
   });
 
   it('two concurrent recordViolation calls both attempt', async () => {
     let callCount = 0;
     const deps = makeDeps({
-      upsertTrustMatrixEntry: vi.fn().mockResolvedValue(makeEntry({ current_level: 'confirm', score: 120, version: 1 })),
+      upsertTrustMatrixEntry: vi
+        .fn()
+        .mockResolvedValue(
+          makeEntry({ current_level: 'confirm', score: 120, version: 1 }),
+        ),
       insertSnapshot: vi
         .fn()
-        .mockResolvedValueOnce({ id: 'snap-a', created_at: new Date().toISOString() })
-        .mockResolvedValueOnce({ id: 'snap-b', created_at: new Date().toISOString() }),
+        .mockResolvedValueOnce({
+          id: 'snap-a',
+          created_at: new Date().toISOString(),
+        })
+        .mockResolvedValueOnce({
+          id: 'snap-b',
+          created_at: new Date().toISOString(),
+        }),
       recordViolation: vi.fn().mockImplementation(async () => {
         callCount++;
         return makeEntry({ score: 110 - callCount, version: 1 + callCount });
       }),
     });
     const client = createTrustClient(deps);
-    const d1 = await client.canAct('inbox', 'categorize_email', 'ws-1', 'exec-1', {});
-    const d2 = await client.canAct('inbox', 'categorize_email', 'ws-1', 'exec-2', {});
+    const d1 = await client.canAct(
+      'inbox',
+      'categorize_email',
+      'ws-1',
+      'exec-1',
+      {},
+    );
+    const d2 = await client.canAct(
+      'inbox',
+      'categorize_email',
+      'ws-1',
+      'exec-2',
+      {},
+    );
     await Promise.all([
       client.recordViolation(d1.snapshotId!, 'soft'),
       client.recordViolation(d2.snapshotId!, 'soft'),
@@ -86,35 +142,67 @@ describe('concurrency', () => {
 
   it('CAS stale version returns error', async () => {
     const deps = makeDeps({
-      upsertTrustMatrixEntry: vi.fn().mockResolvedValue(makeEntry({ version: 1 })),
-      recordSuccess: vi.fn().mockRejectedValue(
-        new TrustTransitionError('CONCURRENT_MODIFICATION', 'version mismatch', { retryable: true }),
-      ),
+      upsertTrustMatrixEntry: vi
+        .fn()
+        .mockResolvedValue(makeEntry({ version: 1 })),
+      recordSuccess: vi
+        .fn()
+        .mockRejectedValue(
+          new TrustTransitionError(
+            'CONCURRENT_MODIFICATION',
+            'version mismatch',
+            { retryable: true },
+          ),
+        ),
     });
     const client = createTrustClient(deps);
-    const decision = await client.canAct('inbox', 'categorize_email', 'ws-1', 'exec-1', {});
-    await expect(client.recordSuccess(decision.snapshotId!)).resolves.toBeUndefined();
+    const decision = await client.canAct(
+      'inbox',
+      'categorize_email',
+      'ws-1',
+      'exec-1',
+      {},
+    );
+    await expect(
+      client.recordSuccess(decision.snapshotId!),
+    ).resolves.toBeUndefined();
   });
 
   it('snapshot matrix_version matches trust_matrix version at capture time', async () => {
-    const entry = makeEntry({ current_level: 'confirm', score: 120, version: 5 });
+    const entry = makeEntry({
+      current_level: 'confirm',
+      score: 120,
+      version: 5,
+    });
     let capturedSnapshot: Record<string, unknown> | null = null;
     const deps = makeDeps({
       upsertTrustMatrixEntry: vi.fn().mockResolvedValue(entry),
-      insertSnapshot: vi.fn().mockImplementation(async (snap: Record<string, unknown>) => {
-        capturedSnapshot = snap;
-        return { id: 'snap-v5', created_at: new Date().toISOString() };
-      }),
+      insertSnapshot: vi
+        .fn()
+        .mockImplementation(async (snap: Record<string, unknown>) => {
+          capturedSnapshot = snap;
+          return { id: 'snap-v5', created_at: new Date().toISOString() };
+        }),
     });
     const client = createTrustClient(deps);
     await client.canAct('inbox', 'categorize_email', 'ws-1', 'exec-1', {});
     expect(capturedSnapshot).toBeTruthy();
-    expect((capturedSnapshot as unknown as Record<string, unknown>).matrix_version).toBe(5);
+    expect(
+      (capturedSnapshot as unknown as Record<string, unknown>).matrix_version,
+    ).toBe(5);
   });
 
   it('read during transition sees old or new state, never partial', async () => {
-    const entryV1 = makeEntry({ current_level: 'supervised', score: 50, version: 1 });
-    const entryV2 = makeEntry({ current_level: 'confirm', score: 120, version: 2 });
+    const entryV1 = makeEntry({
+      current_level: 'supervised',
+      score: 50,
+      version: 1,
+    });
+    const entryV2 = makeEntry({
+      current_level: 'confirm',
+      score: 120,
+      version: 2,
+    });
 
     const deps = makeDeps({
       upsertTrustMatrixEntry: vi
@@ -135,11 +223,21 @@ describe('concurrency', () => {
     let successCalled = false;
     let violationCalled = false;
     const deps = makeDeps({
-      upsertTrustMatrixEntry: vi.fn().mockResolvedValue(makeEntry({ current_level: 'confirm', score: 100, version: 1 })),
+      upsertTrustMatrixEntry: vi
+        .fn()
+        .mockResolvedValue(
+          makeEntry({ current_level: 'confirm', score: 100, version: 1 }),
+        ),
       insertSnapshot: vi
         .fn()
-        .mockResolvedValueOnce({ id: 'snap-s', created_at: new Date().toISOString() })
-        .mockResolvedValueOnce({ id: 'snap-v', created_at: new Date().toISOString() }),
+        .mockResolvedValueOnce({
+          id: 'snap-s',
+          created_at: new Date().toISOString(),
+        })
+        .mockResolvedValueOnce({
+          id: 'snap-v',
+          created_at: new Date().toISOString(),
+        }),
       recordSuccess: vi.fn().mockImplementation(async () => {
         successCalled = true;
         return makeEntry({ score: 101, version: 2 });
@@ -150,8 +248,20 @@ describe('concurrency', () => {
       }),
     });
     const client = createTrustClient(deps);
-    const ds = await client.canAct('inbox', 'categorize_email', 'ws-1', 'exec-1', {});
-    const dv = await client.canAct('inbox', 'categorize_email', 'ws-1', 'exec-2', {});
+    const ds = await client.canAct(
+      'inbox',
+      'categorize_email',
+      'ws-1',
+      'exec-1',
+      {},
+    );
+    const dv = await client.canAct(
+      'inbox',
+      'categorize_email',
+      'ws-1',
+      'exec-2',
+      {},
+    );
     await Promise.all([
       client.recordSuccess(ds.snapshotId!),
       client.recordViolation(dv.snapshotId!, 'soft'),

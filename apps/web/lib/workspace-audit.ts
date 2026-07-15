@@ -1,7 +1,9 @@
 import { getServerSupabase } from '@/lib/supabase-server';
 import type { WorkspaceAuditEvent } from '@flow/types';
 
-export async function logWorkspaceEvent(event: WorkspaceAuditEvent): Promise<void> {
+export async function logWorkspaceEvent(
+  event: WorkspaceAuditEvent,
+): Promise<void> {
   try {
     const supabase = await getServerSupabase();
 

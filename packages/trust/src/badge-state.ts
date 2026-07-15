@@ -52,7 +52,10 @@ export const TRUST_BADGE_DISPLAY: Record<
   },
 };
 
-export const VALID_BADGE_TRANSITIONS: Record<TrustBadgeState, TrustBadgeState[]> = {
+export const VALID_BADGE_TRANSITIONS: Record<
+  TrustBadgeState,
+  TrustBadgeState[]
+> = {
   supervised: ['promoting'],
   promoting: ['confirm', 'supervised', 'auto'],
   confirm: ['promoting', 'regressing'],
@@ -75,7 +78,10 @@ export class InvalidTransitionError extends Error {
 
 const MS_PER_DAY = 86_400_000;
 
-export function deriveBadgeState(entry: TrustMatrixEntry, now: Date): TrustBadgeState {
+export function deriveBadgeState(
+  entry: TrustMatrixEntry,
+  now: Date,
+): TrustBadgeState {
   const level = entry.currentLevel;
   const consecutive = entry.consecutiveSuccesses;
   const score = entry.score;
@@ -91,7 +97,8 @@ export function deriveBadgeState(entry: TrustMatrixEntry, now: Date): TrustBadge
   }
 
   if (level === 'confirm') {
-    if (score >= 140 && consecutive >= 14 && entry.totalExecutions >= 20) return 'promoting';
+    if (score >= 140 && consecutive >= 14 && entry.totalExecutions >= 20)
+      return 'promoting';
     return 'confirm';
   }
 
@@ -111,7 +118,10 @@ export function deriveBadgeState(entry: TrustMatrixEntry, now: Date): TrustBadge
  * UI state that precedes the level actually changing in the database.
  */
 
-export function assertValidBadgeTransition(from: TrustBadgeState, to: TrustBadgeState): void {
+export function assertValidBadgeTransition(
+  from: TrustBadgeState,
+  to: TrustBadgeState,
+): void {
   const allowed = VALID_BADGE_TRANSITIONS[from];
   if (!allowed || !allowed.includes(to)) {
     throw new InvalidTransitionError(from, to);

@@ -38,7 +38,10 @@ export function QueueItemRow({
   onAnnounce,
 }: QueueItemRowProps) {
   const runId = item.run.id;
-  const itemTitle = item.proposalType === 'agent_proposal' ? item.proposal.title : `Trust gate: ${item.block.reason}`;
+  const itemTitle =
+    item.proposalType === 'agent_proposal'
+      ? item.proposal.title
+      : `Trust gate: ${item.block.reason}`;
 
   return (
     <div id={`proposal-${runId}`}>
@@ -58,7 +61,8 @@ export function QueueItemRow({
           proposal={item.proposal}
           reasoning={item.proposal.reasoning}
           onSave={async (changes) => {
-            const { updateProposal } = await import('../actions/update-proposal');
+            const { updateProposal } =
+              await import('../actions/update-proposal');
             const result = await updateProposal({ runId, ...changes });
             if (result.success) {
               onSetEditing(null);
@@ -114,7 +118,10 @@ export function QueueItemRow({
       )}
 
       {errorMsg && (
-        <p className="mt-1 pl-11 text-xs text-[var(--flow-status-error)]" role="alert">
+        <p
+          className="mt-1 pl-11 text-xs text-[var(--flow-status-error)]"
+          role="alert"
+        >
           {errorMsg}
         </p>
       )}

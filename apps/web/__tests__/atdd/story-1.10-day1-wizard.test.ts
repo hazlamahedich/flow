@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { STEPS, COMPLETION_STEP, isValidStep, getNextStep, getStepLabel, getTotalSteps } from '@/app/(onboarding)/onboarding/_lib/steps';
+import {
+  STEPS,
+  COMPLETION_STEP,
+  isValidStep,
+  getNextStep,
+  getStepLabel,
+  getTotalSteps,
+} from '@/app/(onboarding)/onboarding/_lib/steps';
 
 describe('Story 1.10: Day 1 Micro-Wizard & Aha Glimpse', () => {
   describe('AC: wizard steps cover signup to agent proposal', () => {
@@ -80,7 +87,11 @@ describe('Story 1.10: Day 1 Micro-Wizard & Aha Glimpse', () => {
   });
 
   describe('AC: working-style preference questions', () => {
-    const preferenceCategories = ['communication', 'trust_level', 'notification_style'] as const;
+    const preferenceCategories = [
+      'communication',
+      'trust_level',
+      'notification_style',
+    ] as const;
 
     it('has trust-related preference categories', () => {
       expect(preferenceCategories).toContain('trust_level');

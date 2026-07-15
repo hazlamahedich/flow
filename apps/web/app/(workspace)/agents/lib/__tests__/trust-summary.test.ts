@@ -17,7 +17,10 @@ vi.mock('@/lib/supabase-server', () => ({
   })),
 }));
 
-import { getTrustSummaryForWorkspace, getTrustMilestones } from '../trust-summary';
+import {
+  getTrustSummaryForWorkspace,
+  getTrustMilestones,
+} from '../trust-summary';
 
 const WS_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -34,21 +37,24 @@ describe('getTrustSummaryForWorkspace', () => {
   });
 
   it('returns mapped rows for a workspace', async () => {
-    setupQuery([
-      {
-        workspace_id: WS_ID,
-        agent_id: 'inbox',
-        current_level: 'supervised',
-        score: 50,
-        consecutive_successes: 3,
-        total_executions: 10,
-        successful_executions: 8,
-        violation_count: 1,
-        last_transition_at: '2025-01-01T00:00:00Z',
-        last_violation_at: null,
-        action_type: 'general',
-      },
-    ], null);
+    setupQuery(
+      [
+        {
+          workspace_id: WS_ID,
+          agent_id: 'inbox',
+          current_level: 'supervised',
+          score: 50,
+          consecutive_successes: 3,
+          total_executions: 10,
+          successful_executions: 8,
+          violation_count: 1,
+          last_transition_at: '2025-01-01T00:00:00Z',
+          last_violation_at: null,
+          action_type: 'general',
+        },
+      ],
+      null,
+    );
 
     const result = await getTrustSummaryForWorkspace(WS_ID);
     expect(result).toHaveLength(1);
@@ -67,23 +73,31 @@ describe('getTrustSummaryForWorkspace', () => {
   it('throws on database error', async () => {
     setupQuery(null, { message: 'db error', code: 'XX000' });
 
-    await expect(getTrustSummaryForWorkspace(WS_ID)).rejects.toEqual({ message: 'db error', code: 'XX000' });
+    await expect(getTrustSummaryForWorkspace(WS_ID)).rejects.toEqual({
+      message: 'db error',
+      code: 'XX000',
+    });
   });
 
   it('maps snake_case to camelCase', async () => {
-    setupQuery([{
-      workspace_id: WS_ID,
-      agent_id: 'calendar',
-      current_level: 'auto',
-      score: 180,
-      consecutive_successes: 50,
-      total_executions: 100,
-      successful_executions: 98,
-      violation_count: 0,
-      last_transition_at: '2025-01-01T00:00:00Z',
-      last_violation_at: null,
-      action_type: 'general',
-    }], null);
+    setupQuery(
+      [
+        {
+          workspace_id: WS_ID,
+          agent_id: 'calendar',
+          current_level: 'auto',
+          score: 180,
+          consecutive_successes: 50,
+          total_executions: 100,
+          successful_executions: 98,
+          violation_count: 0,
+          last_transition_at: '2025-01-01T00:00:00Z',
+          last_violation_at: null,
+          action_type: 'general',
+        },
+      ],
+      null,
+    );
 
     const result = await getTrustSummaryForWorkspace(WS_ID);
     expect(result[0]!.workspaceId).toBe(WS_ID);
@@ -100,19 +114,24 @@ describe('getTrustSummaryForWorkspace', () => {
   });
 
   it('handles partial data with null violation', async () => {
-    setupQuery([{
-      workspace_id: WS_ID,
-      agent_id: 'inbox',
-      current_level: 'supervised',
-      score: 20,
-      consecutive_successes: 0,
-      total_executions: 3,
-      successful_executions: 1,
-      violation_count: 2,
-      last_transition_at: '2025-01-01T00:00:00Z',
-      last_violation_at: null,
-      action_type: 'general',
-    }], null);
+    setupQuery(
+      [
+        {
+          workspace_id: WS_ID,
+          agent_id: 'inbox',
+          current_level: 'supervised',
+          score: 20,
+          consecutive_successes: 0,
+          total_executions: 3,
+          successful_executions: 1,
+          violation_count: 2,
+          last_transition_at: '2025-01-01T00:00:00Z',
+          last_violation_at: null,
+          action_type: 'general',
+        },
+      ],
+      null,
+    );
 
     const result = await getTrustSummaryForWorkspace(WS_ID);
     expect(result[0]!.lastViolationAt).toBeNull();
@@ -126,13 +145,18 @@ describe('getTrustMilestones', () => {
   });
 
   it('returns mapped milestones', async () => {
-    setupQuery([{
-      agent_id: 'inbox',
-      milestone_type: 'hundred_tasks',
-      threshold: 100,
-      achieved_at: '2025-03-01T00:00:00Z',
-      acknowledged_at: null,
-    }], null);
+    setupQuery(
+      [
+        {
+          agent_id: 'inbox',
+          milestone_type: 'hundred_tasks',
+          threshold: 100,
+          achieved_at: '2025-03-01T00:00:00Z',
+          acknowledged_at: null,
+        },
+      ],
+      null,
+    );
 
     const result = await getTrustMilestones(WS_ID);
     expect(result).toHaveLength(1);
@@ -158,6 +182,8 @@ describe('getTrustMilestones', () => {
   it('throws on database error', async () => {
     setupQuery(null, { message: 'fail' });
 
-    await expect(getTrustMilestones(WS_ID)).rejects.toEqual({ message: 'fail' });
+    await expect(getTrustMilestones(WS_ID)).rejects.toEqual({
+      message: 'fail',
+    });
   });
 });

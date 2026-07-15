@@ -1,9 +1,12 @@
-export const EMPTY_STATE_NEVER = 'Your agents haven\'t taken any actions yet. They will appear here as they start working for you.';
-export const EMPTY_STATE_FILTERED = 'No actions match your filters. Try adjusting the date range or agent filter.';
-export const EMPTY_STATE_ERROR = 'We couldn\'t load your timeline. Your actions are safe — we\'ll try again.';
+export const EMPTY_STATE_NEVER =
+  "Your agents haven't taken any actions yet. They will appear here as they start working for you.";
+export const EMPTY_STATE_FILTERED =
+  'No actions match your filters. Try adjusting the date range or agent filter.';
+export const EMPTY_STATE_ERROR =
+  "We couldn't load your timeline. Your actions are safe — we'll try again.";
 
 export const ERROR_TONE = {
-  header: 'Hmm, that didn\'t work as expected',
+  header: "Hmm, that didn't work as expected",
   cta: 'Try again',
 } as const;
 

@@ -27,7 +27,9 @@ describe('getPendingEmailChange', () => {
   });
 
   it('returns unauthorized when no session', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser(null) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser(null) as never,
+    );
     const result = await getPendingEmailChange(null);
     expect(result.success).toBe(false);
     if (!result.success) {

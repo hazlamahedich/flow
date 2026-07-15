@@ -1,4 +1,9 @@
-import type { AgentId, AgentRun, AgentProposal, ApprovalQueueItem } from '@flow/types';
+import type {
+  AgentId,
+  AgentRun,
+  AgentProposal,
+  ApprovalQueueItem,
+} from '@flow/types';
 
 interface AgentRunOverrides {
   id?: string;
@@ -38,7 +43,9 @@ export function buildAgentRun(overrides: AgentRunOverrides = {}): AgentRun {
   };
 }
 
-export function buildAgentProposal(overrides: Partial<AgentProposal> = {}): AgentProposal {
+export function buildAgentProposal(
+  overrides: Partial<AgentProposal> = {},
+): AgentProposal {
   return {
     title: overrides.title ?? 'Test Proposal',
     confidence: overrides.confidence ?? 0.85,
@@ -72,7 +79,9 @@ export function buildApprovalQueueItem(
 
   const block = {
     decision: overrides.blockOverrides?.decision ?? 'blocked',
-    reason: overrides.blockOverrides?.reason ?? 'Agent trust level too low for autonomous execution',
+    reason:
+      overrides.blockOverrides?.reason ??
+      'Agent trust level too low for autonomous execution',
   };
   return {
     proposalType: 'trust_blocked',
@@ -90,8 +99,12 @@ export function buildBatchApprovalItems(
 ): ApprovalQueueItem[] {
   return Array.from({ length: count }, () =>
     buildApprovalQueueItem({
-      ...(overrides.proposalType != null ? { proposalType: overrides.proposalType } : {}),
-      ...(overrides.runOverrides != null ? { runOverrides: overrides.runOverrides } : {}),
+      ...(overrides.proposalType != null
+        ? { proposalType: overrides.proposalType }
+        : {}),
+      ...(overrides.runOverrides != null
+        ? { runOverrides: overrides.runOverrides }
+        : {}),
     }),
   );
 }

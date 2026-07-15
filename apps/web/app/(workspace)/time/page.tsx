@@ -37,7 +37,9 @@ export default async function TimePage() {
   } catch {
     return (
       <div className="p-8 text-center">
-        <p className="text-muted-foreground">Failed to load time entries. Please refresh.</p>
+        <p className="text-muted-foreground">
+          Failed to load time entries. Please refresh.
+        </p>
       </div>
     );
   }

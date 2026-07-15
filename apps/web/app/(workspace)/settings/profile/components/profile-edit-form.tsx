@@ -8,11 +8,18 @@ import { TimezoneSelect } from './timezone-select';
 interface ProfileEditFormProps {
   profile: UserProfile;
   updateAction: (input: unknown) => Promise<ActionResult<UserProfile>>;
-  uploadAction: (formData: FormData) => Promise<ActionResult<{ avatarUrl: string }>>;
+  uploadAction: (
+    formData: FormData,
+  ) => Promise<ActionResult<{ avatarUrl: string }>>;
   removeAction: () => Promise<ActionResult<void>>;
 }
 
-export function ProfileEditForm({ profile, updateAction, uploadAction, removeAction }: ProfileEditFormProps) {
+export function ProfileEditForm({
+  profile,
+  updateAction,
+  uploadAction,
+  removeAction,
+}: ProfileEditFormProps) {
   const [selectedTimezone, setSelectedTimezone] = useState<string | null>(null);
 
   const [state, submitAction, isPending] = useActionState(
@@ -30,11 +37,18 @@ export function ProfileEditForm({ profile, updateAction, uploadAction, removeAct
 
   return (
     <div className="space-y-8">
-      <AvatarUpload profile={currentProfile} uploadAction={uploadAction} removeAction={removeAction} />
+      <AvatarUpload
+        profile={currentProfile}
+        uploadAction={uploadAction}
+        removeAction={removeAction}
+      />
 
       <form action={submitAction} className="space-y-4">
         <div className="space-y-1">
-          <label htmlFor="profile-name" className="text-sm font-medium text-[var(--flow-color-text-primary)]">
+          <label
+            htmlFor="profile-name"
+            className="text-sm font-medium text-[var(--flow-color-text-primary)]"
+          >
             Display name
           </label>
           <input
@@ -49,7 +63,10 @@ export function ProfileEditForm({ profile, updateAction, uploadAction, removeAct
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="profile-timezone" className="text-sm font-medium text-[var(--flow-color-text-primary)]">
+          <label
+            htmlFor="profile-timezone"
+            className="text-sm font-medium text-[var(--flow-color-text-primary)]"
+          >
             Timezone
           </label>
           <input type="hidden" name="timezone" value={displayTimezone} />
@@ -65,7 +82,9 @@ export function ProfileEditForm({ profile, updateAction, uploadAction, removeAct
         </div>
 
         {errorMessage && (
-          <p className="text-sm text-[var(--flow-status-error)]">{errorMessage}</p>
+          <p className="text-sm text-[var(--flow-status-error)]">
+            {errorMessage}
+          </p>
         )}
 
         <button

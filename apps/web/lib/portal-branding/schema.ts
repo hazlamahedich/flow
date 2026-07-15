@@ -26,12 +26,18 @@ import {
 import { PORTAL_BRANDING_PRESETS } from './presets';
 
 /** Known preset names derived from the curated preset record. */
-const PRESET_NAMES = Object.keys(PORTAL_BRANDING_PRESETS) as [string, ...string[]];
+const PRESET_NAMES = Object.keys(PORTAL_BRANDING_PRESETS) as [
+  string,
+  ...string[],
+];
 
 /** Hex color: 3 or 6 digit, uppercase or lowercase. */
 export const hexColorSchema = z
   .string()
-  .regex(/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/, 'Must be a valid hex color (e.g. #D4A574)');
+  .regex(
+    /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/,
+    'Must be a valid hex color (e.g. #D4A574)',
+  );
 
 /** Font name from the allowlist. */
 export const fontNameSchema = z

@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { evaluatePreconditions } from '../src/pre-check';
 import type { PreconditionEntry } from '../src/pre-check';
 
-function makePrecondition(overrides: Partial<PreconditionEntry> = {}): PreconditionEntry {
+function makePrecondition(
+  overrides: Partial<PreconditionEntry> = {},
+): PreconditionEntry {
   return {
     condition_key: 'client_status',
     condition_expr: 'active',
@@ -13,19 +15,17 @@ function makePrecondition(overrides: Partial<PreconditionEntry> = {}): Precondit
 
 describe('evaluatePreconditions', () => {
   it('passes when all preconditions match', () => {
-    const result = evaluatePreconditions(
-      [makePrecondition()],
-      { client_status: 'active' },
-    );
+    const result = evaluatePreconditions([makePrecondition()], {
+      client_status: 'active',
+    });
     expect(result.passed).toBe(true);
     expect(result.failedKey).toBeUndefined();
   });
 
   it('fails when single precondition does not match', () => {
-    const result = evaluatePreconditions(
-      [makePrecondition()],
-      { client_status: 'inactive' },
-    );
+    const result = evaluatePreconditions([makePrecondition()], {
+      client_status: 'inactive',
+    });
     expect(result.passed).toBe(false);
     expect(result.failedKey).toBe('client_status');
   });
@@ -33,8 +33,14 @@ describe('evaluatePreconditions', () => {
   it('fails on first failing precondition with multiple', () => {
     const result = evaluatePreconditions(
       [
-        makePrecondition({ condition_key: 'client_status', condition_expr: 'active' }),
-        makePrecondition({ condition_key: 'time_of_day', condition_expr: 'business_hours' }),
+        makePrecondition({
+          condition_key: 'client_status',
+          condition_expr: 'active',
+        }),
+        makePrecondition({
+          condition_key: 'time_of_day',
+          condition_expr: 'business_hours',
+        }),
       ],
       { client_status: 'active', time_of_day: 'after_hours' },
     );

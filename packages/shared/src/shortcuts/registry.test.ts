@@ -3,7 +3,9 @@ import { createShortcutRegistry, safeHandler } from './registry';
 import type { ShortcutDefinition } from './types';
 import { isInputFocused, hasModifierKey, isImeComposing } from './input-guard';
 
-function makeShortcut(overrides: Partial<ShortcutDefinition> = {}): ShortcutDefinition {
+function makeShortcut(
+  overrides: Partial<ShortcutDefinition> = {},
+): ShortcutDefinition {
   return {
     key: 'k',
     context: 'global',
@@ -14,7 +16,9 @@ function makeShortcut(overrides: Partial<ShortcutDefinition> = {}): ShortcutDefi
   };
 }
 
-function makeKeyboardEvent(overrides: Partial<KeyboardEventInit> = {}): KeyboardEvent {
+function makeKeyboardEvent(
+  overrides: Partial<KeyboardEventInit> = {},
+): KeyboardEvent {
   return new KeyboardEvent('keydown', {
     key: 'k',
     bubbles: true,
@@ -100,19 +104,23 @@ describe('createShortcutRegistry', () => {
     });
 
     it('respects guard returning false', () => {
-      registry.register(makeShortcut({
-        key: 'k',
-        guard: () => false,
-      }));
+      registry.register(
+        makeShortcut({
+          key: 'k',
+          guard: () => false,
+        }),
+      );
       const result = registry.resolve(makeKeyboardEvent({ key: 'k' }));
       expect(result).toBeUndefined();
     });
 
     it('respects guard returning true', () => {
-      registry.register(makeShortcut({
-        key: 'k',
-        guard: () => true,
-      }));
+      registry.register(
+        makeShortcut({
+          key: 'k',
+          guard: () => true,
+        }),
+      );
       const result = registry.resolve(makeKeyboardEvent({ key: 'k' }));
       expect(result).toBeDefined();
     });
@@ -254,7 +262,10 @@ describe('hasModifierKey', () => {
 
 describe('isImeComposing', () => {
   it('returns true when isComposing is true', () => {
-    const e = new KeyboardEvent('keydown', { key: 'a', bubbles: true } as KeyboardEventInit);
+    const e = new KeyboardEvent('keydown', {
+      key: 'a',
+      bubbles: true,
+    } as KeyboardEventInit);
     Object.defineProperty(e, 'isComposing', { value: true });
     expect(isImeComposing(e)).toBe(true);
   });

@@ -1,9 +1,19 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act, waitFor, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+  cleanup,
+} from '@testing-library/react';
 import { Provider } from 'jotai';
 import { createStore } from 'jotai';
-import { overlayStackAtom, type OverlayEntry } from '../../../../../lib/atoms/overlay';
+import {
+  overlayStackAtom,
+  type OverlayEntry,
+} from '../../../../../lib/atoms/overlay';
 import { mockMatchMedia } from './helpers/match-media-mock';
 
 mockMatchMedia();
@@ -11,7 +21,12 @@ mockMatchMedia();
 vi.mock('../../actions/trust-actions', () => ({
   undoRegression: vi.fn().mockResolvedValue({
     success: true,
-    data: { matrixEntryId: 'm1', fromLevel: 'confirm', toLevel: 'auto', version: 3 },
+    data: {
+      matrixEntryId: 'm1',
+      fromLevel: 'confirm',
+      toLevel: 'auto',
+      version: 3,
+    },
   }),
 }));
 
@@ -21,7 +36,9 @@ vi.mock('../../../../lib/hooks/use-trust-announcer', () => ({
 
 import { TrustRecovery } from '../trust-recovery';
 
-function makeRecoveryEntry(overrides: Partial<OverlayEntry> = {}): OverlayEntry {
+function makeRecoveryEntry(
+  overrides: Partial<OverlayEntry> = {},
+): OverlayEntry {
   return {
     id: 'recovery-1',
     type: 'trust-recovery',
@@ -44,7 +61,10 @@ function makeRecoveryEntry(overrides: Partial<OverlayEntry> = {}): OverlayEntry 
   };
 }
 
-function renderWithStore(store: ReturnType<typeof createStore>, entry: OverlayEntry) {
+function renderWithStore(
+  store: ReturnType<typeof createStore>,
+  entry: OverlayEntry,
+) {
   return render(
     <Provider store={store}>
       <TrustRecovery entry={entry} />
@@ -65,7 +85,9 @@ describe('TrustRecovery', () => {
 
   it('renders with behavioral title', () => {
     renderWithStore(store, makeRecoveryEntry());
-    expect(screen.getByText("We've Adjusted Inbox's Permissions")).toBeInTheDocument();
+    expect(
+      screen.getByText("We've Adjusted Inbox's Permissions"),
+    ).toBeInTheDocument();
   });
 
   it('never shows "Trust level decreased" or "Agent failed"', () => {
@@ -78,34 +100,49 @@ describe('TrustRecovery', () => {
 
   it('shows capability list in summary', () => {
     renderWithStore(store, makeRecoveryEntry());
-    expect(screen.getByText(/email categorization, draft responses/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/email categorization, draft responses/),
+    ).toBeInTheDocument();
   });
 
   it('shows tasks paused count', () => {
     renderWithStore(store, makeRecoveryEntry());
-    expect(screen.getByText(/3 tasks using these capabilities paused/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/3 tasks using these capabilities paused/),
+    ).toBeInTheDocument();
   });
 
   it('shows trigger reason', () => {
     renderWithStore(store, makeRecoveryEntry());
-    expect(screen.getByText(/3 failed task completions in 24h/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/3 failed task completions in 24h/),
+    ).toBeInTheDocument();
   });
 
   it('shows accumulated trust data', () => {
     renderWithStore(store, makeRecoveryEntry());
-    expect(screen.getByText(/8 clean approvals, 1 rejection/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/8 clean approvals, 1 rejection/),
+    ).toBeInTheDocument();
   });
 
   it('shows Undo button when auto-triggered', () => {
     renderWithStore(store, makeRecoveryEntry());
-    expect(screen.getByText('Undo — Restore previous permissions')).toBeInTheDocument();
+    expect(
+      screen.getByText('Undo — Restore previous permissions'),
+    ).toBeInTheDocument();
   });
 
   it('hides Undo button when not auto-triggered', () => {
-    renderWithStore(store, makeRecoveryEntry({
-      props: { ...makeRecoveryEntry().props, isAutoTriggered: false },
-    }));
-    expect(screen.queryByText('Undo — Restore previous permissions')).not.toBeInTheDocument();
+    renderWithStore(
+      store,
+      makeRecoveryEntry({
+        props: { ...makeRecoveryEntry().props, isAutoTriggered: false },
+      }),
+    );
+    expect(
+      screen.queryByText('Undo — Restore previous permissions'),
+    ).not.toBeInTheDocument();
   });
 
   it('calls undoRegression on Undo click', async () => {
@@ -139,7 +176,9 @@ describe('TrustRecovery', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('Undo — Restore previous permissions'));
     });
-    expect(screen.getByText('Could not undo. Please try again.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Could not undo. Please try again.'),
+    ).toBeInTheDocument();
   });
 
   it('shows acknowledge button', () => {
@@ -193,26 +232,34 @@ describe('TrustRecovery', () => {
 
   it('handles server error on undo gracefully', async () => {
     const { undoRegression } = await import('../../actions/trust-actions');
-    (undoRegression as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('network'));
+    (undoRegression as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new Error('network'),
+    );
     renderWithStore(store, makeRecoveryEntry());
     await act(async () => {
       fireEvent.click(screen.getByText('Undo — Restore previous permissions'));
     });
-    expect(screen.getByText('Could not undo. Please try again.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Could not undo. Please try again.'),
+    ).toBeInTheDocument();
   });
 
   it('shows loading state during undo', async () => {
     const { undoRegression } = await import('../../actions/trust-actions');
     let resolveFn: (v: unknown) => void;
     (undoRegression as ReturnType<typeof vi.fn>).mockReturnValueOnce(
-      new Promise((r) => { resolveFn = r; }),
+      new Promise((r) => {
+        resolveFn = r;
+      }),
     );
     renderWithStore(store, makeRecoveryEntry());
     act(() => {
       fireEvent.click(screen.getByText('Undo — Restore previous permissions'));
     });
     expect(screen.getByText('Undoing…')).toBeInTheDocument();
-    await act(async () => { resolveFn!({ success: true, data: {} }); });
+    await act(async () => {
+      resolveFn!({ success: true, data: {} });
+    });
   });
 
   it('disables double-undo after first undo succeeds', async () => {
@@ -220,20 +267,34 @@ describe('TrustRecovery', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('Undo — Restore previous permissions'));
     });
-    expect(screen.queryByText('Undo — Restore previous permissions')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Undo — Restore previous permissions'),
+    ).not.toBeInTheDocument();
   });
 
   it('handles zero affected tasks', () => {
-    renderWithStore(store, makeRecoveryEntry({
-      props: { ...makeRecoveryEntry().props, affectedTasksCount: 0 },
-    }));
-    expect(screen.queryByText(/tasks using these capabilities paused/)).not.toBeInTheDocument();
+    renderWithStore(
+      store,
+      makeRecoveryEntry({
+        props: { ...makeRecoveryEntry().props, affectedTasksCount: 0 },
+      }),
+    );
+    expect(
+      screen.queryByText(/tasks using these capabilities paused/),
+    ).not.toBeInTheDocument();
   });
 
   it('handles zero rejections gracefully', () => {
-    renderWithStore(store, makeRecoveryEntry({
-      props: { ...makeRecoveryEntry().props, rejectionCount: 0, cleanApprovals: 0 },
-    }));
+    renderWithStore(
+      store,
+      makeRecoveryEntry({
+        props: {
+          ...makeRecoveryEntry().props,
+          rejectionCount: 0,
+          cleanApprovals: 0,
+        },
+      }),
+    );
     expect(screen.queryByText(/clean approvals/)).not.toBeInTheDocument();
   });
 });

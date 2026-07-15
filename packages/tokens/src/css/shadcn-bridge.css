@@ -1,6 +1,6 @@
 :root,
-:root[data-theme="dark"],
-:root[data-theme="light"] {
+:root[data-theme='dark'],
+:root[data-theme='light'] {
   --background: var(--flow-bg-canvas);
   --foreground: var(--flow-text-primary);
   --card: var(--flow-bg-surface);

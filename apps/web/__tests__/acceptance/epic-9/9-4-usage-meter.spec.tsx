@@ -14,7 +14,10 @@ import type { ActionResult } from '@flow/types';
 
 const noopUpgrade = vi.fn(
   (): Promise<ActionResult<{ checkoutUrl: string }>> =>
-    Promise.resolve({ success: true, data: { checkoutUrl: 'https://example.com' } }),
+    Promise.resolve({
+      success: true,
+      data: { checkoutUrl: 'https://example.com' },
+    }),
 );
 
 afterEach(() => {

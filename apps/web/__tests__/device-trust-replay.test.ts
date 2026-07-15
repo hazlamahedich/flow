@@ -16,7 +16,9 @@ describe('device trust replay protection', () => {
   it('different token does not match stored hash', () => {
     const legitimateToken = '550e8400-e29b-41d4-a716-446655440000';
     const fakeToken = '660e8400-e29b-41d4-a716-446655440001';
-    expect(hashDeviceToken(legitimateToken)).not.toBe(hashDeviceToken(fakeToken));
+    expect(hashDeviceToken(legitimateToken)).not.toBe(
+      hashDeviceToken(fakeToken),
+    );
   });
 
   it('empty cookie value produces hash that does not match valid tokens', () => {

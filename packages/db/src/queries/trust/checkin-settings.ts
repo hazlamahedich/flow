@@ -9,7 +9,10 @@ export async function getCheckInSetting(workspaceId: string): Promise<boolean> {
     .single();
   if (error) throw error;
   const settings = data?.settings as Record<string, unknown> | null;
-  return settings?.trust_checkin_enabled === true || settings?.trust_checkin_enabled === 'true';
+  return (
+    settings?.trust_checkin_enabled === true ||
+    settings?.trust_checkin_enabled === 'true'
+  );
 }
 
 export async function setCheckInSetting(

@@ -17,13 +17,19 @@ describe.skipIf(skip)('Dashboard RLS Integration', () => {
 
   it('cross-workspace data isolation', async () => {
     const own = await getDashboardSummary(fixture.client, fixture.tenantId);
-    const other = await getDashboardSummary(fixture.client, fixture.otherTenantId);
+    const other = await getDashboardSummary(
+      fixture.client,
+      fixture.otherTenantId,
+    );
 
     expect(own).toEqual(other);
   });
 
   it('listUserWorkspaces only returns workspaces user belongs to', async () => {
-    const workspaces = await listUserWorkspaces(fixture.client, fixture.tenantId);
+    const workspaces = await listUserWorkspaces(
+      fixture.client,
+      fixture.tenantId,
+    );
 
     for (const ws of workspaces) {
       expect(ws).toHaveProperty('id');

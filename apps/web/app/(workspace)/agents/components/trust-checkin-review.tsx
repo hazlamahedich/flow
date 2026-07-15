@@ -68,7 +68,9 @@ export function TrustCheckInReview({
       )}
 
       {error && (
-        <p className="text-xs text-red-600 mb-2" role="alert">{error}</p>
+        <p className="text-xs text-red-600 mb-2" role="alert">
+          {error}
+        </p>
       )}
 
       <div className="flex gap-2">

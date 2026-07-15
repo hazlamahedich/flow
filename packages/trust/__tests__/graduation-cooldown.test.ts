@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { canGraduate, COOLDOWN_DAYS, CONTEXT_SHIFT_COOLDOWN_DAYS } from '../src/graduation';
+import {
+  canGraduate,
+  COOLDOWN_DAYS,
+  CONTEXT_SHIFT_COOLDOWN_DAYS,
+} from '../src/graduation';
 import { evaluateContextShift } from '../src/graduation';
 
 describe('graduation cooldown', () => {
@@ -46,7 +50,9 @@ describe('graduation cooldown', () => {
   });
 
   it('allows graduation after full 7d cooldown', () => {
-    const cooldown = new Date(Date.now() - COOLDOWN_DAYS * 24 * 60 * 60 * 1000 - 60000);
+    const cooldown = new Date(
+      Date.now() - COOLDOWN_DAYS * 24 * 60 * 60 * 1000 - 60000,
+    );
     expect(
       canGraduate({
         currentLevel: 'supervised',

@@ -7,7 +7,7 @@ describe('SwipeableCard', () => {
     render(
       <SwipeableCard onApprove={vi.fn()} onReject={vi.fn()}>
         <div>Card Content</div>
-      </SwipeableCard>
+      </SwipeableCard>,
     );
     expect(screen.getByText('Card Content')).toBeDefined();
   });
@@ -16,7 +16,7 @@ describe('SwipeableCard', () => {
     render(
       <SwipeableCard onApprove={vi.fn()} onReject={vi.fn()}>
         <div>Card Content</div>
-      </SwipeableCard>
+      </SwipeableCard>,
     );
     const cards = screen.getAllByText('Card Content');
     fireEvent.mouseDown(cards[0]);
@@ -28,7 +28,7 @@ describe('SwipeableCard', () => {
     render(
       <SwipeableCard onApprove={onApprove} onReject={vi.fn()} disabled>
         <div>Disabled Card</div>
-      </SwipeableCard>
+      </SwipeableCard>,
     );
     const card = screen.getByText('Disabled Card');
     fireEvent.mouseDown(card);

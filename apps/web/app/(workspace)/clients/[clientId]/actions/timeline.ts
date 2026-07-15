@@ -8,7 +8,7 @@ import {
   cacheTag,
   recategorizeEmail as recategorizeEmailQuery,
   updateRunStatus,
-  getClientEngagementTimeline
+  getClientEngagementTimeline,
 } from '@flow/db';
 import type { ActionResult, AgentRunStatus, TimelineEvent } from '@flow/types';
 import { z } from 'zod';
@@ -27,7 +27,12 @@ export async function recategorizeTimelineEmail(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Invalid input.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Invalid input.',
+        'validation',
+      ),
     };
   }
 
@@ -52,11 +57,19 @@ export async function recategorizeTimelineEmail(
     if (fetchError || !email) {
       return {
         success: false,
-        error: createFlowError(404, 'NOT_FOUND', 'Email not found.', 'validation'),
+        error: createFlowError(
+          404,
+          'NOT_FOUND',
+          'Email not found.',
+          'validation',
+        ),
       };
     }
 
-    if (email.workspace_id !== ctx.workspaceId || email.client_id !== parsed.data.clientId) {
+    if (
+      email.workspace_id !== ctx.workspaceId ||
+      email.client_id !== parsed.data.clientId
+    ) {
       return {
         success: false,
         error: createFlowError(403, 'FORBIDDEN', 'Unauthorized.', 'auth'),
@@ -66,19 +79,37 @@ export async function recategorizeTimelineEmail(
     if (!email.requires_confirmation) {
       return {
         success: false,
-        error: createFlowError(409, 'CONFLICT', 'Email has already been triaged.', 'validation'),
+        error: createFlowError(
+          409,
+          'CONFLICT',
+          'Email has already been triaged.',
+          'validation',
+        ),
       };
     }
 
-    await recategorizeEmailQuery(supabase, ctx.workspaceId, parsed.data.emailId, parsed.data.category);
+    await recategorizeEmailQuery(
+      supabase,
+      ctx.workspaceId,
+      parsed.data.emailId,
+      parsed.data.category,
+    );
 
     revalidateTag(cacheTag('workspace_client', ctx.workspaceId));
-    return { success: true, data: { emailId: parsed.data.emailId, category: parsed.data.category } };
+    return {
+      success: true,
+      data: { emailId: parsed.data.emailId, category: parsed.data.category },
+    };
   } catch (error) {
     console.error('Failed to recategorize email', error);
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to recategorize email.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to recategorize email.',
+        'system',
+      ),
     };
   }
 }
@@ -96,7 +127,12 @@ export async function updateTimelineAgentProposal(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Invalid input.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Invalid input.',
+        'validation',
+      ),
     };
   }
 
@@ -121,7 +157,12 @@ export async function updateTimelineAgentProposal(
     if (runError || !run) {
       return {
         success: false,
-        error: createFlowError(404, 'NOT_FOUND', 'Agent run not found.', 'validation'),
+        error: createFlowError(
+          404,
+          'NOT_FOUND',
+          'Agent run not found.',
+          'validation',
+        ),
       };
     }
 
@@ -132,16 +173,29 @@ export async function updateTimelineAgentProposal(
       };
     }
 
-    await updateRunStatus(parsed.data.runId, parsed.data.status as AgentRunStatus,
-      parsed.data.status === 'completed' ? { completedAt: new Date().toISOString() } : {});
+    await updateRunStatus(
+      parsed.data.runId,
+      parsed.data.status as AgentRunStatus,
+      parsed.data.status === 'completed'
+        ? { completedAt: new Date().toISOString() }
+        : {},
+    );
 
     revalidateTag(cacheTag('workspace_client', ctx.workspaceId));
-    return { success: true, data: { runId: parsed.data.runId, status: parsed.data.status } };
+    return {
+      success: true,
+      data: { runId: parsed.data.runId, status: parsed.data.status },
+    };
   } catch (error) {
     console.error('Failed to update agent proposal', error);
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to update agent proposal.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to update agent proposal.',
+        'system',
+      ),
     };
   }
 }
@@ -156,14 +210,23 @@ const getTimelineSchema = z.object({
   limit: z.number().int().positive().optional(),
 });
 
-export async function getTimeline(
-  input: unknown,
-): Promise<ActionResult<{ events: TimelineEvent[]; nextCursor: string | null; hasMore: boolean }>> {
+export async function getTimeline(input: unknown): Promise<
+  ActionResult<{
+    events: TimelineEvent[];
+    nextCursor: string | null;
+    hasMore: boolean;
+  }>
+> {
   const parsed = getTimelineSchema.safeParse(input);
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Invalid input.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Invalid input.',
+        'validation',
+      ),
     };
   }
 
@@ -188,7 +251,12 @@ export async function getTimeline(
   if (!client) {
     return {
       success: false,
-      error: createFlowError(403, 'FORBIDDEN', 'Client not found in workspace.', 'auth'),
+      error: createFlowError(
+        403,
+        'FORBIDDEN',
+        'Client not found in workspace.',
+        'auth',
+      ),
     };
   }
 
@@ -209,7 +277,12 @@ export async function getTimeline(
     console.error('Failed to fetch timeline', error);
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to fetch timeline.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to fetch timeline.',
+        'system',
+      ),
     };
   }
 }

@@ -13,7 +13,10 @@ vi.mock('@flow/db/vault/calendar-tokens', () => ({
 
 import { executeResolveCascade } from '@flow/agents/calendar/resolve-cascade-action';
 import type { ResolveCascadeInput } from '@flow/agents/calendar/resolve-cascade-action';
-import { generateDailyPreview, emitDailyPreviewSignal } from '@flow/agents/calendar/daily-preview';
+import {
+  generateDailyPreview,
+  emitDailyPreviewSignal,
+} from '@flow/agents/calendar/daily-preview';
 import { createChainableMock } from './_helpers/bypass-test-setup';
 
 beforeEach(() => {
@@ -56,7 +59,9 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
               return {
                 eq: vi.fn().mockReturnValue({
                   eq: vi.fn().mockReturnValue({
-                    maybeSingle: vi.fn().mockResolvedValue({ data: originEvent, error: null }),
+                    maybeSingle: vi
+                      .fn()
+                      .mockResolvedValue({ data: originEvent, error: null }),
                   }),
                 }),
               };
@@ -64,7 +69,9 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
             if (selectCallCount === 2) {
               return {
                 in: vi.fn().mockReturnValue({
-                  eq: vi.fn().mockResolvedValue({ data: [dependentEvent], error: null }),
+                  eq: vi
+                    .fn()
+                    .mockResolvedValue({ data: [dependentEvent], error: null }),
                 }),
               };
             }
@@ -74,7 +81,14 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
         calendar_event_relations: {
           select: vi.fn().mockReturnValue({
             or: vi.fn().mockResolvedValue({
-              data: [{ id: 'rel-1', parent_event_id: 'evt-1', child_event_id: 'evt-2', relation_type: 'travel_time' }],
+              data: [
+                {
+                  id: 'rel-1',
+                  parent_event_id: 'evt-1',
+                  child_event_id: 'evt-2',
+                  relation_type: 'travel_time',
+                },
+              ],
               error: null,
             }),
           }),
@@ -106,7 +120,9 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
         workspaces: {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              single: vi.fn().mockResolvedValue({ data: { timezone: 'UTC' }, error: null }),
+              single: vi
+                .fn()
+                .mockResolvedValue({ data: { timezone: 'UTC' }, error: null }),
             }),
           }),
         },
@@ -118,8 +134,20 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
               chain.lte = vi.fn().mockReturnValue(chain);
               chain.order = vi.fn().mockResolvedValue({
                 data: [
-                  { title: 'Team Standup', start_at: '2026-05-25T09:00:00Z', end_at: '2026-05-25T09:30:00Z', source: 'va_created', client_id: 'client-1' },
-                  { title: 'Client Sync', start_at: '2026-05-25T14:00:00Z', end_at: '2026-05-25T15:00:00Z', source: 'client_created', client_id: null },
+                  {
+                    title: 'Team Standup',
+                    start_at: '2026-05-25T09:00:00Z',
+                    end_at: '2026-05-25T09:30:00Z',
+                    source: 'va_created',
+                    client_id: 'client-1',
+                  },
+                  {
+                    title: 'Client Sync',
+                    start_at: '2026-05-25T14:00:00Z',
+                    end_at: '2026-05-25T15:00:00Z',
+                    source: 'client_created',
+                    client_id: null,
+                  },
                 ],
                 error: null,
               });
@@ -131,7 +159,14 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
               gt: vi.fn().mockResolvedValue({
-                data: [{ client_id: 'client-1', bypass_rate: '0.5000', total_events: 4, bypass_count: 2 }],
+                data: [
+                  {
+                    client_id: 'client-1',
+                    bypass_rate: '0.5000',
+                    total_events: 4,
+                    bypass_count: 2,
+                  },
+                ],
                 error: null,
               }),
             }),
@@ -173,7 +208,9 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
         workspaces: {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              single: vi.fn().mockResolvedValue({ data: { timezone: 'UTC' }, error: null }),
+              single: vi
+                .fn()
+                .mockResolvedValue({ data: { timezone: 'UTC' }, error: null }),
             }),
           }),
         },
@@ -183,7 +220,9 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
               const chain: Record<string, ReturnType<typeof vi.fn>> = {};
               chain.gte = vi.fn().mockReturnValue(chain);
               chain.lte = vi.fn().mockReturnValue(chain);
-              chain.order = vi.fn().mockResolvedValue({ data: [], error: null });
+              chain.order = vi
+                .fn()
+                .mockResolvedValue({ data: [], error: null });
               return chain;
             }),
           }),
@@ -223,8 +262,13 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
           workspace_id: 'ws-1',
         }),
       );
-      const insertedPayload = insertMock.mock.calls[0]![0] as Record<string, unknown>;
-      expect(insertedPayload.dedup_key).toMatch(/^cal\.preview:ws-1:\d{4}-\d{2}-\d{2}$/);
+      const insertedPayload = insertMock.mock.calls[0]![0] as Record<
+        string,
+        unknown
+      >;
+      expect(insertedPayload.dedup_key).toMatch(
+        /^cal\.preview:ws-1:\d{4}-\d{2}-\d{2}$/,
+      );
     });
   });
 });

@@ -13,7 +13,11 @@ vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
   return {
     ...actual,
-    requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' }),
+    requireTenantContext: vi.fn().mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    }),
     createFlowError: actual.createFlowError,
     cacheTag: vi.fn((entity: string, ws: string) => `${entity}:${ws}`),
     invalidateAfterMutation: vi.fn(),
@@ -26,11 +30,15 @@ vi.mock('next/cache', () => ({
 
 function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
   return {
-    rpc: vi.fn().mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
+    rpc: vi
+      .fn()
+      .mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: rowData ?? null, error: null }),
+      maybeSingle: vi
+        .fn()
+        .mockResolvedValue({ data: rowData ?? null, error: null }),
       single: vi.fn().mockResolvedValue({ data: rowData ?? null, error: null }),
       insert: vi.fn().mockReturnThis(),
       update: vi.fn().mockReturnThis(),
@@ -48,38 +56,40 @@ function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [7.2-ATDD-001] sending invoice transitions status from draft to sent', () => {
   test('sendInvoiceAction returns success with paymentUrl and deliveryId', async () => {
-    const { sendInvoiceAction } = await import('@/lib/actions/invoices/send-invoice');
+    const { sendInvoiceAction } =
+      await import('@/lib/actions/invoices/send-invoice');
     expect(sendInvoiceAction).toBeDefined();
 
     const { sendInvoiceSchema } = await import('@flow/types');
-    const parsed = sendInvoiceSchema.safeParse({ invoiceId: '00000000-0000-0000-0000-000000000001' });
+    const parsed = sendInvoiceSchema.safeParse({
+      invoiceId: '00000000-0000-0000-0000-000000000001',
+    });
     expect(parsed.success).toBe(true);
   });
 
   test('sendInvoiceAction rejects non-draft invoices with FINANCIAL_INVALID_STATE', async () => {
     const { getServerSupabase } = await import('@/lib/supabase-server');
-    const { sendInvoiceAction } = await import('@/lib/actions/invoices/send-invoice');
+    const { sendInvoiceAction } =
+      await import('@/lib/actions/invoices/send-invoice');
 
-    const mockClient = mockSupabase(
-      null,
-      undefined,
-      {
-        id: 'inv-1',
-        workspace_id: 'ws-1',
-        client_id: 'cli-1',
-        invoice_number: 'INV-001',
-        status: 'sent',
-        total_cents: 10000,
-        currency: 'usd',
-        due_date: '2026-06-01',
-        clients: { name: 'Acme', email: 'acme@test.com' },
-        workspaces: { name: 'WS A' },
-      }
-    );
+    const mockClient = mockSupabase(null, undefined, {
+      id: 'inv-1',
+      workspace_id: 'ws-1',
+      client_id: 'cli-1',
+      invoice_number: 'INV-001',
+      status: 'sent',
+      total_cents: 10000,
+      currency: 'usd',
+      due_date: '2026-06-01',
+      clients: { name: 'Acme', email: 'acme@test.com' },
+      workspaces: { name: 'WS A' },
+    });
 
     vi.mocked(getServerSupabase).mockResolvedValue(mockClient);
 
-    const result = await sendInvoiceAction({ invoiceId: '00000000-0000-0000-0000-000000000001' });
+    const result = await sendInvoiceAction({
+      invoiceId: '00000000-0000-0000-0000-000000000001',
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('FINANCIAL_INVALID_STATE');
@@ -92,38 +102,40 @@ describe('[P0] [7.2-ATDD-001] sending invoice transitions status from draft to s
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [7.2-ATDD-002] resend action reuses existing payment URL', () => {
   test('resendInvoiceAction returns success with messageId', async () => {
-    const { resendInvoiceAction } = await import('@/lib/actions/invoices/resend-invoice');
+    const { resendInvoiceAction } =
+      await import('@/lib/actions/invoices/resend-invoice');
     expect(resendInvoiceAction).toBeDefined();
 
     const { resendInvoiceSchema } = await import('@flow/types');
-    const parsed = resendInvoiceSchema.safeParse({ invoiceId: '00000000-0000-0000-0000-000000000001' });
+    const parsed = resendInvoiceSchema.safeParse({
+      invoiceId: '00000000-0000-0000-0000-000000000001',
+    });
     expect(parsed.success).toBe(true);
   });
 
   test('resendInvoiceAction rejects invoice without payment_url', async () => {
     const { getServerSupabase } = await import('@/lib/supabase-server');
-    const { resendInvoiceAction } = await import('@/lib/actions/invoices/resend-invoice');
+    const { resendInvoiceAction } =
+      await import('@/lib/actions/invoices/resend-invoice');
 
-    const mockClient = mockSupabase(
-      null,
-      undefined,
-      {
-        id: 'inv-1',
-        workspace_id: 'ws-1',
-        client_id: 'cli-1',
-        invoice_number: 'INV-001',
-        status: 'sent',
-        total_cents: 10000,
-        currency: 'usd',
-        payment_url: null,
-        clients: { name: 'Acme', email: 'acme@test.com' },
-        workspaces: { name: 'WS A' },
-      }
-    );
+    const mockClient = mockSupabase(null, undefined, {
+      id: 'inv-1',
+      workspace_id: 'ws-1',
+      client_id: 'cli-1',
+      invoice_number: 'INV-001',
+      status: 'sent',
+      total_cents: 10000,
+      currency: 'usd',
+      payment_url: null,
+      clients: { name: 'Acme', email: 'acme@test.com' },
+      workspaces: { name: 'WS A' },
+    });
 
     vi.mocked(getServerSupabase).mockResolvedValue(mockClient);
 
-    const result = await resendInvoiceAction({ invoiceId: '00000000-0000-0000-0000-000000000001' });
+    const result = await resendInvoiceAction({
+      invoiceId: '00000000-0000-0000-0000-000000000001',
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('MISSING_PAYMENT_URL');
@@ -152,7 +164,9 @@ describe('[P0] [7.2-ATDD-003] redirect handler invalidates token and transitions
       await GET(req, { params: Promise.resolve({ token: 'tok' + i }) });
     }
 
-    const resp = await GET(req, { params: Promise.resolve({ token: 'tok-final' }) });
+    const resp = await GET(req, {
+      params: Promise.resolve({ token: 'tok-final' }),
+    });
     expect(resp.status).toBe(429);
   });
 });
@@ -162,12 +176,14 @@ describe('[P0] [7.2-ATDD-003] redirect handler invalidates token and transitions
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [7.2-ATDD-004] resend transactional provider sends invoice email', () => {
   test('ResendTransactionalProvider is exported from @flow/agents/providers', async () => {
-    const { ResendTransactionalProvider } = await import('@flow/agents/providers');
+    const { ResendTransactionalProvider } =
+      await import('@flow/agents/providers');
     expect(ResendTransactionalProvider).toBeDefined();
   });
 
   test('send returns messageId on success', async () => {
-    const { ResendTransactionalProvider } = await import('@flow/agents/providers');
+    const { ResendTransactionalProvider } =
+      await import('@flow/agents/providers');
     const provider = new ResendTransactionalProvider('re_test');
 
     global.fetch = vi.fn().mockResolvedValue({
@@ -198,7 +214,10 @@ describe('[P0] [7.2-ATDD-005] stripe checkout session creation returns URL', () 
 
   test('createCheckoutSession returns url and sessionId', async () => {
     const { StripePaymentProvider } = await import('@flow/agents/providers');
-    const provider = new StripePaymentProvider({ secretKey: 'sk_test_secret', webhookSecret: 'whsec_test' });
+    const provider = new StripePaymentProvider({
+      secretKey: 'sk_test_secret',
+      webhookSecret: 'whsec_test',
+    });
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,

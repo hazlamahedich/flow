@@ -9,9 +9,7 @@ import {
   insertClient,
   checkDuplicateEmail,
 } from '@flow/db';
-import {
-  createClientSchema,
-} from '@flow/types';
+import { createClientSchema } from '@flow/types';
 import type { ActionResult, Client } from '@flow/types';
 import { enforceTierLimit } from '@/lib/actions/billing/enforce-tier-limit';
 
@@ -37,7 +35,12 @@ export async function createWorkspaceClient(
   if (ctx.role === 'member') {
     return {
       success: false,
-      error: createFlowError(403, 'INSUFFICIENT_ROLE', 'Members cannot create clients.', 'auth'),
+      error: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Members cannot create clients.',
+        'auth',
+      ),
     };
   }
 
@@ -46,7 +49,10 @@ export async function createWorkspaceClient(
   // subscription_tier via RLS, normalizes null → unlimited (Agency), and
   // delegates the pure decision to checkTierLimit. Existing data is NEVER
   // blocked — only new resource creation (FR56).
-  const tierCheck = await enforceTierLimit({ workspaceId: ctx.workspaceId, resource: 'clients' });
+  const tierCheck = await enforceTierLimit({
+    workspaceId: ctx.workspaceId,
+    resource: 'clients',
+  });
   if (!tierCheck.allowed) {
     const limitText = tierCheck.limit != null ? `(${tierCheck.limit})` : '';
     return {
@@ -68,7 +74,11 @@ export async function createWorkspaceClient(
   }
 
   if (parsed.data.email && parsed.data.email.trim() !== '') {
-    const existing = await checkDuplicateEmail(supabase, ctx.workspaceId, parsed.data.email.trim());
+    const existing = await checkDuplicateEmail(
+      supabase,
+      ctx.workspaceId,
+      parsed.data.email.trim(),
+    );
     if (existing) {
       return {
         success: false,
@@ -103,7 +113,12 @@ export async function createWorkspaceClient(
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to create client.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to create client.',
+        'system',
+      ),
     };
   }
 }

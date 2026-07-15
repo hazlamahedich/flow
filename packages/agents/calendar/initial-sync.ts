@@ -1,6 +1,9 @@
 /* eslint-disable max-lines */
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { CalendarProvider, CalendarEvent } from '../providers/calendar-provider.js';
+import type {
+  CalendarProvider,
+  CalendarEvent,
+} from '../providers/calendar-provider.js';
 import { GoogleCalendarProvider } from '../providers/index.js';
 import type { CalendarProviderName } from '@flow/types';
 import type { AgentRunProducer } from '../orchestrator/types.js';
@@ -14,7 +17,8 @@ async function enqueueBypassForEvents(
   clientId: string,
   eventIds: string[],
 ): Promise<void> {
-  const { enqueueBypassDetection } = await import('./enqueue-bypass-detection.js');
+  const { enqueueBypassDetection } =
+    await import('./enqueue-bypass-detection.js');
   for (const evtId of eventIds) {
     try {
       await enqueueBypassDetection({
@@ -26,7 +30,8 @@ async function enqueueBypassForEvents(
         eventCreatedAt: new Date().toISOString(),
       });
     } catch (enqueueErr: unknown) {
-      const msg = enqueueErr instanceof Error ? enqueueErr.message : 'unknown error';
+      const msg =
+        enqueueErr instanceof Error ? enqueueErr.message : 'unknown error';
       console.error(
         `[calendar-initial-sync] Failed to enqueue bypass detection for event ${evtId}:`,
         msg,
@@ -43,7 +48,8 @@ async function enqueueConflictForEvents(
   eventIds: string[],
   clientId?: string | null,
 ): Promise<void> {
-  const { enqueueConflictDetection } = await import('./enqueue-conflict-detection.js');
+  const { enqueueConflictDetection } =
+    await import('./enqueue-conflict-detection.js');
   for (const evtId of eventIds) {
     try {
       await enqueueConflictDetection({
@@ -55,7 +61,8 @@ async function enqueueConflictForEvents(
         ...(clientId != null ? { clientId } : {}),
       });
     } catch (enqueueErr: unknown) {
-      const msg = enqueueErr instanceof Error ? enqueueErr.message : 'unknown error';
+      const msg =
+        enqueueErr instanceof Error ? enqueueErr.message : 'unknown error';
       console.error(
         `[calendar-initial-sync] Failed to enqueue conflict detection for event ${evtId}:`,
         msg,
@@ -177,8 +184,17 @@ async function getCalendarWithState(
  * Pulls the last 90 days of events from the provider and upserts them into
  * `calendar_events`, then marks the calendar as connected with a sync cursor.
  */
-export async function performInitialSync(params: InitialSyncParams): Promise<void> {
-  const { supabase, workspaceId, clientCalendarId, accessToken, calendarId, provider: providerName } = params;
+export async function performInitialSync(
+  params: InitialSyncParams,
+): Promise<void> {
+  const {
+    supabase,
+    workspaceId,
+    clientCalendarId,
+    accessToken,
+    calendarId,
+    provider: providerName,
+  } = params;
 
   const provider = resolveProvider(providerName);
 
@@ -213,7 +229,9 @@ export async function performInitialSync(params: InitialSyncParams): Promise<voi
         if (params.vaEmail && params.calendars) {
           const src = classifyEventSource(
             {
-              organizerEmail: (ev.providerMetadata?.organizerEmail as string | undefined) ?? null,
+              organizerEmail:
+                (ev.providerMetadata?.organizerEmail as string | undefined) ??
+                null,
               title: ev.title,
               isRecurring: !!ev.recurrenceRule,
             },
@@ -222,7 +240,12 @@ export async function performInitialSync(params: InitialSyncParams): Promise<voi
           );
           classifiedSource = src;
         }
-        return mapEventToRow(ev, workspaceId, clientCalendarId, classifiedSource);
+        return mapEventToRow(
+          ev,
+          workspaceId,
+          clientCalendarId,
+          classifiedSource,
+        );
       });
 
       const { data: upsertedData, error: upsertError } = await supabase
@@ -260,7 +283,12 @@ export async function performInitialSync(params: InitialSyncParams): Promise<voi
     }
 
     if (params.clientId && upsertedEventIds.length > 0) {
-      await incrementMetricsForEvents(supabase, workspaceId, params.clientId, upsertedEventIds);
+      await incrementMetricsForEvents(
+        supabase,
+        workspaceId,
+        params.clientId,
+        upsertedEventIds,
+      );
 
       if (params.conflictProducer) {
         await enqueueBypassForEvents(
@@ -297,8 +325,12 @@ export async function performInitialSync(params: InitialSyncParams): Promise<voi
       `[calendar-initial-sync] Synced ${events.length} events for calendar ${clientCalendarId}`,
     );
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Initial calendar sync failed';
-    console.error(`[calendar-initial-sync] Failed for calendar ${clientCalendarId}:`, message);
+    const message =
+      err instanceof Error ? err.message : 'Initial calendar sync failed';
+    console.error(
+      `[calendar-initial-sync] Failed for calendar ${clientCalendarId}:`,
+      message,
+    );
 
     await supabase
       .from('client_calendars')

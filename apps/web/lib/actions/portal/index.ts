@@ -10,7 +10,12 @@
 export { generatePortalLinkAction } from './generate-link';
 export { validatePortalTokenAction } from './validate-token';
 export { revokePortalTokenAction } from './revoke-token';
-export { validatePortalSession, validatePortalSlug, getPortalPath, getFallbackPortalPath } from './portal-session';
+export {
+  validatePortalSession,
+  validatePortalSlug,
+  getPortalPath,
+  getFallbackPortalPath,
+} from './portal-session';
 export { validatePortalSessionWithDb } from './validate-session-db';
 export {
   PORTAL_TOKEN_BYTES,
@@ -19,7 +24,11 @@ export {
   PORTAL_SESSION_MAX_AGE_SECONDS,
   PORTAL_COOKIE_NAME,
 } from './constants';
-export { portalTokenSchema, generatePortalLinkSchema, revokePortalTokenSchema } from './schemas';
+export {
+  portalTokenSchema,
+  generatePortalLinkSchema,
+  revokePortalTokenSchema,
+} from './schemas';
 export type { PortalContext } from './helpers';
 
 // Story 9.2 — portal query helpers (read-only)

@@ -12,7 +12,11 @@ vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
   return {
     ...actual,
-    requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' }),
+    requireTenantContext: vi.fn().mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    }),
     createFlowError: actual.createFlowError,
     cacheTag: vi.fn((entity: string, ws: string) => `${entity}:${ws}`),
     invalidateAfterMutation: vi.fn(),
@@ -27,7 +31,9 @@ function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
   const fromChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: rowData ?? null, error: null }),
+    maybeSingle: vi
+      .fn()
+      .mockResolvedValue({ data: rowData ?? null, error: null }),
     single: vi.fn().mockResolvedValue({ data: rowData ?? null, error: null }),
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
@@ -38,7 +44,9 @@ function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
     limit: vi.fn().mockReturnThis(),
   };
   return {
-    rpc: vi.fn().mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
+    rpc: vi
+      .fn()
+      .mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
     from: vi.fn().mockReturnValue(fromChain),
   } as unknown as import('@supabase/supabase-js').SupabaseClient;
 }

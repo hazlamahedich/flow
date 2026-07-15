@@ -34,7 +34,11 @@ export type { TrustBadgeState, BadgeDisplayProps } from './badge-state';
 
 export { RISK_WEIGHTS, RISK_WEIGHT_ENTRIES } from './risk-weights';
 export type { RiskWeightEntry } from './risk-weights';
-export { calculateScoreChange, applyScoreChange, getRiskWeight } from './scoring';
+export {
+  calculateScoreChange,
+  applyScoreChange,
+  getRiskWeight,
+} from './scoring';
 export type { TrustEvent } from './scoring';
 export {
   canGraduate,
@@ -57,7 +61,11 @@ export type { EvaluationResult } from './graduation';
 export { evaluatePreconditions } from './pre-check';
 export { applyViolationRollback } from './rollback';
 export { createTrustClient } from './client/trust-client';
-export type { TrustClient, TrustClientDeps, MatrixEntry } from './client/trust-client';
+export type {
+  TrustClient,
+  TrustClientDeps,
+  MatrixEntry,
+} from './client/trust-client';
 
 export {
   shouldTriggerCheckIn,

@@ -10,28 +10,36 @@ import type {
 
 const PAGE_SIZE = 25;
 
-const trustEventRowSchema = z.object({
-  id: z.string(),
-  matrix_entry_id: z.string(),
-  workspace_id: z.string(),
-  trust_matrix: z.object({ agent_id: z.string() }).passthrough().nullable().optional(),
-  from_level: z.string(),
-  to_level: z.string(),
-  trigger_type: z.string(),
-  trigger_reason: z.string(),
-  is_context_shift: z.boolean(),
-  actor: z.string(),
-  created_at: z.string(),
-}).passthrough();
+const trustEventRowSchema = z
+  .object({
+    id: z.string(),
+    matrix_entry_id: z.string(),
+    workspace_id: z.string(),
+    trust_matrix: z
+      .object({ agent_id: z.string() })
+      .passthrough()
+      .nullable()
+      .optional(),
+    from_level: z.string(),
+    to_level: z.string(),
+    trigger_type: z.string(),
+    trigger_reason: z.string(),
+    is_context_shift: z.boolean(),
+    actor: z.string(),
+    created_at: z.string(),
+  })
+  .passthrough();
 
-const autoActionRowSchema = z.object({
-  id: z.string(),
-  agent_id: z.string(),
-  action_type: z.string(),
-  status: z.string(),
-  created_at: z.string(),
-  summary: z.string().nullable().optional(),
-}).passthrough();
+const autoActionRowSchema = z
+  .object({
+    id: z.string(),
+    agent_id: z.string(),
+    action_type: z.string(),
+    status: z.string(),
+    created_at: z.string(),
+    summary: z.string().nullable().optional(),
+  })
+  .passthrough();
 
 const LEVEL_ORDER: Record<string, number> = {
   supervised: 0,
@@ -69,7 +77,10 @@ export async function getTrustEvents(
 
   let query = client
     .from('trust_transitions')
-    .select('id, matrix_entry_id, workspace_id, from_level, to_level, trigger_type, trigger_reason, is_context_shift, actor, created_at, trust_matrix(agent_id)', { count: 'exact' })
+    .select(
+      'id, matrix_entry_id, workspace_id, from_level, to_level, trigger_type, trigger_reason, is_context_shift, actor, created_at, trust_matrix(agent_id)',
+      { count: 'exact' },
+    )
     .eq('workspace_id', workspaceId)
     .order('created_at', { ascending: false });
 
@@ -117,9 +128,10 @@ export async function getTrustEvents(
     );
   }
 
-  const adjustedTotal = (filters.direction && filters.direction !== 'all')
-    ? Math.min(count ?? 0, rows.length + (page - 1) * PAGE_SIZE)
-    : (count ?? 0);
+  const adjustedTotal =
+    filters.direction && filters.direction !== 'all'
+      ? Math.min(count ?? 0, rows.length + (page - 1) * PAGE_SIZE)
+      : (count ?? 0);
 
   return { data: rows, total: adjustedTotal, page, pageSize: PAGE_SIZE };
 }
@@ -137,18 +149,23 @@ export async function getCheckInDue(
   if (wsErr) throw wsErr;
 
   const settings = ws?.settings as Record<string, unknown> | null;
-  if (settings?.trust_checkin_enabled !== true && settings?.trust_checkin_enabled !== 'true') {
+  if (
+    settings?.trust_checkin_enabled !== true &&
+    settings?.trust_checkin_enabled !== 'true'
+  ) {
     return [];
   }
 
   const { data, error } = await client
     .from('trust_matrix')
-    .select(`
+    .select(
+      `
       agent_id,
       workspace_id,
       current_level,
       trust_audits(last_reviewed_at, created_at, deferred_count, last_deferred_at)
-    `)
+    `,
+    )
     .eq('workspace_id', workspaceId)
     .eq('current_level', 'auto');
   if (error) throw error;
@@ -173,7 +190,8 @@ export async function getCheckInDue(
         workspaceId: row.workspace_id as string,
         currentLevel: row.current_level as string,
         lastReviewedAt: (audit?.last_reviewed_at as string | null) ?? null,
-        auditCreatedAt: (audit?.created_at as string) ?? new Date().toISOString(),
+        auditCreatedAt:
+          (audit?.created_at as string) ?? new Date().toISOString(),
         deferredCount: (audit?.deferred_count as number) ?? 0,
         lastDeferredAt: (audit?.last_deferred_at as string | null) ?? null,
       };

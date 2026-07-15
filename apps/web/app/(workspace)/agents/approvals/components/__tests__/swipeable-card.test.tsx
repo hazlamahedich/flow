@@ -22,16 +22,18 @@ describe('SwipeableCard', () => {
     render(
       <SwipeableCard onApprove={vi.fn()} onReject={vi.fn()}>
         <div data-testid="card-content">Test Content</div>
-      </SwipeableCard>
+      </SwipeableCard>,
     );
-    expect(screen.getByTestId('card-content')).toHaveTextContent('Test Content');
+    expect(screen.getByTestId('card-content')).toHaveTextContent(
+      'Test Content',
+    );
   });
 
   it('renders approve and reject labels', () => {
     render(
       <SwipeableCard onApprove={vi.fn()} onReject={vi.fn()}>
         <div>Card Content</div>
-      </SwipeableCard>
+      </SwipeableCard>,
     );
     expect(screen.getByText('Approve')).toBeInTheDocument();
     expect(screen.getByText('Reject')).toBeInTheDocument();
@@ -41,7 +43,7 @@ describe('SwipeableCard', () => {
     const { container } = render(
       <SwipeableCard onApprove={vi.fn()} onReject={vi.fn()} disabled>
         <div>Disabled Card</div>
-      </SwipeableCard>
+      </SwipeableCard>,
     );
     const motionDiv = container.querySelector('.cursor-not-allowed');
     expect(motionDiv).toBeInTheDocument();

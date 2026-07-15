@@ -29,20 +29,25 @@ export function shouldTriggerCheckIn(
 
   const referenceDateStr = auditRecord.lastReviewedAt ?? auditRecord.createdAt;
   const referenceDate = new Date(referenceDateStr);
-  const daysSinceReview = (now.getTime() - referenceDate.getTime()) / MS_PER_DAY;
+  const daysSinceReview =
+    (now.getTime() - referenceDate.getTime()) / MS_PER_DAY;
 
   if (daysSinceReview < AUTO_REVIEW_INTERVAL_DAYS) return false;
 
   if (auditRecord.deferredCount >= MAX_DEFERRALS) {
     if (auditRecord.lastDeferredAt) {
-      const daysSinceDefer = (now.getTime() - new Date(auditRecord.lastDeferredAt).getTime()) / MS_PER_DAY;
+      const daysSinceDefer =
+        (now.getTime() - new Date(auditRecord.lastDeferredAt).getTime()) /
+        MS_PER_DAY;
       return daysSinceDefer >= SNOOZE_DAYS;
     }
     return true;
   }
 
   if (auditRecord.lastDeferredAt) {
-    const daysSinceDefer = (now.getTime() - new Date(auditRecord.lastDeferredAt).getTime()) / MS_PER_DAY;
+    const daysSinceDefer =
+      (now.getTime() - new Date(auditRecord.lastDeferredAt).getTime()) /
+      MS_PER_DAY;
     return daysSinceDefer >= SNOOZE_DAYS;
   }
 
@@ -68,7 +73,8 @@ export function scheduleNextCheckIn(
         hour12: false,
       });
       const parts = formatter.formatToParts(new Date(ms));
-      const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '0';
+      const get = (type: string) =>
+        parts.find((p) => p.type === type)?.value ?? '0';
       return new Date(
         Date.UTC(
           parseInt(get('year')),
@@ -85,7 +91,9 @@ export function scheduleNextCheckIn(
   };
 
   if (!auditRecord) {
-    return toWorkspaceDate(now.getTime() + AUTO_REVIEW_INTERVAL_DAYS * MS_PER_DAY);
+    return toWorkspaceDate(
+      now.getTime() + AUTO_REVIEW_INTERVAL_DAYS * MS_PER_DAY,
+    );
   }
 
   if (auditRecord.lastDeferredAt) {
@@ -96,7 +104,9 @@ export function scheduleNextCheckIn(
 
   const referenceDateStr = auditRecord.lastReviewedAt ?? auditRecord.createdAt;
   const referenceDate = new Date(referenceDateStr);
-  return toWorkspaceDate(referenceDate.getTime() + AUTO_REVIEW_INTERVAL_DAYS * MS_PER_DAY);
+  return toWorkspaceDate(
+    referenceDate.getTime() + AUTO_REVIEW_INTERVAL_DAYS * MS_PER_DAY,
+  );
 }
 
 export function isMaxDeferralsReached(deferredCount: number): boolean {

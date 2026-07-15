@@ -8,7 +8,11 @@ interface MemberPickerProps {
   existingMemberIds: string[];
 }
 
-export function MemberPicker({ clientId: _clientId, workspaceId: _workspaceId, existingMemberIds: _existingMemberIds }: MemberPickerProps) {
+export function MemberPicker({
+  clientId: _clientId,
+  workspaceId: _workspaceId,
+  existingMemberIds: _existingMemberIds,
+}: MemberPickerProps) {
   const [email, setEmail] = useState('');
   const [isPending, setIsPending] = useState(false);
 
@@ -22,7 +26,10 @@ export function MemberPicker({ clientId: _clientId, workspaceId: _workspaceId, e
   return (
     <div className="flex items-end gap-2">
       <div className="flex-1">
-        <label htmlFor="member-email" className="mb-1 block text-sm font-medium">
+        <label
+          htmlFor="member-email"
+          className="mb-1 block text-sm font-medium"
+        >
           Add team member
         </label>
         <input

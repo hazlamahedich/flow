@@ -14,13 +14,19 @@ interface TrustBadgeWrapperProps {
   variant?: 'inline' | 'sidebar';
 }
 
-function getAnimState(state: TrustBadgeState): 'default' | 'promoting' | 'regressing' {
+function getAnimState(
+  state: TrustBadgeState,
+): 'default' | 'promoting' | 'regressing' {
   if (state === 'promoting') return 'promoting';
   if (state === 'regressing') return 'regressing';
   return 'default';
 }
 
-export function TrustBadgeWrapper({ workspaceId, agentId, variant = 'inline' }: TrustBadgeWrapperProps) {
+export function TrustBadgeWrapper({
+  workspaceId,
+  agentId,
+  variant = 'inline',
+}: TrustBadgeWrapperProps) {
   const data = useAtomValue(trustBadgeAtom(workspaceId, agentId));
   if (!data) return null;
 

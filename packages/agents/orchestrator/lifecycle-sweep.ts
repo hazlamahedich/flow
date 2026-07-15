@@ -42,7 +42,10 @@ interface AppConfigRow {
  * on missing/error (EC8 — sweep must not crash if config is absent). Logs the
  * fallback so ops can spot a missing seed.
  */
-async function fetchConfigDays(key: string, defaultValue: number): Promise<number> {
+async function fetchConfigDays(
+  key: string,
+  defaultValue: number,
+): Promise<number> {
   try {
     const client = createServiceClient();
     const result = await client
@@ -142,13 +145,19 @@ async function runSweep(params: {
   for (const row of rows) {
     const workspaceId = row.id;
     try {
-      const rpcResult = await client.rpc('transition_workspace_subscription_status', {
-        p_workspace_id: workspaceId,
-        p_from_status: params.fromStatus,
-        p_to_status: params.toStatus,
-      });
+      const rpcResult = await client.rpc(
+        'transition_workspace_subscription_status',
+        {
+          p_workspace_id: workspaceId,
+          p_from_status: params.fromStatus,
+          p_to_status: params.toStatus,
+        },
+      );
 
-      const data = (rpcResult.data ?? {}) as { success?: boolean; error?: string };
+      const data = (rpcResult.data ?? {}) as {
+        success?: boolean;
+        error?: string;
+      };
       if (rpcResult.error) {
         throw new Error(rpcResult.error.message ?? 'rpc_error');
       }

@@ -20,7 +20,10 @@ vi.mock('../../shared/audit-writer', () => ({
 
 // ── helper: build chainable Supabase mock ─────────────────────────────────────
 
-function supabaseChain(finalResult: { data: unknown; error: null | { message: string } }) {
+function supabaseChain(finalResult: {
+  data: unknown;
+  error: null | { message: string };
+}) {
   const chain = {
     select: () => chain,
     eq: () => chain,
@@ -39,7 +42,9 @@ function supabaseChain(finalResult: { data: unknown; error: null | { message: st
 
 // ── trust client factory ──────────────────────────────────────────────────────
 
-function makeTrustClient(level: 'supervised' | 'confirm' | 'auto'): TrustClient {
+function makeTrustClient(
+  level: 'supervised' | 'confirm' | 'auto',
+): TrustClient {
   return {
     canAct: vi.fn().mockResolvedValue({
       allowed: true,
@@ -80,9 +85,15 @@ describe('execute — time integrity sweep', () => {
       mockGetAgentConfiguration.mockResolvedValue({ status: 'inactive' });
 
       const { execute } = await import('../executor');
-      const result = await execute({ workspaceId: 'ws-1', sweepDate: '2026-05-12' });
+      const result = await execute({
+        workspaceId: 'ws-1',
+        sweepDate: '2026-05-12',
+      });
 
-      expect(result).toEqual({ success: true, data: { signalsCreated: 0, skippedDuplicates: 0 } });
+      expect(result).toEqual({
+        success: true,
+        data: { signalsCreated: 0, skippedDuplicates: 0 },
+      });
       expect(mockFrom).not.toHaveBeenCalled();
     });
 
@@ -90,9 +101,15 @@ describe('execute — time integrity sweep', () => {
       mockGetAgentConfiguration.mockResolvedValue(null);
 
       const { execute } = await import('../executor');
-      const result = await execute({ workspaceId: 'ws-1', sweepDate: '2026-05-12' });
+      const result = await execute({
+        workspaceId: 'ws-1',
+        sweepDate: '2026-05-12',
+      });
 
-      expect(result).toEqual({ success: true, data: { signalsCreated: 0, skippedDuplicates: 0 } });
+      expect(result).toEqual({
+        success: true,
+        data: { signalsCreated: 0, skippedDuplicates: 0 },
+      });
     });
   });
 
@@ -101,7 +118,9 @@ describe('execute — time integrity sweep', () => {
       mockGetAgentConfiguration.mockResolvedValue({ status: 'active' });
 
       // Entries: one low-hours day
-      const mockEntries = [{ id: 'e1', date: '2026-05-12', duration_minutes: 30 }];
+      const mockEntries = [
+        { id: 'e1', date: '2026-05-12', duration_minutes: 30 },
+      ];
       mockFrom.mockReturnValue({
         select: () => ({
           eq: () => ({
@@ -115,12 +134,17 @@ describe('execute — time integrity sweep', () => {
           }),
         }),
         upsert: () => ({
-          select: () => ({ maybeSingle: async () => ({ data: null, error: null }) }),
+          select: () => ({
+            maybeSingle: async () => ({ data: null, error: null }),
+          }),
         }),
       });
 
       const { execute } = await import('../executor');
-      const result = await execute({ workspaceId: 'ws-1', sweepDate: '2026-05-12' });
+      const result = await execute({
+        workspaceId: 'ws-1',
+        sweepDate: '2026-05-12',
+      });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -133,7 +157,9 @@ describe('execute — time integrity sweep', () => {
     test('creates signal on first run (upsert returns row)', async () => {
       mockGetAgentConfiguration.mockResolvedValue({ status: 'active' });
 
-      const mockEntries = [{ id: 'e1', date: '2026-05-12', duration_minutes: 30 }];
+      const mockEntries = [
+        { id: 'e1', date: '2026-05-12', duration_minutes: 30 },
+      ];
       const signalId = 'sig-abc';
 
       mockFrom.mockImplementation((table: string) => {
@@ -155,7 +181,12 @@ describe('execute — time integrity sweep', () => {
         if (table === 'time_integrity_signals') {
           return {
             upsert: () => ({
-              select: () => ({ maybeSingle: async () => ({ data: { id: signalId }, error: null }) }),
+              select: () => ({
+                maybeSingle: async () => ({
+                  data: { id: signalId },
+                  error: null,
+                }),
+              }),
             }),
           };
         }
@@ -179,7 +210,10 @@ describe('execute — time integrity sweep', () => {
   });
 
   describe('AC6: trust matrix behavioral tests', () => {
-    function setupEntryMock(entries: Array<{ id: string; date: string; duration_minutes: number }>, signalId = 'sig-1') {
+    function setupEntryMock(
+      entries: Array<{ id: string; date: string; duration_minutes: number }>,
+      signalId = 'sig-1',
+    ) {
       mockGetAgentConfiguration.mockResolvedValue({ status: 'active' });
       mockFrom.mockImplementation((table: string) => {
         if (table === 'time_entries') {
@@ -200,7 +234,12 @@ describe('execute — time integrity sweep', () => {
         if (table === 'time_integrity_signals') {
           return {
             upsert: () => ({
-              select: () => ({ maybeSingle: async () => ({ data: { id: signalId }, error: null }) }),
+              select: () => ({
+                maybeSingle: async () => ({
+                  data: { id: signalId },
+                  error: null,
+                }),
+              }),
             }),
           };
         }
@@ -208,18 +247,26 @@ describe('execute — time integrity sweep', () => {
       });
     }
 
-    const lowHoursEntry = [{ id: 'e1', date: '2026-05-12', duration_minutes: 30 }];
+    const lowHoursEntry = [
+      { id: 'e1', date: '2026-05-12', duration_minutes: 30 },
+    ];
 
     test('supervised: signal created, agent_run in waiting_approval, resolved_at null', async () => {
       setupEntryMock(lowHoursEntry);
       const trustClient = makeTrustClient('supervised');
       const { execute } = await import('../executor');
-      const result = await execute({ workspaceId: 'ws-1', sweepDate: '2026-05-12' }, { trustClient });
+      const result = await execute(
+        { workspaceId: 'ws-1', sweepDate: '2026-05-12' },
+        { trustClient },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) expect(result.data.signalsCreated).toBe(1);
       expect(mockInsertRun).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'waiting_approval', trustTierAtExecution: 'supervised' }),
+        expect.objectContaining({
+          status: 'waiting_approval',
+          trustTierAtExecution: 'supervised',
+        }),
       );
     });
 
@@ -227,11 +274,17 @@ describe('execute — time integrity sweep', () => {
       setupEntryMock(lowHoursEntry, 'sig-2');
       const trustClient = makeTrustClient('confirm');
       const { execute } = await import('../executor');
-      const result = await execute({ workspaceId: 'ws-1', sweepDate: '2026-05-12' }, { trustClient });
+      const result = await execute(
+        { workspaceId: 'ws-1', sweepDate: '2026-05-12' },
+        { trustClient },
+      );
 
       expect(result.success).toBe(true);
       expect(mockInsertRun).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 'waiting_approval', trustTierAtExecution: 'confirm' }),
+        expect.objectContaining({
+          status: 'waiting_approval',
+          trustTierAtExecution: 'confirm',
+        }),
       );
     });
 
@@ -261,7 +314,12 @@ describe('execute — time integrity sweep', () => {
             upsert: (payload: Record<string, unknown>) => {
               capturedPayload = payload;
               return {
-                select: () => ({ maybeSingle: async () => ({ data: { id: 'sig-3' }, error: null }) }),
+                select: () => ({
+                  maybeSingle: async () => ({
+                    data: { id: 'sig-3' },
+                    error: null,
+                  }),
+                }),
               };
             },
           };
@@ -271,7 +329,10 @@ describe('execute — time integrity sweep', () => {
 
       const trustClient = makeTrustClient('auto');
       const { execute } = await import('../executor');
-      const result = await execute({ workspaceId: 'ws-1', sweepDate: '2026-05-12' }, { trustClient });
+      const result = await execute(
+        { workspaceId: 'ws-1', sweepDate: '2026-05-12' },
+        { trustClient },
+      );
 
       expect(result.success).toBe(true);
       expect(capturedPayload).not.toBeNull();
@@ -284,7 +345,9 @@ describe('execute — time integrity sweep', () => {
     test('signal suppressed and audit-logged when canAct returns allowed: false', async () => {
       mockGetAgentConfiguration.mockResolvedValue({ status: 'active' });
 
-      const lowHoursEntries = [{ id: 'e1', date: '2026-05-12', duration_minutes: 30 }];
+      const lowHoursEntries = [
+        { id: 'e1', date: '2026-05-12', duration_minutes: 30 },
+      ];
       const tablesQueried: string[] = [];
 
       mockFrom.mockImplementation((table: string) => {
@@ -324,7 +387,10 @@ describe('execute — time integrity sweep', () => {
       };
 
       const { execute } = await import('../executor');
-      const result = await execute({ workspaceId: 'ws-1', sweepDate: '2026-05-12' }, { trustClient });
+      const result = await execute(
+        { workspaceId: 'ws-1', sweepDate: '2026-05-12' },
+        { trustClient },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -371,7 +437,9 @@ describe('execute — time integrity sweep', () => {
             },
           }),
           upsert: () => ({
-            select: () => ({ maybeSingle: async () => ({ data: null, error: null }) }),
+            select: () => ({
+              maybeSingle: async () => ({ data: null, error: null }),
+            }),
           }),
         };
       });

@@ -18,10 +18,17 @@ const STATUS_CONFIG: Record<
   connected: { label: 'Connected', color: 'text-green-700', bg: 'bg-green-50' },
   syncing: { label: 'Syncing', color: 'text-blue-700', bg: 'bg-blue-50' },
   error: { label: 'Error', color: 'text-red-700', bg: 'bg-red-50' },
-  disconnected: { label: 'Disconnected', color: 'text-gray-500', bg: 'bg-gray-50' },
+  disconnected: {
+    label: 'Disconnected',
+    color: 'text-gray-500',
+    bg: 'bg-gray-50',
+  },
 };
 
-export function InboxConnectionCard({ clientId, role }: InboxConnectionCardProps) {
+export function InboxConnectionCard({
+  clientId,
+  role,
+}: InboxConnectionCardProps) {
   const [inboxes, setInboxes] = useState<ClientInbox[]>([]);
   const [loading, setLoading] = useState(true);
   const [showConnect, setShowConnect] = useState(false);
@@ -77,7 +84,8 @@ export function InboxConnectionCard({ clientId, role }: InboxConnectionCardProps
 
       {inboxes.length === 0 && (
         <p className="mt-3 text-sm text-[var(--flow-color-text-secondary)]">
-          No inboxes connected. Connect a Gmail inbox to start processing emails.
+          No inboxes connected. Connect a Gmail inbox to start processing
+          emails.
         </p>
       )}
 
@@ -91,16 +99,35 @@ export function InboxConnectionCard({ clientId, role }: InboxConnectionCardProps
               className="flex items-center justify-between rounded-md border border-[var(--flow-color-border-default)] p-3"
             >
               <div className="flex items-center gap-3">
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${config.bg} ${config.color}`}>
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${config.bg} ${config.color}`}
+                >
                   {inbox.syncStatus === 'syncing' && (
-                    <svg className="mr-1 h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    <svg
+                      className="mr-1 h-3 w-3 animate-spin"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
                     </svg>
                   )}
                   {config.label}
                 </span>
-                <span className="text-sm text-[var(--flow-color-text-primary)]">{inbox.emailAddress}</span>
+                <span className="text-sm text-[var(--flow-color-text-primary)]">
+                  {inbox.emailAddress}
+                </span>
                 {inbox.lastSyncAt && (
                   <span className="text-xs text-[var(--flow-color-text-secondary)]">
                     Last sync: {new Date(inbox.lastSyncAt).toLocaleString()}
@@ -119,17 +146,19 @@ export function InboxConnectionCard({ clientId, role }: InboxConnectionCardProps
                     Reconnect
                   </button>
                 )}
-                {(inbox.syncStatus === 'connected' || inbox.syncStatus === 'syncing') && isOwnerOrAdmin && (
-                  <button
-                    onClick={() => {
-                      setSelectedInbox(inbox);
-                      setShowDisconnect(true);
-                    }}
-                    className="text-xs font-medium text-red-600 hover:text-red-800"
-                  >
-                    Disconnect
-                  </button>
-                )}
+                {(inbox.syncStatus === 'connected' ||
+                  inbox.syncStatus === 'syncing') &&
+                  isOwnerOrAdmin && (
+                    <button
+                      onClick={() => {
+                        setSelectedInbox(inbox);
+                        setShowDisconnect(true);
+                      }}
+                      className="text-xs font-medium text-red-600 hover:text-red-800"
+                    >
+                      Disconnect
+                    </button>
+                  )}
                 {inbox.syncStatus === 'disconnected' && isOwnerOrAdmin && (
                   <button
                     onClick={() => {
@@ -143,7 +172,9 @@ export function InboxConnectionCard({ clientId, role }: InboxConnectionCardProps
                 )}
               </div>
               {inbox.errorMessage && (
-                <p className="mt-1 text-xs text-red-600">{inbox.errorMessage}</p>
+                <p className="mt-1 text-xs text-red-600">
+                  {inbox.errorMessage}
+                </p>
               )}
             </div>
           );

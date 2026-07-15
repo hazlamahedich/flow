@@ -9,12 +9,32 @@ const { mockDeriveBadgeState } = vi.hoisted(() => ({
 vi.mock('@flow/trust', () => ({
   deriveBadgeState: mockDeriveBadgeState,
   TRUST_BADGE_DISPLAY: {
-    supervised: { label: 'Learning', colorToken: '--c', borderStyle: '1px solid' },
-    confirm: { label: 'Established', colorToken: '--c', borderStyle: '1px dashed' },
+    supervised: {
+      label: 'Learning',
+      colorToken: '--c',
+      borderStyle: '1px solid',
+    },
+    confirm: {
+      label: 'Established',
+      colorToken: '--c',
+      borderStyle: '1px dashed',
+    },
     auto: { label: 'Auto', colorToken: '--c', borderStyle: 'none' },
-    promoting: { label: 'Promoting', colorToken: '--c', borderStyle: '1px solid' },
-    regressing: { label: 'Regressing', colorToken: '--c', borderStyle: '1px solid' },
-    stick_time: { label: 'Ready for review?', colorToken: '--c', borderStyle: 'none' },
+    promoting: {
+      label: 'Promoting',
+      colorToken: '--c',
+      borderStyle: '1px solid',
+    },
+    regressing: {
+      label: 'Regressing',
+      colorToken: '--c',
+      borderStyle: '1px solid',
+    },
+    stick_time: {
+      label: 'Ready for review?',
+      colorToken: '--c',
+      borderStyle: 'none',
+    },
   },
 }));
 
@@ -22,12 +42,35 @@ vi.mock('@flow/shared', () => ({
   AGENT_IDENTITY: {
     inbox: { label: 'Inbox', iconInitial: 'IN', color: '#3B82F6' },
     calendar: { label: 'Calendar', iconInitial: 'CA', color: '#8B5CF6' },
-    'ar-collection': { label: 'AR Collection', iconInitial: 'AR', color: '#F59E0B' },
-    'weekly-report': { label: 'Weekly Report', iconInitial: 'WR', color: '#10B981' },
-    'client-health': { label: 'Client Health', iconInitial: 'CH', color: '#EF4444' },
-    'time-integrity': { label: 'Time Integrity', iconInitial: 'TI', color: '#EC4899' },
+    'ar-collection': {
+      label: 'AR Collection',
+      iconInitial: 'AR',
+      color: '#F59E0B',
+    },
+    'weekly-report': {
+      label: 'Weekly Report',
+      iconInitial: 'WR',
+      color: '#10B981',
+    },
+    'client-health': {
+      label: 'Client Health',
+      iconInitial: 'CH',
+      color: '#EF4444',
+    },
+    'time-integrity': {
+      label: 'Time Integrity',
+      iconInitial: 'TI',
+      color: '#EC4899',
+    },
   },
-  AGENT_IDS: ['inbox', 'calendar', 'ar-collection', 'weekly-report', 'client-health', 'time-integrity'],
+  AGENT_IDS: [
+    'inbox',
+    'calendar',
+    'ar-collection',
+    'weekly-report',
+    'client-health',
+    'time-integrity',
+  ],
 }));
 
 vi.mock('../trust-badge-wrapper', () => ({
@@ -52,7 +95,9 @@ vi.mock('next/navigation', () => ({
 vi.mock('../../actions/checkin-actions', () => ({
   deferCheckIn: vi.fn().mockResolvedValue({ success: true }),
   acknowledgeCheckIn: vi.fn().mockResolvedValue({ success: true }),
-  fetchRecentAutoActions: vi.fn().mockResolvedValue({ success: true, data: [] }),
+  fetchRecentAutoActions: vi
+    .fn()
+    .mockResolvedValue({ success: true, data: [] }),
 }));
 
 vi.mock('../../constants/trust-copy', () => ({
@@ -98,7 +143,12 @@ function getCard(agentId: string) {
 function renderGrid(rows: TrustSummaryRow[] = []) {
   return render(
     <Provider>
-      <AgentTrustGrid workspaceId={WS_ID} initialData={rows} checkInDue={[]} checkInEnabled={false} />
+      <AgentTrustGrid
+        workspaceId={WS_ID}
+        initialData={rows}
+        checkInDue={[]}
+        checkInEnabled={false}
+      />
     </Provider>,
   );
 }
@@ -110,14 +160,22 @@ describe('AgentTrustGrid', () => {
 
   it('renders grid container', () => {
     renderGrid();
-    expect(screen.getAllByTestId('agent-trust-grid').length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByTestId('agent-trust-grid').length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it('renders all 6 agent cards', () => {
     renderGrid();
-    expect(screen.getAllByTestId('agent-card-inbox').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByTestId('agent-card-calendar').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByTestId('agent-card-ar-collection').length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByTestId('agent-card-inbox').length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByTestId('agent-card-calendar').length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByTestId('agent-card-ar-collection').length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it('renders agent labels', () => {
@@ -140,13 +198,17 @@ describe('AgentTrustGrid', () => {
 
   it('shows confirm detail when state is confirm', () => {
     mockDeriveBadgeState.mockReturnValue('confirm');
-    renderGrid([makeRow({ agentId: 'inbox', currentLevel: 'confirm', score: 100 })]);
+    renderGrid([
+      makeRow({ agentId: 'inbox', currentLevel: 'confirm', score: 100 }),
+    ]);
     expect(getCard('inbox').textContent).toContain('Established');
   });
 
   it('shows auto detail when state is auto', () => {
     mockDeriveBadgeState.mockReturnValue('auto');
-    renderGrid([makeRow({ agentId: 'inbox', currentLevel: 'auto', score: 180 })]);
+    renderGrid([
+      makeRow({ agentId: 'inbox', currentLevel: 'auto', score: 180 }),
+    ]);
     expect(getCard('inbox').textContent).toContain('Auto');
   });
 
@@ -162,7 +224,9 @@ describe('AgentTrustGrid', () => {
 
   it('handles empty initialData', () => {
     renderGrid([]);
-    expect(screen.getAllByTestId('agent-trust-grid').length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByTestId('agent-trust-grid').length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it('renders as responsive grid', () => {

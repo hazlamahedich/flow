@@ -1,7 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { editDraft, quickEditTone, quickEditLength } from '../actions/draft-actions';
+import {
+  editDraft,
+  quickEditTone,
+  quickEditLength,
+} from '../actions/draft-actions';
 import { Button } from '@flow/ui';
 import { Sparkles, Save, RotateCcw, MessageSquare, List } from 'lucide-react';
 import { cn } from '@flow/ui';
@@ -12,7 +16,11 @@ interface DraftEditorProps {
   onSave?: () => void;
 }
 
-export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProps) {
+export function DraftEditor({
+  draftId,
+  initialContent,
+  onSave,
+}: DraftEditorProps) {
   const [content, setContent] = useState(initialContent);
   const [isPending, setIsPending] = useState(false);
 
@@ -26,7 +34,9 @@ export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProp
     }
   };
 
-  const handleToneChange = async (tone: 'professional' | 'friendly' | 'concise' | 'detailed') => {
+  const handleToneChange = async (
+    tone: 'professional' | 'friendly' | 'concise' | 'detailed',
+  ) => {
     setIsPending(true);
     try {
       const result = await quickEditTone({ draftId, tone });
@@ -58,17 +68,19 @@ export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProp
           onChange={(e) => setContent(e.target.value)}
           disabled={isPending}
           className={cn(
-            "w-full min-h-[300px] p-4 rounded-xl border border-[var(--flow-color-border-default)] bg-[var(--flow-bg-surface)] text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-[var(--flow-accent-primary)]/20 transition-all",
-            isPending && "opacity-50"
+            'w-full min-h-[300px] p-4 rounded-xl border border-[var(--flow-color-border-default)] bg-[var(--flow-bg-surface)] text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-[var(--flow-accent-primary)]/20 transition-all',
+            isPending && 'opacity-50',
           )}
           placeholder="Draft response..."
         />
-        
+
         {isPending && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-[1px] rounded-xl">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white shadow-sm border border-[var(--flow-color-border-subtle)]">
               <Sparkles className="w-4 h-4 text-[var(--flow-color-gold)] animate-pulse" />
-              <span className="text-xs font-bold text-[var(--flow-color-text-secondary)]">AI is rewriting...</span>
+              <span className="text-xs font-bold text-[var(--flow-color-text-secondary)]">
+                AI is rewriting...
+              </span>
             </div>
           </div>
         )}
@@ -78,7 +90,7 @@ export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProp
         <span className="text-[10px] font-black uppercase tracking-widest text-[var(--flow-color-text-muted)] mr-2">
           Quick Edits
         </span>
-        
+
         <Button
           variant="outline"
           size="sm"
@@ -128,7 +140,7 @@ export function DraftEditor({ draftId, initialContent, onSave }: DraftEditorProp
           <RotateCcw className="w-4 h-4 mr-2" />
           Reset
         </Button>
-        
+
         <div className="flex items-center gap-2">
           <Button
             onClick={handleSave}

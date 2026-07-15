@@ -25,9 +25,12 @@ export async function updateTimeEntry(
     updated_at: new Date().toISOString(),
   };
   if (input.date !== undefined) updateFields.date = input.date;
-  if (input.durationMinutes !== undefined) updateFields.duration_minutes = input.durationMinutes;
-  if (input.startMinutes !== undefined) updateFields.start_minutes = input.startMinutes;
-  if (input.endMinutes !== undefined) updateFields.end_minutes = input.endMinutes;
+  if (input.durationMinutes !== undefined)
+    updateFields.duration_minutes = input.durationMinutes;
+  if (input.startMinutes !== undefined)
+    updateFields.start_minutes = input.startMinutes;
+  if (input.endMinutes !== undefined)
+    updateFields.end_minutes = input.endMinutes;
   if (input.clientId !== undefined) updateFields.client_id = input.clientId;
   if (input.projectId !== undefined) updateFields.project_id = input.projectId;
   if (input.notes !== undefined) updateFields.notes = input.notes;
@@ -61,14 +64,12 @@ export async function insertEditHistory(
   supabase: SupabaseClient,
   input: InsertEditHistoryInput,
 ): Promise<void> {
-  const { error } = await supabase
-    .from('time_entry_edit_history')
-    .insert({
-      time_entry_id: input.timeEntryId,
-      previous_values: input.previousValues,
-      changed_by: input.changedBy,
-      edit_reason: input.editReason ?? null,
-    });
+  const { error } = await supabase.from('time_entry_edit_history').insert({
+    time_entry_id: input.timeEntryId,
+    previous_values: input.previousValues,
+    changed_by: input.changedBy,
+    edit_reason: input.editReason ?? null,
+  });
 
   if (error) throw error;
 }
@@ -97,7 +98,9 @@ export async function getTimeEntryForUpdate(
 ): Promise<TimeEntryCurrentValues | null> {
   const { data, error } = await supabase
     .from('time_entries')
-    .select('id, date, duration_minutes, start_minutes, end_minutes, client_id, project_id, notes, deleted_at, user_id')
+    .select(
+      'id, date, duration_minutes, start_minutes, end_minutes, client_id, project_id, notes, deleted_at, user_id',
+    )
     .eq('id', input.id)
     .eq('workspace_id', input.workspaceId)
     .maybeSingle();

@@ -5,8 +5,12 @@ test.describe('[P0] Time Entry Edit', () => {
     await ownerPage.goto('/time');
   });
 
-  test('edit flow: click edit, change duration, save, list shows updated value', async ({ ownerPage }) => {
-    const editButtons = ownerPage.getByRole('button', { name: /edit time entry/i });
+  test('edit flow: click edit, change duration, save, list shows updated value', async ({
+    ownerPage,
+  }) => {
+    const editButtons = ownerPage.getByRole('button', {
+      name: /edit time entry/i,
+    });
     const count = await editButtons.count();
     test.skip(count === 0, 'No time entries to edit');
 
@@ -27,8 +31,12 @@ test.describe('[P0] Time Entry Edit', () => {
     await expect(modal).not.toBeVisible({ timeout: 5000 });
   });
 
-  test('validation: invalid duration prevents submit', async ({ ownerPage }) => {
-    const editButtons = ownerPage.getByRole('button', { name: /edit time entry/i });
+  test('validation: invalid duration prevents submit', async ({
+    ownerPage,
+  }) => {
+    const editButtons = ownerPage.getByRole('button', {
+      name: /edit time entry/i,
+    });
     const count = await editButtons.count();
     test.skip(count === 0, 'No time entries to edit');
 
@@ -46,11 +54,15 @@ test.describe('[P0] Time Entry Edit', () => {
     const saveBtn = modal.getByRole('button', { name: /save changes/i });
     await saveBtn.click();
 
-    await expect(modal.getByText(/minimum 1 minute/i)).toBeVisible({ timeout: 3000 });
+    await expect(modal.getByText(/minimum 1 minute/i)).toBeVisible({
+      timeout: 3000,
+    });
   });
 
   test('cancel edit closes modal without changes', async ({ ownerPage }) => {
-    const editButtons = ownerPage.getByRole('button', { name: /edit time entry/i });
+    const editButtons = ownerPage.getByRole('button', {
+      name: /edit time entry/i,
+    });
     const count = await editButtons.count();
     test.skip(count === 0, 'No time entries to edit');
 
@@ -78,8 +90,12 @@ test.describe('[P0] Time Entry Edit', () => {
       await ownerPage.waitForTimeout(1000);
     }
 
-    const editButtonsAfterDelete = ownerPage.getByRole('button', { name: /edit time entry/i });
-    await expect(editButtonsAfterDelete.first()).not.toBeVisible({ timeout: 3000 }).catch(() => {});
+    const editButtonsAfterDelete = ownerPage.getByRole('button', {
+      name: /edit time entry/i,
+    });
+    await expect(editButtonsAfterDelete.first())
+      .not.toBeVisible({ timeout: 3000 })
+      .catch(() => {});
   });
 });
 
@@ -100,7 +116,9 @@ test.describe('[P1] Time Entry Filters', () => {
       await filterBtn.click();
       await ownerPage.waitForTimeout(1000);
 
-      const clearBtn = ownerPage.getByRole('button', { name: /clear filters/i });
+      const clearBtn = ownerPage.getByRole('button', {
+        name: /clear filters/i,
+      });
       await expect(clearBtn).toBeVisible({ timeout: 3000 });
     }
   });
@@ -118,7 +136,9 @@ test.describe('[P1] Time Entry Filters', () => {
       await ownerPage.getByRole('button', { name: /clear filters/i }).click();
       await ownerPage.waitForTimeout(1000);
 
-      await expect(ownerPage.getByRole('button', { name: /clear filters/i })).not.toBeVisible({ timeout: 3000 });
+      await expect(
+        ownerPage.getByRole('button', { name: /clear filters/i }),
+      ).not.toBeVisible({ timeout: 3000 });
     }
   });
 
@@ -126,7 +146,7 @@ test.describe('[P1] Time Entry Filters', () => {
     const nextBtn = ownerPage.getByRole('button', { name: /next/i });
     const prevBtn = ownerPage.getByRole('button', { name: /prev/i });
 
-    if (await nextBtn.isVisible() && await nextBtn.isEnabled()) {
+    if ((await nextBtn.isVisible()) && (await nextBtn.isEnabled())) {
       await nextBtn.click();
       await ownerPage.waitForTimeout(1000);
       await expect(prevBtn).toBeEnabled({ timeout: 3000 });

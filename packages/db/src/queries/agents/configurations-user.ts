@@ -1,7 +1,9 @@
 import type { agentConfigurations } from '../../schema/agent-configurations';
 
 type AgentConfigurationRow = typeof agentConfigurations.$inferSelect;
-type ServerClient = ReturnType<typeof import('../../client').createServerClient>;
+type ServerClient = ReturnType<
+  typeof import('../../client').createServerClient
+>;
 
 export async function getUserAgentConfigurations(
   client: ServerClient,

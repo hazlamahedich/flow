@@ -23,8 +23,16 @@ describe('primitive color scales', () => {
   it('has all 10 color scales plus white and black', () => {
     expect(Object.keys(primitives)).toEqual(
       expect.arrayContaining([
-        'slate', 'blue', 'red', 'green', 'amber',
-        'violet', 'rose', 'orange', 'white', 'black',
+        'slate',
+        'blue',
+        'red',
+        'green',
+        'amber',
+        'violet',
+        'rose',
+        'orange',
+        'white',
+        'black',
       ]),
     );
   });
@@ -62,41 +70,49 @@ describe('semantic color tokens', () => {
   });
 
   it('has all required bg tokens', () => {
-    expect(darkKeys).toEqual(expect.arrayContaining([
-      '--flow-bg-canvas',
-      '--flow-bg-surface',
-      '--flow-bg-surface-raised',
-      '--flow-bg-surface-overlay',
-    ]));
+    expect(darkKeys).toEqual(
+      expect.arrayContaining([
+        '--flow-bg-canvas',
+        '--flow-bg-surface',
+        '--flow-bg-surface-raised',
+        '--flow-bg-surface-overlay',
+      ]),
+    );
   });
 
   it('has all required text tokens', () => {
-    expect(darkKeys).toEqual(expect.arrayContaining([
-      '--flow-text-primary',
-      '--flow-text-secondary',
-      '--flow-text-muted',
-      '--flow-text-disabled',
-      '--flow-text-inverse',
-    ]));
+    expect(darkKeys).toEqual(
+      expect.arrayContaining([
+        '--flow-text-primary',
+        '--flow-text-secondary',
+        '--flow-text-muted',
+        '--flow-text-disabled',
+        '--flow-text-inverse',
+      ]),
+    );
   });
 
   it('has all required border tokens', () => {
-    expect(darkKeys).toEqual(expect.arrayContaining([
-      '--flow-border-default',
-      '--flow-border-subtle',
-      '--flow-border-strong',
-    ]));
+    expect(darkKeys).toEqual(
+      expect.arrayContaining([
+        '--flow-border-default',
+        '--flow-border-subtle',
+        '--flow-border-strong',
+      ]),
+    );
   });
 
   it('has accent and status tokens', () => {
-    expect(darkKeys).toEqual(expect.arrayContaining([
-      '--flow-accent-primary',
-      '--flow-accent-primary-text',
-      '--flow-status-success',
-      '--flow-status-warning',
-      '--flow-status-error',
-      '--flow-status-info',
-    ]));
+    expect(darkKeys).toEqual(
+      expect.arrayContaining([
+        '--flow-accent-primary',
+        '--flow-accent-primary-text',
+        '--flow-status-success',
+        '--flow-status-warning',
+        '--flow-status-error',
+        '--flow-status-info',
+      ]),
+    );
   });
 
   it('dark theme has exact hex values from AC-4', () => {
@@ -118,7 +134,9 @@ describe('semantic color tokens', () => {
       const [keyB, valB] = entries[i + 1]!;
       if (keyA.startsWith('--flow-') && keyB.startsWith('--flow-')) {
         if (valA === valB) {
-          expect(`${keyA} and ${keyB} have identical values`).toBe('unexpected duplicate');
+          expect(`${keyA} and ${keyB} have identical values`).toBe(
+            'unexpected duplicate',
+          );
         }
       }
     }
@@ -131,7 +149,14 @@ describe('agent identity colors', () => {
   });
 
   it('agent names array matches color keys', () => {
-    const expectedNames = ['inbox', 'calendar', 'ar', 'report', 'health', 'time'];
+    const expectedNames = [
+      'inbox',
+      'calendar',
+      'ar',
+      'report',
+      'health',
+      'time',
+    ];
     expect(agentNames).toEqual(expectedNames);
   });
 

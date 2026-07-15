@@ -14,7 +14,9 @@ function mockDateAtHour(hour: number) {
       }
       super(...(args as ConstructorParameters<typeof Date>));
     }
-    static now(): number { return new FixedDate().getTime(); }
+    static now(): number {
+      return new FixedDate().getTime();
+    }
   };
   vi.setSystemTime(new FixedDate());
 }
@@ -53,7 +55,12 @@ describe('DashboardGreeting', () => {
     vi.useFakeTimers();
     mockDateAtHour(9);
     const { container } = renderWithTheme(
-      <DashboardGreeting firstName="Alice" summary={zeroSummary} clientCount={1} invoiceCount={1} />,
+      <DashboardGreeting
+        firstName="Alice"
+        summary={zeroSummary}
+        clientCount={1}
+        invoiceCount={1}
+      />,
     );
     expect(container.textContent).toContain('Good morning, Alice');
   });
@@ -62,7 +69,12 @@ describe('DashboardGreeting', () => {
     vi.useFakeTimers();
     mockDateAtHour(5);
     const { container } = renderWithTheme(
-      <DashboardGreeting firstName="Test" summary={zeroSummary} clientCount={1} invoiceCount={1} />,
+      <DashboardGreeting
+        firstName="Test"
+        summary={zeroSummary}
+        clientCount={1}
+        invoiceCount={1}
+      />,
     );
     expect(container.textContent).toContain('Good morning');
   });
@@ -71,7 +83,12 @@ describe('DashboardGreeting', () => {
     vi.useFakeTimers();
     mockDateAtHour(11);
     const { container } = renderWithTheme(
-      <DashboardGreeting firstName="Test" summary={zeroSummary} clientCount={1} invoiceCount={1} />,
+      <DashboardGreeting
+        firstName="Test"
+        summary={zeroSummary}
+        clientCount={1}
+        invoiceCount={1}
+      />,
     );
     expect(container.textContent).toContain('Good morning');
   });
@@ -80,7 +97,12 @@ describe('DashboardGreeting', () => {
     vi.useFakeTimers();
     mockDateAtHour(12);
     const { container } = renderWithTheme(
-      <DashboardGreeting firstName="Test" summary={zeroSummary} clientCount={1} invoiceCount={1} />,
+      <DashboardGreeting
+        firstName="Test"
+        summary={zeroSummary}
+        clientCount={1}
+        invoiceCount={1}
+      />,
     );
     expect(container.textContent).toContain('Good afternoon');
   });
@@ -89,7 +111,12 @@ describe('DashboardGreeting', () => {
     vi.useFakeTimers();
     mockDateAtHour(16);
     const { container } = renderWithTheme(
-      <DashboardGreeting firstName="Test" summary={zeroSummary} clientCount={1} invoiceCount={1} />,
+      <DashboardGreeting
+        firstName="Test"
+        summary={zeroSummary}
+        clientCount={1}
+        invoiceCount={1}
+      />,
     );
     expect(container.textContent).toContain('Good afternoon');
   });
@@ -98,7 +125,12 @@ describe('DashboardGreeting', () => {
     vi.useFakeTimers();
     mockDateAtHour(17);
     const { container } = renderWithTheme(
-      <DashboardGreeting firstName="Test" summary={zeroSummary} clientCount={1} invoiceCount={1} />,
+      <DashboardGreeting
+        firstName="Test"
+        summary={zeroSummary}
+        clientCount={1}
+        invoiceCount={1}
+      />,
     );
     expect(container.textContent).toContain('Good evening');
   });
@@ -107,7 +139,12 @@ describe('DashboardGreeting', () => {
     vi.useFakeTimers();
     mockDateAtHour(4);
     const { container } = renderWithTheme(
-      <DashboardGreeting firstName="Test" summary={zeroSummary} clientCount={1} invoiceCount={1} />,
+      <DashboardGreeting
+        firstName="Test"
+        summary={zeroSummary}
+        clientCount={1}
+        invoiceCount={1}
+      />,
     );
     expect(container.textContent).toContain('Good evening');
   });
@@ -115,9 +152,19 @@ describe('DashboardGreeting', () => {
   it('shows whisper when activity > 0', () => {
     vi.useFakeTimers();
     mockDateAtHour(9);
-    const summary = { pendingApprovals: 3, agentActivityCount: 0, outstandingInvoices: 0, clientHealthAlerts: 0 };
+    const summary = {
+      pendingApprovals: 3,
+      agentActivityCount: 0,
+      outstandingInvoices: 0,
+      clientHealthAlerts: 0,
+    };
     const { container } = renderWithTheme(
-      <DashboardGreeting firstName="Alice" summary={summary} clientCount={1} invoiceCount={1} />,
+      <DashboardGreeting
+        firstName="Alice"
+        summary={summary}
+        clientCount={1}
+        invoiceCount={1}
+      />,
     );
     expect(container.textContent).toContain('3 items need your eyes');
   });
@@ -126,7 +173,12 @@ describe('DashboardGreeting', () => {
     vi.useFakeTimers();
     mockDateAtHour(9);
     const { container } = renderWithTheme(
-      <DashboardGreeting firstName="Alice" summary={zeroSummary} clientCount={1} invoiceCount={1} />,
+      <DashboardGreeting
+        firstName="Alice"
+        summary={zeroSummary}
+        clientCount={1}
+        invoiceCount={1}
+      />,
     );
     expect(container.textContent).toContain("You're all caught up, Alice");
   });
@@ -135,7 +187,12 @@ describe('DashboardGreeting', () => {
     vi.useFakeTimers();
     mockDateAtHour(9);
     const { container } = renderWithTheme(
-      <DashboardGreeting firstName="Alice" summary={zeroSummary} clientCount={0} invoiceCount={0} />,
+      <DashboardGreeting
+        firstName="Alice"
+        summary={zeroSummary}
+        clientCount={0}
+        invoiceCount={0}
+      />,
     );
     expect(container.textContent).toContain('Welcome to Flow, Alice');
     expect(container.querySelector('a[href="/clients"]')).toBeTruthy();
@@ -145,7 +202,12 @@ describe('DashboardGreeting', () => {
     vi.useFakeTimers();
     mockDateAtHour(9);
     const { container } = renderWithTheme(
-      <DashboardGreeting firstName="Alice" summary={zeroSummary} clientCount={1} invoiceCount={1} />,
+      <DashboardGreeting
+        firstName="Alice"
+        summary={zeroSummary}
+        clientCount={1}
+        invoiceCount={1}
+      />,
     );
     const dateEl = container.querySelector('p:last-of-type');
     expect(dateEl?.textContent).toBeTruthy();
@@ -155,7 +217,11 @@ describe('DashboardGreeting', () => {
     vi.useFakeTimers();
     mockDateAtHour(9);
     const { container } = renderWithTheme(
-      <DashboardGreeting summary={zeroSummary} clientCount={1} invoiceCount={1} />,
+      <DashboardGreeting
+        summary={zeroSummary}
+        clientCount={1}
+        invoiceCount={1}
+      />,
     );
     expect(container.textContent).toContain('Good morning');
     expect(container.textContent).not.toContain(', undefined');
@@ -165,7 +231,13 @@ describe('DashboardGreeting', () => {
     vi.useFakeTimers();
     mockDateAtHour(9);
     const { container } = renderWithTheme(
-      <DashboardGreeting firstName="Alice" timezone={undefined} summary={zeroSummary} clientCount={1} invoiceCount={1} />,
+      <DashboardGreeting
+        firstName="Alice"
+        timezone={undefined}
+        summary={zeroSummary}
+        clientCount={1}
+        invoiceCount={1}
+      />,
     );
     expect(container.textContent).toContain('Good morning');
   });

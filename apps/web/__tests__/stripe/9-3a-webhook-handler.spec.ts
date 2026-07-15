@@ -62,10 +62,18 @@ function stripeEvent(
   type: string,
   data: Record<string, unknown> = {},
 ): WebhookEvent {
-  return { id, type, created: Math.floor(Date.now() / 1000), data: { object: data } };
+  return {
+    id,
+    type,
+    created: Math.floor(Date.now() / 1000),
+    data: { object: data },
+  };
 }
 
-function expectRpcNotCalledWithName(rpc: ReturnType<typeof vi.fn>, name: string): void {
+function expectRpcNotCalledWithName(
+  rpc: ReturnType<typeof vi.fn>,
+  name: string,
+): void {
   const calls = rpc.mock.calls.filter((args: unknown[]) => args[0] === name);
   expect(calls.length).toBe(0);
 }
@@ -78,14 +86,19 @@ type Chain = {
   rpc: ReturnType<typeof vi.fn>;
 };
 
-function createMockSupabase(overrides: {
-  rpcResults?: Record<string, { data: unknown; error: { message: string; code?: string } | null }>;
-  invoiceStatus?: string;
-  invoiceExists?: boolean;
-  invoiceClientId?: string | null;
-  workspaceByCustomer?: string | null;
-  insertErrors?: Record<string, { code: string; message: string } | null>;
-} = {}): { client: SupabaseClient; chains: Record<string, Chain> } {
+function createMockSupabase(
+  overrides: {
+    rpcResults?: Record<
+      string,
+      { data: unknown; error: { message: string; code?: string } | null }
+    >;
+    invoiceStatus?: string;
+    invoiceExists?: boolean;
+    invoiceClientId?: string | null;
+    workspaceByCustomer?: string | null;
+    insertErrors?: Record<string, { code: string; message: string } | null>;
+  } = {},
+): { client: SupabaseClient; chains: Record<string, Chain> } {
   const chains: Record<string, Chain> = {};
 
   const rpcResults = overrides.rpcResults ?? {};
@@ -100,19 +113,20 @@ function createMockSupabase(overrides: {
     const select = vi.fn(() => {
       const terminal = {
         maybeSingle: vi.fn().mockResolvedValue({
-          data: table === 'invoices'
-            ? (overrides.invoiceExists === false
-              ? null
-              : {
-                  id: 'inv_row',
-                  status: overrides.invoiceStatus ?? 'sent',
-                  client_id: overrides.invoiceClientId ?? null,
-                })
-            : table === 'workspaces'
-              ? (overrides.workspaceByCustomer === null
+          data:
+            table === 'invoices'
+              ? overrides.invoiceExists === false
                 ? null
-                : { id: overrides.workspaceByCustomer ?? 'ws_lookup' })
-              : null,
+                : {
+                    id: 'inv_row',
+                    status: overrides.invoiceStatus ?? 'sent',
+                    client_id: overrides.invoiceClientId ?? null,
+                  }
+              : table === 'workspaces'
+                ? overrides.workspaceByCustomer === null
+                  ? null
+                  : { id: overrides.workspaceByCustomer ?? 'ws_lookup' }
+                : null,
           error: null,
         }),
       };
@@ -123,7 +137,10 @@ function createMockSupabase(overrides: {
     });
     const del = vi.fn().mockResolvedValue({ data: null, error: null });
     const rpc = vi.fn().mockImplementation((name: string) => {
-      const result = rpcResults[name] ?? { data: { success: true }, error: null };
+      const result = rpcResults[name] ?? {
+        data: { success: true },
+        error: null,
+      };
       return Promise.resolve(result);
     });
     const chain: Chain = { insert, update, select, delete: del, rpc };
@@ -136,10 +153,18 @@ function createMockSupabase(overrides: {
       if (!chains[table]) makeChain(table);
       const c = chains[table];
       // expose rpc at the top level too (supabase.rpc pattern)
-      return { insert: c.insert, update: c.update, select: c.select, delete: c.delete };
+      return {
+        insert: c.insert,
+        update: c.update,
+        select: c.select,
+        delete: c.delete,
+      };
     }),
     rpc: vi.fn().mockImplementation((name: string) => {
-      const result = rpcResults[name] ?? { data: { success: true }, error: null };
+      const result = rpcResults[name] ?? {
+        data: { success: true },
+        error: null,
+      };
       return Promise.resolve(result);
     }),
   } as unknown as SupabaseClient;
@@ -207,14 +232,17 @@ describe('[9.3a][AC7] computeInvoiceDedupHash', () => {
     };
     const inputOriginal = {
       ...baseInput,
-      lineItems: [...baseInput.lineItems, {
-        sourceType: 'fixed_service',
-        timeEntryId: null,
-        retainerId: null,
-        description: 'Setup fee',
-        amountCents: 5000,
-        quantity: '1',
-      }],
+      lineItems: [
+        ...baseInput.lineItems,
+        {
+          sourceType: 'fixed_service',
+          timeEntryId: null,
+          retainerId: null,
+          description: 'Setup fee',
+          amountCents: 5000,
+          quantity: '1',
+        },
+      ],
     };
     expect(computeInvoiceDedupHash(inputReordered)).toBe(
       computeInvoiceDedupHash(inputOriginal),
@@ -232,7 +260,10 @@ describe('[9.3a][AC7] computeInvoiceDedupHash', () => {
 
   test('differs when issue date changes (recurring boundary)', () => {
     const h1 = computeInvoiceDedupHash(baseInput);
-    const h2 = computeInvoiceDedupHash({ ...baseInput, issueDate: '2026-07-17' });
+    const h2 = computeInvoiceDedupHash({
+      ...baseInput,
+      issueDate: '2026-07-17',
+    });
     expect(h1).not.toBe(h2);
   });
 
@@ -268,7 +299,10 @@ describe('[9.3a] processStripeEvent dispatcher', () => {
   test('routes checkout.session.completed to handler', async () => {
     const { client } = createMockSupabase({
       rpcResults: {
-        record_payment_with_concurrency: { data: { success: true }, error: null },
+        record_payment_with_concurrency: {
+          data: { success: true },
+          error: null,
+        },
         log_client_notification: { data: null, error: null },
       },
       invoiceExists: true,
@@ -479,7 +513,10 @@ describe('[9.3a] Edge case matrix', () => {
       invoiceStatus: 'draft',
       invoiceClientId: 'cli_123',
       rpcResults: {
-        record_payment_with_concurrency: { data: { success: true }, error: null },
+        record_payment_with_concurrency: {
+          data: { success: true },
+          error: null,
+        },
       },
     });
     const event = stripeEvent('evt_draft', 'checkout.session.completed', {
@@ -601,7 +638,9 @@ describe('[9.3a] Edge case matrix', () => {
 
   test('EC-default: subscription.updated with unknown price id → processed:false', async () => {
     const { StripePaymentProvider } = await import('@flow/agents/providers');
-    (StripePaymentProvider as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+    (
+      StripePaymentProvider as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => ({
       getSubscription: vi.fn().mockResolvedValue({
         providerSubscriptionId: 'sub_x',
         customerId: 'cus_x',
@@ -613,12 +652,16 @@ describe('[9.3a] Edge case matrix', () => {
       }),
     }));
     const { client } = createMockSupabase();
-    const event = stripeEvent('evt_bad_price', 'customer.subscription.updated', {
-      id: 'sub_x',
-      customer: 'cus_x',
-      status: 'active',
-      metadata: { workspace_id: 'ws_x' },
-    });
+    const event = stripeEvent(
+      'evt_bad_price',
+      'customer.subscription.updated',
+      {
+        id: 'sub_x',
+        customer: 'cus_x',
+        status: 'active',
+        metadata: { workspace_id: 'ws_x' },
+      },
+    );
     const result = await processStripeEvent(client, event);
     expect(result.processed).toBe(false);
     expect(result.reason).toContain('price_unknown');
@@ -626,7 +669,9 @@ describe('[9.3a] Edge case matrix', () => {
 
   test('EC-default: subscription.updated with status canceled → maps to cancelled (not past_due)', async () => {
     const { StripePaymentProvider } = await import('@flow/agents/providers');
-    (StripePaymentProvider as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+    (
+      StripePaymentProvider as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => ({
       getSubscription: vi.fn().mockResolvedValue({
         providerSubscriptionId: 'sub_cz',
         customerId: 'cus_cz',

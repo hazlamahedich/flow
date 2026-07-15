@@ -35,7 +35,10 @@ describe('deriveUIStatus', () => {
   });
 
   it('prioritizes error-loading over loading', () => {
-    const ctx = makeContext({ isInitializing: true, fetchError: new Error('fail') });
+    const ctx = makeContext({
+      isInitializing: true,
+      fetchError: new Error('fail'),
+    });
     expect(deriveUIStatus('inactive', ctx)).toBe('error-loading');
   });
 

@@ -1,4 +1,11 @@
-import { pgTable, uuid, text, timestamp, jsonb, index } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  jsonb,
+  index,
+} from 'drizzle-orm/pg-core';
 import { timeEntries } from './time-entries';
 import { users } from './users';
 
@@ -10,10 +17,13 @@ export const timeEntryEditHistory = pgTable(
       .notNull()
       .references(() => timeEntries.id, { onDelete: 'cascade' }),
     previousValues: jsonb('previous_values').notNull(),
-    changedBy: uuid('changed_by')
-      .references(() => users.id, { onDelete: 'set null' }),
+    changedBy: uuid('changed_by').references(() => users.id, {
+      onDelete: 'set null',
+    }),
     editReason: text('edit_reason'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('idx_teeh_entry').on(table.timeEntryId),

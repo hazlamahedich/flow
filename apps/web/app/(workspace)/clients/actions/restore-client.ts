@@ -2,7 +2,12 @@
 
 import { revalidateTag } from 'next/cache';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, cacheTag, restoreClient } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  cacheTag,
+  restoreClient,
+} from '@flow/db';
 import { archiveClientSchema } from '@flow/types';
 import type { ActionResult, Client } from '@flow/types';
 
@@ -28,7 +33,12 @@ export async function restoreWorkspaceClient(
   if (ctx.role !== 'owner' && ctx.role !== 'admin') {
     return {
       success: false,
-      error: createFlowError(403, 'INSUFFICIENT_ROLE', 'Only owners and admins can restore clients.', 'auth'),
+      error: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Only owners and admins can restore clients.',
+        'auth',
+      ),
     };
   }
 
@@ -39,7 +49,15 @@ export async function restoreWorkspaceClient(
     });
 
     if (!client) {
-      return { success: false, error: createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found or already active.', 'validation') };
+      return {
+        success: false,
+        error: createFlowError(
+          404,
+          'CLIENT_NOT_FOUND',
+          'Client not found or already active.',
+          'validation',
+        ),
+      };
     }
 
     revalidateTag(cacheTag('workspace_client', ctx.workspaceId));
@@ -47,7 +65,12 @@ export async function restoreWorkspaceClient(
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to restore client.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to restore client.',
+        'system',
+      ),
     };
   }
 }

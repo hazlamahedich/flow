@@ -7,8 +7,10 @@ describe('time-bound access: future expiry = active', () => {
       expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     };
 
-    const isActive = membership.status === 'active' &&
-      (membership.expires_at === null || new Date(membership.expires_at) > new Date());
+    const isActive =
+      membership.status === 'active' &&
+      (membership.expires_at === null ||
+        new Date(membership.expires_at) > new Date());
     expect(isActive).toBe(true);
   });
 });
@@ -20,8 +22,10 @@ describe('time-bound access: past expiry = denied', () => {
       expires_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     };
 
-    const isActive = membership.status === 'active' &&
-      (membership.expires_at === null || new Date(membership.expires_at) > new Date());
+    const isActive =
+      membership.status === 'active' &&
+      (membership.expires_at === null ||
+        new Date(membership.expires_at) > new Date());
     expect(isActive).toBe(false);
   });
 });
@@ -33,8 +37,10 @@ describe('time-bound access: null expiry = permanent', () => {
       expires_at: null,
     };
 
-    const isActive = membership.status === 'active' &&
-      (membership.expires_at === null || new Date(membership.expires_at) > new Date());
+    const isActive =
+      membership.status === 'active' &&
+      (membership.expires_at === null ||
+        new Date(membership.expires_at) > new Date());
     expect(isActive).toBe(true);
   });
 });
@@ -57,7 +63,8 @@ describe('expires_at boundary: exactly now', () => {
       expires_at: now.toISOString(),
     };
 
-    const isActive = membership.status === 'active' &&
+    const isActive =
+      membership.status === 'active' &&
       (membership.expires_at === null || new Date(membership.expires_at) > now);
     expect(isActive).toBe(false);
   });
@@ -71,7 +78,8 @@ describe('expires_at boundary: exactly now', () => {
       expires_at: new Date(now.getTime() - 1).toISOString(),
     };
 
-    const isActive = membership.status === 'active' &&
+    const isActive =
+      membership.status === 'active' &&
       (membership.expires_at === null || new Date(membership.expires_at) > now);
     expect(isActive).toBe(false);
   });
@@ -85,7 +93,8 @@ describe('expires_at boundary: exactly now', () => {
       expires_at: new Date(now.getTime() + 1).toISOString(),
     };
 
-    const isActive = membership.status === 'active' &&
+    const isActive =
+      membership.status === 'active' &&
       (membership.expires_at === null || new Date(membership.expires_at) > now);
     expect(isActive).toBe(true);
   });
@@ -112,9 +121,10 @@ describe('getActiveMembership query logic', () => {
       expires_at: new Date(Date.now() - 1000).toISOString(),
     };
 
-    const result = membership.expires_at && new Date(membership.expires_at) <= new Date()
-      ? null
-      : membership;
+    const result =
+      membership.expires_at && new Date(membership.expires_at) <= new Date()
+        ? null
+        : membership;
     expect(result).toBeNull();
   });
 
@@ -125,7 +135,8 @@ describe('getActiveMembership query logic', () => {
       expires_at: new Date(Date.now() + 100000).toISOString(),
     };
 
-    const isExpired = membership.expires_at && new Date(membership.expires_at) <= new Date();
+    const isExpired =
+      membership.expires_at && new Date(membership.expires_at) <= new Date();
     const result = isExpired ? null : membership;
     expect(result).toEqual(membership);
   });

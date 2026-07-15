@@ -33,7 +33,9 @@ export async function revokeDeviceAction(
   }
 
   const supabase = await getServerSupabase();
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session?.user) {
     return {
       success: false,
@@ -42,7 +44,10 @@ export async function revokeDeviceAction(
   }
 
   const headerStore = await headers();
-  const ip = headerStore.get('x-forwarded-for') ?? headerStore.get('x-real-ip') ?? 'unknown';
+  const ip =
+    headerStore.get('x-forwarded-for') ??
+    headerStore.get('x-real-ip') ??
+    'unknown';
 
   try {
     await revokeDevice(
@@ -69,11 +74,19 @@ export async function revokeDeviceAction(
     });
 
     if (err instanceof Error && 'code' in err) {
-      return { success: false, error: err as unknown as import('@flow/types').FlowError };
+      return {
+        success: false,
+        error: err as unknown as import('@flow/types').FlowError,
+      };
     }
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to revoke device', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to revoke device',
+        'system',
+      ),
     };
   }
 }

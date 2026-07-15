@@ -6,14 +6,8 @@
 'use server';
 
 import { getServerSupabase } from '@/lib/supabase-server';
-import {
-  PORTAL_TOKEN_RATE_LIMIT_PER_HOUR,
-} from './constants';
-import {
-  validateTokenFormat,
-  isRateLimited,
-  getIpIdentifier,
-} from './helpers';
+import { PORTAL_TOKEN_RATE_LIMIT_PER_HOUR } from './constants';
+import { validateTokenFormat, isRateLimited, getIpIdentifier } from './helpers';
 import { setPortalSessionCookie } from './portal-session';
 import type { PortalContext } from './helpers';
 
@@ -52,7 +46,9 @@ export async function validatePortalTokenAction(
   return context;
 }
 
-async function isValidationRateLimited(supabase: Awaited<ReturnType<typeof getServerSupabase>>): Promise<boolean> {
+async function isValidationRateLimited(
+  supabase: Awaited<ReturnType<typeof getServerSupabase>>,
+): Promise<boolean> {
   const ipIdentifier = await getIpIdentifier();
   const { data: rlResult } = await supabase.rpc('check_rate_limit', {
     p_identifier: ipIdentifier,

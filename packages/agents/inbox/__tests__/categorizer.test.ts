@@ -29,7 +29,7 @@ describe('categorizer', () => {
         workspace_id: 'ws-1',
         client_id: 'c-1',
       },
-      mockRouter as any
+      mockRouter as any,
     );
 
     expect(result.category).toBe('urgent');
@@ -54,11 +54,13 @@ describe('categorizer', () => {
         workspace_id: 'ws-1',
         client_id: 'c-1',
       },
-      mockRouter as any
+      mockRouter as any,
     );
 
     const calls = mockRouter.complete.mock.calls;
-    const messages = calls[0]?.[0] as Array<{ role: string; content: string }> | undefined;
+    const messages = calls[0]?.[0] as
+      | Array<{ role: string; content: string }>
+      | undefined;
     const userMessage = messages?.find((m) => m.role === 'user');
     expect(userMessage?.content).toContain('<user_email_content>');
     expect(userMessage?.content).toContain('</user_email_content>');
@@ -78,7 +80,7 @@ describe('categorizer', () => {
         workspace_id: 'ws-1',
         client_id: 'c-1',
       },
-      mockRouter as any
+      mockRouter as any,
     );
 
     expect(result.category).toBe('info');
@@ -104,7 +106,7 @@ describe('categorizer', () => {
         workspace_id: 'ws-1',
         client_id: 'c-1',
       },
-      mockRouter as any
+      mockRouter as any,
     );
 
     expect(result.requires_confirmation).toBe(true);

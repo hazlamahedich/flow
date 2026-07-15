@@ -1,5 +1,10 @@
 import { createServiceClient } from '@flow/db';
-import type { HandledItem, NeedsAttentionItem, ThreadSummary, ClientBreakdown } from './schemas';
+import type {
+  HandledItem,
+  NeedsAttentionItem,
+  ThreadSummary,
+  ClientBreakdown,
+} from './schemas';
 import { ContextBoundary } from '../shared/context-boundary';
 
 const MAX_EMAILS = 500;
@@ -11,7 +16,10 @@ interface EmailRow {
   thread_id: string | null;
   client_id: string;
   clients: Array<{ name: string }>;
-  email_categorizations: Array<{ category: string | null; confidence: number | null }>;
+  email_categorizations: Array<{
+    category: string | null;
+    confidence: number | null;
+  }>;
 }
 
 export interface MorningBriefContext {
@@ -26,11 +34,19 @@ export interface MorningBriefContext {
   rawGroups: Array<{
     clientId: string;
     clientName: string;
-    emails: Array<{ id: string; subject: string; sender: string; category?: string }>;
+    emails: Array<{
+      id: string;
+      subject: string;
+      sender: string;
+      category?: string;
+    }>;
   }>;
 }
 
-export async function getMorningBriefContext(workspaceId: string, since?: Date): Promise<MorningBriefContext> {
+export async function getMorningBriefContext(
+  workspaceId: string,
+  since?: Date,
+): Promise<MorningBriefContext> {
   if (!workspaceId) throw new Error('workspaceId is required');
 
   const supabase = createServiceClient();
@@ -46,7 +62,10 @@ export async function getMorningBriefContext(workspaceId: string, since?: Date):
       .maybeSingle();
 
     if (lastBriefError) {
-      console.error('Error fetching last brief, defaulting to 24h:', lastBriefError);
+      console.error(
+        'Error fetching last brief, defaulting to 24h:',
+        lastBriefError,
+      );
     }
 
     contextSince = lastBrief?.generated_at
@@ -56,11 +75,13 @@ export async function getMorningBriefContext(workspaceId: string, since?: Date):
 
   const { data: emails, error: emailError } = await supabase
     .from('emails')
-    .select(`
+    .select(
+      `
       id, subject, sender, thread_id, client_id,
       clients ( name ),
       email_categorizations ( category, confidence )
-    `)
+    `,
+    )
     .eq('workspace_id', workspaceId)
     .gte('created_at', contextSince.toISOString())
     .order('created_at', { ascending: false })
@@ -68,7 +89,9 @@ export async function getMorningBriefContext(workspaceId: string, since?: Date):
 
   if (emailError) throw emailError;
 
-  const filteredEmails = (emails || []).filter((email: EmailRow) => email.client_id != null);
+  const filteredEmails = (emails || []).filter(
+    (email: EmailRow) => email.client_id != null,
+  );
 
   const { data: clients } = await supabase
     .from('client_inboxes')
@@ -93,14 +116,17 @@ export async function getMorningBriefContext(workspaceId: string, since?: Date):
     };
   }
 
-  const clientGroups = new Map<string, {
-    name: string;
-    emails: EmailRow[];
-    handled: HandledItem[];
-    needsAttention: NeedsAttentionItem[];
-    uncategorized: EmailRow[];
-    threads: Map<string, EmailRow[]>;
-  }>();
+  const clientGroups = new Map<
+    string,
+    {
+      name: string;
+      emails: EmailRow[];
+      handled: HandledItem[];
+      needsAttention: NeedsAttentionItem[];
+      uncategorized: EmailRow[];
+      threads: Map<string, EmailRow[]>;
+    }
+  >();
 
   for (const email of filteredEmails) {
     const clientId: string = email.client_id;
@@ -134,7 +160,10 @@ export async function getMorningBriefContext(workspaceId: string, since?: Date):
         emailId: email.id,
         subject: email.subject ?? '(no subject)',
         sender: email.sender ?? '(unknown)',
-        actionTaken: cat.category === 'info' ? 'Categorized as info' : 'Categorized as noise',
+        actionTaken:
+          cat.category === 'info'
+            ? 'Categorized as info'
+            : 'Categorized as noise',
         clientName: group.name,
       });
     } else if (cat?.category === 'urgent' || cat?.category === 'action') {
@@ -157,8 +186,12 @@ export async function getMorningBriefContext(workspaceId: string, since?: Date):
   const threadSummaries: ThreadSummary[] = [];
 
   for (const [clientId, group] of clientGroups.entries()) {
-    const urgentCount = group.needsAttention.filter(i => i.category === 'urgent').length;
-    const actionCount = group.needsAttention.filter(i => i.category === 'action').length;
+    const urgentCount = group.needsAttention.filter(
+      (i) => i.category === 'urgent',
+    ).length;
+    const actionCount = group.needsAttention.filter(
+      (i) => i.category === 'action',
+    ).length;
 
     clientBreakdown.push({
       clientId,
@@ -196,8 +229,13 @@ export async function getMorningBriefContext(workspaceId: string, since?: Date):
     rawGroups: Array.from(clientGroups.entries()).map(([id, g]) => ({
       clientId: id,
       clientName: g.name,
-      emails: g.emails.map(e => {
-        const result: { id: string; subject: string; sender: string; category?: string } = {
+      emails: g.emails.map((e) => {
+        const result: {
+          id: string;
+          subject: string;
+          sender: string;
+          category?: string;
+        } = {
           id: e.id,
           subject: e.subject ?? '',
           sender: e.sender ?? '',

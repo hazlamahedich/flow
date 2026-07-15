@@ -29,12 +29,23 @@ function makeDeps(overrides: Record<string, unknown> = {}) {
   return {
     getTrustMatrixEntry: vi.fn(),
     upsertTrustMatrixEntry: vi.fn().mockResolvedValue(makeEntry()),
-    insertSnapshot: vi.fn().mockResolvedValue({ id: 'snap-1', created_at: new Date().toISOString() }),
+    insertSnapshot: vi.fn().mockResolvedValue({
+      id: 'snap-1',
+      created_at: new Date().toISOString(),
+    }),
     getPreconditions: vi.fn().mockResolvedValue([]),
-    recordSuccess: vi.fn().mockResolvedValue(makeEntry({ score: 51, version: 2 })),
-    recordViolation: vi.fn().mockResolvedValue(makeEntry({ score: 40, version: 2 })),
-    recordPrecheckFailure: vi.fn().mockResolvedValue(makeEntry({ score: 45, version: 2 })),
-    updateTrustMatrixEntry: vi.fn().mockResolvedValue(makeEntry({ version: 2 })),
+    recordSuccess: vi
+      .fn()
+      .mockResolvedValue(makeEntry({ score: 51, version: 2 })),
+    recordViolation: vi
+      .fn()
+      .mockResolvedValue(makeEntry({ score: 40, version: 2 })),
+    recordPrecheckFailure: vi
+      .fn()
+      .mockResolvedValue(makeEntry({ score: 45, version: 2 })),
+    updateTrustMatrixEntry: vi
+      .fn()
+      .mockResolvedValue(makeEntry({ version: 2 })),
     insertTransition: vi.fn().mockResolvedValue({}),
     ...overrides,
   };
@@ -47,10 +58,18 @@ describe('negative and edge cases', () => {
 
   it('null/undefined context — preconditions pass vacuously', async () => {
     const deps = makeDeps({
-      upsertTrustMatrixEntry: vi.fn().mockResolvedValue(makeEntry({ current_level: 'auto', score: 180 })),
+      upsertTrustMatrixEntry: vi
+        .fn()
+        .mockResolvedValue(makeEntry({ current_level: 'auto', score: 180 })),
     });
     const client = createTrustClient(deps);
-    const result = await client.canAct('inbox', 'categorize_email', 'ws-1', 'exec-1', {});
+    const result = await client.canAct(
+      'inbox',
+      'categorize_email',
+      'ws-1',
+      'exec-1',
+      {},
+    );
     expect(result.level).toBe('auto');
     expect(result.preconditionsPassed).toBe(true);
   });
@@ -65,21 +84,43 @@ describe('negative and edge cases', () => {
 
   it('malformed violation metadata still records', async () => {
     const deps = makeDeps({
-      upsertTrustMatrixEntry: vi.fn().mockResolvedValue(makeEntry({ current_level: 'confirm', score: 100 })),
-      recordViolation: vi.fn().mockResolvedValue(makeEntry({ current_level: 'supervised', score: 95, version: 2 })),
+      upsertTrustMatrixEntry: vi
+        .fn()
+        .mockResolvedValue(makeEntry({ current_level: 'confirm', score: 100 })),
+      recordViolation: vi
+        .fn()
+        .mockResolvedValue(
+          makeEntry({ current_level: 'supervised', score: 95, version: 2 }),
+        ),
     });
     const client = createTrustClient(deps);
-    const decision = await client.canAct('inbox', 'categorize_email', 'ws-1', 'exec-1', {});
-    await expect(client.recordViolation(decision.snapshotId!, 'soft')).resolves.toBeUndefined();
+    const decision = await client.canAct(
+      'inbox',
+      'categorize_email',
+      'ws-1',
+      'exec-1',
+      {},
+    );
+    await expect(
+      client.recordViolation(decision.snapshotId!, 'soft'),
+    ).resolves.toBeUndefined();
     expect(deps.recordViolation).toHaveBeenCalled();
   });
 
   it('expired auth / query failure defaults to supervised', async () => {
     const deps = makeDeps({
-      upsertTrustMatrixEntry: vi.fn().mockRejectedValue(new Error('JWT expired')),
+      upsertTrustMatrixEntry: vi
+        .fn()
+        .mockRejectedValue(new Error('JWT expired')),
     });
     const client = createTrustClient(deps);
-    const result = await client.canAct('inbox', 'categorize_email', 'ws-1', 'exec-1', {});
+    const result = await client.canAct(
+      'inbox',
+      'categorize_email',
+      'ws-1',
+      'exec-1',
+      {},
+    );
     expect(result.level).toBe('supervised');
     expect(result.allowed).toBe(false);
   });
@@ -101,8 +142,18 @@ describe('negative and edge cases', () => {
       ),
     });
     const client = createTrustClient(deps);
-    const result = await client.canAct('inbox', 'categorize_email', 'ws-new', 'exec-1', {});
+    const result = await client.canAct(
+      'inbox',
+      'categorize_email',
+      'ws-new',
+      'exec-1',
+      {},
+    );
     expect(result.level).toBe('supervised');
-    expect(deps.upsertTrustMatrixEntry).toHaveBeenCalledWith('ws-new', 'inbox', 'categorize_email');
+    expect(deps.upsertTrustMatrixEntry).toHaveBeenCalledWith(
+      'ws-new',
+      'inbox',
+      'categorize_email',
+    );
   });
 });

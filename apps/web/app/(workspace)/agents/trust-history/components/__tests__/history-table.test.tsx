@@ -41,12 +41,18 @@ const mockEvents: TrustEventRow[] = [
   },
 ];
 
-beforeEach(() => { vi.clearAllMocks(); });
-afterEach(() => { cleanup(); });
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+afterEach(() => {
+  cleanup();
+});
 
 describe('HistoryTable', () => {
   it('renders events', () => {
-    render(<HistoryTable events={mockEvents} total={2} page={1} pageSize={25} />);
+    render(
+      <HistoryTable events={mockEvents} total={2} page={1} pageSize={25} />,
+    );
     expect(screen.getByTestId('history-table')).toBeInTheDocument();
     expect(screen.getByText('Inbox')).toBeInTheDocument();
     expect(screen.getByText('Calendar')).toBeInTheDocument();
@@ -59,19 +65,25 @@ describe('HistoryTable', () => {
   });
 
   it('shows pagination when total exceeds page size', () => {
-    render(<HistoryTable events={mockEvents} total={30} page={1} pageSize={25} />);
+    render(
+      <HistoryTable events={mockEvents} total={30} page={1} pageSize={25} />,
+    );
     expect(screen.getByText('Previous')).toBeInTheDocument();
     expect(screen.getByText('Next')).toBeInTheDocument();
   });
 
   it('regression rows use warm amber styling', () => {
-    render(<HistoryTable events={mockEvents} total={2} page={1} pageSize={25} />);
+    render(
+      <HistoryTable events={mockEvents} total={2} page={1} pageSize={25} />,
+    );
     const regressionRow = screen.getByTestId('history-event-e2');
     expect(regressionRow).toBeInTheDocument();
   });
 
   it('upgrade rows show upward arrow and text label', () => {
-    render(<HistoryTable events={mockEvents} total={2} page={1} pageSize={25} />);
+    render(
+      <HistoryTable events={mockEvents} total={2} page={1} pageSize={25} />,
+    );
     const upgradeRow = screen.getByTestId('history-event-e1');
     expect(upgradeRow).toBeInTheDocument();
     expect(upgradeRow.textContent).toContain('confirm');
@@ -79,12 +91,16 @@ describe('HistoryTable', () => {
   });
 
   it('shows page info with pagination', () => {
-    render(<HistoryTable events={mockEvents} total={30} page={1} pageSize={25} />);
+    render(
+      <HistoryTable events={mockEvents} total={30} page={1} pageSize={25} />,
+    );
     expect(screen.getByText(/Page 1 of/)).toBeInTheDocument();
   });
 
   it('previous button disabled on page 1', () => {
-    render(<HistoryTable events={mockEvents} total={30} page={1} pageSize={25} />);
+    render(
+      <HistoryTable events={mockEvents} total={30} page={1} pageSize={25} />,
+    );
     expect(screen.getByText('Previous')).toBeDisabled();
   });
 });

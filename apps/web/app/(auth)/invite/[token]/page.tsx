@@ -11,9 +11,13 @@ async function handleAccept(formData: FormData) {
   if (result.success) {
     redirect('/');
   }
-  redirect(`/invite/${formData.get('token')}?error=${encodeURIComponent(
-    'error' in result && result.error ? (result.error as { message: string }).message : 'Failed to accept invitation'
-  )}`);
+  redirect(
+    `/invite/${formData.get('token')}?error=${encodeURIComponent(
+      'error' in result && result.error
+        ? (result.error as { message: string }).message
+        : 'Failed to accept invitation',
+    )}`,
+  );
 }
 
 async function getInvitationStatus(token: string) {
@@ -22,16 +26,22 @@ async function getInvitationStatus(token: string) {
   const cookieStore = await cookies();
   const supabase = createServerClient({
     getAll() {
-      return cookieStore.getAll().map((c) => ({ name: c.name, value: c.value }));
+      return cookieStore
+        .getAll()
+        .map((c) => ({ name: c.name, value: c.value }));
     },
     set() {},
   });
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   const { data: invitation } = await supabase
     .from('workspace_invitations')
-    .select('id, workspace_id, email, role, expires_at, accepted_at, workspaces(name)')
+    .select(
+      'id, workspace_id, email, role, expires_at, accepted_at, workspaces(name)',
+    )
     .eq('token_hash', tokenHash)
     .single();
 
@@ -42,7 +52,9 @@ async function getInvitationStatus(token: string) {
   if (invitation.accepted_at) {
     return {
       status: 'already_accepted' as const,
-      workspaceName: (invitation.workspaces as unknown as { name: string })?.name ?? 'the workspace',
+      workspaceName:
+        (invitation.workspaces as unknown as { name: string })?.name ??
+        'the workspace',
     };
   }
 
@@ -63,7 +75,9 @@ async function getInvitationStatus(token: string) {
     token,
     email: invitation.email,
     role: invitation.role,
-    workspaceName: (invitation.workspaces as unknown as { name: string })?.name ?? 'the workspace',
+    workspaceName:
+      (invitation.workspaces as unknown as { name: string })?.name ??
+      'the workspace',
     workspaceId: invitation.workspace_id,
   };
 }
@@ -77,7 +91,9 @@ export default async function InvitePage({
   const invitation = await getInvitationStatus(token);
 
   if (invitation.status === 'new_user') {
-    redirect(`/login?invite=${token}&email=${encodeURIComponent(invitation.email)}`);
+    redirect(
+      `/login?invite=${token}&email=${encodeURIComponent(invitation.email)}`,
+    );
   }
 
   if (invitation.status === 'not_found') {
@@ -88,7 +104,8 @@ export default async function InvitePage({
             Invitation Not Found
           </h1>
           <p className="mt-2 text-sm text-[var(--flow-color-text-secondary)]">
-            This invitation link is invalid. Please contact your workspace owner for a new invitation.
+            This invitation link is invalid. Please contact your workspace owner
+            for a new invitation.
           </p>
           <Link
             href="/login"
@@ -109,7 +126,8 @@ export default async function InvitePage({
             Invitation Expired
           </h1>
           <p className="mt-2 text-sm text-[var(--flow-color-text-secondary)]">
-            This invitation has expired. Contact your workspace owner for a new one.
+            This invitation has expired. Contact your workspace owner for a new
+            one.
           </p>
           <Link
             href="/login"

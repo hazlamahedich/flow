@@ -17,7 +17,10 @@ function renderItem(
   overrides: Partial<typeof BASE_PROPS> = {},
 ) {
   const item = buildApprovalQueueItem({ proposalType });
-  const itemTitle = item.proposalType === 'agent_proposal' ? item.proposal.title : `Trust gate: ${item.block.reason}`;
+  const itemTitle =
+    item.proposalType === 'agent_proposal'
+      ? item.proposal.title
+      : `Trust gate: ${item.block.reason}`;
   const result = render(
     <ProposalCard
       item={item}

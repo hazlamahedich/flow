@@ -1,7 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { searchEntities } from './search-entities';
 
-function mockClient(tableResults: Record<string, { data?: unknown[]; error?: unknown }>) {
+function mockClient(
+  tableResults: Record<string, { data?: unknown[]; error?: unknown }>,
+) {
   return {
     from: vi.fn().mockImplementation((table: string) => {
       const result = tableResults[table] ?? { data: [], error: null };
@@ -19,7 +21,9 @@ describe('searchEntities', () => {
   it('[P0] returns combined results from all tables', async () => {
     const client = mockClient({
       clients: { data: [{ id: 'c-1', name: 'Acme Corp' }] },
-      invoices: { data: [{ id: 'i-1', invoice_number: 'INV-001', status: 'paid' }] },
+      invoices: {
+        data: [{ id: 'i-1', invoice_number: 'INV-001', status: 'paid' }],
+      },
       time_entries: { data: [{ id: 't-1', description: 'Development work' }] },
     });
 
@@ -63,7 +67,9 @@ describe('searchEntities', () => {
       limit: vi.fn().mockResolvedValue({ data: [] }),
     });
 
-    const client = { from: fromMock } as unknown as import('@supabase/supabase-js').SupabaseClient;
+    const client = {
+      from: fromMock,
+    } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
     await searchEntities({
       client,

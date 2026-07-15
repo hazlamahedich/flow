@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { scopeClientAccessSchema, revokeSessionSchema, inviteMemberSchema } from '@flow/types';
+import {
+  scopeClientAccessSchema,
+  revokeSessionSchema,
+  inviteMemberSchema,
+} from '@flow/types';
 
 describe('workspace RBAC: schema validation via @flow/types', () => {
   describe('scopeClientAccessSchema', () => {

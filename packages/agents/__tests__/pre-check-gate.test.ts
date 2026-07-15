@@ -41,8 +41,17 @@ describe('runPreCheck', () => {
   });
 
   it('auto-trust + preconditions pass → proceed to execution', async () => {
-    const tc = makeTrustClient(makeDecision({ allowed: true, level: 'auto', preconditionsPassed: true }));
-    const result = await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', {});
+    const tc = makeTrustClient(
+      makeDecision({ allowed: true, level: 'auto', preconditionsPassed: true }),
+    );
+    const result = await runPreCheck(
+      tc,
+      'inbox',
+      'execute',
+      'ws-1',
+      'run-1',
+      {},
+    );
     expect(result.proceed).toBe(true);
     if (result.proceed) {
       expect(result.decision.level).toBe('auto');
@@ -50,14 +59,23 @@ describe('runPreCheck', () => {
   });
 
   it('auto-trust + precondition fail → proceed false with precondition_failed', async () => {
-    const tc = makeTrustClient(makeDecision({
-      allowed: false,
-      level: 'auto',
-      preconditionsPassed: false,
-      failedPreconditionKey: 'valid_email',
-      reason: 'Precondition failed: valid_email',
-    }));
-    const result = await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', {});
+    const tc = makeTrustClient(
+      makeDecision({
+        allowed: false,
+        level: 'auto',
+        preconditionsPassed: false,
+        failedPreconditionKey: 'valid_email',
+        reason: 'Precondition failed: valid_email',
+      }),
+    );
+    const result = await runPreCheck(
+      tc,
+      'inbox',
+      'execute',
+      'ws-1',
+      'run-1',
+      {},
+    );
     expect(result.proceed).toBe(false);
     if (!result.proceed) {
       expect(result.reason).toBe('precondition_failed');
@@ -66,23 +84,34 @@ describe('runPreCheck', () => {
   });
 
   it('auto-trust + precondition fail → recordPrecheckFailure called with snapshotId', async () => {
-    const tc = makeTrustClient(makeDecision({
-      allowed: false,
-      preconditionsPassed: false,
-      failedPreconditionKey: 'valid_email',
-      snapshotId: 'snap-001',
-    }));
+    const tc = makeTrustClient(
+      makeDecision({
+        allowed: false,
+        preconditionsPassed: false,
+        failedPreconditionKey: 'valid_email',
+        snapshotId: 'snap-001',
+      }),
+    );
     await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', {});
     expect(tc.recordPrecheckFailure).toHaveBeenCalledWith('snap-001');
   });
 
   it('supervised trust → proceed false with trust_level_gate', async () => {
-    const tc = makeTrustClient(makeDecision({
-      allowed: true,
-      level: 'supervised',
-      preconditionsPassed: true,
-    }));
-    const result = await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', {});
+    const tc = makeTrustClient(
+      makeDecision({
+        allowed: true,
+        level: 'supervised',
+        preconditionsPassed: true,
+      }),
+    );
+    const result = await runPreCheck(
+      tc,
+      'inbox',
+      'execute',
+      'ws-1',
+      'run-1',
+      {},
+    );
     expect(result.proceed).toBe(false);
     if (!result.proceed) {
       expect(result.reason).toBe('trust_level_gate');
@@ -90,12 +119,21 @@ describe('runPreCheck', () => {
   });
 
   it('confirm trust → proceed false with trust_level_gate', async () => {
-    const tc = makeTrustClient(makeDecision({
-      allowed: true,
-      level: 'confirm',
-      preconditionsPassed: true,
-    }));
-    const result = await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', {});
+    const tc = makeTrustClient(
+      makeDecision({
+        allowed: true,
+        level: 'confirm',
+        preconditionsPassed: true,
+      }),
+    );
+    const result = await runPreCheck(
+      tc,
+      'inbox',
+      'execute',
+      'ws-1',
+      'run-1',
+      {},
+    );
     expect(result.proceed).toBe(false);
     if (!result.proceed) {
       expect(result.reason).toBe('trust_level_gate');
@@ -104,8 +142,17 @@ describe('runPreCheck', () => {
 
   it('canAct() throws → proceed false with can_act_error (fail-safe supervised)', async () => {
     const tc = makeTrustClient(makeDecision());
-    (tc.canAct as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('DB down'));
-    const result = await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', {});
+    (tc.canAct as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new Error('DB down'),
+    );
+    const result = await runPreCheck(
+      tc,
+      'inbox',
+      'execute',
+      'ws-1',
+      'run-1',
+      {},
+    );
     expect(result.proceed).toBe(false);
     if (!result.proceed) {
       expect(result.reason).toBe('can_act_error');
@@ -113,8 +160,17 @@ describe('runPreCheck', () => {
   });
 
   it('canAct() returns allowed:false → trust_level_gate', async () => {
-    const tc = makeTrustClient(makeDecision({ allowed: false, preconditionsPassed: true }));
-    const result = await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', {});
+    const tc = makeTrustClient(
+      makeDecision({ allowed: false, preconditionsPassed: true }),
+    );
+    const result = await runPreCheck(
+      tc,
+      'inbox',
+      'execute',
+      'ws-1',
+      'run-1',
+      {},
+    );
     expect(result.proceed).toBe(false);
     if (!result.proceed) {
       expect(result.reason).toBe('trust_level_gate');
@@ -123,8 +179,17 @@ describe('runPreCheck', () => {
 
   it('canAct() returns null → fail-safe to can_act_error', async () => {
     const tc = makeTrustClient(makeDecision());
-    (tc.canAct as ReturnType<typeof vi.fn>).mockResolvedValue(null as unknown as TrustDecision);
-    const result = await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', {});
+    (tc.canAct as ReturnType<typeof vi.fn>).mockResolvedValue(
+      null as unknown as TrustDecision,
+    );
+    const result = await runPreCheck(
+      tc,
+      'inbox',
+      'execute',
+      'ws-1',
+      'run-1',
+      {},
+    );
     expect(result.proceed).toBe(false);
     if (!result.proceed) {
       expect(result.reason).toBe('can_act_error');
@@ -133,8 +198,17 @@ describe('runPreCheck', () => {
 
   it('canAct() returns malformed (no allowed field) → fail-safe', async () => {
     const tc = makeTrustClient(makeDecision());
-    (tc.canAct as ReturnType<typeof vi.fn>).mockResolvedValue({ level: 'auto' } as unknown as TrustDecision);
-    const result = await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', {});
+    (tc.canAct as ReturnType<typeof vi.fn>).mockResolvedValue({
+      level: 'auto',
+    } as unknown as TrustDecision);
+    const result = await runPreCheck(
+      tc,
+      'inbox',
+      'execute',
+      'ws-1',
+      'run-1',
+      {},
+    );
     expect(result.proceed).toBe(false);
     if (!result.proceed) {
       expect(result.reason).toBe('can_act_error');
@@ -144,9 +218,19 @@ describe('runPreCheck', () => {
   it('canAct() timeout >500ms → fail-safe to can_act_error', async () => {
     const tc = makeTrustClient(makeDecision());
     (tc.canAct as ReturnType<typeof vi.fn>).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve(makeDecision()), 600)),
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve(makeDecision()), 600),
+        ),
     );
-    const result = await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', {});
+    const result = await runPreCheck(
+      tc,
+      'inbox',
+      'execute',
+      'ws-1',
+      'run-1',
+      {},
+    );
     expect(result.proceed).toBe(false);
     if (!result.proceed) {
       expect(result.reason).toBe('can_act_error');
@@ -154,12 +238,21 @@ describe('runPreCheck', () => {
   });
 
   it('pre-check failure error includes AGENT_PRECHECK_FAILED code', async () => {
-    const tc = makeTrustClient(makeDecision({
-      allowed: false,
-      preconditionsPassed: false,
-      failedPreconditionKey: 'email_verified',
-    }));
-    const result = await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', {});
+    const tc = makeTrustClient(
+      makeDecision({
+        allowed: false,
+        preconditionsPassed: false,
+        failedPreconditionKey: 'email_verified',
+      }),
+    );
+    const result = await runPreCheck(
+      tc,
+      'inbox',
+      'execute',
+      'ws-1',
+      'run-1',
+      {},
+    );
     if (!result.proceed && result.error) {
       expect(result.error.code).toBe('AGENT_PRECHECK_FAILED');
       if (result.error.code === 'AGENT_PRECHECK_FAILED') {
@@ -171,17 +264,32 @@ describe('runPreCheck', () => {
   it('canAct called with 5 args (agentId, actionType, workspaceId, executionId, context)', async () => {
     const tc = makeTrustClient(makeDecision());
     await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', { foo: 'bar' });
-    expect(tc.canAct).toHaveBeenCalledWith('inbox', 'execute', 'ws-1', 'run-1', { foo: 'bar' });
+    expect(tc.canAct).toHaveBeenCalledWith(
+      'inbox',
+      'execute',
+      'ws-1',
+      'run-1',
+      { foo: 'bar' },
+    );
   });
 
   it('precondition failure is instance-level only (no level change)', async () => {
-    const tc = makeTrustClient(makeDecision({
-      allowed: false,
-      level: 'auto',
-      preconditionsPassed: false,
-      failedPreconditionKey: 'test',
-    }));
-    const result = await runPreCheck(tc, 'inbox', 'execute', 'ws-1', 'run-1', {});
+    const tc = makeTrustClient(
+      makeDecision({
+        allowed: false,
+        level: 'auto',
+        preconditionsPassed: false,
+        failedPreconditionKey: 'test',
+      }),
+    );
+    const result = await runPreCheck(
+      tc,
+      'inbox',
+      'execute',
+      'ws-1',
+      'run-1',
+      {},
+    );
     if (!result.proceed && result.decision) {
       expect(result.decision.level).toBe('auto');
     }
@@ -196,20 +304,36 @@ describe('blockForApproval', () => {
   it('transitions run to waiting_approval with decision and reason', async () => {
     const db = await import('@flow/db');
     const decision = makeDecision({ level: 'supervised' });
-    await blockForApproval('run-1', decision, 'trust_level_gate', 'ws-1', 'inbox');
-    expect(db.updateRunStatus).toHaveBeenCalledWith('run-1', 'waiting_approval', expect.objectContaining({
-      output: expect.objectContaining({
-        _gate: expect.objectContaining({
-          decision,
-          reason: 'trust_level_gate',
+    await blockForApproval(
+      'run-1',
+      decision,
+      'trust_level_gate',
+      'ws-1',
+      'inbox',
+    );
+    expect(db.updateRunStatus).toHaveBeenCalledWith(
+      'run-1',
+      'waiting_approval',
+      expect.objectContaining({
+        output: expect.objectContaining({
+          _gate: expect.objectContaining({
+            decision,
+            reason: 'trust_level_gate',
+          }),
         }),
       }),
-    }));
+    );
   });
 
   it('does NOT call propose (different method)', async () => {
     const db = await import('@flow/db');
-    await blockForApproval('run-1', undefined, 'can_act_error', 'ws-1', 'inbox');
+    await blockForApproval(
+      'run-1',
+      undefined,
+      'can_act_error',
+      'ws-1',
+      'inbox',
+    );
     const calls = (db.updateRunStatus as ReturnType<typeof vi.fn>).mock.calls;
     expect(calls.length).toBeGreaterThanOrEqual(1);
     expect(calls[0]?.[1]).toBe('waiting_approval');

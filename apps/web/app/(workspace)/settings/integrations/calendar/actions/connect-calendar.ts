@@ -47,7 +47,8 @@ function checkRateLimit(userId: string): boolean {
 }
 
 function safeReturnTo(returnTo: string | undefined, fallback: string): string {
-  if (!returnTo || !returnTo.startsWith('/') || returnTo.startsWith('//')) return fallback;
+  if (!returnTo || !returnTo.startsWith('/') || returnTo.startsWith('//'))
+    return fallback;
   return returnTo;
 }
 
@@ -78,7 +79,12 @@ export async function connectCalendar(
   if (ctx.role === 'member') {
     return {
       success: false,
-      error: createFlowError(403, 'INSUFFICIENT_ROLE', 'Members cannot connect calendars.', 'auth'),
+      error: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Members cannot connect calendars.',
+        'auth',
+      ),
     };
   }
 
@@ -93,7 +99,12 @@ export async function connectCalendar(
     if (!clientExists) {
       return {
         success: false,
-        error: createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found in this workspace.', 'validation'),
+        error: createFlowError(
+          404,
+          'CLIENT_NOT_FOUND',
+          'Client not found in this workspace.',
+          'validation',
+        ),
       };
     }
   }
@@ -112,7 +123,9 @@ export async function connectCalendar(
 
   const state = randomBytes(16).toString('hex');
   const codeVerifier = randomBytes(32).toString('base64url');
-  const codeChallenge = createHash('sha256').update(codeVerifier).digest('base64url');
+  const codeChallenge = createHash('sha256')
+    .update(codeVerifier)
+    .digest('base64url');
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   const redirectUri = `${appUrl}/api/auth/calendar/callback`;
@@ -122,8 +135,14 @@ export async function connectCalendar(
   let additionalScopes: string[] | undefined;
 
   if (parsed.data.clientId) {
-    const existingInboxes = await getClientInboxes(supabase, ctx.workspaceId, parsed.data.clientId);
-    const gmailInbox = existingInboxes.find((inbox) => inbox.provider === 'gmail');
+    const existingInboxes = await getClientInboxes(
+      supabase,
+      ctx.workspaceId,
+      parsed.data.clientId,
+    );
+    const gmailInbox = existingInboxes.find(
+      (inbox) => inbox.provider === 'gmail',
+    );
     if (gmailInbox) {
       includeGrantedScopes = true;
       additionalScopes = GMAIL_SCOPES;
@@ -143,22 +162,30 @@ export async function connectCalendar(
   if (!ironPassword || ironPassword.length < 32) {
     return {
       success: false,
-      error: createFlowError(500, 'ENCRYPTION_KEY_MISSING', 'Server configuration error. Please contact support.', 'system'),
+      error: createFlowError(
+        500,
+        'ENCRYPTION_KEY_MISSING',
+        'Server configuration error. Please contact support.',
+        'system',
+      ),
     };
   }
 
   const cookieStore = await getCookieStore();
-  const session = await getIronSession<CalendarOAuthStateCookie>(cookieStore as any, {
-    password: ironPassword,
-    cookieName: `oauth_pkce_${state}`,
-    cookieOptions: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax' as const,
-      maxAge: 600,
-      path: '/',
+  const session = await getIronSession<CalendarOAuthStateCookie>(
+    cookieStore as any,
+    {
+      password: ironPassword,
+      cookieName: `oauth_pkce_${state}`,
+      cookieOptions: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' as const,
+        maxAge: 600,
+        path: '/',
+      },
     },
-  });
+  );
 
   session.state = state;
   session.codeVerifier = codeVerifier;

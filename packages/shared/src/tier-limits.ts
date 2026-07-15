@@ -51,12 +51,16 @@ export interface CheckTierLimitResult {
  * operations, `{ allowed: true, warning }` when usage is at/above the 80%
  * threshold, or `{ allowed: true }` otherwise.
  */
-export function checkTierLimit(input: CheckTierLimitInput): CheckTierLimitResult {
+export function checkTierLimit(
+  input: CheckTierLimitInput,
+): CheckTierLimitResult {
   const { current, adding, limit } = input;
   const projected = current + adding;
   if (projected > limit) {
     return { allowed: false };
   }
   const atThreshold = current >= Math.ceil(limit * APPROACH_THRESHOLD_PERCENT);
-  return atThreshold ? { allowed: true, warning: APPROACH_LIMIT_WARNING } : { allowed: true };
+  return atThreshold
+    ? { allowed: true, warning: APPROACH_LIMIT_WARNING }
+    : { allowed: true };
 }

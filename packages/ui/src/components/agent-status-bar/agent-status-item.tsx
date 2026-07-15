@@ -89,10 +89,17 @@ export function AgentStatusItem({
         aria-label={`${label} agent`}
         data-testid={`agent-status-${agentId}`}
       >
-        <span className="inline-block rounded-full" style={getDotStyle(statusRing, color, 8)} />
-        {badgeProps && <TrustBadge {...badgeProps} variant="sidebar" agentLabel={label} />}
+        <span
+          className="inline-block rounded-full"
+          style={getDotStyle(statusRing, color, 8)}
+        />
+        {badgeProps && (
+          <TrustBadge {...badgeProps} variant="sidebar" agentLabel={label} />
+        )}
         {pendingCount > 0 && (
-          <span className="text-[10px] font-medium text-[var(--flow-color-text-muted)]">{pendingCount}</span>
+          <span className="text-[10px] font-medium text-[var(--flow-color-text-muted)]">
+            {pendingCount}
+          </span>
         )}
       </div>
     );
@@ -100,14 +107,24 @@ export function AgentStatusItem({
 
   return (
     <div
-      className={cn('flex items-center gap-2 rounded-md px-2 py-1.5', 'hover:bg-[var(--flow-state-overlay-hover)]')}
+      className={cn(
+        'flex items-center gap-2 rounded-md px-2 py-1.5',
+        'hover:bg-[var(--flow-state-overlay-hover)]',
+      )}
       role="listitem"
       aria-label={`${label} agent`}
       data-testid={`agent-status-${agentId}`}
     >
-      <span className="inline-block rounded-full" style={getDotStyle(statusRing, color, 12)} />
-      <span className="flex-1 truncate text-sm text-[var(--flow-color-text-secondary)]">{label}</span>
-      {badgeProps && <TrustBadge {...badgeProps} variant="inline" agentLabel={label} />}
+      <span
+        className="inline-block rounded-full"
+        style={getDotStyle(statusRing, color, 12)}
+      />
+      <span className="flex-1 truncate text-sm text-[var(--flow-color-text-secondary)]">
+        {label}
+      </span>
+      {badgeProps && (
+        <TrustBadge {...badgeProps} variant="inline" agentLabel={label} />
+      )}
       {pendingCount > 0 && (
         <span className="rounded-full bg-[var(--flow-color-accent-gold)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--flow-color-bg-surface)]">
           {pendingCount}

@@ -1,8 +1,4 @@
-export {
-  getTimerState,
-  startTimer,
-  stopTimerRpc,
-} from './timer';
+export { getTimerState, startTimer, stopTimerRpc } from './timer';
 export type {
   TimerStateWithNames,
   GetTimerStateInput,
@@ -24,9 +20,5 @@ export type {
   TimeEntryCurrentValues,
 } from './time-entry-queries';
 
-export {
-  defaultInvoiceEditGuard,
-} from './invoice-guard';
-export type {
-  InvoiceEditGuard,
-} from './invoice-guard';
+export { defaultInvoiceEditGuard } from './invoice-guard';
+export type { InvoiceEditGuard } from './invoice-guard';

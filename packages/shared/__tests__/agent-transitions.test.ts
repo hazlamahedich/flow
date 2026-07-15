@@ -10,7 +10,13 @@ import type { AgentBackendStatus } from '@flow/types';
 describe('agent-transitions', () => {
   describe('ALLOWED_TRANSITIONS', () => {
     it('defines transitions for all backend statuses', () => {
-      const statuses: AgentBackendStatus[] = ['inactive', 'activating', 'active', 'draining', 'suspended'];
+      const statuses: AgentBackendStatus[] = [
+        'inactive',
+        'activating',
+        'active',
+        'draining',
+        'suspended',
+      ];
       for (const status of statuses) {
         expect(ALLOWED_TRANSITIONS[status]).toBeDefined();
         expect(Array.isArray(ALLOWED_TRANSITIONS[status])).toBe(true);
@@ -68,7 +74,13 @@ describe('agent-transitions', () => {
     });
 
     it('returns true for self-transitions (idempotent)', () => {
-      const statuses: AgentBackendStatus[] = ['inactive', 'activating', 'active', 'draining', 'suspended'];
+      const statuses: AgentBackendStatus[] = [
+        'inactive',
+        'activating',
+        'active',
+        'draining',
+        'suspended',
+      ];
       for (const status of statuses) {
         expect(isValidTransition(status, status)).toBe(true);
       }
@@ -113,7 +125,9 @@ describe('agent-transitions', () => {
     });
 
     it('throws AgentTransitionError for invalid transitions', () => {
-      expect(() => assertTransition('active', 'inactive')).toThrow(SharedAgentTransitionError);
+      expect(() => assertTransition('active', 'inactive')).toThrow(
+        SharedAgentTransitionError,
+      );
     });
 
     it('includes from and to in error message', () => {

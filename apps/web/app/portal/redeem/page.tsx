@@ -36,7 +36,9 @@ export default async function RedeemPage({
   const fallbackPath = getFallbackPortalPath();
 
   if (!token || !safeSlug) {
-    redirect(safeSlug ? getPortalPath(safeSlug) ?? fallbackPath : fallbackPath);
+    redirect(
+      safeSlug ? (getPortalPath(safeSlug) ?? fallbackPath) : fallbackPath,
+    );
   }
 
   const context = await validatePortalTokenAction(token);

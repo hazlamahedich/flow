@@ -13,7 +13,10 @@ import { TrustRecovery } from '../agents/components/trust-recovery';
 import { TrustMilestone } from '../agents/components/trust-milestone';
 import { fetchUnacknowledgedRegressions } from '../agents/actions/rehydrate-regressions';
 
-const OVERLAY_REGISTRY: Record<string, React.ComponentType<{ entry: OverlayEntry }>> = {
+const OVERLAY_REGISTRY: Record<
+  string,
+  React.ComponentType<{ entry: OverlayEntry }>
+> = {
   'trust-ceremony': TrustCeremony,
   'trust-recovery': TrustRecovery,
   'trust-milestone': TrustMilestone,
@@ -23,7 +26,9 @@ const MERGE_WINDOW_MS = 1000;
 
 export function useOverlayMerger() {
   const [stack, dispatch] = useAtom(overlayStackAtom);
-  const lastRegressionRef = useRef<{ agentId: string; time: number } | null>(null);
+  const lastRegressionRef = useRef<{ agentId: string; time: number } | null>(
+    null,
+  );
 
   useEffect(() => {
     const top = stack[0];
@@ -47,7 +52,8 @@ export function useOverlayMerger() {
       ) {
         const milestoneId = top.id;
         const regressionEntry = stack.find(
-          (e) => e.type === 'trust-recovery' && e.props.agentId === milestoneAgentId,
+          (e) =>
+            e.type === 'trust-recovery' && e.props.agentId === milestoneAgentId,
         );
         if (regressionEntry) {
           const mergedEntry: OverlayEntry = {
@@ -108,7 +114,9 @@ export function OverlayHost() {
       dispatch({ type: 'rehydrate', entries });
     }
     rehydrate();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [dispatch]);
 
   if (!topOverlay) return null;
@@ -121,7 +129,8 @@ export function OverlayHost() {
       style={{ zIndex: 'var(--flow-z-overlay)' }}
       className="fixed inset-0"
       aria-modal={
-        topOverlay.type === 'trust-ceremony' || topOverlay.type === 'trust-recovery'
+        topOverlay.type === 'trust-ceremony' ||
+        topOverlay.type === 'trust-recovery'
           ? true
           : undefined
       }

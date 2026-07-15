@@ -108,7 +108,8 @@ interface MockSupabaseOptions {
 
 function mockSupabase(opts: MockSupabaseOptions = {}): SupabaseClient {
   const role = opts.role ?? 'owner';
-  const workspaceId = opts.workspaceId ?? '00000000-0000-0000-0000-000000000001';
+  const workspaceId =
+    opts.workspaceId ?? '00000000-0000-0000-0000-000000000001';
   const workspace: MockWorkspaceRow | null =
     opts.workspace === null
       ? null
@@ -195,7 +196,10 @@ beforeEach(() => {
       pro: { maxClients: 15, maxTeamMembers: 1, maxAgents: 6 },
       agency: { maxClients: null, maxTeamMembers: null, maxAgents: null },
     },
-    stripePrices: { pro_monthly: 'price_test_pro', agency_monthly: 'price_test_agency' },
+    stripePrices: {
+      pro_monthly: 'price_test_pro',
+      agency_monthly: 'price_test_agency',
+    },
     planDisplayPrices: {
       pro: { label: '$29 / month', interval: 'month' },
       agency: { label: '$99 / month', interval: 'month' },
@@ -231,9 +235,22 @@ describe('[9.3b][AC7] subscription schemas', () => {
   });
 
   test('createCheckoutSessionSchema accepts { tier, interval }', () => {
-    expect(createCheckoutSessionSchema.safeParse({ tier: 'pro', interval: 'monthly' }).success).toBe(true);
-    expect(createCheckoutSessionSchema.safeParse({ tier: 'free', interval: 'monthly' }).success).toBe(false);
-    expect(createCheckoutSessionSchema.safeParse({ tier: 'pro', interval: 'yearly' }).success).toBe(false);
+    expect(
+      createCheckoutSessionSchema.safeParse({
+        tier: 'pro',
+        interval: 'monthly',
+      }).success,
+    ).toBe(true);
+    expect(
+      createCheckoutSessionSchema.safeParse({
+        tier: 'free',
+        interval: 'monthly',
+      }).success,
+    ).toBe(false);
+    expect(
+      createCheckoutSessionSchema.safeParse({ tier: 'pro', interval: 'yearly' })
+        .success,
+    ).toBe(false);
   });
 
   test('createPortalSessionSchema accepts empty/undefined input', () => {
@@ -253,7 +270,10 @@ describe('[9.3b][AC1] createCheckoutSessionAction', () => {
       sessionId: 'cs_test_1',
     });
 
-    const result = await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
+    const result = await createCheckoutSessionAction({
+      tier: 'pro',
+      interval: 'monthly',
+    });
 
     expect(result.success).toBe(true);
     if (result.success) {
@@ -274,7 +294,10 @@ describe('[9.3b][AC1] createCheckoutSessionAction', () => {
       sessionId: 'cs_1',
     });
 
-    const result = await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
+    const result = await createCheckoutSessionAction({
+      tier: 'pro',
+      interval: 'monthly',
+    });
 
     expect(result.success).toBe(true);
     expect(providerMocks.createCustomer).toHaveBeenCalledWith(
@@ -298,7 +321,9 @@ describe('[9.3b][AC1] createCheckoutSessionAction', () => {
     await createCheckoutSessionAction({ tier: 'agency', interval: 'monthly' });
 
     expect(providerMocks.createCustomer).not.toHaveBeenCalled();
-    expect(providerMocks.createSubscriptionCheckoutSession).toHaveBeenCalledWith(
+    expect(
+      providerMocks.createSubscriptionCheckoutSession,
+    ).toHaveBeenCalledWith(
       expect.objectContaining({ customerId: 'cus_existing' }),
     );
   });
@@ -312,9 +337,12 @@ describe('[9.3b][AC1] createCheckoutSessionAction', () => {
 
     await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
 
-    expect(providerMocks.createSubscriptionCheckoutSession).toHaveBeenCalledWith(
+    expect(
+      providerMocks.createSubscriptionCheckoutSession,
+    ).toHaveBeenCalledWith(
       expect.objectContaining({
-        idempotencyKey: 'checkout:00000000-0000-0000-0000-000000000001:pro:monthly',
+        idempotencyKey:
+          'checkout:00000000-0000-0000-0000-000000000001:pro:monthly',
       }),
     );
   });
@@ -328,8 +356,11 @@ describe('[9.3b][AC1] createCheckoutSessionAction', () => {
 
     await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
 
-    const call = providerMocks.createSubscriptionCheckoutSession.mock.calls[0]?.[0];
-    expect(call.metadata).toEqual({ workspace_id: '00000000-0000-0000-0000-000000000001' });
+    const call =
+      providerMocks.createSubscriptionCheckoutSession.mock.calls[0]?.[0];
+    expect(call.metadata).toEqual({
+      workspace_id: '00000000-0000-0000-0000-000000000001',
+    });
   });
 
   test('AC1 — successUrl uses {CHECKOUT_SESSION_ID} placeholder + sync=1', async () => {
@@ -341,7 +372,8 @@ describe('[9.3b][AC1] createCheckoutSessionAction', () => {
 
     await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
 
-    const call = providerMocks.createSubscriptionCheckoutSession.mock.calls[0]?.[0];
+    const call =
+      providerMocks.createSubscriptionCheckoutSession.mock.calls[0]?.[0];
     expect(call.successUrl).toContain('sync=1');
     expect(call.successUrl).toContain('{CHECKOUT_SESSION_ID}');
     expect(call.cancelUrl).toContain('status=cancel');
@@ -351,7 +383,10 @@ describe('[9.3b][AC1] createCheckoutSessionAction', () => {
     vi.mocked(getTierConfig).mockRejectedValue(new Error('placeholder prices'));
     setSupabase({ workspace: { stripe_customer_id: 'cus_x' } });
 
-    const result = await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
+    const result = await createCheckoutSessionAction({
+      tier: 'pro',
+      interval: 'monthly',
+    });
 
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -363,28 +398,41 @@ describe('[9.3b][AC1] createCheckoutSessionAction', () => {
   test('EC4 — non-owner (member) gets FORBIDDEN before any Stripe call', async () => {
     setSupabase({ role: 'member' });
 
-    const result = await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
+    const result = await createCheckoutSessionAction({
+      tier: 'pro',
+      interval: 'monthly',
+    });
 
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('FORBIDDEN');
       expect(result.error.status).toBe(403);
     }
-    expect(providerMocks.createSubscriptionCheckoutSession).not.toHaveBeenCalled();
+    expect(
+      providerMocks.createSubscriptionCheckoutSession,
+    ).not.toHaveBeenCalled();
     expect(providerMocks.createCustomer).not.toHaveBeenCalled();
   });
 
   test('rejects invalid tier (free) at the schema layer', async () => {
-    const result = await createCheckoutSessionAction({ tier: 'free', interval: 'monthly' });
+    const result = await createCheckoutSessionAction({
+      tier: 'free',
+      interval: 'monthly',
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('VALIDATION_ERROR');
   });
 
   test('returns STRIPE_ERROR 502 when provider.createSubscriptionCheckoutSession fails', async () => {
     setSupabase({ workspace: { stripe_customer_id: 'cus_x' } });
-    providerMocks.createSubscriptionCheckoutSession.mockRejectedValue(new Error('stripe down'));
+    providerMocks.createSubscriptionCheckoutSession.mockRejectedValue(
+      new Error('stripe down'),
+    );
 
-    const result = await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
+    const result = await createCheckoutSessionAction({
+      tier: 'pro',
+      interval: 'monthly',
+    });
 
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -394,9 +442,15 @@ describe('[9.3b][AC1] createCheckoutSessionAction', () => {
   });
 
   test('rate limit blocks checkout with RATE_LIMITED 429', async () => {
-    setSupabase({ rateLimited: true, workspace: { stripe_customer_id: 'cus_x' } });
+    setSupabase({
+      rateLimited: true,
+      workspace: { stripe_customer_id: 'cus_x' },
+    });
 
-    const result = await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
+    const result = await createCheckoutSessionAction({
+      tier: 'pro',
+      interval: 'monthly',
+    });
 
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('RATE_LIMITED');
@@ -409,7 +463,9 @@ describe('[9.3b][AC1] createCheckoutSessionAction', () => {
 describe('[9.3b][AC2] createPortalSessionAction', () => {
   test('returns Stripe Customer Portal URL when customer is linked', async () => {
     setSupabase({ workspace: { stripe_customer_id: 'cus_x' } });
-    providerMocks.createPortalSession.mockResolvedValue({ url: 'https://billing.stripe.com/p_1' });
+    providerMocks.createPortalSession.mockResolvedValue({
+      url: 'https://billing.stripe.com/p_1',
+    });
 
     const result = await createPortalSessionAction();
 
@@ -440,7 +496,9 @@ describe('[9.3b][AC2] createPortalSessionAction', () => {
         stripe_customer_id: 'cus_free_but_real',
       },
     });
-    providerMocks.createPortalSession.mockResolvedValue({ url: 'https://billing.stripe.com/p_1' });
+    providerMocks.createPortalSession.mockResolvedValue({
+      url: 'https://billing.stripe.com/p_1',
+    });
 
     const result = await createPortalSessionAction();
     expect(result.success).toBe(true);
@@ -448,7 +506,9 @@ describe('[9.3b][AC2] createPortalSessionAction', () => {
 
   test('EC10 — STRIPE_ERROR when provider.createPortalSession fails', async () => {
     setSupabase({ workspace: { stripe_customer_id: 'cus_x' } });
-    providerMocks.createPortalSession.mockRejectedValue(new Error('stripe 5xx'));
+    providerMocks.createPortalSession.mockRejectedValue(
+      new Error('stripe 5xx'),
+    );
 
     const result = await createPortalSessionAction();
 
@@ -470,7 +530,9 @@ describe('[9.3b][AC2] createPortalSessionAction', () => {
 
   test('returnUrl points back to /settings/billing', async () => {
     setSupabase({ workspace: { stripe_customer_id: 'cus_x' } });
-    providerMocks.createPortalSession.mockResolvedValue({ url: 'https://billing.stripe.com/p_1' });
+    providerMocks.createPortalSession.mockResolvedValue({
+      url: 'https://billing.stripe.com/p_1',
+    });
 
     await createPortalSessionAction();
 
@@ -508,7 +570,10 @@ describe('[9.3b][AC3] cancelSubscriptionAction', () => {
 
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.cancelAtPeriodEnd).toBe(true);
-    expect(providerMocks.cancelSubscription).toHaveBeenCalledWith('sub_active', false);
+    expect(providerMocks.cancelSubscription).toHaveBeenCalledWith(
+      'sub_active',
+      false,
+    );
   });
 
   test('EC6 — idempotent on already-canceling subscription (still calls cancel)', async () => {
@@ -551,20 +616,29 @@ describe('[9.3b][AC3] cancelSubscriptionAction', () => {
 
   test('EC11 — NO_ACTIVE_SUBSCRIPTION on data drift (active status but null sub id)', async () => {
     setSupabase({
-      workspace: { subscription_status: 'active', stripe_subscription_id: null },
+      workspace: {
+        subscription_status: 'active',
+        stripe_subscription_id: null,
+      },
     });
 
     const result = await cancelSubscriptionAction();
 
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.code).toBe('NO_ACTIVE_SUBSCRIPTION');
+    if (!result.success)
+      expect(result.error.code).toBe('NO_ACTIVE_SUBSCRIPTION');
   });
 
   test('returns STRIPE_ERROR on provider failure', async () => {
     setSupabase({
-      workspace: { subscription_status: 'active', stripe_subscription_id: 'sub_active' },
+      workspace: {
+        subscription_status: 'active',
+        stripe_subscription_id: 'sub_active',
+      },
     });
-    providerMocks.cancelSubscription.mockRejectedValue(new Error('stripe down'));
+    providerMocks.cancelSubscription.mockRejectedValue(
+      new Error('stripe down'),
+    );
 
     const result = await cancelSubscriptionAction();
 
@@ -574,7 +648,10 @@ describe('[9.3b][AC3] cancelSubscriptionAction', () => {
 
   test('does NOT write local DB state (no upsert RPC) — webhook owns state', async () => {
     setSupabase({
-      workspace: { subscription_status: 'active', stripe_subscription_id: 'sub_active' },
+      workspace: {
+        subscription_status: 'active',
+        stripe_subscription_id: 'sub_active',
+      },
     });
     providerMocks.cancelSubscription.mockResolvedValue({
       providerSubscriptionId: 'sub_active',
@@ -591,7 +668,8 @@ describe('[9.3b][AC3] cancelSubscriptionAction', () => {
 
     // The action calls the provider + revalidateTag, but NEVER calls the
     // upsert_workspace_subscription RPC — that's the webhook's job.
-    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> }).rpc;
+    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> })
+      .rpc;
     const upsertCalls = rpcMock.mock.calls.filter(
       (args: unknown[]) => args[0] === 'upsert_workspace_subscription',
     );
@@ -627,9 +705,14 @@ describe('[9.3b][AC3] reactivateSubscriptionAction', () => {
 
   test('EC7 — expired subscription → STRIPE_ERROR (does not fabricate success)', async () => {
     setSupabase({
-      workspace: { subscription_status: 'active', stripe_subscription_id: 'sub_active' },
+      workspace: {
+        subscription_status: 'active',
+        stripe_subscription_id: 'sub_active',
+      },
     });
-    providerMocks.resumeSubscription.mockRejectedValue(new Error('subscription expired'));
+    providerMocks.resumeSubscription.mockRejectedValue(
+      new Error('subscription expired'),
+    );
 
     const result = await reactivateSubscriptionAction();
 
@@ -638,12 +721,15 @@ describe('[9.3b][AC3] reactivateSubscriptionAction', () => {
   });
 
   test('NO_ACTIVE_SUBSCRIPTION when free', async () => {
-    setSupabase({ workspace: { subscription_status: 'free', stripe_subscription_id: null } });
+    setSupabase({
+      workspace: { subscription_status: 'free', stripe_subscription_id: null },
+    });
 
     const result = await reactivateSubscriptionAction();
 
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.code).toBe('NO_ACTIVE_SUBSCRIPTION');
+    if (!result.success)
+      expect(result.error.code).toBe('NO_ACTIVE_SUBSCRIPTION');
   });
 
   test('non-owner gets FORBIDDEN', async () => {
@@ -684,8 +770,11 @@ describe('[9.3b][AC4] syncStripeDataAction', () => {
     expect(providerMocks.getSubscription).toHaveBeenCalledWith('sub_existing');
 
     const supabase = await getServerSupabase();
-    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> }).rpc;
-    const upsertCall = rpcMock.mock.calls.find((args: unknown[]) => args[0] === 'upsert_workspace_subscription');
+    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> })
+      .rpc;
+    const upsertCall = rpcMock.mock.calls.find(
+      (args: unknown[]) => args[0] === 'upsert_workspace_subscription',
+    );
     expect(upsertCall).toBeDefined();
     const params = upsertCall?.[1] as Record<string, unknown>;
     expect(params.p_tier).toBe('pro');
@@ -737,12 +826,19 @@ describe('[9.3b][AC4] syncStripeDataAction', () => {
     const result = await syncStripeDataAction({ sessionId: 'cs_test_123' });
 
     expect(result.success).toBe(true);
-    expect(providerMocks.getCheckoutSession).toHaveBeenCalledWith('cs_test_123');
-    expect(providerMocks.getSubscription).toHaveBeenCalledWith('sub_from_checkout');
+    expect(providerMocks.getCheckoutSession).toHaveBeenCalledWith(
+      'cs_test_123',
+    );
+    expect(providerMocks.getSubscription).toHaveBeenCalledWith(
+      'sub_from_checkout',
+    );
 
     const supabase = await getServerSupabase();
-    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> }).rpc;
-    const upsertCall = rpcMock.mock.calls.find((args: unknown[]) => args[0] === 'upsert_workspace_subscription');
+    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> })
+      .rpc;
+    const upsertCall = rpcMock.mock.calls.find(
+      (args: unknown[]) => args[0] === 'upsert_workspace_subscription',
+    );
     expect(upsertCall).toBeDefined();
     const params = upsertCall?.[1] as Record<string, unknown>;
     expect(params.p_tier).toBe('pro');
@@ -774,7 +870,10 @@ describe('[9.3b][AC4] syncStripeDataAction', () => {
 
   test('EC9 — idempotent: provider failure does not throw, returns success', async () => {
     setSupabase({
-      workspace: { stripe_customer_id: 'cus_x', stripe_subscription_id: 'sub_active' },
+      workspace: {
+        stripe_customer_id: 'cus_x',
+        stripe_subscription_id: 'sub_active',
+      },
     });
     providerMocks.getSubscription.mockRejectedValue(new Error('stripe down'));
 
@@ -799,7 +898,10 @@ describe('[9.3b][AC4] syncStripeDataAction', () => {
 
   test('maps unknown Stripe statuses to cancelled, not active', async () => {
     setSupabase({
-      workspace: { stripe_customer_id: 'cus_x', stripe_subscription_id: 'sub_active' },
+      workspace: {
+        stripe_customer_id: 'cus_x',
+        stripe_subscription_id: 'sub_active',
+      },
     });
     providerMocks.getSubscription.mockResolvedValue({
       providerSubscriptionId: 'sub_active',
@@ -814,8 +916,11 @@ describe('[9.3b][AC4] syncStripeDataAction', () => {
     await syncStripeDataAction({});
 
     const supabase = await getServerSupabase();
-    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> }).rpc;
-    const upsertCall = rpcMock.mock.calls.find((args: unknown[]) => args[0] === 'upsert_workspace_subscription');
+    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> })
+      .rpc;
+    const upsertCall = rpcMock.mock.calls.find(
+      (args: unknown[]) => args[0] === 'upsert_workspace_subscription',
+    );
     expect(upsertCall).toBeDefined();
     const params = upsertCall?.[1] as Record<string, unknown>;
     expect(params.p_status).toBe('cancelled');
@@ -823,7 +928,10 @@ describe('[9.3b][AC4] syncStripeDataAction', () => {
 
   test('unmapped Stripe status skips upsert', async () => {
     setSupabase({
-      workspace: { stripe_customer_id: 'cus_x', stripe_subscription_id: 'sub_active' },
+      workspace: {
+        stripe_customer_id: 'cus_x',
+        stripe_subscription_id: 'sub_active',
+      },
     });
     providerMocks.getSubscription.mockResolvedValue({
       providerSubscriptionId: 'sub_active',
@@ -838,14 +946,20 @@ describe('[9.3b][AC4] syncStripeDataAction', () => {
     await syncStripeDataAction({});
 
     const supabase = await getServerSupabase();
-    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> }).rpc;
-    const upsertCalls = rpcMock.mock.calls.filter((args: unknown[]) => args[0] === 'upsert_workspace_subscription');
+    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> })
+      .rpc;
+    const upsertCalls = rpcMock.mock.calls.filter(
+      (args: unknown[]) => args[0] === 'upsert_workspace_subscription',
+    );
     expect(upsertCalls.length).toBe(0);
   });
 
   test('unknown price id skips upsert', async () => {
     setSupabase({
-      workspace: { stripe_customer_id: 'cus_x', stripe_subscription_id: 'sub_active' },
+      workspace: {
+        stripe_customer_id: 'cus_x',
+        stripe_subscription_id: 'sub_active',
+      },
     });
     providerMocks.getSubscription.mockResolvedValue({
       providerSubscriptionId: 'sub_active',
@@ -860,14 +974,20 @@ describe('[9.3b][AC4] syncStripeDataAction', () => {
     await syncStripeDataAction({});
 
     const supabase = await getServerSupabase();
-    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> }).rpc;
-    const upsertCalls = rpcMock.mock.calls.filter((args: unknown[]) => args[0] === 'upsert_workspace_subscription');
+    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> })
+      .rpc;
+    const upsertCalls = rpcMock.mock.calls.filter(
+      (args: unknown[]) => args[0] === 'upsert_workspace_subscription',
+    );
     expect(upsertCalls.length).toBe(0);
   });
 
   test('logs logical RPC errors from upsert_workspace_subscription', async () => {
     setSupabase({
-      workspace: { stripe_customer_id: 'cus_x', stripe_subscription_id: 'sub_active' },
+      workspace: {
+        stripe_customer_id: 'cus_x',
+        stripe_subscription_id: 'sub_active',
+      },
     });
     providerMocks.getSubscription.mockResolvedValue({
       providerSubscriptionId: 'sub_active',
@@ -880,13 +1000,20 @@ describe('[9.3b][AC4] syncStripeDataAction', () => {
     });
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const supabase = await getServerSupabase();
-    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> }).rpc;
+    const rpcMock = (supabase as unknown as { rpc: ReturnType<typeof vi.fn> })
+      .rpc;
     rpcMock.mockImplementation((name: string) => {
       if (name === 'check_rate_limit') {
-        return Promise.resolve({ data: { allowed: true, retry_after_ms: 0 }, error: null });
+        return Promise.resolve({
+          data: { allowed: true, retry_after_ms: 0 },
+          error: null,
+        });
       }
       if (name === 'upsert_workspace_subscription') {
-        return Promise.resolve({ data: { error: 'INVALID_TIER' }, error: null });
+        return Promise.resolve({
+          data: { error: 'INVALID_TIER' },
+          error: null,
+        });
       }
       return Promise.resolve({ data: null, error: null });
     });
@@ -934,7 +1061,8 @@ describe('[9.3b][AC6] provider extension contract', () => {
 
     await createCheckoutSessionAction({ tier: 'pro', interval: 'monthly' });
 
-    const call = providerMocks.createSubscriptionCheckoutSession.mock.calls[0]?.[0];
+    const call =
+      providerMocks.createSubscriptionCheckoutSession.mock.calls[0]?.[0];
     expect(call.metadata).toEqual({ workspace_id: expect.any(String) });
     expect(call.metadata.workspaceId).toBeUndefined();
   });

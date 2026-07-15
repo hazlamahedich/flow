@@ -20,7 +20,9 @@ export interface EnqueueInitialSyncParams {
  *  1. Insert an agent_runs record with status 'pending'.
  *  2. Kick off the sync in the background (non-blocking).
  */
-export async function enqueueInitialSync(params: EnqueueInitialSyncParams): Promise<void> {
+export async function enqueueInitialSync(
+  params: EnqueueInitialSyncParams,
+): Promise<void> {
   const { supabase, workspaceId, clientCalendarId } = params;
 
   const runId = crypto.randomUUID();

@@ -8,12 +8,20 @@ export async function getPendingEmailChange(
   _input: unknown,
 ): Promise<ActionResult<PendingEmailChange>> {
   const supabase = await getServerSupabase();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return {
       success: false,
-      error: createFlowError(401, 'UNAUTHORIZED', 'Your session has expired. Please sign in again.', 'auth'),
+      error: createFlowError(
+        401,
+        'UNAUTHORIZED',
+        'Your session has expired. Please sign in again.',
+        'auth',
+      ),
     };
   }
 
@@ -28,7 +36,12 @@ export async function getPendingEmailChange(
   if (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', "Couldn't load email change status.", 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        "Couldn't load email change status.",
+        'system',
+      ),
     };
   }
 

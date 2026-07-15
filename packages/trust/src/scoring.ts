@@ -1,7 +1,11 @@
 import type { TrustLevel, AgentId } from './types';
 import { RISK_WEIGHTS } from './risk-weights';
 
-export type TrustEvent = 'success' | 'violation' | 'precheck_failure' | 'post_execution_violation';
+export type TrustEvent =
+  | 'success'
+  | 'violation'
+  | 'precheck_failure'
+  | 'post_execution_violation';
 
 export function calculateScoreChange(
   level: TrustLevel,

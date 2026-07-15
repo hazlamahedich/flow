@@ -28,12 +28,18 @@ function buildClient(rpcImpl: ReturnType<typeof vi.fn>): SupabaseClient {
   } as unknown as SupabaseClient;
 }
 
-function buildDeletedEvent(overrides?: Partial<{
-  subscriptionId: string;
-  customerId: string;
-  workspaceId: string;
-}>): WebhookEvent {
-  const { subscriptionId = 'sub_abc', customerId = 'cus_123', workspaceId } = overrides ?? {};
+function buildDeletedEvent(
+  overrides?: Partial<{
+    subscriptionId: string;
+    customerId: string;
+    workspaceId: string;
+  }>,
+): WebhookEvent {
+  const {
+    subscriptionId = 'sub_abc',
+    customerId = 'cus_123',
+    workspaceId,
+  } = overrides ?? {};
   return {
     id: 'evt_test',
     type: 'customer.subscription.deleted',
@@ -52,7 +58,9 @@ describe('handleSubscriptionDeleted (Story 9.5a AC5)', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('transitions to suspended via transition_to_suspended_any RPC', async () => {
-    const rpc = vi.fn().mockResolvedValue({ data: { success: true }, error: null });
+    const rpc = vi
+      .fn()
+      .mockResolvedValue({ data: { success: true }, error: null });
     const client = buildClient(rpc);
 
     const result = await handleSubscriptionDeleted(client, buildDeletedEvent());
@@ -64,7 +72,9 @@ describe('handleSubscriptionDeleted (Story 9.5a AC5)', () => {
   });
 
   it('does NOT call set_workspace_subscription_status with cancelled', async () => {
-    const rpc = vi.fn().mockResolvedValue({ data: { success: true }, error: null });
+    const rpc = vi
+      .fn()
+      .mockResolvedValue({ data: { success: true }, error: null });
     const client = buildClient(rpc);
 
     await handleSubscriptionDeleted(client, buildDeletedEvent());

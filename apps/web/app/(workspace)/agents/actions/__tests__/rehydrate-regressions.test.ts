@@ -35,10 +35,13 @@ describe('fetchUnacknowledgedRegressions', () => {
         },
       ]),
       createServerClient: vi.fn(() => ({})),
-      requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'u-1' }),
+      requireTenantContext: vi
+        .fn()
+        .mockResolvedValue({ workspaceId: 'ws-1', userId: 'u-1' }),
     }));
 
-    const { fetchUnacknowledgedRegressions: fresh } = await import('../rehydrate-regressions');
+    const { fetchUnacknowledgedRegressions: fresh } =
+      await import('../rehydrate-regressions');
     const result = await fresh();
     expect(result.success).toBe(true);
   });

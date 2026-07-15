@@ -16,31 +16,33 @@ interface PendingApprovalsResult {
   trustStaleIds: Set<string>;
 }
 
-const agentRunRowSchema = z.object({
-  id: z.string(),
-  workspace_id: z.string(),
-  agent_id: z.string(),
-  job_id: z.string(),
-  signal_id: z.string().nullable().optional(),
-  action_type: z.string(),
-  client_id: z.string().nullable().optional(),
-  idempotency_key: z.string().nullable().optional(),
-  status: z.string(),
-  input: z.record(z.string(), z.unknown()),
-  output: z.record(z.string(), z.unknown()).nullable().optional(),
-  error: z.record(z.string(), z.unknown()).nullable().optional(),
-  trust_tier_at_execution: z.string().nullable().optional(),
-  trust_snapshot_id: z.string().nullable().optional(),
-  correlation_id: z.string(),
-  started_at: z.string().nullable().optional(),
-  completed_at: z.string().nullable().optional(),
-  created_at: z.string(),
-  updated_at: z.string(),
-  corrected_run_id: z.string().nullable().optional(),
-  correction_depth: z.number().optional(),
-  correction_issued: z.boolean().optional(),
-  source: z.enum(['agent', 'human_correction']).optional(),
-}).passthrough();
+const agentRunRowSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string(),
+    agent_id: z.string(),
+    job_id: z.string(),
+    signal_id: z.string().nullable().optional(),
+    action_type: z.string(),
+    client_id: z.string().nullable().optional(),
+    idempotency_key: z.string().nullable().optional(),
+    status: z.string(),
+    input: z.record(z.string(), z.unknown()),
+    output: z.record(z.string(), z.unknown()).nullable().optional(),
+    error: z.record(z.string(), z.unknown()).nullable().optional(),
+    trust_tier_at_execution: z.string().nullable().optional(),
+    trust_snapshot_id: z.string().nullable().optional(),
+    correlation_id: z.string(),
+    started_at: z.string().nullable().optional(),
+    completed_at: z.string().nullable().optional(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    corrected_run_id: z.string().nullable().optional(),
+    correction_depth: z.number().optional(),
+    correction_issued: z.boolean().optional(),
+    source: z.enum(['agent', 'human_correction']).optional(),
+  })
+  .passthrough();
 
 export function mapRun(raw: Record<string, unknown>): AgentRun {
   const parsed = agentRunRowSchema.parse(raw);
@@ -111,7 +113,8 @@ export async function getPendingApprovals(
   }
 
   const lastItem = items[items.length - 1];
-  const nextCursor = hasMore && lastItem ? (lastItem.created_at as string) : null;
+  const nextCursor =
+    hasMore && lastItem ? (lastItem.created_at as string) : null;
 
   return {
     items: approvalItems,

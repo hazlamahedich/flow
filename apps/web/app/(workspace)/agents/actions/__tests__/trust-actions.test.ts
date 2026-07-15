@@ -5,7 +5,12 @@ const mockClient = {
 };
 
 function mockChain(data: unknown, error: unknown) {
-  const chainable: Record<string, unknown> = { data, error, eq: () => chainable, single: () => Promise.resolve({ data, error }) };
+  const chainable: Record<string, unknown> = {
+    data,
+    error,
+    eq: () => chainable,
+    single: () => Promise.resolve({ data, error }),
+  };
   return {
     select: () => chainable,
   };
@@ -45,15 +50,30 @@ const mockContext = { workspaceId: 'ws-1', userId: 'user-1' };
 
 beforeEach(() => {
   vi.clearAllMocks();
-  (requireTenantContext as ReturnType<typeof vi.fn>).mockResolvedValue(mockContext);
+  (requireTenantContext as ReturnType<typeof vi.fn>).mockResolvedValue(
+    mockContext,
+  );
   (updateTrustMatrixEntry as ReturnType<typeof vi.fn>).mockResolvedValue({
-    id: 'm1', score: 75, version: 2,
+    id: 'm1',
+    score: 75,
+    version: 2,
   });
-  (insertTransition as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 't1' });
+  (insertTransition as ReturnType<typeof vi.fn>).mockResolvedValue({
+    id: 't1',
+  });
   mockClient.from.mockImplementation((table: string) => {
-    const data = table === 'trust_matrix'
-      ? { id: 'm1', cooldown_until: new Date(Date.now() + 7 * 86400000).toISOString(), current_level: 'confirm' }
-      : { from_level: 'supervised', to_level: 'confirm', trigger_type: 'soft_violation' };
+    const data =
+      table === 'trust_matrix'
+        ? {
+            id: 'm1',
+            cooldown_until: new Date(Date.now() + 7 * 86400000).toISOString(),
+            current_level: 'confirm',
+          }
+        : {
+            from_level: 'supervised',
+            to_level: 'confirm',
+            trigger_type: 'soft_violation',
+          };
     return mockChain(data, null);
   });
 });
@@ -141,9 +161,22 @@ describe('undoRegression', () => {
   it('returns error when cooldown has expired', async () => {
     mockClient.from.mockImplementation((table: string) => {
       if (table === 'trust_matrix') {
-        return mockChain({ id: 'm1', cooldown_until: new Date(Date.now() - 1000).toISOString() }, null);
+        return mockChain(
+          {
+            id: 'm1',
+            cooldown_until: new Date(Date.now() - 1000).toISOString(),
+          },
+          null,
+        );
       }
-      return mockChain({ from_level: 'supervised', to_level: 'confirm', trigger_type: 'soft_violation' }, null);
+      return mockChain(
+        {
+          from_level: 'supervised',
+          to_level: 'confirm',
+          trigger_type: 'soft_violation',
+        },
+        null,
+      );
     });
     const result = await undoRegression({
       transitionId: '00000000-0000-0000-0000-000000000002',

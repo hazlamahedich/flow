@@ -48,7 +48,8 @@ function mapRowToRequest(row: SchedulingRequestRow): SchedulingRequest {
     durationMinutes: row.duration_minutes,
     preferences: row.preferences,
     status: row.status as SchedulingRequest['status'],
-    proposedOptions: row.proposed_options as unknown as SchedulingRequest['proposedOptions'],
+    proposedOptions:
+      row.proposed_options as unknown as SchedulingRequest['proposedOptions'],
     selectedOption: row.selected_option,
     bookedEventId: row.booked_event_id,
     agentRunId: row.agent_run_id,
@@ -80,7 +81,8 @@ export async function consumeSchedulingSignal(
     return { schedulingRequest: null, status: 'no_client_match' };
   }
   const duration = typeof payload.duration === 'number' ? payload.duration : 30;
-  const timezone = (typeof payload.timezone === 'string' ? payload.timezone : null) ?? 'UTC';
+  const timezone =
+    (typeof payload.timezone === 'string' ? payload.timezone : null) ?? 'UTC';
 
   let clientQuery = supabase
     .from('clients')
@@ -108,9 +110,15 @@ export async function consumeSchedulingSignal(
 
   const clientId = (clientRows as ClientRow[])[0]!.id;
   const requestType = actionType === 'reschedule' ? 'reschedule' : 'book_new';
-  const rawSourceEmailId = signal.entityId ?? (payload.emailId ?? payload.email_id ?? null) as string | null;
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const sourceEmailId = rawSourceEmailId && uuidRegex.test(rawSourceEmailId) ? rawSourceEmailId : null;
+  const rawSourceEmailId =
+    signal.entityId ??
+    ((payload.emailId ?? payload.email_id ?? null) as string | null);
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const sourceEmailId =
+    rawSourceEmailId && uuidRegex.test(rawSourceEmailId)
+      ? rawSourceEmailId
+      : null;
 
   const parsed = SchedulingRequestSchema.safeParse({
     workspaceId,

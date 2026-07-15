@@ -10,9 +10,9 @@ interface ReportVersion {
   generatedBy: string;
 }
 
-export async function getReportVersions(
-  input: { versionGroupId: string },
-): Promise<ReportVersion[]> {
+export async function getReportVersions(input: {
+  versionGroupId: string;
+}): Promise<ReportVersion[]> {
   const supabase = await getServerSupabase();
   let ctx;
   try {
@@ -45,9 +45,9 @@ export async function getReportVersions(
   }));
 }
 
-export async function getReportVersionsAction(
-  input: { versionGroupId: string },
-): Promise<ActionResult<ReportVersion[]>> {
+export async function getReportVersionsAction(input: {
+  versionGroupId: string;
+}): Promise<ActionResult<ReportVersion[]>> {
   const versions = await getReportVersions(input);
   return { success: true, data: versions };
 }

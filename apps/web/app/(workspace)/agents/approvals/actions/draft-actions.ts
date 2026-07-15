@@ -1,18 +1,18 @@
 'use server';
 
-import { 
-  approveDraftSchema, 
-  rejectDraftSchema, 
-  editDraftSchema, 
-  quickEditToneSchema, 
-  quickEditLengthSchema 
+import {
+  approveDraftSchema,
+  rejectDraftSchema,
+  editDraftSchema,
+  quickEditToneSchema,
+  quickEditLengthSchema,
 } from './schemas';
 import type { ActionResult } from '@flow/types';
-import { 
-  createFlowError, 
+import {
+  createFlowError,
   requireTenantContext,
   insertCostLog,
-  insertCostEstimate
+  insertCostEstimate,
 } from '@flow/db';
 import { createLLMRouter } from '@flow/agents';
 import { getServerSupabase } from '@/lib/supabase-server';
@@ -25,7 +25,12 @@ export async function approveDraft(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -42,7 +47,12 @@ export async function approveDraft(
   if (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to approve draft', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to approve draft',
+        'system',
+      ),
     };
   }
 
@@ -57,7 +67,12 @@ export async function rejectDraft(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -78,7 +93,12 @@ export async function rejectDraft(
   if (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to reject draft', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to reject draft',
+        'system',
+      ),
     };
   }
 
@@ -93,7 +113,12 @@ export async function editDraft(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -103,10 +128,10 @@ export async function editDraft(
 
   const { error } = await supabase
     .from('draft_responses')
-    .update({ 
-      draft_content: content, 
-      status: 'edited', 
-      updated_at: new Date().toISOString() 
+    .update({
+      draft_content: content,
+      status: 'edited',
+      updated_at: new Date().toISOString(),
     })
     .eq('id', draftId)
     .eq('workspace_id', workspaceId);
@@ -114,7 +139,12 @@ export async function editDraft(
   if (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to edit draft', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to edit draft',
+        'system',
+      ),
     };
   }
 
@@ -165,12 +195,13 @@ async function performQuickEdit(
   try {
     const response = await router.complete(
       [
-        { 
-          role: 'system', 
-          content: 'You are an expert executive assistant rewriting a draft email response. Maintain the core meaning but adjust based on the instruction. Output ONLY the new draft content, no explanation.' 
+        {
+          role: 'system',
+          content:
+            'You are an expert executive assistant rewriting a draft email response. Maintain the core meaning but adjust based on the instruction. Output ONLY the new draft content, no explanation.',
         },
-        { 
-          role: 'user', 
+        {
+          role: 'user',
           content: `Original Email Context:
 Subject: ${email?.subject ?? 'No Subject'}
 Body: ${email?.body_clean ?? 'No Body'}
@@ -178,11 +209,11 @@ Body: ${email?.body_clean ?? 'No Body'}
 Current Draft:
 ${draft.draft_content}
 
-Instruction: ${instruction}` 
+Instruction: ${instruction}`,
         },
       ],
       { workspaceId, agentId: 'inbox', runId: draftId },
-      { taskTier: 'quality' }
+      { taskTier: 'quality' },
     );
 
     const newContent = response.text.trim();
@@ -190,10 +221,10 @@ Instruction: ${instruction}`
     // 3. Update draft
     const { error: updateError } = await supabase
       .from('draft_responses')
-      .update({ 
-        draft_content: newContent, 
-        status: 'edited', 
-        updated_at: new Date().toISOString() 
+      .update({
+        draft_content: newContent,
+        status: 'edited',
+        updated_at: new Date().toISOString(),
       })
       .eq('id', draftId)
       .eq('workspace_id', workspaceId);
@@ -201,7 +232,12 @@ Instruction: ${instruction}`
     if (updateError) {
       return {
         success: false,
-        error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to update draft with edit', 'system'),
+        error: createFlowError(
+          500,
+          'INTERNAL_ERROR',
+          'Failed to update draft with edit',
+          'system',
+        ),
       };
     }
 
@@ -210,7 +246,12 @@ Instruction: ${instruction}`
   } catch (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'AI rewrite failed', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'AI rewrite failed',
+        'system',
+      ),
     };
   }
 }
@@ -222,7 +263,12 @@ export async function quickEditTone(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -230,7 +276,11 @@ export async function quickEditTone(
   const supabase = await getServerSupabase();
   const { workspaceId } = await requireTenantContext(supabase);
 
-  return performQuickEdit(workspaceId, draftId, `Rewrite this draft to be more ${tone}.`);
+  return performQuickEdit(
+    workspaceId,
+    draftId,
+    `Rewrite this draft to be more ${tone}.`,
+  );
 }
 
 export async function quickEditLength(
@@ -240,7 +290,12 @@ export async function quickEditLength(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -248,5 +303,9 @@ export async function quickEditLength(
   const supabase = await getServerSupabase();
   const { workspaceId } = await requireTenantContext(supabase);
 
-  return performQuickEdit(workspaceId, draftId, `Rewrite this draft to be ${length}.`);
+  return performQuickEdit(
+    workspaceId,
+    draftId,
+    `Rewrite this draft to be ${length}.`,
+  );
 }

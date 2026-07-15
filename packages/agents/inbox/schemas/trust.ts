@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-export const metricTypeSchema = z.enum(['recategorization_rate', 'draft_acceptance_rate']);
+export const metricTypeSchema = z.enum([
+  'recategorization_rate',
+  'draft_acceptance_rate',
+]);
 
 export const inboxTrustMetricsSchema = z.object({
   workspaceId: z.string().uuid(),
@@ -23,8 +26,8 @@ export const TRUST_THRESHOLDS = {
   MIN_SAMPLES_TRUST_2: 20,
   MAX_RECAT_RATE_TRUST_2: 0.15,
   MIN_SAMPLES_TRUST_3: 50,
-  MAX_RECAT_RATE_TRUST_3: 0.10,
-  MIN_DRAFT_ACCEPT_TRUST_3: 0.80,
+  MAX_RECAT_RATE_TRUST_3: 0.1,
+  MIN_DRAFT_ACCEPT_TRUST_3: 0.8,
   DRAFT_TRUST_GATE: 2,
 } as const;
 

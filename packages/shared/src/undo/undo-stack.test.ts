@@ -53,7 +53,10 @@ describe('undo-stack', () => {
     it('limits entries to max', () => {
       let stacks = new Map();
       for (let i = 0; i < 15; i++) {
-        stacks = actions.addEntry(stacks, makeEntry({ id: `entry-${i}`, operationId: `op-${i}` }));
+        stacks = actions.addEntry(
+          stacks,
+          makeEntry({ id: `entry-${i}`, operationId: `op-${i}` }),
+        );
       }
       const stack = actions.getStack(stacks);
       expect(stack.entries).toHaveLength(UNDO_MAX_ENTRIES);
@@ -78,7 +81,10 @@ describe('undo-stack', () => {
     it('pops most recent entry', () => {
       let stacks = new Map();
       stacks = actions.addEntry(stacks, makeEntry({ id: 'first' }));
-      stacks = actions.addEntry(stacks, makeEntry({ id: 'second', operationId: 'op-2' }));
+      stacks = actions.addEntry(
+        stacks,
+        makeEntry({ id: 'second', operationId: 'op-2' }),
+      );
       const { stacks: next, entry } = actions.popEntry(stacks);
       expect(entry?.id).toBe('second');
       expect(actions.getStack(next).entries).toHaveLength(1);
@@ -95,7 +101,10 @@ describe('undo-stack', () => {
     it('removes all entries', () => {
       let stacks = new Map();
       stacks = actions.addEntry(stacks, makeEntry());
-      stacks = actions.addEntry(stacks, makeEntry({ id: 'e2', operationId: 'op-2' }));
+      stacks = actions.addEntry(
+        stacks,
+        makeEntry({ id: 'e2', operationId: 'op-2' }),
+      );
       const result = actions.clearStack(stacks);
       expect(actions.getStack(result).entries).toHaveLength(0);
     });
@@ -130,7 +139,10 @@ describe('undo-stack', () => {
       const ws2 = createUndoStackActions('ws-2');
       let stacks = new Map();
       stacks = ws1.addEntry(stacks, makeEntry({ workspaceId: 'ws-1' }));
-      stacks = ws2.addEntry(stacks, makeEntry({ workspaceId: 'ws-2', id: 'e2', operationId: 'op-2' }));
+      stacks = ws2.addEntry(
+        stacks,
+        makeEntry({ workspaceId: 'ws-2', id: 'e2', operationId: 'op-2' }),
+      );
       expect(ws1.getStack(stacks).entries).toHaveLength(1);
       expect(ws2.getStack(stacks).entries).toHaveLength(1);
     });

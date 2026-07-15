@@ -15,7 +15,9 @@ describe('ownership transfer initiation', () => {
       expect(['admin', 'member'].includes(role)).toBe(true);
     }
     for (const role of invalidTargetRoles) {
-      expect(['admin', 'member'].includes(role) && role !== 'client_user').toBe(role === 'admin' || role === 'member' ? true : false);
+      expect(['admin', 'member'].includes(role) && role !== 'client_user').toBe(
+        role === 'admin' || role === 'member' ? true : false,
+      );
     }
   });
 
@@ -149,7 +151,12 @@ describe('ActionResult for transfer', () => {
   it('transfer already pending error', () => {
     const result = {
       success: false as const,
-      error: { status: 409, code: 'TRANSFER_ALREADY_PENDING', message: 'An ownership transfer is already pending for this workspace.', category: 'validation' as const },
+      error: {
+        status: 409,
+        code: 'TRANSFER_ALREADY_PENDING',
+        message: 'An ownership transfer is already pending for this workspace.',
+        category: 'validation' as const,
+      },
     };
     expect(result.success).toBe(false);
     expect(result.error.code).toBe('TRANSFER_ALREADY_PENDING');
@@ -158,7 +165,12 @@ describe('ActionResult for transfer', () => {
   it('transfer expired error', () => {
     const result = {
       success: false as const,
-      error: { status: 410, code: 'TRANSFER_EXPIRED', message: "The transfer wasn't confirmed in time.", category: 'validation' as const },
+      error: {
+        status: 410,
+        code: 'TRANSFER_EXPIRED',
+        message: "The transfer wasn't confirmed in time.",
+        category: 'validation' as const,
+      },
     };
     expect(result.success).toBe(false);
     expect(result.error.code).toBe('TRANSFER_EXPIRED');

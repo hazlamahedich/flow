@@ -8,7 +8,11 @@
  * with supplied overrides; never throw (so a missing/renamed config never
  * breaks portal rendering).
  */
-import { PORTAL_BRANDING_PRESETS, type PresetName, type BrandingPreset } from './presets';
+import {
+  PORTAL_BRANDING_PRESETS,
+  type PresetName,
+  type BrandingPreset,
+} from './presets';
 import type { VisualVar, ContentVar } from './constants';
 
 /** Input shape — what callers pass to the resolver. */
@@ -25,7 +29,10 @@ export interface ResolvedBranding {
 }
 
 /** Type-narrow a preset name, falling back to 'minimalist' if unknown. */
-function resolvePresetName(name: string): { preset: PresetName; fellBack: boolean } {
+function resolvePresetName(name: string): {
+  preset: PresetName;
+  fellBack: boolean;
+} {
   if (name in PORTAL_BRANDING_PRESETS) {
     return { preset: name as PresetName, fellBack: false };
   }
@@ -41,14 +48,16 @@ function resolvePresetName(name: string): { preset: PresetName; fellBack: boolea
  */
 export function resolveBrandingPreset(
   preset: string | undefined,
-  overrides: { visual?: Record<string, string>; content?: Record<string, string> },
+  overrides: {
+    visual?: Record<string, string>;
+    content?: Record<string, string>;
+  },
 ): ResolvedBranding {
   const effectivePreset = preset ?? 'warm-host';
   const { preset: presetName, fellBack } = resolvePresetName(effectivePreset);
 
   if (fellBack) {
     // EC7: log only on the server side; never throw.
-
   }
 
   const base: BrandingPreset = PORTAL_BRANDING_PRESETS[presetName];

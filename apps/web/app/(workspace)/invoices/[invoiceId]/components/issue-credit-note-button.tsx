@@ -13,7 +13,9 @@ interface IssueCreditNoteButtonProps {
 function dollarsToCents(dollars: string): number {
   const parts = dollars.split('.');
   const whole = parseInt(parts[0] || '0', 10) || 0;
-  const cents = parts[1] ? parseInt(parts[1].padEnd(2, '0').slice(0, 2), 10) : 0;
+  const cents = parts[1]
+    ? parseInt(parts[1].padEnd(2, '0').slice(0, 2), 10)
+    : 0;
   return whole * 100 + cents;
 }
 
@@ -23,7 +25,11 @@ function centsToDollars(cents: number): string {
   return `${whole}.${frac.toString().padStart(2, '0')}`;
 }
 
-export function IssueCreditNoteButton({ invoiceId, invoiceNumber, maxCreditCents }: IssueCreditNoteButtonProps) {
+export function IssueCreditNoteButton({
+  invoiceId,
+  invoiceNumber,
+  maxCreditCents,
+}: IssueCreditNoteButtonProps) {
   const [open, setOpen] = useState(false);
   const [amountDollars, setAmountDollars] = useState('');
   const [reason, setReason] = useState('');
@@ -82,7 +88,11 @@ export function IssueCreditNoteButton({ invoiceId, invoiceNumber, maxCreditCents
       return;
     }
     setLoading(true);
-    const result = await issueCreditNoteAction({ invoiceId, amountCents, reason: reason.trim() });
+    const result = await issueCreditNoteAction({
+      invoiceId,
+      amountCents,
+      reason: reason.trim(),
+    });
     setLoading(false);
     if (!result.success) {
       setError(result.error.message);
@@ -111,13 +121,22 @@ export function IssueCreditNoteButton({ invoiceId, invoiceNumber, maxCreditCents
           aria-labelledby="credit-title"
           onKeyDown={handleKeyDown}
         >
-          <div ref={dialogRef} className="w-full max-w-lg rounded-lg bg-background p-6 shadow-lg space-y-4">
-            <h2 id="credit-title" className="text-lg font-semibold">Issue Credit Note — {invoiceNumber}</h2>
+          <div
+            ref={dialogRef}
+            className="w-full max-w-lg rounded-lg bg-background p-6 shadow-lg space-y-4"
+          >
+            <h2 id="credit-title" className="text-lg font-semibold">
+              Issue Credit Note — {invoiceNumber}
+            </h2>
 
             <div className="space-y-1">
-              <label htmlFor="credit-amount" className="text-sm font-medium">Credit Amount (max $<span>{maxDollars}</span>)</label>
+              <label htmlFor="credit-amount" className="text-sm font-medium">
+                Credit Amount (max $<span>{maxDollars}</span>)
+              </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                  $
+                </span>
                 <input
                   ref={amountRef}
                   id="credit-amount"
@@ -127,7 +146,8 @@ export function IssueCreditNoteButton({ invoiceId, invoiceNumber, maxCreditCents
                   value={amountDollars}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (/^\d*\.?\d{0,2}$/.test(val) || val === '') setAmountDollars(val);
+                    if (/^\d*\.?\d{0,2}$/.test(val) || val === '')
+                      setAmountDollars(val);
                   }}
                   placeholder="0.00"
                   className="w-full rounded-md border bg-background pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -135,11 +155,15 @@ export function IssueCreditNoteButton({ invoiceId, invoiceNumber, maxCreditCents
                   aria-describedby="credit-error credit-hint"
                 />
               </div>
-              <p id="credit-hint" className="text-xs text-muted-foreground">Maximum credit: ${maxDollars}</p>
+              <p id="credit-hint" className="text-xs text-muted-foreground">
+                Maximum credit: ${maxDollars}
+              </p>
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="credit-reason" className="text-sm font-medium">Reason</label>
+              <label htmlFor="credit-reason" className="text-sm font-medium">
+                Reason
+              </label>
               <textarea
                 id="credit-reason"
                 value={reason}
@@ -149,15 +173,30 @@ export function IssueCreditNoteButton({ invoiceId, invoiceNumber, maxCreditCents
                 className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 aria-describedby="credit-error credit-counter"
               />
-              <p id="credit-counter" className="text-xs text-muted-foreground text-right">{reason.length}/500</p>
+              <p
+                id="credit-counter"
+                className="text-xs text-muted-foreground text-right"
+              >
+                {reason.length}/500
+              </p>
             </div>
 
-            <p id="credit-error" className={`text-sm text-destructive min-h-[1.25rem] ${error ? '' : 'invisible'}`} role={error ? 'alert' : undefined}>
+            <p
+              id="credit-error"
+              className={`text-sm text-destructive min-h-[1.25rem] ${error ? '' : 'invisible'}`}
+              role={error ? 'alert' : undefined}
+            >
               {error || '\u00A0'}
             </p>
 
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setOpen(false)} className="rounded-md border px-4 py-2 text-sm hover:bg-muted">Cancel</button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-md border px-4 py-2 text-sm hover:bg-muted"
+              >
+                Cancel
+              </button>
               <button
                 type="button"
                 onClick={handleIssue}

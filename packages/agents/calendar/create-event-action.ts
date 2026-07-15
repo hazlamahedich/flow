@@ -50,7 +50,9 @@ export async function executeCreateEvent(
 
   const { data: reqRow, error: reqError } = await supabase
     .from('scheduling_requests')
-    .select('id, workspace_id, client_id, status, request_type, proposed_options, selected_option, duration_minutes, requested_by, source_email_id, booked_event_id')
+    .select(
+      'id, workspace_id, client_id, status, request_type, proposed_options, selected_option, duration_minutes, requested_by, source_email_id, booked_event_id',
+    )
     .eq('id', schedulingRequestId)
     .eq('workspace_id', workspaceId)
     .maybeSingle();
@@ -94,10 +96,10 @@ export async function executeCreateEvent(
       .update({ status: 'failed' })
       .eq('id', schedulingRequestId);
     await resolveOriginatingSignal(supabase, workspaceId, req.source_email_id);
-    throw Object.assign(
-      new Error('No connected calendar found'),
-      { code: 'CALENDAR_NOT_FOUND' as const, statusCode: 404 },
-    );
+    throw Object.assign(new Error('No connected calendar found'), {
+      code: 'CALENDAR_NOT_FOUND' as const,
+      statusCode: 404,
+    });
   }
 
   const calendar = cal[0]!;
@@ -105,7 +107,10 @@ export async function executeCreateEvent(
   try {
     const provider = getCalendarProvider(calendar.provider);
     const tokenManager = new CalendarTokenManager(provider);
-    const { tokens } = await tokenManager.getValidTokens(calendar.id, calendar.oauth_state as unknown as OAuthStateEncrypted);
+    const { tokens } = await tokenManager.getValidTokens(
+      calendar.id,
+      calendar.oauth_state as unknown as OAuthStateEncrypted,
+    );
 
     const title = `Meeting with ${req.requested_by.name ?? req.requested_by.email ?? 'Client'}`;
     const attendeeEmail = req.requested_by.email;
@@ -145,16 +150,28 @@ export async function executeCreateEvent(
 
     if (eventInsertError || !eventRow) {
       try {
-        await provider.deleteEvent(tokens.accessToken, calendar.calendar_id, createdEvent.providerEventId);
-      } catch { /* best-effort cleanup — provider event may be orphaned */ }
+        await provider.deleteEvent(
+          tokens.accessToken,
+          calendar.calendar_id,
+          createdEvent.providerEventId,
+        );
+      } catch {
+        /* best-effort cleanup — provider event may be orphaned */
+      }
       await supabase
         .from('scheduling_requests')
         .update({ status: 'failed' })
         .eq('id', schedulingRequestId)
         .eq('workspace_id', workspaceId);
-      await resolveOriginatingSignal(supabase, workspaceId, req.source_email_id);
+      await resolveOriginatingSignal(
+        supabase,
+        workspaceId,
+        req.source_email_id,
+      );
       throw Object.assign(
-        new Error(`calendar_events insert failed: ${eventInsertError?.message ?? 'no row returned'}`),
+        new Error(
+          `calendar_events insert failed: ${eventInsertError?.message ?? 'no row returned'}`,
+        ),
         { code: 'EVENT_STORE_FAILED' as const, statusCode: 500 },
       );
     }
@@ -170,8 +187,14 @@ export async function executeCreateEvent(
 
     if (req.request_type === 'reschedule' && req.booked_event_id) {
       try {
-        await writeRescheduledFromRelation(req.booked_event_id, eventRow.id, supabase);
-      } catch { /* best-effort — relation writing is non-blocking */ }
+        await writeRescheduledFromRelation(
+          req.booked_event_id,
+          eventRow.id,
+          supabase,
+        );
+      } catch {
+        /* best-effort — relation writing is non-blocking */
+      }
     }
 
     await supabase.from('agent_signals').insert({
@@ -179,7 +202,11 @@ export async function executeCreateEvent(
       causation_id: crypto.randomUUID(),
       agent_id: 'calendar',
       signal_type: 'booking_completed',
-      payload: { clientId: req.client_id, eventId: eventRow.id, startAt: selectedOption.startAt },
+      payload: {
+        clientId: req.client_id,
+        eventId: eventRow.id,
+        startAt: selectedOption.startAt,
+      },
       target_agent: 'calendar',
       workspace_id: workspaceId,
     });
@@ -203,10 +230,11 @@ export async function executeCreateEvent(
 
     await resolveOriginatingSignal(supabase, workspaceId, req.source_email_id);
 
-    const message = err instanceof Error ? err.message : 'Event creation failed';
-    throw Object.assign(
-      new Error(message),
-      { code: 'PROVIDER_ERROR' as const, statusCode: 500 },
-    );
+    const message =
+      err instanceof Error ? err.message : 'Event creation failed';
+    throw Object.assign(new Error(message), {
+      code: 'PROVIDER_ERROR' as const,
+      statusCode: 500,
+    });
   }
 }

@@ -17,16 +17,23 @@ interface DuplicateWarning {
   clientName: string;
 }
 
-export function StepContact({ data, onChange, onNext, headingRef }: StepContactProps) {
+export function StepContact({
+  data,
+  onChange,
+  onNext,
+  headingRef,
+}: StepContactProps) {
   const nameRef = useRef<HTMLInputElement>(null);
-  const [duplicateWarning, setDuplicateWarning] = useState<DuplicateWarning | null>(null);
+  const [duplicateWarning, setDuplicateWarning] =
+    useState<DuplicateWarning | null>(null);
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [nameBlurred, setNameBlurred] = useState(false);
 
   const emailSchema = z.string().trim().email().optional();
 
-  const isNameValid = data.name.trim().length >= 1 && data.name.trim().length <= 200;
+  const isNameValid =
+    data.name.trim().length >= 1 && data.name.trim().length <= 200;
   const showNameError = nameBlurred && !isNameValid;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,8 +64,16 @@ export function StepContact({ data, onChange, onNext, headingRef }: StepContactP
       setCheckingDuplicate(true);
       try {
         const result = await checkDuplicateEmailAction({ email });
-        if (result.success && result.data.exists && result.data.clientId && result.data.clientName) {
-          setDuplicateWarning({ clientId: result.data.clientId, clientName: result.data.clientName });
+        if (
+          result.success &&
+          result.data.exists &&
+          result.data.clientId &&
+          result.data.clientName
+        ) {
+          setDuplicateWarning({
+            clientId: result.data.clientId,
+            clientName: result.data.clientName,
+          });
           setCheckingDuplicate(false);
           return;
         }
@@ -81,7 +96,11 @@ export function StepContact({ data, onChange, onNext, headingRef }: StepContactP
 
   return (
     <div className="space-y-4">
-      <h2 ref={headingRef} tabIndex={-1} className="text-lg font-semibold text-[var(--flow-color-text-primary)]">
+      <h2
+        ref={headingRef}
+        tabIndex={-1}
+        className="text-lg font-semibold text-[var(--flow-color-text-primary)]"
+      >
         Contact Details
       </h2>
 
@@ -105,7 +124,9 @@ export function StepContact({ data, onChange, onNext, headingRef }: StepContactP
       </div>
 
       <div>
-        <label htmlFor="wiz-email" className="mb-1 block text-sm font-medium">Email</label>
+        <label htmlFor="wiz-email" className="mb-1 block text-sm font-medium">
+          Email
+        </label>
         <input
           id="wiz-email"
           type="email"
@@ -116,20 +137,34 @@ export function StepContact({ data, onChange, onNext, headingRef }: StepContactP
           placeholder="optional"
         />
         {emailError && (
-          <p className="mt-1 text-sm text-[var(--flow-status-error)]" role="alert">
+          <p
+            className="mt-1 text-sm text-[var(--flow-status-error)]"
+            role="alert"
+          >
             {emailError}
           </p>
         )}
         {duplicateWarning && (
-          <p className="mt-1 text-sm text-[var(--flow-status-warning)]" role="alert">
-            A client with this email already exists ({duplicateWarning.clientName}).
-            <a href={`/clients/${duplicateWarning.clientId}`} className="ml-1 underline">View existing</a>
+          <p
+            className="mt-1 text-sm text-[var(--flow-status-warning)]"
+            role="alert"
+          >
+            A client with this email already exists (
+            {duplicateWarning.clientName}).
+            <a
+              href={`/clients/${duplicateWarning.clientId}`}
+              className="ml-1 underline"
+            >
+              View existing
+            </a>
           </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="wiz-phone" className="mb-1 block text-sm font-medium">Phone</label>
+        <label htmlFor="wiz-phone" className="mb-1 block text-sm font-medium">
+          Phone
+        </label>
         <input
           id="wiz-phone"
           type="text"
@@ -143,7 +178,9 @@ export function StepContact({ data, onChange, onNext, headingRef }: StepContactP
       </div>
 
       <div>
-        <label htmlFor="wiz-company" className="mb-1 block text-sm font-medium">Company</label>
+        <label htmlFor="wiz-company" className="mb-1 block text-sm font-medium">
+          Company
+        </label>
         <input
           id="wiz-company"
           type="text"

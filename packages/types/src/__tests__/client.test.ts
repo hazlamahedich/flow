@@ -45,37 +45,59 @@ describe('createClientSchema', () => {
   });
 
   it('rejects invalid email', () => {
-    const result = createClientSchema.safeParse({ name: 'Test', email: 'not-an-email' });
+    const result = createClientSchema.safeParse({
+      name: 'Test',
+      email: 'not-an-email',
+    });
     expect(result.success).toBe(false);
   });
 
   it('accepts null hourlyRateCents', () => {
-    const result = createClientSchema.safeParse({ name: 'Test', hourlyRateCents: null });
+    const result = createClientSchema.safeParse({
+      name: 'Test',
+      hourlyRateCents: null,
+    });
     expect(result.success).toBe(true);
   });
 
   it('accepts zero hourlyRateCents (pro bono)', () => {
-    const result = createClientSchema.safeParse({ name: 'Test', hourlyRateCents: 0 });
+    const result = createClientSchema.safeParse({
+      name: 'Test',
+      hourlyRateCents: 0,
+    });
     expect(result.success).toBe(true);
   });
 
   it('rejects negative hourlyRateCents', () => {
-    const result = createClientSchema.safeParse({ name: 'Test', hourlyRateCents: -1 });
+    const result = createClientSchema.safeParse({
+      name: 'Test',
+      hourlyRateCents: -1,
+    });
     expect(result.success).toBe(false);
   });
 
   it('rejects float hourlyRateCents', () => {
-    const result = createClientSchema.safeParse({ name: 'Test', hourlyRateCents: 50.5 });
+    const result = createClientSchema.safeParse({
+      name: 'Test',
+      hourlyRateCents: 50.5,
+    });
     expect(result.success).toBe(false);
   });
 
   it('rejects string hourlyRateCents', () => {
-    const result = createClientSchema.safeParse({ name: 'Test', hourlyRateCents: '5000' });
+    const result = createClientSchema.safeParse({
+      name: 'Test',
+      hourlyRateCents: '5000',
+    });
     expect(result.success).toBe(false);
   });
 
   it('accepts empty string as optional field', () => {
-    const result = createClientSchema.safeParse({ name: 'Test', email: '', phone: '' });
+    const result = createClientSchema.safeParse({
+      name: 'Test',
+      email: '',
+      phone: '',
+    });
     expect(result.success).toBe(true);
   });
 });
@@ -87,12 +109,17 @@ describe('updateClientSchema', () => {
   });
 
   it('accepts clientId with partial updates', () => {
-    const result = updateClientSchema.safeParse({ clientId: '550e8400-e29b-41d4-a716-446655440000', name: 'Updated' });
+    const result = updateClientSchema.safeParse({
+      clientId: '550e8400-e29b-41d4-a716-446655440000',
+      name: 'Updated',
+    });
     expect(result.success).toBe(true);
   });
 
   it('accepts clientId only', () => {
-    const result = updateClientSchema.safeParse({ clientId: '550e8400-e29b-41d4-a716-446655440000' });
+    const result = updateClientSchema.safeParse({
+      clientId: '550e8400-e29b-41d4-a716-446655440000',
+    });
     expect(result.success).toBe(true);
   });
 });
@@ -104,7 +131,9 @@ describe('archiveClientSchema', () => {
   });
 
   it('accepts valid uuid', () => {
-    const result = archiveClientSchema.safeParse({ clientId: '550e8400-e29b-41d4-a716-446655440000' });
+    const result = archiveClientSchema.safeParse({
+      clientId: '550e8400-e29b-41d4-a716-446655440000',
+    });
     expect(result.success).toBe(true);
   });
 });

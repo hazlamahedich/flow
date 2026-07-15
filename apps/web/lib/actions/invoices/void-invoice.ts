@@ -20,9 +20,15 @@ export async function voidInvoiceAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation', {
-        issues: parsed.error.issues,
-      }),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+        {
+          issues: parsed.error.issues,
+        },
+      ),
     };
   }
 
@@ -31,24 +37,36 @@ export async function voidInvoiceAction(
 
   const { invoiceId, reason } = parsed.data;
 
-  const { data: rpcResult, error: rpcError } = await supabase
-    .rpc('void_invoice_and_clear_time_entries', {
+  const { data: rpcResult, error: rpcError } = await supabase.rpc(
+    'void_invoice_and_clear_time_entries',
+    {
       p_invoice_id: invoiceId,
       p_workspace_id: ctx.workspaceId,
       p_void_reason: reason,
-    });
+    },
+  );
 
   if (rpcError) {
     const msg = rpcError.message ?? '';
     if (msg.includes('INVOICE_PAID_CANNOT_VOID')) {
       return {
         success: false,
-        error: createFlowError(400, 'INVOICE_PAID_CANNOT_VOID', 'Paid invoices cannot be voided. Issue a credit note instead.', 'financial'),
+        error: createFlowError(
+          400,
+          'INVOICE_PAID_CANNOT_VOID',
+          'Paid invoices cannot be voided. Issue a credit note instead.',
+          'financial',
+        ),
       };
     }
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to void invoice.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to void invoice.',
+        'system',
+      ),
     };
   }
 
@@ -57,32 +75,56 @@ export async function voidInvoiceAction(
   if (result?.error === 'NOT_FOUND') {
     return {
       success: false,
-      error: createFlowError(404, 'NOT_FOUND', 'Invoice not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'NOT_FOUND',
+        'Invoice not found.',
+        'validation',
+      ),
     };
   }
 
   if (result?.error === 'INVOICE_PAID_CANNOT_VOID') {
     return {
       success: false,
-      error: createFlowError(400, 'INVOICE_PAID_CANNOT_VOID', 'Paid invoices cannot be voided. Issue a credit note instead.', 'financial'),
+      error: createFlowError(
+        400,
+        'INVOICE_PAID_CANNOT_VOID',
+        'Paid invoices cannot be voided. Issue a credit note instead.',
+        'financial',
+      ),
     };
   }
 
   if (!result?.success) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to void invoice.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to void invoice.',
+        'system',
+      ),
     };
   }
 
   const priorStatus = String(result.prior_status ?? 'unknown');
 
-  const detail = await getInvoiceWithBalance(supabase, invoiceId, ctx.workspaceId);
+  const detail = await getInvoiceWithBalance(
+    supabase,
+    invoiceId,
+    ctx.workspaceId,
+  );
 
   if (!detail) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Invoice voided but could not re-fetch detail.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Invoice voided but could not re-fetch detail.',
+        'system',
+      ),
     };
   }
 
@@ -95,11 +137,18 @@ export async function voidInvoiceAction(
     action: 'voided',
     entity_type: 'invoice',
     entity_id: invoiceId,
-    details: { reason, priorStatus, timeEntriesCleared: result.time_entries_cleared },
+    details: {
+      reason,
+      priorStatus,
+      timeEntriesCleared: result.time_entries_cleared,
+    },
   });
 
   if (auditError) {
-    console.error('Audit log write failed for invoice void:', auditError.message);
+    console.error(
+      'Audit log write failed for invoice void:',
+      auditError.message,
+    );
   }
 
   return { success: true, data: detail };

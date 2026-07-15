@@ -5,7 +5,11 @@ import { logTimeEntrySchema } from '../../app/(onboarding)/onboarding/_actions/l
 
 describe('createClientSchema', () => {
   it('validates required name', () => {
-    const result = createClientSchema.safeParse({ name: '', email: '', phone: '' });
+    const result = createClientSchema.safeParse({
+      name: '',
+      email: '',
+      phone: '',
+    });
     expect(result.success).toBe(false);
   });
 

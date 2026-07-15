@@ -24,26 +24,23 @@ export function EmptyStateCard({
   const borderClass =
     variant === 'first-run' ? 'border-dashed' : 'border-solid';
 
-  const ctaElement = ctaLabel && ctaHref
-    ? (
+  const ctaElement =
+    ctaLabel && ctaHref ? (
       <Link
         href={ctaHref}
         className="inline-flex items-center gap-1.5 rounded-[var(--flow-radius-sm)] bg-[var(--flow-color-accent-gold)] px-3 py-1.5 text-sm font-medium text-[var(--flow-color-text-on-accent)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-[var(--flow-focus-ring-width)_solid_var(--flow-focus-ring-color)] focus-visible:outline-offset-1"
       >
         {ctaLabel}
       </Link>
-    )
-    : ctaLabel && ctaOnClick
-      ? (
-        <button
-          type="button"
-          onClick={ctaOnClick}
-          className="inline-flex items-center gap-1.5 rounded-[var(--flow-radius-sm)] bg-[var(--flow-color-accent-gold)] px-3 py-1.5 text-sm font-medium text-[var(--flow-color-text-on-accent)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-[var(--flow-focus-ring-width)_solid_var(--flow-focus-ring-color)] focus-visible:outline-offset-1"
-        >
-          {ctaLabel}
-        </button>
-      )
-      : null;
+    ) : ctaLabel && ctaOnClick ? (
+      <button
+        type="button"
+        onClick={ctaOnClick}
+        className="inline-flex items-center gap-1.5 rounded-[var(--flow-radius-sm)] bg-[var(--flow-color-accent-gold)] px-3 py-1.5 text-sm font-medium text-[var(--flow-color-text-on-accent)] transition-colors hover:opacity-90 focus-visible:outline focus-visible:outline-[var(--flow-focus-ring-width)_solid_var(--flow-focus-ring-color)] focus-visible:outline-offset-1"
+      >
+        {ctaLabel}
+      </button>
+    ) : null;
 
   return (
     <div
@@ -54,9 +51,16 @@ export function EmptyStateCard({
       role="region"
       aria-label={title}
     >
-      <Icon className="h-8 w-8 text-[var(--flow-color-text-tertiary)]" aria-hidden="true" />
-      <h3 className="text-sm font-medium text-[var(--flow-color-text-primary)]">{title}</h3>
-      <p className="text-sm text-[var(--flow-color-text-secondary)]">{description}</p>
+      <Icon
+        className="h-8 w-8 text-[var(--flow-color-text-tertiary)]"
+        aria-hidden="true"
+      />
+      <h3 className="text-sm font-medium text-[var(--flow-color-text-primary)]">
+        {title}
+      </h3>
+      <p className="text-sm text-[var(--flow-color-text-secondary)]">
+        {description}
+      </p>
       {ctaElement}
     </div>
   );

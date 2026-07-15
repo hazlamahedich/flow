@@ -4,14 +4,20 @@ import { Card, CardHeader, CardContent, Button } from '@flow/ui';
 import Link from 'next/link';
 
 interface AgentFirstRunProps {
-  agents: Array<{ id: string; label: string; description: string; icon: string }>;
+  agents: Array<{
+    id: string;
+    label: string;
+    description: string;
+    icon: string;
+  }>;
 }
 
 export function AgentFirstRun({ agents }: AgentFirstRunProps) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--flow-color-text-secondary)]">
-        Get started by activating your first AI agent. We recommend starting with Inbox.
+        Get started by activating your first AI agent. We recommend starting
+        with Inbox.
       </p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {agents.map((agent, index) => (

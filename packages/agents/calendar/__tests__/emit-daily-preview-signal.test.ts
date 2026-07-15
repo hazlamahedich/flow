@@ -9,7 +9,9 @@ function createMockSupabase(
   insertError: string | null = null,
 ) {
   const insertChain = {
-    insert: vi.fn().mockResolvedValue({ error: insertError ? { message: insertError } : null }),
+    insert: vi.fn().mockResolvedValue({
+      error: insertError ? { message: insertError } : null,
+    }),
   };
 
   return {
@@ -80,19 +82,32 @@ describe('emitDailyPreviewSignal', () => {
 
   it('includes events and bypass alerts in payload', async () => {
     const events = [
-      { title: 'Meeting', start_at: '2026-05-24T10:00:00Z', end_at: '2026-05-24T11:00:00Z', source: 'va_created', client_id: 'client-1' },
+      {
+        title: 'Meeting',
+        start_at: '2026-05-24T10:00:00Z',
+        end_at: '2026-05-24T11:00:00Z',
+        source: 'va_created',
+        client_id: 'client-1',
+      },
     ];
     const clients = [{ id: 'client-1', name: 'Acme Corp' }];
     const bypassData = [
-      { client_id: 'client-1', bypass_rate: '0.5000', total_events: 10, bypass_count: 5 },
+      {
+        client_id: 'client-1',
+        bypass_rate: '0.5000',
+        total_events: 10,
+        bypass_count: 5,
+      },
     ];
 
     let capturedInsert: Record<string, unknown> | null = null;
     const originalCreate = createMockSupabase;
-    const mockInsert = vi.fn().mockImplementation((data: Record<string, unknown>) => {
-      capturedInsert = data;
-      return Promise.resolve({ error: null });
-    });
+    const mockInsert = vi
+      .fn()
+      .mockImplementation((data: Record<string, unknown>) => {
+        capturedInsert = data;
+        return Promise.resolve({ error: null });
+      });
 
     const supabase = {
       from: vi.fn((table: string) => {
@@ -147,9 +162,12 @@ describe('emitDailyPreviewSignal', () => {
       target_agent: 'inbox',
       workspace_id: 'ws-1',
     });
-    const payload = (capturedInsert!.payload as Record<string, unknown>);
+    const payload = capturedInsert!.payload as Record<string, unknown>;
     expect(payload.events).toHaveLength(1);
-    expect((payload.events as Array<unknown>)[0]).toHaveProperty('title', 'Meeting');
+    expect((payload.events as Array<unknown>)[0]).toHaveProperty(
+      'title',
+      'Meeting',
+    );
     expect(payload.bypassAlerts).toHaveLength(1);
   });
 });

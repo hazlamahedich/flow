@@ -18,7 +18,11 @@ import {
   SUSPENSION_MAX_DAYS,
 } from '@flow/shared';
 import { ReconciliationReportSchema } from '@flow/types';
-import { runGraceSweep, runSuspensionSweep, runReconciliation } from '@flow/agents';
+import {
+  runGraceSweep,
+  runSuspensionSweep,
+  runReconciliation,
+} from '@flow/agents';
 import { createServiceClient } from '@flow/db';
 import { reconcileSubscriptionsAction } from '@/lib/actions/billing/reconcile-subscriptions';
 import { getServerSupabase } from '@/lib/supabase-server';
@@ -31,8 +35,15 @@ vi.mock('@flow/db', async () => {
 });
 
 vi.mock('@flow/agents', async () => {
-  const actual = await vi.importActual<typeof import('@flow/agents')>('@flow/agents');
-  return { ...actual, writeAuditLog: vi.fn<typeof import('@flow/agents/shared/audit-writer')['writeAuditLog']>() };
+  const actual =
+    await vi.importActual<typeof import('@flow/agents')>('@flow/agents');
+  return {
+    ...actual,
+    writeAuditLog:
+      vi.fn<
+        (typeof import('@flow/agents/shared/audit-writer'))['writeAuditLog']
+      >(),
+  };
 });
 
 vi.mock('@flow/agents/shared/audit-writer', () => ({
@@ -50,15 +61,21 @@ vi.mock('@/lib/supabase-server', () => ({
   getServerSupabase: vi.fn(),
 }));
 
-const { writeAuditLog } = await vi.importMock<typeof import('@flow/agents/shared/audit-writer')>('@flow/agents/shared/audit-writer');
-const { getPaymentProvider } = await vi.importMock<typeof import('@flow/agents/providers')>('@flow/agents/providers');
+const { writeAuditLog } = await vi.importMock<
+  typeof import('@flow/agents/shared/audit-writer')
+>('@flow/agents/shared/audit-writer');
+const { getPaymentProvider } = await vi.importMock<
+  typeof import('@flow/agents/providers')
+>('@flow/agents/providers');
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
 function mockServiceClient(chain: unknown) {
-  vi.mocked(createServiceClient).mockReturnValue(chain as ReturnType<typeof createServiceClient>);
+  vi.mocked(createServiceClient).mockReturnValue(
+    chain as ReturnType<typeof createServiceClient>,
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -177,7 +194,11 @@ function buildMockClient(overrides: {
   workspaces?: Array<Record<string, unknown>>;
   rpcResult?: { error?: string; success?: boolean };
 }) {
-  const { appConfig = [], workspaces = [], rpcResult = { success: true } } = overrides;
+  const {
+    appConfig = [],
+    workspaces = [],
+    rpcResult = { success: true },
+  } = overrides;
 
   const fromMock = {
     select: vi.fn().mockReturnThis(),
@@ -227,7 +248,7 @@ describe('runGraceSweep', () => {
         ],
         workspaces: [workspace],
         rpcResult: { success: true },
-      })
+      }),
     );
 
     const result = await runGraceSweep();
@@ -240,17 +261,26 @@ describe('runGraceSweep', () => {
     mockServiceClient(
       buildMockClient({
         appConfig: [{ key: 'subscription_grace_period_days', value: '7' }],
-        workspaces: [{ id: 'ws-1', subscription_status: 'past_due', subscription_updated_at: '2026-06-09T00:00:00Z' }],
+        workspaces: [
+          {
+            id: 'ws-1',
+            subscription_status: 'past_due',
+            subscription_updated_at: '2026-06-09T00:00:00Z',
+          },
+        ],
         rpcResult: { error: 'PRECONDITION_FAILED' },
-      })
+      }),
     );
 
     const result = await runGraceSweep();
     expect(result.swept).toBe(1);
     // No `subscription.transitioned` audit log for the PRECONDITION_FAILED row
     // (the actual transitioner — webhook/reconcile — already logged it).
-    const transitionCalls = (writeAuditLog as unknown as ReturnType<typeof vi.fn>).mock.calls.filter(
-      ([p]: [unknown]) => (p as { action?: string }).action === 'subscription.transitioned',
+    const transitionCalls = (
+      writeAuditLog as unknown as ReturnType<typeof vi.fn>
+    ).mock.calls.filter(
+      ([p]: [unknown]) =>
+        (p as { action?: string }).action === 'subscription.transitioned',
     );
     expect(transitionCalls).toHaveLength(0);
   });
@@ -260,11 +290,19 @@ describe('runGraceSweep', () => {
       buildMockClient({
         appConfig: [{ key: 'subscription_grace_period_days', value: '7' }],
         workspaces: [
-          { id: 'ws-1', subscription_status: 'past_due', subscription_updated_at: '2026-06-09T00:00:00Z' },
-          { id: 'ws-2', subscription_status: 'past_due', subscription_updated_at: '2026-06-09T00:00:00Z' },
+          {
+            id: 'ws-1',
+            subscription_status: 'past_due',
+            subscription_updated_at: '2026-06-09T00:00:00Z',
+          },
+          {
+            id: 'ws-2',
+            subscription_status: 'past_due',
+            subscription_updated_at: '2026-06-09T00:00:00Z',
+          },
         ],
         rpcResult: { success: true },
-      })
+      }),
     );
 
     const rpcMock = vi.fn();
@@ -277,8 +315,16 @@ describe('runGraceSweep', () => {
       ...buildMockClient({
         appConfig: [{ key: 'subscription_grace_period_days', value: '7' }],
         workspaces: [
-          { id: 'ws-1', subscription_status: 'past_due', subscription_updated_at: '2026-06-09T00:00:00Z' },
-          { id: 'ws-2', subscription_status: 'past_due', subscription_updated_at: '2026-06-09T00:00:00Z' },
+          {
+            id: 'ws-1',
+            subscription_status: 'past_due',
+            subscription_updated_at: '2026-06-09T00:00:00Z',
+          },
+          {
+            id: 'ws-2',
+            subscription_status: 'past_due',
+            subscription_updated_at: '2026-06-09T00:00:00Z',
+          },
         ],
         rpcResult: { success: true },
       }),
@@ -295,10 +341,18 @@ describe('runSuspensionSweep', () => {
   test('transitions suspended workspaces older than suspension window to deleted', async () => {
     mockServiceClient(
       buildMockClient({
-        appConfig: [{ key: 'subscription_suspension_period_days', value: '30' }],
-        workspaces: [{ id: 'ws-1', subscription_status: 'suspended', subscription_updated_at: '2026-05-19T00:00:00Z' }],
+        appConfig: [
+          { key: 'subscription_suspension_period_days', value: '30' },
+        ],
+        workspaces: [
+          {
+            id: 'ws-1',
+            subscription_status: 'suspended',
+            subscription_updated_at: '2026-05-19T00:00:00Z',
+          },
+        ],
         rpcResult: { success: true },
-      })
+      }),
     );
 
     const result = await runSuspensionSweep();
@@ -313,12 +367,20 @@ describe('runReconciliation', () => {
   test('returns empty drift when Stripe status matches DB', async () => {
     mockServiceClient(
       buildMockClient({
-        workspaces: [{ id: 'ws-1', subscription_status: 'active', stripe_subscription_id: 'sub_1' }],
-      })
+        workspaces: [
+          {
+            id: 'ws-1',
+            subscription_status: 'active',
+            stripe_subscription_id: 'sub_1',
+          },
+        ],
+      }),
     );
-    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      getSubscription: vi.fn().mockResolvedValue({ status: 'active' }),
-    });
+    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      {
+        getSubscription: vi.fn().mockResolvedValue({ status: 'active' }),
+      },
+    );
 
     const report = await runReconciliation();
     expect(report.checked).toBe(1);
@@ -329,25 +391,44 @@ describe('runReconciliation', () => {
   test('corrects drift when Stripe and DB disagree', async () => {
     mockServiceClient(
       buildMockClient({
-        workspaces: [{ id: 'ws-1', subscription_status: 'active', stripe_subscription_id: 'sub_1' }],
+        workspaces: [
+          {
+            id: 'ws-1',
+            subscription_status: 'active',
+            stripe_subscription_id: 'sub_1',
+          },
+        ],
         rpcResult: { success: true },
-      })
+      }),
     );
-    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      getSubscription: vi.fn().mockResolvedValue({ status: 'past_due' }),
-    });
+    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      {
+        getSubscription: vi.fn().mockResolvedValue({ status: 'past_due' }),
+      },
+    );
 
     const report = await runReconciliation();
     expect(report.checked).toBe(1);
     expect(report.drift).toHaveLength(1);
-    expect(report.drift[0]).toMatchObject({ workspaceId: 'ws-1', fromStatus: 'active', toStatus: 'past_due', corrected: true });
+    expect(report.drift[0]).toMatchObject({
+      workspaceId: 'ws-1',
+      fromStatus: 'active',
+      toStatus: 'past_due',
+      corrected: true,
+    });
   });
 
   test('excludes deleted workspaces from reconciliation', async () => {
     mockServiceClient(
       buildMockClient({
-        workspaces: [{ id: 'ws-1', subscription_status: 'deleted', stripe_subscription_id: 'sub_1' }],
-      })
+        workspaces: [
+          {
+            id: 'ws-1',
+            subscription_status: 'deleted',
+            stripe_subscription_id: 'sub_1',
+          },
+        ],
+      }),
     );
 
     const report = await runReconciliation();
@@ -358,47 +439,82 @@ describe('runReconciliation', () => {
   test('reports Stripe API errors as uncorrectable (EC9)', async () => {
     mockServiceClient(
       buildMockClient({
-        workspaces: [{ id: 'ws-1', subscription_status: 'active', stripe_subscription_id: 'sub_1' }],
-      })
+        workspaces: [
+          {
+            id: 'ws-1',
+            subscription_status: 'active',
+            stripe_subscription_id: 'sub_1',
+          },
+        ],
+      }),
     );
-    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      getSubscription: vi.fn().mockRejectedValue(new Error('Stripe outage')),
-    });
+    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      {
+        getSubscription: vi.fn().mockRejectedValue(new Error('Stripe outage')),
+      },
+    );
 
     const report = await runReconciliation();
     expect(report.uncorrectable).toHaveLength(1);
-    expect(report.uncorrectable[0]).toMatchObject({ workspaceId: 'ws-1', reason: 'stripe_api_error' });
+    expect(report.uncorrectable[0]).toMatchObject({
+      workspaceId: 'ws-1',
+      reason: 'stripe_api_error',
+    });
   });
 
   test('reports invalid transitions as uncorrectable (EC4)', async () => {
     mockServiceClient(
       buildMockClient({
-        workspaces: [{ id: 'ws-1', subscription_status: 'free', stripe_subscription_id: 'sub_1' }],
-      })
+        workspaces: [
+          {
+            id: 'ws-1',
+            subscription_status: 'free',
+            stripe_subscription_id: 'sub_1',
+          },
+        ],
+      }),
     );
-    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      getSubscription: vi.fn().mockResolvedValue({ status: 'deleted' }),
-    });
+    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      {
+        getSubscription: vi.fn().mockResolvedValue({ status: 'deleted' }),
+      },
+    );
 
     const report = await runReconciliation();
     expect(report.uncorrectable).toHaveLength(1);
-    expect(report.uncorrectable[0]).toMatchObject({ workspaceId: 'ws-1', reason: 'invalid_transition' });
+    expect(report.uncorrectable[0]).toMatchObject({
+      workspaceId: 'ws-1',
+      reason: 'invalid_transition',
+    });
   });
 
   test('reports PRECONDITION_FAILED as drift corrected:false (EC1/EC3)', async () => {
     mockServiceClient(
       buildMockClient({
-        workspaces: [{ id: 'ws-1', subscription_status: 'active', stripe_subscription_id: 'sub_1' }],
+        workspaces: [
+          {
+            id: 'ws-1',
+            subscription_status: 'active',
+            stripe_subscription_id: 'sub_1',
+          },
+        ],
         rpcResult: { error: 'PRECONDITION_FAILED' },
-      })
+      }),
     );
-    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      getSubscription: vi.fn().mockResolvedValue({ status: 'suspended' }),
-    });
+    (getPaymentProvider as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
+      {
+        getSubscription: vi.fn().mockResolvedValue({ status: 'suspended' }),
+      },
+    );
 
     const report = await runReconciliation();
     expect(report.drift).toHaveLength(1);
-    expect(report.drift[0]).toMatchObject({ workspaceId: 'ws-1', fromStatus: 'active', toStatus: 'suspended', corrected: false });
+    expect(report.drift[0]).toMatchObject({
+      workspaceId: 'ws-1',
+      fromStatus: 'active',
+      toStatus: 'suspended',
+      corrected: false,
+    });
   });
 });
 
@@ -414,7 +530,10 @@ describe('reconcileSubscriptionsAction', () => {
           data: {
             user: {
               id: 'user-1',
-              app_metadata: { workspace_id: '00000000-0000-0000-0000-000000000001', role },
+              app_metadata: {
+                workspace_id: '00000000-0000-0000-0000-000000000001',
+                role,
+              },
             },
           },
           error: null,
@@ -424,14 +543,19 @@ describe('reconcileSubscriptionsAction', () => {
       from: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'ws-1', role }, error: null }),
+        maybeSingle: vi
+          .fn()
+          .mockResolvedValue({ data: { id: 'ws-1', role }, error: null }),
       }),
     } as unknown as SupabaseClient);
   }
 
   test('delegates to runReconciliation and wraps in ActionResult', async () => {
     mockServerSupabase({ role: 'owner' });
-    vi.spyOn(await import('@flow/agents'), 'runReconciliation').mockResolvedValueOnce({ checked: 0, drift: [], uncorrectable: [] });
+    vi.spyOn(
+      await import('@flow/agents'),
+      'runReconciliation',
+    ).mockResolvedValueOnce({ checked: 0, drift: [], uncorrectable: [] });
 
     const result = await reconcileSubscriptionsAction();
     expect(result.success).toBe(true);
@@ -448,13 +572,22 @@ describe('ReconciliationReportSchema', () => {
   test('accepts a valid report', () => {
     const report = {
       checked: 2,
-      drift: [{ workspaceId: 'ws-1', fromStatus: 'active', toStatus: 'past_due', corrected: true }],
+      drift: [
+        {
+          workspaceId: 'ws-1',
+          fromStatus: 'active',
+          toStatus: 'past_due',
+          corrected: true,
+        },
+      ],
       uncorrectable: [{ workspaceId: 'ws-2', reason: 'stripe_api_error' }],
     };
     expect(() => ReconciliationReportSchema.parse(report)).not.toThrow();
   });
 
   test('rejects an invalid report', () => {
-    expect(() => ReconciliationReportSchema.parse({ checked: 'two' })).toThrow(z.ZodError);
+    expect(() => ReconciliationReportSchema.parse({ checked: 'two' })).toThrow(
+      z.ZodError,
+    );
   });
 });

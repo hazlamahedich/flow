@@ -1,5 +1,10 @@
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, getTrustMatrixEntry, getTransitions, getPreconditions } from '@flow/db';
+import {
+  requireTenantContext,
+  getTrustMatrixEntry,
+  getTransitions,
+  getPreconditions,
+} from '@flow/db';
 import type { TrustTransitionDbRow, TrustPreconditionDbRow } from '@flow/db';
 import { TrustDetailPanel } from '@/components/trust/trust-detail-panel';
 import type { TrustLevel } from '@flow/trust';
@@ -23,7 +28,15 @@ export async function TrustSection({ agentId }: TrustSectionProps) {
   return (
     <TrustDetailPanel
       agentId={agentId}
-      initialEntry={entry ? { ...entry, current_level: (entry.current_level as TrustLevel) ?? 'supervised' } : null}
+      initialEntry={
+        entry
+          ? {
+              ...entry,
+              current_level:
+                (entry.current_level as TrustLevel) ?? 'supervised',
+            }
+          : null
+      }
       initialTransitions={transitions.map((t: TrustTransitionDbRow) => ({
         id: t.id,
         from_level: t.from_level,

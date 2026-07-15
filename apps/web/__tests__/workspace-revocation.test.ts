@@ -54,11 +54,11 @@ describe('member_client_access soft-deleted', () => {
 
 describe('last-owner protection', () => {
   it('prevents revoking the only owner', () => {
-    const owners = [
-      { id: 'mem-1', role: 'owner', status: 'active' },
-    ];
+    const owners = [{ id: 'mem-1', role: 'owner', status: 'active' }];
 
-    const activeOwners = owners.filter((m) => m.role === 'owner' && m.status === 'active');
+    const activeOwners = owners.filter(
+      (m) => m.role === 'owner' && m.status === 'active',
+    );
     const canRevoke = activeOwners.length > 1;
     expect(canRevoke).toBe(false);
   });
@@ -69,7 +69,9 @@ describe('last-owner protection', () => {
       { id: 'mem-2', role: 'owner', status: 'active' },
     ];
 
-    const activeOwners = owners.filter((m) => m.role === 'owner' && m.status === 'active');
+    const activeOwners = owners.filter(
+      (m) => m.role === 'owner' && m.status === 'active',
+    );
     const canRevoke = activeOwners.length > 1;
     expect(canRevoke).toBe(true);
   });
@@ -122,7 +124,12 @@ describe('ActionResult type contract for revocation', () => {
   it('error result for insufficient role', () => {
     const result = {
       success: false as const,
-      error: { status: 403, code: 'INSUFFICIENT_ROLE', message: 'Not allowed', category: 'auth' as const },
+      error: {
+        status: 403,
+        code: 'INSUFFICIENT_ROLE',
+        message: 'Not allowed',
+        category: 'auth' as const,
+      },
     };
     expect(result.success).toBe(false);
     expect(result.error.code).toBe('INSUFFICIENT_ROLE');

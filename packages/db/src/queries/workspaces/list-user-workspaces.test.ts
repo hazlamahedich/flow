@@ -15,7 +15,9 @@ function mockClient(data: unknown[] | null, error: object | null) {
         resolve({ data, error });
     },
   });
-  return { from: vi.fn(() => builder) } as unknown as Parameters<typeof listUserWorkspaces>[0];
+  return { from: vi.fn(() => builder) } as unknown as Parameters<
+    typeof listUserWorkspaces
+  >[0];
 }
 
 describe('listUserWorkspaces', () => {
@@ -47,13 +49,19 @@ describe('listUserWorkspaces', () => {
   });
 
   it('throws on non-42P01 Supabase error', async () => {
-    const client = mockClient(null, { message: 'connection failed', code: '08000' });
+    const client = mockClient(null, {
+      message: 'connection failed',
+      code: '08000',
+    });
 
     await expect(listUserWorkspaces(client, userId)).rejects.toThrow();
   });
 
   it('returns empty on 42P01 (missing table)', async () => {
-    const client = mockClient(null, { message: 'undefined_object', code: '42P01' });
+    const client = mockClient(null, {
+      message: 'undefined_object',
+      code: '42P01',
+    });
 
     const result = await listUserWorkspaces(client, userId);
 

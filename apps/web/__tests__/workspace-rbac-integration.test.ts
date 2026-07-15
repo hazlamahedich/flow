@@ -177,7 +177,9 @@ describe('RBAC integration: critical server action business rules', () => {
         { id: '2', revoked_at: null },
         { id: '3', revoked_at: '2024-01-01' },
       ];
-      const activeAccess = memberClientAccess.filter((a) => a.revoked_at === null);
+      const activeAccess = memberClientAccess.filter(
+        (a) => a.revoked_at === null,
+      );
       expect(activeAccess).toHaveLength(2);
 
       // After revocation, all active access would get revoked_at set

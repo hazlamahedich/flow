@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { detectConflict, buildDiff, mergeNonConflicting } from './conflict-detection';
+import {
+  detectConflict,
+  buildDiff,
+  mergeNonConflicting,
+} from './conflict-detection';
 
 const FIELD_LABELS: Record<string, string> = {
   name: 'Client Name',

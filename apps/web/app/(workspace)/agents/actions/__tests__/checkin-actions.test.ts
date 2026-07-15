@@ -18,12 +18,18 @@ describe('deferCheckIn', () => {
   });
 
   it('returns validation error for invalid input', async () => {
-    const result = await deferCheckIn({ workspaceId: 'not-a-uuid', agentId: 'inbox' });
+    const result = await deferCheckIn({
+      workspaceId: 'not-a-uuid',
+      agentId: 'inbox',
+    });
     expect(result.success).toBe(false);
   });
 
   it('returns validation error for empty agentId', async () => {
-    const result = await deferCheckIn({ workspaceId: '00000000-0000-0000-0000-000000000001', agentId: '' });
+    const result = await deferCheckIn({
+      workspaceId: '00000000-0000-0000-0000-000000000001',
+      agentId: '',
+    });
     expect(result.success).toBe(false);
   });
 
@@ -39,12 +45,18 @@ describe('acknowledgeCheckIn', () => {
   });
 
   it('returns validation error for invalid workspaceId', async () => {
-    const result = await acknowledgeCheckIn({ workspaceId: 'bad', agentId: 'inbox' });
+    const result = await acknowledgeCheckIn({
+      workspaceId: 'bad',
+      agentId: 'inbox',
+    });
     expect(result.success).toBe(false);
   });
 
   it('returns validation error for empty agentId', async () => {
-    const result = await acknowledgeCheckIn({ workspaceId: '00000000-0000-0000-0000-000000000001', agentId: '' });
+    const result = await acknowledgeCheckIn({
+      workspaceId: '00000000-0000-0000-0000-000000000001',
+      agentId: '',
+    });
     expect(result.success).toBe(false);
   });
 
@@ -57,7 +69,10 @@ describe('acknowledgeCheckIn', () => {
   });
 
   it('Zod rejects non-string agentId', async () => {
-    const result = await deferCheckIn({ workspaceId: '00000000-0000-0000-0000-000000000001', agentId: 123 as never });
+    const result = await deferCheckIn({
+      workspaceId: '00000000-0000-0000-0000-000000000001',
+      agentId: 123 as never,
+    });
     expect(result.success).toBe(false);
   });
 });

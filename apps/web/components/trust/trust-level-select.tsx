@@ -3,7 +3,21 @@
 import { Badge } from '@flow/ui';
 import type { TrustLevel } from '@flow/trust';
 
-const LEVEL_CONFIG: Record<TrustLevel, { label: string; badge: 'default' | 'secondary' | 'success' | 'warning' | 'error' | 'outline'; emotion: string; description: string }> = {
+const LEVEL_CONFIG: Record<
+  TrustLevel,
+  {
+    label: string;
+    badge:
+      | 'default'
+      | 'secondary'
+      | 'success'
+      | 'warning'
+      | 'error'
+      | 'outline';
+    emotion: string;
+    description: string;
+  }
+> = {
   supervised: {
     label: 'Supervised',
     badge: 'warning',
@@ -30,17 +44,28 @@ interface TrustLevelSelectProps {
   disabled?: boolean;
 }
 
-export function TrustLevelSelect({ value, onChange, disabled }: TrustLevelSelectProps) {
+export function TrustLevelSelect({
+  value,
+  onChange,
+  disabled,
+}: TrustLevelSelectProps) {
   const config = LEVEL_CONFIG[value];
 
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-[var(--flow-text-secondary)]">Trust Level</span>
+        <span className="text-xs font-medium text-[var(--flow-text-secondary)]">
+          Trust Level
+        </span>
         <Badge variant={config.badge}>{config.label}</Badge>
       </div>
       <div className="flex gap-2">
-        {(Object.entries(LEVEL_CONFIG) as [TrustLevel, (typeof LEVEL_CONFIG)[TrustLevel]][]).map(([level, cfg]) => (
+        {(
+          Object.entries(LEVEL_CONFIG) as [
+            TrustLevel,
+            (typeof LEVEL_CONFIG)[TrustLevel],
+          ][]
+        ).map(([level, cfg]) => (
           <button
             key={level}
             type="button"
@@ -53,8 +78,12 @@ export function TrustLevelSelect({ value, onChange, disabled }: TrustLevelSelect
             }`}
             aria-pressed={level === value}
           >
-            <div className="text-xs font-medium text-[var(--flow-text-primary)]">{cfg.label}</div>
-            <div className="mt-0.5 text-[10px] text-[var(--flow-text-muted)]">{cfg.description}</div>
+            <div className="text-xs font-medium text-[var(--flow-text-primary)]">
+              {cfg.label}
+            </div>
+            <div className="mt-0.5 text-[10px] text-[var(--flow-text-muted)]">
+              {cfg.description}
+            </div>
           </button>
         ))}
       </div>

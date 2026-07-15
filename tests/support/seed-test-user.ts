@@ -36,13 +36,19 @@ async function seed() {
     console.log('Created user:', userId);
   }
 
-  const { error: profileErr } = await supabase
-    .from('users')
-    .upsert({ id: userId, email: ownerEmail, name: 'Test Owner', timezone: 'UTC' });
+  const { error: profileErr } = await supabase.from('users').upsert({
+    id: userId,
+    email: ownerEmail,
+    name: 'Test Owner',
+    timezone: 'UTC',
+  });
   if (profileErr) console.error('Profile upsert:', profileErr.message);
   else console.log('User profile ready');
 
-  const { data: workspaces } = await supabase.from('workspaces').select('id').eq('slug', 'test-workspace');
+  const { data: workspaces } = await supabase
+    .from('workspaces')
+    .select('id')
+    .eq('slug', 'test-workspace');
   let workspaceId: string;
 
   if (workspaces && workspaces.length > 0) {
@@ -70,9 +76,12 @@ async function seed() {
     .maybeSingle();
 
   if (!membership) {
-    const { error: mErr } = await supabase
-      .from('workspace_members')
-      .insert({ workspace_id: workspaceId, user_id: userId, role: 'owner', status: 'active' });
+    const { error: mErr } = await supabase.from('workspace_members').insert({
+      workspace_id: workspaceId,
+      user_id: userId,
+      role: 'owner',
+      status: 'active',
+    });
     if (mErr) console.error('Membership:', mErr.message);
     else console.log('Created owner membership');
   } else {

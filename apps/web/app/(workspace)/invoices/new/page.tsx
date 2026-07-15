@@ -3,7 +3,9 @@ import { CreateInvoiceForm } from './components/create-invoice-form';
 
 export default async function NewInvoicePage() {
   const supabase = await getServerSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return null;
 
   const workspaceId = user.app_metadata?.workspace_id as string | undefined;

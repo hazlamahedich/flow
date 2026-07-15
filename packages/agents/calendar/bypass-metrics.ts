@@ -1,6 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import { BypassMetricsRowSchema, BypassMetricsSummarySchema } from './schemas.js';
+import {
+  BypassMetricsRowSchema,
+  BypassMetricsSummarySchema,
+} from './schemas.js';
 
 export interface UpsertBypassMetricsParams {
   supabase: SupabaseClient;
@@ -33,13 +36,19 @@ export async function upsertBypassMetrics(
 
 async function tryUpsertBypassMetrics(
   params: UpsertBypassMetricsParams,
-): Promise<{ bypassRate: number; bypassCount: number; totalEvents: number } | null> {
+): Promise<{
+  bypassRate: number;
+  bypassCount: number;
+  totalEvents: number;
+} | null> {
   const { supabase, workspaceId, clientId } = params;
   const window = getRollingWindow();
 
   const { data: rawExisting, error: fetchError } = await supabase
     .from('calendar_bypass_metrics')
-    .select('id, total_events, bypass_count, bypass_rate, window_start, window_end')
+    .select(
+      'id, total_events, bypass_count, bypass_rate, window_start, window_end',
+    )
     .eq('workspace_id', workspaceId)
     .eq('client_id', clientId)
     .order('window_start', { ascending: false })
@@ -93,27 +102,42 @@ async function tryUpsertBypassMetrics(
     const updatedParsed = BypassMetricsSummarySchema.safeParse(rawUpdated);
     if (!updatedParsed.success) {
       throw Object.assign(
-        new Error(`Invalid updated bypass metrics: ${updatedParsed.error.message}`),
+        new Error(
+          `Invalid updated bypass metrics: ${updatedParsed.error.message}`,
+        ),
         { code: 'METRICS_PARSE_FAILED' as const, statusCode: 500 },
       );
     }
     const finalRow = updatedParsed.data;
-    const finalRate = finalRow.total_events > 0 ? finalRow.bypass_count / finalRow.total_events : 0;
-    return { bypassRate: finalRate, bypassCount: finalRow.bypass_count, totalEvents: finalRow.total_events };
+    const finalRate =
+      finalRow.total_events > 0
+        ? finalRow.bypass_count / finalRow.total_events
+        : 0;
+    return {
+      bypassRate: finalRate,
+      bypassCount: finalRow.bypass_count,
+      totalEvents: finalRow.total_events,
+    };
   }
 
   const newRate = 1;
   const { error: insertError } = await supabase
     .from('calendar_bypass_metrics')
-    .upsert({
-      workspace_id: workspaceId,
-      client_id: clientId,
-      total_events: 1,
-      bypass_count: 1,
-      bypass_rate: newRate.toFixed(4),
-      window_start: window.start,
-      window_end: window.end,
-    }, { onConflict: 'workspace_id,client_id,window_start', ignoreDuplicates: true });
+    .upsert(
+      {
+        workspace_id: workspaceId,
+        client_id: clientId,
+        total_events: 1,
+        bypass_count: 1,
+        bypass_rate: newRate.toFixed(4),
+        window_start: window.start,
+        window_end: window.end,
+      },
+      {
+        onConflict: 'workspace_id,client_id,window_start',
+        ignoreDuplicates: true,
+      },
+    );
 
   if (insertError) {
     return null;
@@ -140,7 +164,9 @@ export async function incrementTotalEvents(
 
   if (fetchError) {
     throw Object.assign(
-      new Error(`Failed to fetch metrics for total increment: ${fetchError.message}`),
+      new Error(
+        `Failed to fetch metrics for total increment: ${fetchError.message}`,
+      ),
       { code: 'METRICS_FETCH_FAILED' as const, statusCode: 500 },
     );
   }
@@ -182,7 +208,9 @@ export async function getBypassMetricsForClient(
 ): Promise<z.infer<typeof BypassMetricsRowSchema> | null> {
   const { data: rawData } = await supabase
     .from('calendar_bypass_metrics')
-    .select('id, total_events, bypass_count, bypass_rate, window_start, window_end')
+    .select(
+      'id, total_events, bypass_count, bypass_rate, window_start, window_end',
+    )
     .eq('workspace_id', workspaceId)
     .eq('client_id', clientId)
     .order('window_start', { ascending: false })

@@ -24,11 +24,19 @@ export async function searchEntitiesAction(
 
   const supabase = await getServerSupabase();
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
@@ -36,7 +44,12 @@ export async function searchEntitiesAction(
   if (!workspaceId) {
     return {
       success: false,
-      error: createFlowError(403, 'TENANT_CONTEXT_MISSING', 'No active workspace', 'auth'),
+      error: createFlowError(
+        403,
+        'TENANT_CONTEXT_MISSING',
+        'No active workspace',
+        'auth',
+      ),
     };
   }
 

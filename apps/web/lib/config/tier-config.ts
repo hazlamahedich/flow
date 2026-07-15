@@ -54,7 +54,11 @@ async function fetchConfigValue<T>(
   key: string,
   schema: z.ZodType<T>,
 ): Promise<T> {
-  const { data, error } = await supabase.from('app_config').select('value').eq('key', key).single();
+  const { data, error } = await supabase
+    .from('app_config')
+    .select('value')
+    .eq('key', key)
+    .single();
   if (error || !data) {
     throw new Error(`Missing app_config key: ${key}`);
   }
@@ -69,13 +73,32 @@ const planDisplayPricesSchema = z.record(
 export const getTierConfig = cache(async (): Promise<TierConfig> => {
   const supabase = createServiceClient();
 
-  const [tierLimits, stripePrices, displayPrices, graceDays, suspensionDays, freeFee] = await Promise.all([
+  const [
+    tierLimits,
+    stripePrices,
+    displayPrices,
+    graceDays,
+    suspensionDays,
+    freeFee,
+  ] = await Promise.all([
     fetchConfigValue(supabase, 'tier_limits', tierLimitsSchema),
     fetchConfigValue(supabase, 'stripe_prices', tierPricesSchema),
-    fetchConfigValue(supabase, 'plan_display_prices', planDisplayPricesSchema).catch(() => DEFAULT_DISPLAY_PRICES),
+    fetchConfigValue(
+      supabase,
+      'plan_display_prices',
+      planDisplayPricesSchema,
+    ).catch(() => DEFAULT_DISPLAY_PRICES),
     fetchConfigValue(supabase, 'subscription_grace_period_days', z.number()),
-    fetchConfigValue(supabase, 'subscription_suspension_period_days', z.number()),
-    fetchConfigValue(supabase, 'stripe_free_transaction_fee_percent', z.number()),
+    fetchConfigValue(
+      supabase,
+      'subscription_suspension_period_days',
+      z.number(),
+    ),
+    fetchConfigValue(
+      supabase,
+      'stripe_free_transaction_fee_percent',
+      z.number(),
+    ),
   ]);
 
   const invalidPrices = Object.entries(stripePrices).filter(([, value]) =>

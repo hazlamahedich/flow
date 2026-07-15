@@ -7,6 +7,9 @@ interface TeamAccessPanelProps {
   workspaceId: string;
 }
 
-export function TeamAccessPanel({ clientId: _clientId, workspaceId: _workspaceId }: TeamAccessPanelProps) {
+export function TeamAccessPanel({
+  clientId: _clientId,
+  workspaceId: _workspaceId,
+}: TeamAccessPanelProps) {
   return <TeamAccessPlaceholder />;
 }

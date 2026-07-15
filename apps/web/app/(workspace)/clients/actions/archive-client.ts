@@ -34,7 +34,12 @@ export async function archiveWorkspaceClient(
   if (ctx.role !== 'owner' && ctx.role !== 'admin') {
     return {
       success: false,
-      error: createFlowError(403, 'INSUFFICIENT_ROLE', 'Only owners and admins can archive clients.', 'auth'),
+      error: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Only owners and admins can archive clients.',
+        'auth',
+      ),
     };
   }
 
@@ -58,7 +63,15 @@ export async function archiveWorkspaceClient(
     });
 
     if (!client) {
-      return { success: false, error: createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found or already archived.', 'validation') };
+      return {
+        success: false,
+        error: createFlowError(
+          404,
+          'CLIENT_NOT_FOUND',
+          'Client not found or already archived.',
+          'validation',
+        ),
+      };
     }
 
     revalidateTag(cacheTag('workspace_client', ctx.workspaceId));
@@ -66,7 +79,12 @@ export async function archiveWorkspaceClient(
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to archive client.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to archive client.',
+        'system',
+      ),
     };
   }
 }

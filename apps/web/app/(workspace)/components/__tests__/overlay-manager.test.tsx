@@ -58,10 +58,10 @@ describe('overlayReducer', () => {
 
   it('deduplicates by id on push', () => {
     const entry = makeEntry({ id: 'same', priority: 50 });
-    const result = overlayReducer(
-      [entry],
-      { type: 'push', entry: { ...entry, priority: 60 } },
-    );
+    const result = overlayReducer([entry], {
+      type: 'push',
+      entry: { ...entry, priority: 60 },
+    });
     expect(result).toHaveLength(1);
     expect(result[0]!.priority).toBe(60);
   });
@@ -102,7 +102,12 @@ describe('overlayReducer', () => {
 
   it('replaces same-type entry on push', () => {
     const a = makeEntry({ id: 'a', type: 'trust-ceremony', priority: 50 });
-    const a2 = makeEntry({ id: 'a', type: 'trust-ceremony', priority: 50, props: { updated: true } });
+    const a2 = makeEntry({
+      id: 'a',
+      type: 'trust-ceremony',
+      priority: 50,
+      props: { updated: true },
+    });
     const result = overlayReducer([a], { type: 'push', entry: a2 });
     expect(result).toHaveLength(1);
     expect(result[0]!.props.updated).toBe(true);

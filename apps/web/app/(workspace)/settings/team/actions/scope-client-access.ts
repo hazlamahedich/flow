@@ -117,14 +117,12 @@ export async function grantClientAccess(
       };
     }
   } else {
-    const { error } = await supabase
-      .from('member_client_access')
-      .insert({
-        workspace_id: ctx.workspaceId,
-        user_id: userId,
-        client_id: clientId,
-        granted_by: ctx.userId,
-      });
+    const { error } = await supabase.from('member_client_access').insert({
+      workspace_id: ctx.workspaceId,
+      user_id: userId,
+      client_id: clientId,
+      granted_by: ctx.userId,
+    });
 
     if (error) {
       if (error.code === '23505') {

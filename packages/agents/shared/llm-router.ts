@@ -31,7 +31,9 @@ export interface LlmResponse {
 
 export class NoAvailableProviderError extends Error {
   constructor() {
-    super('AI services are temporarily unavailable. Please try again in a moment.');
+    super(
+      'AI services are temporarily unavailable. Please try again in a moment.',
+    );
     this.name = 'NoAvailableProviderError';
   }
 }
@@ -48,14 +50,24 @@ interface ProviderConfig {
 
 type Message = { role: 'system' | 'user' | 'assistant'; content: string };
 
-function estimateCostCents(inputTokens: number, outputTokens: number, model: string): number {
+function estimateCostCents(
+  inputTokens: number,
+  outputTokens: number,
+  model: string,
+): number {
   if (model.includes('claude')) {
-    return Math.ceil((inputTokens * 0.003 + outputTokens * 0.015) / 1000 * 100);
+    return Math.ceil(
+      ((inputTokens * 0.003 + outputTokens * 0.015) / 1000) * 100,
+    );
   }
   if (model.includes('gemini')) {
-    return Math.ceil((inputTokens * 0.000075 + outputTokens * 0.0003) / 1000 * 100);
+    return Math.ceil(
+      ((inputTokens * 0.000075 + outputTokens * 0.0003) / 1000) * 100,
+    );
   }
-  return Math.ceil((inputTokens * 0.00005 + outputTokens * 0.0001) / 1000 * 100);
+  return Math.ceil(
+    ((inputTokens * 0.00005 + outputTokens * 0.0001) / 1000) * 100,
+  );
 }
 
 export interface CostLogger {
@@ -82,7 +94,11 @@ export interface CostLogger {
 }
 
 export interface LlmRouter {
-  complete(messages: Message[], context: AgentExecutionContext, options?: LLMOptions): Promise<LlmResponse>;
+  complete(
+    messages: Message[],
+    context: AgentExecutionContext,
+    options?: LLMOptions,
+  ): Promise<LlmResponse>;
   isHealthy(provider: string): boolean;
 }
 
@@ -107,15 +123,39 @@ export function createLLMRouter(
   });
 
   const fastProviders: ProviderConfig[] = [
-    { name: 'groq', createModel: () => groqClient('llama-3.3-70b-versatile'), circuitName: 'groq' },
-    { name: 'gemini-fast', createModel: () => geminiClient('gemini-2.0-flash'), circuitName: 'gemini' },
-    { name: 'anthropic-fast', createModel: () => anthropicClient('claude-haiku-4-20250414'), circuitName: 'anthropic' },
+    {
+      name: 'groq',
+      createModel: () => groqClient('llama-3.3-70b-versatile'),
+      circuitName: 'groq',
+    },
+    {
+      name: 'gemini-fast',
+      createModel: () => geminiClient('gemini-2.0-flash'),
+      circuitName: 'gemini',
+    },
+    {
+      name: 'anthropic-fast',
+      createModel: () => anthropicClient('claude-haiku-4-20250414'),
+      circuitName: 'anthropic',
+    },
   ];
 
   const qualityProviders: ProviderConfig[] = [
-    { name: 'anthropic', createModel: () => anthropicClient('claude-sonnet-4-20250514'), circuitName: 'anthropic' },
-    { name: 'gemini', createModel: () => geminiClient('gemini-2.5-pro'), circuitName: 'gemini' },
-    { name: 'groq-quality', createModel: () => groqClient('llama-3.3-70b-versatile'), circuitName: 'groq' },
+    {
+      name: 'anthropic',
+      createModel: () => anthropicClient('claude-sonnet-4-20250514'),
+      circuitName: 'anthropic',
+    },
+    {
+      name: 'gemini',
+      createModel: () => geminiClient('gemini-2.5-pro'),
+      circuitName: 'gemini',
+    },
+    {
+      name: 'groq-quality',
+      createModel: () => groqClient('llama-3.3-70b-versatile'),
+      circuitName: 'groq',
+    },
   ];
 
   function selectProvider(tier: 'fast' | 'quality'): ProviderConfig | null {
@@ -178,7 +218,11 @@ export function createLLMRouter(
         const resolvedModelId = result.response.modelId ?? provider.name;
         const inputTokens = result.usage?.promptTokens ?? 0;
         const outputTokens = result.usage?.completionTokens ?? 0;
-        const actualCostCents = estimateCostCents(inputTokens, outputTokens, resolvedModelId);
+        const actualCostCents = estimateCostCents(
+          inputTokens,
+          outputTokens,
+          resolvedModelId,
+        );
 
         circuitBreaker.recordSuccess(provider.circuitName);
 

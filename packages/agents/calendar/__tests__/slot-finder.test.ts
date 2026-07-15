@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { findAvailableSlots } from '../slot-finder';
 import type { SlotFinderParams, SlotFinderDeps } from '../slot-finder';
-import type { CalendarProvider, FreeBusySlot } from '../../providers/calendar-provider';
+import type {
+  CalendarProvider,
+  FreeBusySlot,
+} from '../../providers/calendar-provider';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 const WORKSPACE_ID = '00000000-0000-4000-8000-000000000001';
@@ -13,7 +16,10 @@ function mockSupabaseWithConflicts(count: number) {
   chain.eq = vi.fn().mockReturnValue(chain);
   chain.gte = vi.fn().mockReturnValue(chain);
   chain.lte = vi.fn().mockResolvedValue({
-    data: Array.from({ length: count }, () => ({ start_at: '2026-01-01T00:00:00Z', end_at: '2026-01-01T01:00:00Z' })),
+    data: Array.from({ length: count }, () => ({
+      start_at: '2026-01-01T00:00:00Z',
+      end_at: '2026-01-01T01:00:00Z',
+    })),
     error: null,
   });
   return { from: vi.fn().mockReturnValue(chain) } as unknown as SupabaseClient;
@@ -23,11 +29,15 @@ function mockSupabaseEmpty() {
   return mockSupabaseWithConflicts(0);
 }
 
-function createMockProvider(busySlots: Array<{ start: string; end: string }> = []): CalendarProvider {
-  const freeBusyResult: FreeBusySlot[] = [{
-    calendarId: 'cal-1',
-    busy: busySlots,
-  }];
+function createMockProvider(
+  busySlots: Array<{ start: string; end: string }> = [],
+): CalendarProvider {
+  const freeBusyResult: FreeBusySlot[] = [
+    {
+      calendarId: 'cal-1',
+      busy: busySlots,
+    },
+  ];
   return {
     getFreeBusy: vi.fn().mockResolvedValue(freeBusyResult),
   } as unknown as CalendarProvider;
@@ -42,12 +52,14 @@ function makeParams(overrides?: Partial<SlotFinderParams>): SlotFinderParams {
     workspaceId: WORKSPACE_ID,
     clientId: CLIENT_ID,
     durationMinutes: 30,
-    calendars: [{
-      id: 'cal-id-1',
-      calendarId: 'cal-1',
-      provider: createMockProvider(),
-      accessToken: 'test-token',
-    }],
+    calendars: [
+      {
+        id: 'cal-id-1',
+        calendarId: 'cal-1',
+        provider: createMockProvider(),
+        accessToken: 'test-token',
+      },
+    ],
     ...overrides,
   };
 }
@@ -89,7 +101,14 @@ describe('findAvailableSlots', () => {
 
     const provider = createMockProvider([{ start: busyStart, end: busyEnd }]);
     const params = makeParams({
-      calendars: [{ id: 'cal-id-1', calendarId: 'cal-1', provider, accessToken: 'test-token' }],
+      calendars: [
+        {
+          id: 'cal-id-1',
+          calendarId: 'cal-1',
+          provider,
+          accessToken: 'test-token',
+        },
+      ],
       preferredWindow: {
         start: futureDate.toISOString(),
         end: new Date(futureDate.getTime() + 8 * 3600_000).toISOString(),
@@ -109,13 +128,23 @@ describe('findAvailableSlots', () => {
 
   it('handles provider timeout gracefully', async () => {
     const slowProvider = {
-      getFreeBusy: vi.fn().mockImplementation(() => new Promise((_res, rej) => {
-        setTimeout(() => rej(new Error('timeout')), 100);
-      })),
+      getFreeBusy: vi.fn().mockImplementation(
+        () =>
+          new Promise((_res, rej) => {
+            setTimeout(() => rej(new Error('timeout')), 100);
+          }),
+      ),
     } as unknown as CalendarProvider;
 
     const params = makeParams({
-      calendars: [{ id: 'cal-id-1', calendarId: 'cal-1', provider: slowProvider, accessToken: 'test-token' }],
+      calendars: [
+        {
+          id: 'cal-id-1',
+          calendarId: 'cal-1',
+          provider: slowProvider,
+          accessToken: 'test-token',
+        },
+      ],
     });
     const deps: SlotFinderDeps = { supabase: mockSupabaseEmpty() };
     const slots = await findAvailableSlots(params, deps);
@@ -127,8 +156,18 @@ describe('findAvailableSlots', () => {
     const provider2 = createMockProvider();
     const params = makeParams({
       calendars: [
-        { id: 'cal-1', calendarId: 'c1', provider: provider1, accessToken: 't1' },
-        { id: 'cal-2', calendarId: 'c2', provider: provider2, accessToken: 't2' },
+        {
+          id: 'cal-1',
+          calendarId: 'c1',
+          provider: provider1,
+          accessToken: 't1',
+        },
+        {
+          id: 'cal-2',
+          calendarId: 'c2',
+          provider: provider2,
+          accessToken: 't2',
+        },
       ],
     });
     const deps: SlotFinderDeps = { supabase: mockSupabaseEmpty() };

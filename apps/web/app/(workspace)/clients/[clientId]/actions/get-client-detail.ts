@@ -1,7 +1,12 @@
 'use server';
 
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, getClientById, getMembersForClient } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  getClientById,
+  getMembersForClient,
+} from '@flow/db';
 import { z } from 'zod';
 import type { ActionResult } from '@flow/types';
 import type { Client } from '@flow/types';
@@ -24,7 +29,12 @@ export async function getClientDetail(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Invalid client ID.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Invalid client ID.',
+        'validation',
+      ),
     };
   }
 
@@ -39,7 +49,12 @@ export async function getClientDetail(
   if (!client) {
     return {
       success: false,
-      error: createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'CLIENT_NOT_FOUND',
+        'Client not found.',
+        'validation',
+      ),
     };
   }
 

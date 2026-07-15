@@ -1,4 +1,7 @@
-export function createDelayedHandler<T>(ms: number, response: T): () => Promise<T> {
+export function createDelayedHandler<T>(
+  ms: number,
+  response: T,
+): () => Promise<T> {
   return () =>
     new Promise((resolve) => {
       setTimeout(() => resolve(response), ms);

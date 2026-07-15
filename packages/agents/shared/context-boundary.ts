@@ -13,7 +13,10 @@ export class ContextBoundary {
   }
 
   wrapContent(content: string, tagName: string = 'user_content'): string {
-    const safeContent = content.replace(new RegExp(`</${tagName}>`, 'g'), `[END_${tagName.toUpperCase()}]`);
+    const safeContent = content.replace(
+      new RegExp(`</${tagName}>`, 'g'),
+      `[END_${tagName.toUpperCase()}]`,
+    );
     return `<${tagName}>\n${safeContent}\n</${tagName}>`;
   }
 
@@ -23,12 +26,15 @@ export class ContextBoundary {
 
   assertClient(dataClientId: string | null): void {
     if (dataClientId && dataClientId !== this.primaryClientId) {
-      throw new Error(`Context boundary violation: expected client ${this.primaryClientId}, got ${dataClientId}`);
+      throw new Error(
+        `Context boundary violation: expected client ${this.primaryClientId}, got ${dataClientId}`,
+      );
     }
   }
 
   enterClientScope(clientId: string): void {
-    if (!clientId) throw new Error('enterClientScope requires a valid clientId');
+    if (!clientId)
+      throw new Error('enterClientScope requires a valid clientId');
     this.activeClientId = clientId;
     this.seenClients.add(clientId);
   }
@@ -46,7 +52,9 @@ export class ContextBoundary {
       throw new Error('No active client scope — call enterClientScope first');
     }
     if (dataClientId && dataClientId !== this.activeClientId) {
-      throw new Error(`Scope boundary violation: scope is ${this.activeClientId}, got ${dataClientId}`);
+      throw new Error(
+        `Scope boundary violation: scope is ${this.activeClientId}, got ${dataClientId}`,
+      );
     }
   }
 

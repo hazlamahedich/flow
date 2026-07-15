@@ -48,7 +48,13 @@ describe('pipeline-drafting integration', () => {
   });
 
   it('should trigger extraction pipeline when email is categorized as action', async () => {
-    const email = { id: 'e1', workspace_id: 'w1', client_id: 'c1', subject: 'Sub', body_clean: 'Body' };
+    const email = {
+      id: 'e1',
+      workspace_id: 'w1',
+      client_id: 'c1',
+      subject: 'Sub',
+      body_clean: 'Body',
+    };
     mockSupabase.single
       .mockResolvedValueOnce({ data: email, error: null }) // emails
       .mockResolvedValueOnce({ data: { id: 'i1' }, error: null }); // client_inboxes
@@ -61,12 +67,22 @@ describe('pipeline-drafting integration', () => {
     });
 
     expect(transitionState).toHaveBeenCalledWith('e1', 'w1', 'categorized');
-    expect(transitionState).toHaveBeenCalledWith('e1', 'w1', 'extraction_pending');
+    expect(transitionState).toHaveBeenCalledWith(
+      'e1',
+      'w1',
+      'extraction_pending',
+    );
     expect(PgBossProducer).toHaveBeenCalled();
   });
 
   it('should NOT trigger extraction pipeline when email is categorized as info', async () => {
-    const email = { id: 'e1', workspace_id: 'w1', client_id: 'c1', subject: 'Sub', body_clean: 'Body' };
+    const email = {
+      id: 'e1',
+      workspace_id: 'w1',
+      client_id: 'c1',
+      subject: 'Sub',
+      body_clean: 'Body',
+    };
     mockSupabase.single.mockResolvedValueOnce({ data: email, error: null });
 
     const { categorizeEmail } = await import('../categorizer');

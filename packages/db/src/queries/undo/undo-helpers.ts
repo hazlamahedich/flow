@@ -53,7 +53,9 @@ interface SupabaseSelectSingle {
 }
 
 interface SupabaseSelectChain {
-  select: (cols: string) => { eq: (col: string, val: string) => SupabaseSelectSingle };
+  select: (cols: string) => {
+    eq: (col: string, val: string) => SupabaseSelectSingle;
+  };
 }
 
 interface SupabaseFromSelect {
@@ -67,7 +69,10 @@ interface SupabaseUpdateResult {
 
 interface SupabaseUpdateChain {
   update: (data: Record<string, unknown>) => {
-    eq: (col: string, val: string) => {
+    eq: (
+      col: string,
+      val: string,
+    ) => {
       eq: (col2: string, val: number) => Promise<SupabaseUpdateResult>;
     };
   };
@@ -157,11 +162,17 @@ export async function performUndo(
   expectedVersion: number,
 ): Promise<OptimisticLockResult> {
   const PROTECTED_SNAPSHOT_KEYS = new Set([
-    'id', 'version', 'created_at', 'updated_at', 'workspace_id',
+    'id',
+    'version',
+    'created_at',
+    'updated_at',
+    'workspace_id',
   ]);
 
   const restorable = Object.fromEntries(
-    Object.entries(previousSnapshot).filter(([k]) => !PROTECTED_SNAPSHOT_KEYS.has(k)),
+    Object.entries(previousSnapshot).filter(
+      ([k]) => !PROTECTED_SNAPSHOT_KEYS.has(k),
+    ),
   );
 
   const { data, error } = await client

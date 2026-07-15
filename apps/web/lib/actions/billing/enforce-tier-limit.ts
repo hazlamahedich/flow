@@ -60,7 +60,9 @@ const UNLIMITED = Number.MAX_SAFE_INTEGER;
  * Reads exclusively via `getTierConfig().tierLimits[tier]` — the canonical
  * config reader (9-3a). Never queries `app_config` directly.
  */
-export async function getTierLimits(tier: SubscriptionTier): Promise<TierLimit> {
+export async function getTierLimits(
+  tier: SubscriptionTier,
+): Promise<TierLimit> {
   const config = await getTierConfig();
   const raw = config.tierLimits[tier];
   return {

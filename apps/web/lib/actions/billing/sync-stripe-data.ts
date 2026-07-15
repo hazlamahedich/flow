@@ -41,13 +41,18 @@ interface SyncSuccess {
   synced: true;
 }
 
-export async function syncStripeDataAction(
-  input: { sessionId?: string },
-): Promise<ActionResult<SyncSuccess>> {
+export async function syncStripeDataAction(input: {
+  sessionId?: string;
+}): Promise<ActionResult<SyncSuccess>> {
   const parsed = syncInputSchema.safeParse(input);
   if (!parsed.success) {
     return toFailure(
-      createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     );
   }
 
@@ -73,7 +78,12 @@ export async function syncStripeDataAction(
     // Path B: no local subscription id yet, but the success redirect gave us
     // a checkout session id — expand it to find the new subscription.
     if (parsed.data.sessionId) {
-      await syncFromCheckoutSession(supabase, ctx.workspaceId, workspace, parsed.data.sessionId);
+      await syncFromCheckoutSession(
+        supabase,
+        ctx.workspaceId,
+        workspace,
+        parsed.data.sessionId,
+      );
     }
 
     return { success: true, data: { synced: true } };
@@ -83,13 +93,18 @@ export async function syncStripeDataAction(
 async function syncFromSubscription(
   supabase: Awaited<ReturnType<typeof getServerSupabase>>,
   workspaceId: string,
-  workspace: { stripe_subscription_id: string | null; stripe_customer_id: string | null },
+  workspace: {
+    stripe_subscription_id: string | null;
+    stripe_customer_id: string | null;
+  },
 ): Promise<void> {
   if (!workspace.stripe_subscription_id) return;
   const provider = getPaymentProvider('stripe');
   let subscription: Subscription;
   try {
-    subscription = await provider.getSubscription(workspace.stripe_subscription_id);
+    subscription = await provider.getSubscription(
+      workspace.stripe_subscription_id,
+    );
   } catch (err) {
     logSyncError(workspaceId, err);
     return;
@@ -125,8 +140,14 @@ async function syncFromCheckoutSession(
   const subscriptionId = result.subscriptionId;
   const customerId = result.customerId;
   if (!subscriptionId || !customerId) return;
-  if (workspace.stripe_customer_id && customerId !== workspace.stripe_customer_id) {
-    logSyncError(workspaceId, new Error('checkout session customer id mismatch'));
+  if (
+    workspace.stripe_customer_id &&
+    customerId !== workspace.stripe_customer_id
+  ) {
+    logSyncError(
+      workspaceId,
+      new Error('checkout session customer id mismatch'),
+    );
     return;
   }
 
@@ -153,26 +174,44 @@ async function upsertLocalSubscription(
   const tier = await mapPriceIdToTier(subscription.priceId);
   const status = mapStatusForRpc(subscription.status);
   if (!tier || !status) {
-    logSyncError(workspaceId, new Error(`unmapped subscription: tier=${tier ?? 'null'}, status=${status ?? 'null'}`));
+    logSyncError(
+      workspaceId,
+      new Error(
+        `unmapped subscription: tier=${tier ?? 'null'}, status=${status ?? 'null'}`,
+      ),
+    );
     return;
   }
   try {
-    const { data, error: rpcError } = await supabase.rpc('upsert_workspace_subscription', {
-      p_workspace_id: workspaceId,
-      p_stripe_customer_id: subscription.customerId,
-      p_stripe_subscription_id: subscription.providerSubscriptionId,
-      p_tier: tier,
-      p_status: status,
-      p_current_period_start: periodStart,
-      p_current_period_end: periodEnd,
-      p_cancel_at_period_end: subscription.cancelAtPeriodEnd,
-    });
+    const { data, error: rpcError } = await supabase.rpc(
+      'upsert_workspace_subscription',
+      {
+        p_workspace_id: workspaceId,
+        p_stripe_customer_id: subscription.customerId,
+        p_stripe_subscription_id: subscription.providerSubscriptionId,
+        p_tier: tier,
+        p_status: status,
+        p_current_period_start: periodStart,
+        p_current_period_end: periodEnd,
+        p_cancel_at_period_end: subscription.cancelAtPeriodEnd,
+      },
+    );
     if (rpcError) {
-      logSyncError(workspaceId, new Error(`upsert_workspace_subscription rpc error: ${rpcError.message}`));
+      logSyncError(
+        workspaceId,
+        new Error(
+          `upsert_workspace_subscription rpc error: ${rpcError.message}`,
+        ),
+      );
       return;
     }
     if (data && typeof data === 'object' && 'error' in data) {
-      logSyncError(workspaceId, new Error(`upsert_workspace_subscription logical error: ${String(data.error)}`));
+      logSyncError(
+        workspaceId,
+        new Error(
+          `upsert_workspace_subscription logical error: ${String(data.error)}`,
+        ),
+      );
     }
   } catch (err) {
     logSyncError(workspaceId, err);
@@ -183,7 +222,9 @@ async function upsertLocalSubscription(
  * Map a Stripe price ID to the Flow OS tier using the canonical cached config.
  * Returns null when the price is not a known plan price.
  */
-async function mapPriceIdToTier(priceId: string): Promise<'free' | 'pro' | 'agency' | null> {
+async function mapPriceIdToTier(
+  priceId: string,
+): Promise<'free' | 'pro' | 'agency' | null> {
   let config: TierConfig;
   try {
     config = await getTierConfig();
@@ -204,7 +245,9 @@ async function mapPriceIdToTier(priceId: string): Promise<'free' | 'pro' | 'agen
  * are rejected (return null) so a transient unmapped status never upgrades
  * or downgrades the user incorrectly.
  */
-function mapStatusForRpc(status: Subscription['status']): 'free' | 'active' | 'past_due' | 'cancelled' | null {
+function mapStatusForRpc(
+  status: Subscription['status'],
+): 'free' | 'active' | 'past_due' | 'cancelled' | null {
   if (status === 'active' || status === 'trialing') return 'active';
   if (status === 'past_due') return 'past_due';
   if (

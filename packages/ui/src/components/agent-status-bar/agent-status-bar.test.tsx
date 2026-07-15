@@ -21,7 +21,9 @@ beforeEach(() => {
   });
 });
 
-const makeEntry = (overrides: Partial<AgentStatusBarEntry> = {}): AgentStatusBarEntry => ({
+const makeEntry = (
+  overrides: Partial<AgentStatusBarEntry> = {},
+): AgentStatusBarEntry => ({
   agentId: 'inbox',
   badgeProps: null,
   statusRing: 'active',
@@ -106,13 +108,17 @@ describe('AgentStatusBar', () => {
 
   describe('trust badge integration', () => {
     it('renders inline trust badge for high-cadence agent', () => {
-      const agents = [makeEntry({ agentId: 'inbox', badgeProps: supervisedBadge })];
+      const agents = [
+        makeEntry({ agentId: 'inbox', badgeProps: supervisedBadge }),
+      ];
       const { container } = renderWithTheme(<AgentStatusBar agents={agents} />);
       expect(container.textContent).toContain('Learning');
     });
 
     it('renders sidebar trust badge for low-cadence agent', () => {
-      const agents = [makeEntry({ agentId: 'ar-collection', badgeProps: supervisedBadge })];
+      const agents = [
+        makeEntry({ agentId: 'ar-collection', badgeProps: supervisedBadge }),
+      ];
       const { container } = renderWithTheme(<AgentStatusBar agents={agents} />);
       const statusElements = container.querySelectorAll('[role="status"]');
       expect(statusElements.length).toBeGreaterThanOrEqual(1);
@@ -139,7 +145,9 @@ describe('AgentStatusBar', () => {
         makeEntry({ agentId: 'inbox' }),
         makeEntry({ agentId: 'ar-collection' }),
       ];
-      const { container } = renderWithTheme(<AgentStatusBar agents={agents} collapsed />);
+      const { container } = renderWithTheme(
+        <AgentStatusBar agents={agents} collapsed />,
+      );
       const items = container.querySelectorAll('[role="listitem"]');
       expect(items.length).toBe(2);
     });
@@ -149,7 +157,9 @@ describe('AgentStatusBar', () => {
     it('has region role with label', () => {
       const agents = [makeEntry()];
       const { container } = renderWithTheme(<AgentStatusBar agents={agents} />);
-      const region = container.querySelector('[data-testid="agent-status-bar"]');
+      const region = container.querySelector(
+        '[data-testid="agent-status-bar"]',
+      );
       expect(region).toBeTruthy();
       expect(region?.getAttribute('aria-label')).toBe('Agent status');
     });

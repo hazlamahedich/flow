@@ -8,8 +8,19 @@ const FAKE_USER_ID = '00000000-0000-4000-8000-000000000004';
 type CalendarSyncStatus = 'connected' | 'syncing' | 'error' | 'disconnected';
 type CalendarAccessType = 'owner' | 'read_write' | 'read_only';
 type CalendarProvider = 'google_calendar' | 'outlook';
-type EventType = 'meeting' | 'focus_block' | 'travel' | 'personal' | 'deadline' | 'unknown';
-type EventSource = 'va_created' | 'client_created' | 'third_party' | 'auto_generated' | 'unknown';
+type EventType =
+  | 'meeting'
+  | 'focus_block'
+  | 'travel'
+  | 'personal'
+  | 'deadline'
+  | 'unknown';
+type EventSource =
+  | 'va_created'
+  | 'client_created'
+  | 'third_party'
+  | 'auto_generated'
+  | 'unknown';
 
 interface TestCalendar {
   id: string;
@@ -55,7 +66,9 @@ interface TestCalendarEvent {
   updated_at: string;
 }
 
-export function createTestCalendar(overrides?: Partial<TestCalendar>): TestCalendar {
+export function createTestCalendar(
+  overrides?: Partial<TestCalendar>,
+): TestCalendar {
   return {
     id: faker.string.uuid(),
     workspace_id: FAKE_WORKSPACE_ID,
@@ -79,7 +92,9 @@ export function createTestCalendar(overrides?: Partial<TestCalendar>): TestCalen
   };
 }
 
-export function createTestCalendarEvent(overrides?: Partial<TestCalendarEvent>): TestCalendarEvent {
+export function createTestCalendarEvent(
+  overrides?: Partial<TestCalendarEvent>,
+): TestCalendarEvent {
   const startTime = faker.date.future();
   const endTime = new Date(startTime.getTime() + 3600_000);
   return {
@@ -94,7 +109,9 @@ export function createTestCalendarEvent(overrides?: Partial<TestCalendarEvent>):
     start_at: startTime.toISOString(),
     end_at: endTime.toISOString(),
     is_all_day: false,
-    attendees: [{ email: faker.internet.email(), name: faker.person.fullName() }],
+    attendees: [
+      { email: faker.internet.email(), name: faker.person.fullName() },
+    ],
     event_type: 'meeting' as const,
     source: 'client_created' as const,
     is_recurring: false,
@@ -107,9 +124,4 @@ export function createTestCalendarEvent(overrides?: Partial<TestCalendarEvent>):
   };
 }
 
-export {
-  FAKE_WORKSPACE_ID,
-  FAKE_CLIENT_ID,
-  FAKE_CALENDAR_ID,
-  FAKE_USER_ID,
-};
+export { FAKE_WORKSPACE_ID, FAKE_CLIENT_ID, FAKE_CALENDAR_ID, FAKE_USER_ID };

@@ -23,7 +23,10 @@ export async function listUserWorkspaces(
   if (!data) return [];
 
   return data
-    .filter((row): row is typeof row & { workspaces: { name: string } } => row.workspaces !== null)
+    .filter(
+      (row): row is typeof row & { workspaces: { name: string } } =>
+        row.workspaces !== null,
+    )
     .map((row) => ({
       id: row.workspace_id,
       name: row.workspaces.name,

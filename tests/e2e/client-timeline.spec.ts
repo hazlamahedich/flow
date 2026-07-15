@@ -12,12 +12,18 @@ test.describe('[P0] Client Timeline', () => {
   });
 
   test('timeline section is visible with heading', async ({ ownerPage }) => {
-    const heading = ownerPage.getByRole('heading', { name: 'Communication Timeline' });
+    const heading = ownerPage.getByRole('heading', {
+      name: 'Communication Timeline',
+    });
     await expect(heading).toBeVisible();
   });
 
-  test('renders either empty state or timeline items', async ({ ownerPage }) => {
-    const emptyState = ownerPage.getByText('No communication history yet for this client.');
+  test('renders either empty state or timeline items', async ({
+    ownerPage,
+  }) => {
+    const emptyState = ownerPage.getByText(
+      'No communication history yet for this client.',
+    );
     const items = ownerPage.getByTestId('timeline-item');
 
     const hasEmpty = await emptyState.isVisible().catch(() => false);
@@ -26,7 +32,9 @@ test.describe('[P0] Client Timeline', () => {
     expect(hasEmpty || itemCount > 0).toBe(true);
   });
 
-  test('filter: selecting Emails Only hides agent run rows', async ({ ownerPage }) => {
+  test('filter: selecting Emails Only hides agent run rows', async ({
+    ownerPage,
+  }) => {
     const emailsButton = ownerPage.getByRole('button', { name: 'Emails' });
     await emailsButton.click();
     await ownerPage.waitForURL(/type=emails/);
@@ -34,17 +42,25 @@ test.describe('[P0] Client Timeline', () => {
 
     await ownerPage.reload();
     await expect(ownerPage).toHaveURL(/type=emails/);
-    await expect(ownerPage.getByRole('button', { name: 'Emails' })).toBeVisible();
+    await expect(
+      ownerPage.getByRole('button', { name: 'Emails' }),
+    ).toBeVisible();
   });
 
-  test('filter: selecting Agent Runs pushes URL param', async ({ ownerPage }) => {
-    const agentRunsButton = ownerPage.getByRole('button', { name: 'Agent Actions' });
+  test('filter: selecting Agent Runs pushes URL param', async ({
+    ownerPage,
+  }) => {
+    const agentRunsButton = ownerPage.getByRole('button', {
+      name: 'Agent Actions',
+    });
     await agentRunsButton.click();
     await ownerPage.waitForURL(/type=agent_runs/);
     await expect(ownerPage).toHaveURL(/type=agent_runs/);
   });
 
-  test('deep-link: navigating to URL with type=emails&range=7d shows filtered view', async ({ ownerPage }) => {
+  test('deep-link: navigating to URL with type=emails&range=7d shows filtered view', async ({
+    ownerPage,
+  }) => {
     await ownerPage.goto(`/clients/${clientId}?type=emails&range=7d`);
     await expect(ownerPage).toHaveURL(/type=emails/);
     await expect(ownerPage).toHaveURL(/range=7d/);
@@ -60,7 +76,9 @@ test.describe('[P0] Client Timeline', () => {
     await expect(ownerPage).toHaveURL(/range=7d/);
   });
 
-  test('AC4: pending_approval agent action shows proposal card with View in Approvals', async ({ ownerPage }) => {
+  test('AC4: pending_approval agent action shows proposal card with View in Approvals', async ({
+    ownerPage,
+  }) => {
     const proposalLink = ownerPage.getByTestId('timeline-proposal-link');
 
     const isVisible = await proposalLink.isVisible().catch(() => false);
@@ -70,9 +88,13 @@ test.describe('[P0] Client Timeline', () => {
     await expect(ownerPage).toHaveURL(/\/agents\/approvals/);
   });
 
-  test('AC7: client with no history shows empty state text', async ({ ownerPage }) => {
+  test('AC7: client with no history shows empty state text', async ({
+    ownerPage,
+  }) => {
     await ownerPage.goto(`/clients/${clientId}?range=7d`);
-    const emptyState = ownerPage.getByText('No communication history yet for this client.');
+    const emptyState = ownerPage.getByText(
+      'No communication history yet for this client.',
+    );
     const items = ownerPage.getByTestId('timeline-item');
 
     const hasEmpty = await emptyState.isVisible().catch(() => false);

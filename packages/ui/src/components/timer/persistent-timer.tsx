@@ -29,7 +29,10 @@ function formatElapsed(ms: number): string {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
-export function PersistentTimer({ timerProps, collapsed }: PersistentTimerProps) {
+export function PersistentTimer({
+  timerProps,
+  collapsed,
+}: PersistentTimerProps) {
   const [runningState, setRunningState] = useState<RunningState | null>(() => {
     const initial = timerProps.initialTimerState;
     if (initial) {
@@ -44,8 +47,14 @@ export function PersistentTimer({ timerProps, collapsed }: PersistentTimerProps)
   });
   const [displayElapsed, setDisplayElapsed] = useState('--:--:--');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<{ id: string; name: string } | null>(null);
-  const [selectedProject, setSelectedProject] = useState<{ id: string; name: string } | null>(null);
+  const [selectedClient, setSelectedClient] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [selectedProject, setSelectedProject] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // P2: synchronous guard to block double-start from rapid clicks before state flush
   const startingRef = useRef(false);
@@ -57,7 +66,9 @@ export function PersistentTimer({ timerProps, collapsed }: PersistentTimerProps)
   useEffect(() => {
     if (runningState) {
       const tick = () => {
-        setDisplayElapsed(formatElapsed(Date.now() - runningState.startedAt.getTime()));
+        setDisplayElapsed(
+          formatElapsed(Date.now() - runningState.startedAt.getTime()),
+        );
       };
       tick();
       intervalRef.current = setInterval(tick, 1000);

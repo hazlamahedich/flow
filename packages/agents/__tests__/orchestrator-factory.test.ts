@@ -37,7 +37,10 @@ describe('Orchestrator Factory', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env = { ...originalEnv, DATABASE_URL: 'postgresql://test:test@localhost/test' };
+    process.env = {
+      ...originalEnv,
+      DATABASE_URL: 'postgresql://test:test@localhost/test',
+    };
   });
 
   afterEach(() => {
@@ -56,7 +59,8 @@ describe('Orchestrator Factory', () => {
     const orch = createOrchestrator();
     await orch.start();
     const { PgBoss } = await import('pg-boss');
-    const instance = (PgBoss as unknown as ReturnType<typeof vi.fn>).mock.results[0]?.value;
+    const instance = (PgBoss as unknown as ReturnType<typeof vi.fn>).mock
+      .results[0]?.value;
     if (instance) {
       expect(instance.on).toHaveBeenCalledWith('error', expect.any(Function));
       expect(instance.on).toHaveBeenCalledWith('warning', expect.any(Function));
@@ -73,9 +77,13 @@ describe('Orchestrator Factory', () => {
     await orch.start();
     await orch.stop();
     const { PgBoss } = await import('pg-boss');
-    const instance = (PgBoss as unknown as ReturnType<typeof vi.fn>).mock.results[0]?.value;
+    const instance = (PgBoss as unknown as ReturnType<typeof vi.fn>).mock
+      .results[0]?.value;
     if (instance) {
-      expect(instance.stop).toHaveBeenCalledWith({ graceful: true, timeout: 30_000 });
+      expect(instance.stop).toHaveBeenCalledWith({
+        graceful: true,
+        timeout: 30_000,
+      });
     }
   });
 

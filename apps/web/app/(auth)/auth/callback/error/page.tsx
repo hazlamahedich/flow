@@ -6,7 +6,8 @@ export default function AuthCallbackErrorPage() {
           We couldn&apos;t verify your login link
         </h1>
         <p className="mb-6 text-sm text-[var(--flow-color-text-secondary)]">
-          The link may have expired or something went wrong. Please request a new one.
+          The link may have expired or something went wrong. Please request a
+          new one.
         </p>
         <a
           href="/login"

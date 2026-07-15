@@ -7,7 +7,9 @@ interface CreateClientDialogProps {
   activeCount: number;
 }
 
-export function CreateClientDialog({ activeCount: _activeCount }: CreateClientDialogProps) {
+export function CreateClientDialog({
+  activeCount: _activeCount,
+}: CreateClientDialogProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -20,7 +22,11 @@ export function CreateClientDialog({ activeCount: _activeCount }: CreateClientDi
       >
         Add Client
       </button>
-      <WizardOverlay open={open} onClose={() => setOpen(false)} triggerRef={triggerRef} />
+      <WizardOverlay
+        open={open}
+        onClose={() => setOpen(false)}
+        triggerRef={triggerRef}
+      />
     </>
   );
 }

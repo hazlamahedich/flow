@@ -45,10 +45,7 @@ const ENTITY_TAG_MAP: Record<CacheEntity, string> = {
   portal_token: 'portal-tokens',
 };
 
-export function cacheTag(
-  entity: CacheEntity,
-  id: string,
-): string {
+export function cacheTag(entity: CacheEntity, id: string): string {
   const prefix = ENTITY_TAG_MAP[entity];
   return `${prefix}:${id}`;
 }

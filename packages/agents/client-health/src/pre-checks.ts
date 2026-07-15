@@ -6,13 +6,20 @@ export interface PreCheckResult {
   errors: string[];
 }
 
-export async function preCheck(input: ClientHealthInput): Promise<PreCheckResult> {
+export async function preCheck(
+  input: ClientHealthInput,
+): Promise<PreCheckResult> {
   const errors: string[] = [];
 
   try {
-    const config = await getAgentConfiguration(input.workspaceId, 'client-health');
+    const config = await getAgentConfiguration(
+      input.workspaceId,
+      'client-health',
+    );
     if (!config || config.status !== 'active') {
-      errors.push(`Agent 'client-health' is inactive or not configured in workspace ${input.workspaceId}`);
+      errors.push(
+        `Agent 'client-health' is inactive or not configured in workspace ${input.workspaceId}`,
+      );
     }
 
     const supabase = createServiceClient();
@@ -25,8 +32,12 @@ export async function preCheck(input: ClientHealthInput): Promise<PreCheckResult
     if (wsErr || !ws) {
       errors.push(`Workspace not found: ${input.workspaceId}`);
     } else {
-      const settings = (ws.settings as { subscriptionStatus?: string } | null) ?? {};
-      if (settings.subscriptionStatus === 'suspended' || settings.subscriptionStatus === 'past_due') {
+      const settings =
+        (ws.settings as { subscriptionStatus?: string } | null) ?? {};
+      if (
+        settings.subscriptionStatus === 'suspended' ||
+        settings.subscriptionStatus === 'past_due'
+      ) {
         errors.push(`Workspace subscription is ${settings.subscriptionStatus}`);
       }
     }

@@ -10,20 +10,35 @@ import {
 } from '@flow/db';
 import { sendInvoiceSchema } from '@flow/types';
 import type { ActionResult } from '@flow/types';
-import { getPaymentProvider, getTransactionalEmailProvider, signDeliveryToken } from '@flow/agents/providers';
-import { buildSendInvoiceEmailPayload, plainLanguageError } from './send-invoice-email';
+import {
+  getPaymentProvider,
+  getTransactionalEmailProvider,
+  signDeliveryToken,
+} from '@flow/agents/providers';
+import {
+  buildSendInvoiceEmailPayload,
+  plainLanguageError,
+} from './send-invoice-email';
 import { sendClientNotificationServerAction } from '../portal/client-notification-server';
 
 export async function sendInvoiceAction(
   input: unknown,
-): Promise<ActionResult<{ invoiceId: string; paymentUrl: string; deliveryId: string }>> {
+): Promise<
+  ActionResult<{ invoiceId: string; paymentUrl: string; deliveryId: string }>
+> {
   const parsed = sendInvoiceSchema.safeParse(input);
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation', {
-        issues: parsed.error.issues,
-      }),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+        {
+          issues: parsed.error.issues,
+        },
+      ),
     };
   }
 
@@ -34,7 +49,9 @@ export async function sendInvoiceAction(
 
   const { data: invoice, error: fetchError } = await supabase
     .from('invoices')
-    .select('id, workspace_id, client_id, invoice_number, status, total_cents, currency, due_date, clients(name, email), workspaces(name)')
+    .select(
+      'id, workspace_id, client_id, invoice_number, status, total_cents, currency, due_date, clients(name, email), workspaces(name)',
+    )
     .eq('id', invoiceId)
     .eq('workspace_id', ctx.workspaceId)
     .single();
@@ -42,7 +59,12 @@ export async function sendInvoiceAction(
   if (fetchError || !invoice) {
     return {
       success: false,
-      error: createFlowError(404, 'NOT_FOUND', 'Invoice not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'NOT_FOUND',
+        'Invoice not found.',
+        'validation',
+      ),
     };
   }
 
@@ -50,34 +72,57 @@ export async function sendInvoiceAction(
   if (status !== 'draft') {
     return {
       success: false,
-      error: createFlowError(400, 'FINANCIAL_INVALID_STATE', 'Only draft invoices can be sent.', 'financial'),
+      error: createFlowError(
+        400,
+        'FINANCIAL_INVALID_STATE',
+        'Only draft invoices can be sent.',
+        'financial',
+      ),
     };
   }
 
-  const client = (invoice as unknown as { clients: Record<string, unknown> }).clients ?? {};
+  const client =
+    (invoice as unknown as { clients: Record<string, unknown> }).clients ?? {};
   const clientEmail = (client.email as string) ?? '';
   const clientName = (client.name as string) ?? '';
-  const workspaceName = ((invoice as unknown as { workspaces: Record<string, unknown> }).workspaces?.name as string) ?? '';
+  const workspaceName =
+    ((invoice as unknown as { workspaces: Record<string, unknown> }).workspaces
+      ?.name as string) ?? '';
 
   if (!clientEmail) {
     return {
       success: false,
-      error: createFlowError(400, 'CLIENT_NO_EMAIL', 'Client has no primary email address.', 'validation'),
+      error: createFlowError(
+        400,
+        'CLIENT_NO_EMAIL',
+        'Client has no primary email address.',
+        'validation',
+      ),
     };
   }
 
-  const totalCents = Number((invoice as Record<string, unknown>).total_cents ?? 0);
-  const currency = ((invoice as Record<string, unknown>).currency as string) ?? 'usd';
-  const invoiceNumber = ((invoice as Record<string, unknown>).invoice_number as string) ?? '';
-  const dueDate = ((invoice as Record<string, unknown>).due_date as string) ?? '';
+  const totalCents = Number(
+    (invoice as Record<string, unknown>).total_cents ?? 0,
+  );
+  const currency =
+    ((invoice as Record<string, unknown>).currency as string) ?? 'usd';
+  const invoiceNumber =
+    ((invoice as Record<string, unknown>).invoice_number as string) ?? '';
+  const dueDate =
+    ((invoice as Record<string, unknown>).due_date as string) ?? '';
 
-  const token = await signDeliveryToken({ invoiceId: invoice.id, workspaceId: ctx.workspaceId });
+  const token = await signDeliveryToken({
+    invoiceId: invoice.id,
+    workspaceId: ctx.workspaceId,
+  });
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.flow.app';
   const successUrl = `${appUrl}/invoices/paid?token=${encodeURIComponent(token)}&status=success`;
   const cancelUrl = `${appUrl}/invoices/paid?token=${encodeURIComponent(token)}&status=cancelled`;
 
   // Expire at earlier of due_date EOD UTC or sent_at + 7 days
-  const dueDateMs = dueDate ? new Date(`${dueDate}T23:59:59Z`).getTime() : Infinity;
+  const dueDateMs = dueDate
+    ? new Date(`${dueDate}T23:59:59Z`).getTime()
+    : Infinity;
   const sevenDaysMs = Date.now() + 7 * 24 * 60 * 60 * 1000;
   const expiresAtUnix = Math.floor(Math.min(dueDateMs, sevenDaysMs) / 1000);
 
@@ -124,7 +169,12 @@ export async function sendInvoiceAction(
   if (deliveryError || !delivery) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to create delivery record.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to create delivery record.',
+        'system',
+      ),
     };
   }
 
@@ -155,7 +205,11 @@ export async function sendInvoiceAction(
     // Update delivery to failed, still return success with paymentUrl so user can fallback
     await supabase
       .from('invoice_deliveries')
-      .update({ status: 'failed', last_error: plainLanguageError(false, true), retry_count: 1 })
+      .update({
+        status: 'failed',
+        last_error: plainLanguageError(false, true),
+        retry_count: 1,
+      })
       .eq('id', deliveryId);
 
     // AC7 audit log for delivery failure
@@ -170,13 +224,20 @@ export async function sendInvoiceAction(
 
     return {
       success: false,
-      error: createFlowError(500, 'EMAIL_ERROR', plainLanguageError(false, true), 'financial'),
+      error: createFlowError(
+        500,
+        'EMAIL_ERROR',
+        plainLanguageError(false, true),
+        'financial',
+      ),
     };
   }
 
   // Update invoice to sent and store payment_url + checkout metadata
   const nowIso = new Date().toISOString();
-  const paymentUrlExpiresAt = new Date(Math.min(dueDateMs, sevenDaysMs)).toISOString();
+  const paymentUrlExpiresAt = new Date(
+    Math.min(dueDateMs, sevenDaysMs),
+  ).toISOString();
   const { error: updateError } = await supabase
     .from('invoices')
     .update({
@@ -193,7 +254,12 @@ export async function sendInvoiceAction(
   if (updateError) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to update invoice status.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to update invoice status.',
+        'system',
+      ),
     };
   }
 
@@ -204,7 +270,9 @@ export async function sendInvoiceAction(
     .eq('invoice_id', invoiceId)
     .not('time_entry_id', 'is', null);
 
-  const invoicedTimeEntryIds = ((lineItemTimeEntries ?? []) as Array<{ time_entry_id: string | null }>)
+  const invoicedTimeEntryIds = (
+    (lineItemTimeEntries ?? []) as Array<{ time_entry_id: string | null }>
+  )
     .map((te) => te.time_entry_id)
     .filter((id): id is string => id !== null);
 
@@ -222,7 +290,10 @@ export async function sendInvoiceAction(
         action: 'time_entries_invoiced_failed',
         entity_type: 'invoice',
         entity_id: invoiceId,
-        details: { error: teMarkError.message, timeEntryIds: invoicedTimeEntryIds },
+        details: {
+          error: teMarkError.message,
+          timeEntryIds: invoicedTimeEntryIds,
+        },
       });
     }
   }
@@ -253,5 +324,8 @@ export async function sendInvoiceAction(
     payload: { invoiceId, invoiceNumber, amountCents: totalCents, currency },
   }).catch(() => {});
 
-  return { success: true, data: { invoiceId, paymentUrl: checkout.url, deliveryId } };
+  return {
+    success: true,
+    data: { invoiceId, paymentUrl: checkout.url, deliveryId },
+  };
 }

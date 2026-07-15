@@ -113,8 +113,14 @@ describe('Story 6-2: Real-Time Conflict Detection', () => {
 
       // 30 second overlap
       const overlapMs =
-        Math.min(new Date(event1.end_at).getTime(), new Date(event2.end_at).getTime()) -
-        Math.max(new Date(event1.start_at).getTime(), new Date(event2.start_at).getTime());
+        Math.min(
+          new Date(event1.end_at).getTime(),
+          new Date(event2.end_at).getTime(),
+        ) -
+        Math.max(
+          new Date(event1.start_at).getTime(),
+          new Date(event2.start_at).getTime(),
+        );
       expect(overlapMs).toBeGreaterThan(0);
     });
   });
@@ -157,7 +163,10 @@ describe('Story 6-2: Real-Time Conflict Detection', () => {
   describe('AC5: Performance SLA', () => {
     test('[P0] detection uses idx_cal_events_conflicts partial index', async () => {
       const fs = await import('fs');
-      const migration = fs.readFileSync('/Volumes/One Touch/flow/supabase/migrations/20260521000000_calendar_tables.sql', 'utf-8');
+      const migration = fs.readFileSync(
+        '/Volumes/One Touch/flow/supabase/migrations/20260521000000_calendar_tables.sql',
+        'utf-8',
+      );
       expect(migration).toContain('idx_cal_events_conflicts');
     });
   });

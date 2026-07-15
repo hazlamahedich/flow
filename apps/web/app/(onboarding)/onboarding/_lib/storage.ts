@@ -15,7 +15,9 @@ export function setOnboardingProgress(step: string): void {
     localStorage.setItem(STORAGE_KEY, step);
   } catch (error: unknown) {
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-      console.warn('localStorage quota exceeded — onboarding progress not saved');
+      console.warn(
+        'localStorage quota exceeded — onboarding progress not saved',
+      );
       return;
     }
     throw error;

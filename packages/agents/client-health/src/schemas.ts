@@ -10,7 +10,13 @@ export const clientHealthInputSchema = z.object({
 
 export type ClientHealthInput = z.infer<typeof clientHealthInputSchema>;
 
-export const overallHealthValues = ['healthy', 'at-risk', 'critical', 'neutral', 'onboarding'] as const;
+export const overallHealthValues = [
+  'healthy',
+  'at-risk',
+  'critical',
+  'neutral',
+  'onboarding',
+] as const;
 export type OverallHealth = (typeof overallHealthValues)[number];
 
 export interface HealthIndicators {

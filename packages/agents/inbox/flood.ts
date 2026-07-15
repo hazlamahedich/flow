@@ -25,7 +25,7 @@ import pLimit from 'p-limit';
 export async function scheduleDeferredDrafts(
   workspaceId: string,
   boss: PgBoss,
-  clientInboxId?: string
+  clientInboxId?: string,
 ): Promise<void> {
   const supabase = createServiceClient();
   const producer = new PgBossProducer(boss);
@@ -48,7 +48,7 @@ export async function scheduleDeferredDrafts(
       console.error(`[inbox] Failed to fetch deferred drafts:`, error);
       break;
     }
-    
+
     if (!deferredItems || deferredItems.length === 0) {
       hasMore = false;
       break;
@@ -68,33 +68,41 @@ export async function scheduleDeferredDrafts(
     const { data: emails, error: emailsError } = await emailsQuery;
 
     if (emailsError || !emails) {
-      console.error(`[inbox] Failed to fetch emails for deferred drafts:`, emailsError);
+      console.error(
+        `[inbox] Failed to fetch emails for deferred drafts:`,
+        emailsError,
+      );
       break;
     }
 
     const results = await Promise.allSettled(
-      emails.map((email) => limit(async () => {
-        await producer.submit({
-          agentId: 'inbox',
-          actionType: 'generate_draft',
-          input: {
-            workspaceId,
-            emailId: email.id,
-            clientInboxId: email.client_inbox_id,
-          },
-          idempotencyKey: `draft:${email.id}`,
-          correlationId: email.id,
-        });
-        
-        await transitionState(email.id, workspaceId, 'draft_pending');
-      }))
+      emails.map((email) =>
+        limit(async () => {
+          await producer.submit({
+            agentId: 'inbox',
+            actionType: 'generate_draft',
+            input: {
+              workspaceId,
+              emailId: email.id,
+              clientInboxId: email.client_inbox_id,
+            },
+            idempotencyKey: `draft:${email.id}`,
+            correlationId: email.id,
+          });
+
+          await transitionState(email.id, workspaceId, 'draft_pending');
+        }),
+      ),
     );
 
     const failures = results.filter((r) => r.status === 'rejected');
     if (failures.length > 0) {
-      console.error(`[inbox] ${failures.length} deferred drafts failed in current page:`, failures.map(f => (f as PromiseRejectedResult).reason));
+      console.error(
+        `[inbox] ${failures.length} deferred drafts failed in current page:`,
+        failures.map((f) => (f as PromiseRejectedResult).reason),
+      );
     }
-    
+
     if (deferredItems.length < PAGE_SIZE) {
       hasMore = false;
     }

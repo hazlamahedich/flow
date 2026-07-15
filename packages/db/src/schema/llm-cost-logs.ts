@@ -25,10 +25,15 @@ export const llmCostLogs = pgTable(
     outputTokens: integer('output_tokens').notNull().default(0),
     estimatedCostCents: integer('estimated_cost_cents'),
     actualCostCents: integer('actual_cost_cents'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
-    index('idx_cost_logs_workspace_date').on(table.workspaceId, table.createdAt),
+    index('idx_cost_logs_workspace_date').on(
+      table.workspaceId,
+      table.createdAt,
+    ),
     index('idx_cost_logs_workspace_agent').on(table.workspaceId, table.agentId),
   ],
 );

@@ -1,21 +1,44 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  cleanup,
+} from '@testing-library/react';
 import { Provider } from 'jotai';
 import { createStore } from 'jotai';
-import { trustBadgeMapAtom, trustBadgeAnimationAtom, type TrustBadgeData } from '@/lib/atoms/trust';
+import {
+  trustBadgeMapAtom,
+  trustBadgeAnimationAtom,
+  type TrustBadgeData,
+} from '@/lib/atoms/trust';
 import { mockMatchMedia } from './helpers/match-media-mock';
 
 mockMatchMedia();
 
 vi.mock('../../actions/checkin-actions', () => ({
-  deferCheckIn: vi.fn().mockResolvedValue({ success: true, data: { deferredCount: 1, nextCheckIn: null, pinned: false } }),
-  acknowledgeCheckIn: vi.fn().mockResolvedValue({ success: true, data: { reviewedAt: '2025-03-01T00:00:00Z' } }),
+  deferCheckIn: vi.fn().mockResolvedValue({
+    success: true,
+    data: { deferredCount: 1, nextCheckIn: null, pinned: false },
+  }),
+  acknowledgeCheckIn: vi.fn().mockResolvedValue({
+    success: true,
+    data: { reviewedAt: '2025-03-01T00:00:00Z' },
+  }),
 }));
 
 vi.mock('@flow/db', () => ({
   getRecentAutoActions: vi.fn().mockResolvedValue([
-    { id: 'r1', agentId: 'inbox', actionType: 'general', status: 'completed', createdAt: '2025-02-25T00:00:00Z', summary: null },
+    {
+      id: 'r1',
+      agentId: 'inbox',
+      actionType: 'general',
+      status: 'completed',
+      createdAt: '2025-02-25T00:00:00Z',
+      summary: null,
+    },
   ]),
 }));
 
@@ -26,8 +49,13 @@ vi.mock('../../../../lib/hooks/use-trust-announcer', () => ({
 import { TrustCheckInPrompt } from '../trust-checkin-prompt';
 import { TrustCheckInReview } from '../trust-checkin-review';
 
-beforeEach(() => { vi.useFakeTimers(); });
-afterEach(() => { vi.useRealTimers(); cleanup(); });
+beforeEach(() => {
+  vi.useFakeTimers();
+});
+afterEach(() => {
+  vi.useRealTimers();
+  cleanup();
+});
 
 describe('Check-in integration', () => {
   it('prompt accept opens review mode', async () => {
@@ -43,7 +71,9 @@ describe('Check-in integration', () => {
         onDefer={vi.fn()}
       />,
     );
-    await act(async () => { fireEvent.click(screen.getByText('Take a look')); });
+    await act(async () => {
+      fireEvent.click(screen.getByText('Take a look'));
+    });
     expect(onAccept).toHaveBeenCalled();
   });
 
@@ -70,9 +100,19 @@ describe('Check-in integration', () => {
         agentLabel="Inbox"
         workspaceId="ws-1"
         actions={[
-          { id: 'r1', agentId: 'inbox', actionType: 'general', status: 'completed', createdAt: '2025-02-25T00:00:00Z', summary: null },
+          {
+            id: 'r1',
+            agentId: 'inbox',
+            actionType: 'general',
+            status: 'completed',
+            createdAt: '2025-02-25T00:00:00Z',
+            summary: null,
+          },
         ]}
-        onAcknowledge={vi.fn().mockResolvedValue({ success: true, data: { reviewedAt: '2025-03-01' } })}
+        onAcknowledge={vi.fn().mockResolvedValue({
+          success: true,
+          data: { reviewedAt: '2025-03-01' },
+        })}
         onAdjust={vi.fn()}
       />,
     );
@@ -87,7 +127,10 @@ describe('Check-in integration', () => {
         agentLabel="Inbox"
         workspaceId="ws-1"
         actions={[]}
-        onAcknowledge={vi.fn().mockResolvedValue({ success: true, data: { reviewedAt: '2025-03-01' } })}
+        onAcknowledge={vi.fn().mockResolvedValue({
+          success: true,
+          data: { reviewedAt: '2025-03-01' },
+        })}
         onAdjust={vi.fn()}
       />,
     );
@@ -96,7 +139,15 @@ describe('Check-in integration', () => {
 
   it('error in action shows inline error', async () => {
     const { deferCheckIn } = await import('../../actions/checkin-actions');
-    vi.mocked(deferCheckIn).mockResolvedValueOnce({ success: false, error: { status: 500, code: 'INTERNAL_ERROR', message: 'fail', category: 'system' } });
+    vi.mocked(deferCheckIn).mockResolvedValueOnce({
+      success: false,
+      error: {
+        status: 500,
+        code: 'INTERNAL_ERROR',
+        message: 'fail',
+        category: 'system',
+      },
+    });
 
     render(
       <TrustCheckInPrompt
@@ -109,7 +160,9 @@ describe('Check-in integration', () => {
         onDefer={deferCheckIn as never}
       />,
     );
-    await act(async () => { fireEvent.click(screen.getByText('Remind me later')); });
+    await act(async () => {
+      fireEvent.click(screen.getByText('Remind me later'));
+    });
     expect(screen.getByText(/Could not snooze/)).toBeInTheDocument();
   });
 
@@ -125,8 +178,14 @@ describe('Check-in integration', () => {
         onDefer={vi.fn()}
       />,
     );
-    expect(container.querySelector('[data-testid="checkin-prompt-inbox"]')).toBeInTheDocument();
-    act(() => { vi.advanceTimersByTime(20_000); });
-    expect(container.querySelector('[data-testid="checkin-prompt-inbox"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="checkin-prompt-inbox"]'),
+    ).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(20_000);
+    });
+    expect(
+      container.querySelector('[data-testid="checkin-prompt-inbox"]'),
+    ).toBeNull();
   });
 });

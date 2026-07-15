@@ -1,12 +1,17 @@
 import { describe, test, expect } from 'vitest';
-import { detectGaps, detectOverlaps, detectLowHours } from '../anomaly-detection';
+import {
+  detectGaps,
+  detectOverlaps,
+  detectLowHours,
+} from '../anomaly-detection';
 import type { TimeEntryForDetection } from '../anomaly-detection';
 import { GAP_THRESHOLD_MINUTES, LOW_HOURS_TARGET } from '../schemas';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 function entry(
-  overrides: Partial<TimeEntryForDetection> & Pick<TimeEntryForDetection, 'id' | 'date' | 'durationMinutes'>,
+  overrides: Partial<TimeEntryForDetection> &
+    Pick<TimeEntryForDetection, 'id' | 'date' | 'durationMinutes'>,
 ): TimeEntryForDetection {
   return { ...overrides };
 }
@@ -18,7 +23,13 @@ function timedEntry(
   startH: number,
   endH: number,
 ): TimeEntryForDetection {
-  return { id, date, durationMinutes, startMinutes: startH * 60, endMinutes: endH * 60 };
+  return {
+    id,
+    date,
+    durationMinutes,
+    startMinutes: startH * 60,
+    endMinutes: endH * 60,
+  };
 }
 
 // ── detectGaps ────────────────────────────────────────────────────────────────
@@ -80,9 +91,17 @@ describe('detectGaps', () => {
   });
 
   test('signal_key is stable for same pair regardless of entry order', () => {
-    const e1 = [timedEntry('a', '2026-05-12', 60, 9, 10), timedEntry('b', '2026-05-12', 60, 12, 13)];
-    const e2 = [timedEntry('b', '2026-05-12', 60, 12, 13), timedEntry('a', '2026-05-12', 60, 9, 10)];
-    expect(detectGaps(e1, 60)[0]!.signalKey).toBe(detectGaps(e2, 60)[0]!.signalKey);
+    const e1 = [
+      timedEntry('a', '2026-05-12', 60, 9, 10),
+      timedEntry('b', '2026-05-12', 60, 12, 13),
+    ];
+    const e2 = [
+      timedEntry('b', '2026-05-12', 60, 12, 13),
+      timedEntry('a', '2026-05-12', 60, 9, 10),
+    ];
+    expect(detectGaps(e1, 60)[0]!.signalKey).toBe(
+      detectGaps(e2, 60)[0]!.signalKey,
+    );
   });
 });
 
@@ -107,8 +126,8 @@ describe('detectOverlaps', () => {
 
   test('detects partial overlap', () => {
     const entries = [
-      timedEntry('a', '2026-05-12', 90, 9, 10, ),  // 9:00–10:30
-      timedEntry('b', '2026-05-12', 60, 10, 11),   // 10:00–11:00
+      timedEntry('a', '2026-05-12', 90, 9, 10), // 9:00–10:30
+      timedEntry('b', '2026-05-12', 60, 10, 11), // 10:00–11:00
     ];
     // Override end for 'a' — use raw startMinutes/endMinutes
     entries[0]!.endMinutes = 10 * 60 + 30; // 10:30
@@ -119,8 +138,8 @@ describe('detectOverlaps', () => {
 
   test('detects full containment overlap', () => {
     const entries = [
-      timedEntry('a', '2026-05-12', 240, 9, 17),  // 9:00–17:00
-      timedEntry('b', '2026-05-12', 60, 11, 12),  // 11:00–12:00 fully inside a
+      timedEntry('a', '2026-05-12', 240, 9, 17), // 9:00–17:00
+      timedEntry('b', '2026-05-12', 60, 11, 12), // 11:00–12:00 fully inside a
     ];
     const result = detectOverlaps(entries);
     expect(result).toHaveLength(1);
@@ -155,7 +174,9 @@ describe('detectOverlaps', () => {
 
 describe('detectLowHours', () => {
   test('flags day below target', () => {
-    const entries = [entry({ id: 'a', date: '2026-05-12', durationMinutes: 90 })];
+    const entries = [
+      entry({ id: 'a', date: '2026-05-12', durationMinutes: 90 }),
+    ];
     const result = detectLowHours(entries, LOW_HOURS_TARGET);
     expect(result).toHaveLength(1);
     expect(result[0]!.anomalyType).toBe('low-hours');
@@ -163,12 +184,16 @@ describe('detectLowHours', () => {
   });
 
   test('does not flag day at exactly target (target = 4h = 240 min)', () => {
-    const entries = [entry({ id: 'a', date: '2026-05-12', durationMinutes: 240 })];
+    const entries = [
+      entry({ id: 'a', date: '2026-05-12', durationMinutes: 240 }),
+    ];
     expect(detectLowHours(entries, LOW_HOURS_TARGET)).toEqual([]);
   });
 
   test('does not flag day above target', () => {
-    const entries = [entry({ id: 'a', date: '2026-05-12', durationMinutes: 480 })];
+    const entries = [
+      entry({ id: 'a', date: '2026-05-12', durationMinutes: 480 }),
+    ];
     expect(detectLowHours(entries, LOW_HOURS_TARGET)).toEqual([]);
   });
 

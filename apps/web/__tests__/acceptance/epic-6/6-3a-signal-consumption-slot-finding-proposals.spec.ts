@@ -7,9 +7,27 @@ import { findAvailableSlots } from '@flow/agents/calendar/slot-finder';
 const { mockGetFreeBusy, mockFindAvailableSlots } = vi.hoisted(() => ({
   mockGetFreeBusy: vi.fn().mockResolvedValue([]),
   mockFindAvailableSlots: vi.fn().mockResolvedValue([
-    { startAt: '2026-06-10T10:00:00Z', endAt: '2026-06-10T10:30:00Z', conflicts: 0, reasoning: 'Good slot', calendarId: 'cal-1' },
-    { startAt: '2026-06-10T11:00:00Z', endAt: '2026-06-10T11:30:00Z', conflicts: 0, reasoning: 'Good slot', calendarId: 'cal-1' },
-    { startAt: '2026-06-10T14:00:00Z', endAt: '2026-06-10T14:30:00Z', conflicts: 0, reasoning: 'Good slot', calendarId: 'cal-1' },
+    {
+      startAt: '2026-06-10T10:00:00Z',
+      endAt: '2026-06-10T10:30:00Z',
+      conflicts: 0,
+      reasoning: 'Good slot',
+      calendarId: 'cal-1',
+    },
+    {
+      startAt: '2026-06-10T11:00:00Z',
+      endAt: '2026-06-10T11:30:00Z',
+      conflicts: 0,
+      reasoning: 'Good slot',
+      calendarId: 'cal-1',
+    },
+    {
+      startAt: '2026-06-10T14:00:00Z',
+      endAt: '2026-06-10T14:30:00Z',
+      conflicts: 0,
+      reasoning: 'Good slot',
+      calendarId: 'cal-1',
+    },
   ]),
 }));
 
@@ -28,11 +46,15 @@ vi.mock('@flow/db', () => ({
   createServiceClient: vi.fn(),
   updateRunStatus: vi.fn().mockResolvedValue(undefined),
   requireTenantContext: vi.fn(),
-  createFlowError: vi.fn((code: number, type: string, msg: string) => ({ code, type, message: msg })),
+  createFlowError: vi.fn((code: number, type: string, msg: string) => ({
+    code,
+    type,
+    message: msg,
+  })),
 }));
 
 vi.mock('@flow/agents/calendar/slot-finder', async (importOriginal) => {
-  const original = await importOriginal() as Record<string, unknown>;
+  const original = (await importOriginal()) as Record<string, unknown>;
   return {
     ...original,
     findAvailableSlots: (...args: unknown[]) => mockFindAvailableSlots(...args),
@@ -46,11 +68,16 @@ vi.mock('../../../../../packages/agents/providers/registry', () => ({
   }),
 }));
 
-vi.mock('../../../../../packages/agents/providers/google-calendar/token-manager', () => ({
-  CalendarTokenManager: vi.fn().mockImplementation(() => ({
-    getValidTokens: vi.fn().mockResolvedValue({ tokens: { accessToken: 'test-token' } }),
-  })),
-}));
+vi.mock(
+  '../../../../../packages/agents/providers/google-calendar/token-manager',
+  () => ({
+    CalendarTokenManager: vi.fn().mockImplementation(() => ({
+      getValidTokens: vi
+        .fn()
+        .mockResolvedValue({ tokens: { accessToken: 'test-token' } }),
+    })),
+  }),
+);
 
 vi.mock('@flow/agents/calendar/event-relations', () => ({
   writeRescheduledFromRelation: vi.fn().mockResolvedValue(undefined),
@@ -61,15 +88,41 @@ vi.mock('@flow/agents/shared/audit-writer', () => ({
   writeAuditLog: vi.fn(),
 }));
 
-import { WORKSPACE_ID, CLIENT_ID, REQ_ID, EMAIL_ID, CAL_DB_ID, SIGNAL_ID, createBookingMockSupabase } from './_helpers/booking-test-setup';
+import {
+  WORKSPACE_ID,
+  CLIENT_ID,
+  REQ_ID,
+  EMAIL_ID,
+  CAL_DB_ID,
+  SIGNAL_ID,
+  createBookingMockSupabase,
+} from './_helpers/booking-test-setup';
 
 describe('Story 6-3: Booking Proposals & Event Creation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFindAvailableSlots.mockResolvedValue([
-      { startAt: '2026-06-10T10:00:00Z', endAt: '2026-06-10T10:30:00Z', conflicts: 0, reasoning: 'Good slot', calendarId: 'cal-1' },
-      { startAt: '2026-06-10T11:00:00Z', endAt: '2026-06-10T11:30:00Z', conflicts: 0, reasoning: 'Good slot', calendarId: 'cal-1' },
-      { startAt: '2026-06-10T14:00:00Z', endAt: '2026-06-10T14:30:00Z', conflicts: 0, reasoning: 'Good slot', calendarId: 'cal-1' },
+      {
+        startAt: '2026-06-10T10:00:00Z',
+        endAt: '2026-06-10T10:30:00Z',
+        conflicts: 0,
+        reasoning: 'Good slot',
+        calendarId: 'cal-1',
+      },
+      {
+        startAt: '2026-06-10T11:00:00Z',
+        endAt: '2026-06-10T11:30:00Z',
+        conflicts: 0,
+        reasoning: 'Good slot',
+        calendarId: 'cal-1',
+      },
+      {
+        startAt: '2026-06-10T14:00:00Z',
+        endAt: '2026-06-10T14:30:00Z',
+        conflicts: 0,
+        reasoning: 'Good slot',
+        calendarId: 'cal-1',
+      },
     ]);
   });
 
@@ -122,15 +175,17 @@ describe('Story 6-3: Booking Proposals & Event Creation', () => {
           clientId: CLIENT_ID,
           durationMinutes: 30,
           preferences: { timezone: 'UTC' },
-          calendars: [{
-            id: CAL_DB_ID,
-            calendarId: 'cal-1',
-            provider: {
-              getFreeBusy: mockGetFreeBusy,
-              getCalendarId: vi.fn().mockReturnValue('cal-1'),
-            } as unknown as import('@flow/agents/calendar/providers/calendar-provider').CalendarProvider,
-            accessToken: 'test-token',
-          }],
+          calendars: [
+            {
+              id: CAL_DB_ID,
+              calendarId: 'cal-1',
+              provider: {
+                getFreeBusy: mockGetFreeBusy,
+                getCalendarId: vi.fn().mockReturnValue('cal-1'),
+              } as unknown as import('@flow/agents/calendar/providers/calendar-provider').CalendarProvider,
+              accessToken: 'test-token',
+            },
+          ],
         },
         { supabase: createBookingMockSupabase() },
       );
@@ -149,7 +204,8 @@ describe('Story 6-3: Booking Proposals & Event Creation', () => {
     it('inserts proposed_options JSONB and sets status=options_proposed', async () => {
       const supabase = createBookingMockSupabase();
 
-      const result = await executeProposeBooking('run-1',
+      const result = await executeProposeBooking(
+        'run-1',
         { workspaceId: WORKSPACE_ID, schedulingRequestId: REQ_ID },
         { supabase },
       );
@@ -164,7 +220,8 @@ describe('Story 6-3: Booking Proposals & Event Creation', () => {
       expect(updateCall).toBeDefined();
       expect(updateCall!.data).toMatchObject({ status: 'options_proposed' });
       expect(updateCall!.data).toHaveProperty('proposed_options');
-      const proposedOptions = (updateCall!.data as Record<string, unknown>).proposed_options as BookingProposal[];
+      const proposedOptions = (updateCall!.data as Record<string, unknown>)
+        .proposed_options as BookingProposal[];
       expect(Array.isArray(proposedOptions)).toBe(true);
       expect(proposedOptions[0]).toHaveProperty('startAt');
       expect(proposedOptions[0]).toHaveProperty('endAt');

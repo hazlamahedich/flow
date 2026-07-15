@@ -10,7 +10,11 @@ export const createClientSchema = z.object({
   companyName: z.string().max(200).optional().or(z.literal('')),
   address: z.string().max(500).optional().or(z.literal('')),
   notes: z.string().max(5000).optional().or(z.literal('')),
-  billingEmail: z.string().email('Invalid billing email format').optional().or(z.literal('')),
+  billingEmail: z
+    .string()
+    .email('Invalid billing email format')
+    .optional()
+    .or(z.literal('')),
   hourlyRateCents: z.number().int().min(0).max(10000000).nullable().optional(),
 });
 export type CreateClientInput = z.infer<typeof createClientSchema>;

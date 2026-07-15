@@ -11,6 +11,7 @@ supabase stop           # Stop local instance
 ```
 
 After `supabase start`, copy the output values to `.env.local`:
+
 - `NEXT_PUBLIC_SUPABASE_URL` → API URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` → anon key
 - `SUPABASE_SERVICE_ROLE_KEY` → service_role key

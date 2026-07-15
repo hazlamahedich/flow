@@ -44,7 +44,8 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 function createAuthedCalendar(accessToken: string) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  if (!clientId || !clientSecret) throw new Error('Missing Google OAuth config');
+  if (!clientId || !clientSecret)
+    throw new Error('Missing Google OAuth config');
   const oauth2 = new google.auth.OAuth2(clientId, clientSecret);
   oauth2.setCredentials({ access_token: accessToken });
   return google.calendar({ version: 'v3', auth: oauth2 });
@@ -101,7 +102,8 @@ export class GoogleCalendarProvider implements CalendarProvider {
   async refreshToken(refreshToken: string): Promise<OAuthTokens> {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    if (!clientId || !clientSecret) throw new Error('Missing Google OAuth config');
+    if (!clientId || !clientSecret)
+      throw new Error('Missing Google OAuth config');
     const oauth2 = new google.auth.OAuth2(clientId, clientSecret);
     oauth2.setCredentials({ refresh_token: refreshToken });
     const { credentials } = await oauth2.refreshAccessToken();
@@ -117,7 +119,8 @@ export class GoogleCalendarProvider implements CalendarProvider {
   async revokeToken(accessToken: string): Promise<void> {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    if (!clientId || !clientSecret) throw new Error('Missing Google OAuth config');
+    if (!clientId || !clientSecret)
+      throw new Error('Missing Google OAuth config');
     const oauth2 = new google.auth.OAuth2(clientId, clientSecret);
     await oauth2.revokeToken(accessToken);
   }
@@ -125,10 +128,13 @@ export class GoogleCalendarProvider implements CalendarProvider {
   async getConnectedEmail(accessToken: string): Promise<string> {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    if (!clientId || !clientSecret) throw new Error('Missing Google OAuth config');
+    if (!clientId || !clientSecret)
+      throw new Error('Missing Google OAuth config');
     const oauth2 = new google.auth.OAuth2(clientId, clientSecret);
     oauth2.setCredentials({ access_token: accessToken });
-    const { data } = await google.oauth2({ version: 'v2', auth: oauth2 }).userinfo.get();
+    const { data } = await google
+      .oauth2({ version: 'v2', auth: oauth2 })
+      .userinfo.get();
     return data.email ?? '';
   }
 
@@ -163,13 +169,20 @@ export class GoogleCalendarProvider implements CalendarProvider {
     return (res.data.items ?? []).map((ev) => this.mapEvent(ev, calendarId));
   }
 
-  async getEvent(accessToken: string, calendarId: string, eventId: string): Promise<CalendarEvent> {
+  async getEvent(
+    accessToken: string,
+    calendarId: string,
+    eventId: string,
+  ): Promise<CalendarEvent> {
     const calendar = createAuthedCalendar(accessToken);
     const res = await calendar.events.get({ calendarId, eventId });
     return this.mapEvent(res.data, calendarId);
   }
 
-  async createEvent(accessToken: string, input: CalendarEventCreateInput): Promise<CalendarEvent> {
+  async createEvent(
+    accessToken: string,
+    input: CalendarEventCreateInput,
+  ): Promise<CalendarEvent> {
     const calendar = createAuthedCalendar(accessToken);
     const requestBody: calendar_v3.Schema$Event = {
       summary: input.title,
@@ -179,11 +192,13 @@ export class GoogleCalendarProvider implements CalendarProvider {
     if (input.description) requestBody.description = input.description;
     if (input.location) requestBody.location = input.location;
     if (input.attendees) {
-      requestBody.attendees = input.attendees.map((a): calendar_v3.Schema$EventAttendee => {
-        const mapped: calendar_v3.Schema$EventAttendee = { email: a.email };
-        if (a.name) mapped.displayName = a.name;
-        return mapped;
-      });
+      requestBody.attendees = input.attendees.map(
+        (a): calendar_v3.Schema$EventAttendee => {
+          const mapped: calendar_v3.Schema$EventAttendee = { email: a.email };
+          if (a.name) mapped.displayName = a.name;
+          return mapped;
+        },
+      );
     }
     if (input.recurrenceRule) requestBody.recurrence = [input.recurrenceRule];
     const res = await calendar.events.insert({
@@ -193,7 +208,10 @@ export class GoogleCalendarProvider implements CalendarProvider {
     return this.mapEvent(res.data, input.calendarId);
   }
 
-  async updateEvent(accessToken: string, input: CalendarEventUpdateInput): Promise<CalendarEvent> {
+  async updateEvent(
+    accessToken: string,
+    input: CalendarEventUpdateInput,
+  ): Promise<CalendarEvent> {
     const calendar = createAuthedCalendar(accessToken);
     const existingRes = await calendar.events.get({
       calendarId: input.calendarId,
@@ -205,13 +223,15 @@ export class GoogleCalendarProvider implements CalendarProvider {
       summary: input.title ?? existing.summary ?? '',
       start: input.startTime
         ? this.toGoogleTime(input.startTime)
-        : existing.start ?? this.toGoogleTime(new Date().toISOString()),
+        : (existing.start ?? this.toGoogleTime(new Date().toISOString())),
       end: input.endTime
         ? this.toGoogleTime(input.endTime)
-        : existing.end ?? this.toGoogleTime(new Date().toISOString()),
+        : (existing.end ?? this.toGoogleTime(new Date().toISOString())),
     };
-    if (input.description !== undefined) requestBody.description = input.description;
-    else if (existing.description) requestBody.description = existing.description;
+    if (input.description !== undefined)
+      requestBody.description = input.description;
+    else if (existing.description)
+      requestBody.description = existing.description;
     if (input.location !== undefined) requestBody.location = input.location;
     else if (existing.location) requestBody.location = existing.location;
     const res = await calendar.events.update({
@@ -222,7 +242,11 @@ export class GoogleCalendarProvider implements CalendarProvider {
     return this.mapEvent(res.data, input.calendarId);
   }
 
-  async deleteEvent(accessToken: string, calendarId: string, eventId: string): Promise<void> {
+  async deleteEvent(
+    accessToken: string,
+    calendarId: string,
+    eventId: string,
+  ): Promise<void> {
     const calendar = createAuthedCalendar(accessToken);
     await calendar.events.delete({ calendarId, eventId });
   }
@@ -257,7 +281,12 @@ export class GoogleCalendarProvider implements CalendarProvider {
     proposedEnd: string,
     excludeEventIds: string[] = [],
   ): Promise<ConflictDetectionResult> {
-    const events = await this.listEvents(accessToken, calendarId, proposedStart, proposedEnd);
+    const events = await this.listEvents(
+      accessToken,
+      calendarId,
+      proposedStart,
+      proposedEnd,
+    );
     const conflicts = events
       .filter((ev) => !excludeEventIds.includes(ev.providerEventId))
       .filter((ev) => ev.startTime < proposedEnd && ev.endTime > proposedStart)
@@ -286,28 +315,42 @@ export class GoogleCalendarProvider implements CalendarProvider {
     });
     return {
       channelId: res.data.id ?? '',
-      expiration: res.data.expiration ?? new Date(Date.now() + 7 * 86400_000).toISOString(),
+      expiration:
+        res.data.expiration ??
+        new Date(Date.now() + 7 * 86400_000).toISOString(),
     };
   }
 
   async stopWatch(accessToken: string, channelId: string): Promise<void> {
     const calendar = createAuthedCalendar(accessToken);
-    await calendar.channels.stop({ requestBody: { id: channelId, resourceId: channelId } });
+    await calendar.channels.stop({
+      requestBody: { id: channelId, resourceId: channelId },
+    });
   }
 
-  private mapEvent(ev: calendar_v3.Schema$Event, calendarId: string): CalendarEvent {
-    const isAllDay = !!(ev.start?.date);
+  private mapEvent(
+    ev: calendar_v3.Schema$Event,
+    calendarId: string,
+  ): CalendarEvent {
+    const isAllDay = !!ev.start?.date;
     const rawAttendees = ev.attendees;
-    const attendees: CalendarEvent['attendees'] = (rawAttendees ?? []).map((a) => {
-      const mapped: CalendarEvent['attendees'][number] = {
-        email: a.email ?? '',
-      };
-      if (a.displayName) mapped.name = a.displayName;
-      if (a.responseStatus === 'needsAction' || a.responseStatus === 'declined' || a.responseStatus === 'tentative' || a.responseStatus === 'accepted') {
-        mapped.responseStatus = a.responseStatus;
-      }
-      return mapped;
-    });
+    const attendees: CalendarEvent['attendees'] = (rawAttendees ?? []).map(
+      (a) => {
+        const mapped: CalendarEvent['attendees'][number] = {
+          email: a.email ?? '',
+        };
+        if (a.displayName) mapped.name = a.displayName;
+        if (
+          a.responseStatus === 'needsAction' ||
+          a.responseStatus === 'declined' ||
+          a.responseStatus === 'tentative' ||
+          a.responseStatus === 'accepted'
+        ) {
+          mapped.responseStatus = a.responseStatus;
+        }
+        return mapped;
+      },
+    );
     const rawRecurrence = ev.recurrence;
     const result: CalendarEvent = {
       providerEventId: ev.id ?? '',

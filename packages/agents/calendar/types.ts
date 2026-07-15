@@ -33,9 +33,22 @@ export interface CalendarTrustLevels {
   cancelEvent: number;
 }
 
-export type SchedulingRequestSourceType = 'email_extraction' | 'va_manual' | 'client_portal';
-export type SchedulingRequestType = 'book_new' | 'reschedule' | 'cancel' | 'check_availability';
-export type SchedulingRequestStatus = 'pending' | 'options_proposed' | 'option_selected' | 'booked' | 'failed' | 'cancelled';
+export type SchedulingRequestSourceType =
+  | 'email_extraction'
+  | 'va_manual'
+  | 'client_portal';
+export type SchedulingRequestType =
+  | 'book_new'
+  | 'reschedule'
+  | 'cancel'
+  | 'check_availability';
+export type SchedulingRequestStatus =
+  | 'pending'
+  | 'options_proposed'
+  | 'option_selected'
+  | 'booked'
+  | 'failed'
+  | 'cancelled';
 
 export interface SchedulingRequest {
   id: string;

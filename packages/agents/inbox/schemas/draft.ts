@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-export const draftStatusSchema = z.enum(['pending', 'approved', 'rejected', 'edited', 'superseded']);
+export const draftStatusSchema = z.enum([
+  'pending',
+  'approved',
+  'rejected',
+  'edited',
+  'superseded',
+]);
 
 export const draftResponseSchema = z.object({
   draftContent: z.string().min(1),

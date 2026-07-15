@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Inbox,
@@ -14,12 +14,12 @@ import {
   ChevronDown,
   Sparkles,
   Wand2,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { agentInbox } from "@/lib/mock-data";
-import { automations } from "@/lib/automations";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Avatar } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { agentInbox } from '@/lib/mock-data';
+import { automations } from '@/lib/automations';
 
 type NavItem = {
   href: string;
@@ -30,15 +30,26 @@ type NavItem = {
 };
 
 const nav: NavItem[] = [
-  { href: "/", label: "Morning Brief", icon: LayoutDashboard },
-  { href: "/inbox", label: "Agent Inbox", icon: Inbox, count: () => agentInbox.filter(p => p.status === "pending").length },
-  { href: "/clients", label: "Clients", icon: Users },
-  { href: "/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/time", label: "Time", icon: Clock },
-  { href: "/invoices", label: "Invoices", icon: Receipt },
-  { href: "/automations", label: "Automations", icon: Wand2, count: () => automations.filter(a => a.status === "active").length, v2: true },
-  { href: "/portal", label: "Portal Preview", icon: Globe },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: '/', label: 'Morning Brief', icon: LayoutDashboard },
+  {
+    href: '/inbox',
+    label: 'Agent Inbox',
+    icon: Inbox,
+    count: () => agentInbox.filter((p) => p.status === 'pending').length,
+  },
+  { href: '/clients', label: 'Clients', icon: Users },
+  { href: '/tasks', label: 'Tasks', icon: CheckSquare },
+  { href: '/time', label: 'Time', icon: Clock },
+  { href: '/invoices', label: 'Invoices', icon: Receipt },
+  {
+    href: '/automations',
+    label: 'Automations',
+    icon: Wand2,
+    count: () => automations.filter((a) => a.status === 'active').length,
+    v2: true,
+  },
+  { href: '/portal', label: 'Portal Preview', icon: Globe },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export function Sidebar() {
@@ -51,7 +62,9 @@ export function Sidebar() {
           <Sparkles size={16} />
         </div>
         <div className="flex-1 text-left">
-          <div className="text-sm font-semibold text-ink-900">Maya's Workspace</div>
+          <div className="text-sm font-semibold text-ink-900">
+            Maya's Workspace
+          </div>
           <div className="text-[11px] text-ink-500">Pro · 8 clients</div>
         </div>
         <ChevronDown size={14} className="text-ink-400" />
@@ -61,8 +74,8 @@ export function Sidebar() {
         {nav.map((item) => {
           const Icon = item.icon;
           const active =
-            item.href === "/"
-              ? pathname === "/"
+            item.href === '/'
+              ? pathname === '/'
               : pathname.startsWith(item.href);
           const count = item.count?.();
           return (
@@ -70,10 +83,10 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm",
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm',
                 active
-                  ? "bg-ink-900 text-white"
-                  : "text-ink-700 hover:bg-ink-100"
+                  ? 'bg-ink-900 text-white'
+                  : 'text-ink-700 hover:bg-ink-100',
               )}
             >
               <Icon size={16} className="shrink-0" />
@@ -81,8 +94,10 @@ export function Sidebar() {
               {item.v2 && (
                 <span
                   className={cn(
-                    "text-[9px] font-bold tracking-wide rounded px-1 py-0.5",
-                    active ? "bg-white/15 text-white" : "bg-violet-100 text-violet-700"
+                    'text-[9px] font-bold tracking-wide rounded px-1 py-0.5',
+                    active
+                      ? 'bg-white/15 text-white'
+                      : 'bg-violet-100 text-violet-700',
                   )}
                 >
                   V2
@@ -91,8 +106,10 @@ export function Sidebar() {
               {count ? (
                 <span
                   className={cn(
-                    "text-[11px] font-semibold rounded-full px-2 py-0.5",
-                    active ? "bg-white/15 text-white" : "bg-flow-100 text-flow-700"
+                    'text-[11px] font-semibold rounded-full px-2 py-0.5',
+                    active
+                      ? 'bg-white/15 text-white'
+                      : 'bg-flow-100 text-flow-700',
                   )}
                 >
                   {count}
@@ -107,21 +124,31 @@ export function Sidebar() {
         <div className="rounded-xl border border-ink-100 bg-ink-50 p-3">
           <div className="flex items-center gap-2">
             <Sparkles size={14} className="text-flow-600" />
-            <div className="text-xs font-semibold text-ink-800">Trust progression</div>
+            <div className="text-xs font-semibold text-ink-800">
+              Trust progression
+            </div>
           </div>
           <p className="text-[11px] text-ink-500 mt-1">
-            6/12 agent actions at L2 autonomy. Keep approving clean proposals to unlock more.
+            6/12 agent actions at L2 autonomy. Keep approving clean proposals to
+            unlock more.
           </p>
           <div className="mt-2 h-1.5 w-full rounded-full bg-ink-200 overflow-hidden">
-            <div className="h-full bg-flow-600 rounded-full" style={{ width: "50%" }} />
+            <div
+              className="h-full bg-flow-600 rounded-full"
+              style={{ width: '50%' }}
+            />
           </div>
         </div>
 
         <div className="mt-3 flex items-center gap-2 px-2">
           <Avatar name="Maya Reyes" size={28} />
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium text-ink-800 truncate">Maya Reyes</div>
-            <div className="text-[10px] text-ink-500 truncate">maya@studio-reyes.com</div>
+            <div className="text-xs font-medium text-ink-800 truncate">
+              Maya Reyes
+            </div>
+            <div className="text-[10px] text-ink-500 truncate">
+              maya@studio-reyes.com
+            </div>
           </div>
           <Badge tone="flow">Pro</Badge>
         </div>

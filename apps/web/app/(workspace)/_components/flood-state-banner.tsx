@@ -9,10 +9,12 @@ export function FloodStateBanner() {
         <AlertTriangle className="w-5 h-5 text-amber-500" />
       </div>
       <div className="flex-1">
-        <h3 className="text-sm font-bold uppercase tracking-tight">High Volume Detected</h3>
+        <h3 className="text-sm font-bold uppercase tracking-tight">
+          High Volume Detected
+        </h3>
         <p className="text-sm opacity-80 leading-snug">
-          Your inbox is experiencing a flood state (30+ urgent items). 
-          I've condensed the view so you can triage faster.
+          Your inbox is experiencing a flood state (30+ urgent items). I've
+          condensed the view so you can triage faster.
         </p>
       </div>
     </div>

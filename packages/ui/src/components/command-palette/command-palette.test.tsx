@@ -12,7 +12,8 @@ class ResizeObserverMock {
 }
 
 function setupJsdOMPolyfills() {
-  globalThis.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver;
+  globalThis.ResizeObserver =
+    ResizeObserverMock as unknown as typeof ResizeObserver;
   Element.prototype.scrollIntoView = vi.fn();
 }
 
@@ -20,10 +21,18 @@ function mockLocalStorage() {
   const store: Record<string, string> = {};
   return {
     getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { Object.keys(store).forEach((k) => delete store[k]); },
-    get length() { return Object.keys(store).length; },
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      Object.keys(store).forEach((k) => delete store[k]);
+    },
+    get length() {
+      return Object.keys(store).length;
+    },
     key: () => null,
   };
 }
@@ -34,10 +43,7 @@ function renderPalette(store?: ReturnType<typeof createStore>) {
   const testStore = store ?? createStore();
   return render(
     <Provider store={testStore}>
-      <CommandPalette
-        searchAction={mockSearchAction}
-        onNavigate={vi.fn()}
-      />
+      <CommandPalette searchAction={mockSearchAction} onNavigate={vi.fn()} />
     </Provider>,
   );
 }
@@ -100,7 +106,9 @@ describe('CommandPalette', () => {
     const store = createStore();
     store.set(commandPaletteOpenAtom, true);
     const { container } = renderPalette(store);
-    const backdrop = container.querySelector('[data-testid="command-palette-backdrop"]');
+    const backdrop = container.querySelector(
+      '[data-testid="command-palette-backdrop"]',
+    );
     await act(async () => {
       fireEvent.click(backdrop!);
     });
@@ -128,7 +136,9 @@ describe('CommandPalette', () => {
     const store = createStore();
     store.set(commandPaletteOpenAtom, true);
     const { container } = renderPalette(store);
-    const input = container.querySelector('input[placeholder="Type a command or search..."]');
+    const input = container.querySelector(
+      'input[placeholder="Type a command or search..."]',
+    );
     expect(input).not.toBeNull();
   });
 });

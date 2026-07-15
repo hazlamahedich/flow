@@ -37,15 +37,47 @@ export async function confirmTransfer(
 
   if (!result.success) {
     const errorMap: Record<string, FlowError> = {
-      transfer_not_found: createFlowError(404, 'TRANSFER_NOT_FOUND', 'Transfer request not found.', 'validation'),
-      not_pending: createFlowError(400, 'VALIDATION_ERROR', 'Transfer is not pending.', 'validation'),
-      expired: createFlowError(410, 'TRANSFER_EXPIRED', "The transfer wasn't confirmed in time. Your ownership is unchanged.", 'validation'),
-      not_recipient: createFlowError(403, 'INSUFFICIENT_ROLE', 'Only the designated recipient can confirm the transfer.', 'auth'),
-      initiator_not_owner: createFlowError(400, 'VALIDATION_ERROR', 'The initiator is no longer the workspace owner.', 'validation'),
-      swap_failed: createFlowError(500, 'INTERNAL_ERROR', 'Ownership transfer failed.', 'system'),
+      transfer_not_found: createFlowError(
+        404,
+        'TRANSFER_NOT_FOUND',
+        'Transfer request not found.',
+        'validation',
+      ),
+      not_pending: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Transfer is not pending.',
+        'validation',
+      ),
+      expired: createFlowError(
+        410,
+        'TRANSFER_EXPIRED',
+        "The transfer wasn't confirmed in time. Your ownership is unchanged.",
+        'validation',
+      ),
+      not_recipient: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Only the designated recipient can confirm the transfer.',
+        'auth',
+      ),
+      initiator_not_owner: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'The initiator is no longer the workspace owner.',
+        'validation',
+      ),
+      swap_failed: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Ownership transfer failed.',
+        'system',
+      ),
     };
 
-    const flowError = errorMap[result.error] ?? createFlowError(500, 'INTERNAL_ERROR', 'Transfer failed.', 'system');
+    const flowError =
+      errorMap[result.error] ??
+      createFlowError(500, 'INTERNAL_ERROR', 'Transfer failed.', 'system');
     return { success: false, error: flowError };
   }
 

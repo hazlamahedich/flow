@@ -16,7 +16,10 @@ export async function uploadAvatar(
   formData: FormData,
 ): Promise<ActionResult<{ avatarUrl: string }>> {
   const supabase = await getServerSupabase();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return {
@@ -28,7 +31,12 @@ export async function uploadAvatar(
   if (!user.email) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Email is required.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Email is required.',
+        'validation',
+      ),
     };
   }
 
@@ -36,21 +44,36 @@ export async function uploadAvatar(
   if (!file || !(file instanceof File)) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Avatar must be a JPEG, PNG, or WebP image.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Avatar must be a JPEG, PNG, or WebP image.',
+        'validation',
+      ),
     };
   }
 
   if (file.size === 0) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Avatar file is empty.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Avatar file is empty.',
+        'validation',
+      ),
     };
   }
 
   if (file.size > 2 * 1024 * 1024) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Avatar must be smaller than 2MB.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Avatar must be smaller than 2MB.',
+        'validation',
+      ),
     };
   }
 
@@ -60,7 +83,12 @@ export async function uploadAvatar(
   if (!magicResult.valid) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Avatar must be a JPEG, PNG, or WebP image.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Avatar must be a JPEG, PNG, or WebP image.',
+        'validation',
+      ),
     };
   }
 
@@ -76,9 +104,14 @@ export async function uploadAvatar(
       .single();
 
     if (currentProfile?.avatar_url) {
-      const oldStoragePath = extractStoragePath(currentProfile.avatar_url, user.id);
+      const oldStoragePath = extractStoragePath(
+        currentProfile.avatar_url,
+        user.id,
+      );
       if (oldStoragePath) {
-        const { error: removeError } = await supabase.storage.from('avatars').remove([oldStoragePath]);
+        const { error: removeError } = await supabase.storage
+          .from('avatars')
+          .remove([oldStoragePath]);
         if (removeError) {
           console.error('Failed to delete old avatar:', removeError.message);
         }
@@ -100,7 +133,12 @@ export async function uploadAvatar(
     if (uploadError) {
       return {
         success: false,
-        error: createFlowError(500, 'INTERNAL_ERROR', "Couldn't upload avatar. Please try again.", 'system'),
+        error: createFlowError(
+          500,
+          'INTERNAL_ERROR',
+          "Couldn't upload avatar. Please try again.",
+          'system',
+        ),
       };
     }
 
@@ -112,17 +150,30 @@ export async function uploadAvatar(
 
     revalidateTag(cacheTag('user', user.id));
 
-    return { success: true, data: { avatarUrl: signedUrlData?.signedUrl ?? storagePath } };
+    return {
+      success: true,
+      data: { avatarUrl: signedUrlData?.signedUrl ?? storagePath },
+    };
   } catch (error) {
     if (storagePath) {
-      const { error: cleanupError } = await supabase.storage.from('avatars').remove([storagePath]);
+      const { error: cleanupError } = await supabase.storage
+        .from('avatars')
+        .remove([storagePath]);
       if (cleanupError) {
-        console.error('Failed to cleanup uploaded avatar:', cleanupError.message);
+        console.error(
+          'Failed to cleanup uploaded avatar:',
+          cleanupError.message,
+        );
       }
     }
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', "Couldn't upload avatar. Please try again.", 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        "Couldn't upload avatar. Please try again.",
+        'system',
+      ),
     };
   }
 }

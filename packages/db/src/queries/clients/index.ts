@@ -9,10 +9,7 @@ export {
   checkDuplicateEmail,
   hasActiveAgentRuns,
 } from './crud';
-export {
-  countArchivedClients,
-  getLatestArchivedAt,
-} from './crud-helpers';
+export { countArchivedClients, getLatestArchivedAt } from './crud-helpers';
 export {
   assignMemberToClient,
   revokeMemberAccess,

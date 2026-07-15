@@ -3,18 +3,24 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { RecentActivityFeed } from '../recent-activity-feed';
 
 vi.mock('next/link', () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
 }));
 
-function buildEntry(overrides: Partial<{
-  id: string;
-  agentId: string;
-  actionType: string;
-  correlationId: string;
-  createdAt: string;
-}> = {}) {
+function buildEntry(
+  overrides: Partial<{
+    id: string;
+    agentId: string;
+    actionType: string;
+    correlationId: string;
+    createdAt: string;
+  }> = {},
+) {
   return {
     id: overrides.id ?? 'entry-1',
     workspaceId: 'ws-1',
@@ -24,7 +30,8 @@ function buildEntry(overrides: Partial<{
     input: {},
     output: {},
     correlationId: overrides.correlationId ?? 'corr-1',
-    createdAt: overrides.createdAt ?? new Date('2025-06-15T12:00:00Z').toISOString(),
+    createdAt:
+      overrides.createdAt ?? new Date('2025-06-15T12:00:00Z').toISOString(),
     updatedAt: new Date('2025-06-15T12:00:00Z').toISOString(),
     jobId: 'job-1',
     signalId: null,
@@ -44,8 +51,13 @@ function buildEntry(overrides: Partial<{
 }
 
 describe('RecentActivityFeed', () => {
-  beforeEach(() => { vi.useFakeTimers({ now: new Date('2025-06-15T12:00:00Z') }); });
-  afterEach(() => { cleanup(); vi.useRealTimers(); });
+  beforeEach(() => {
+    vi.useFakeTimers({ now: new Date('2025-06-15T12:00:00Z') });
+  });
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
 
   it('renders empty state', () => {
     render(<RecentActivityFeed entries={[]} />);
@@ -65,7 +77,11 @@ describe('RecentActivityFeed', () => {
 
   it('renders relative time for older entries', () => {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    render(<RecentActivityFeed entries={[buildEntry({ createdAt: fiveMinutesAgo })]} />);
+    render(
+      <RecentActivityFeed
+        entries={[buildEntry({ createdAt: fiveMinutesAgo })]}
+      />,
+    );
     expect(screen.getByText('5m ago')).toBeDefined();
   });
 
@@ -73,18 +89,34 @@ describe('RecentActivityFeed', () => {
     const entries = [
       buildEntry({ id: 'e1', agentId: 'inbox', correlationId: 'corr-x' }),
       buildEntry({ id: 'e2', agentId: 'calendar', correlationId: 'corr-x' }),
-      buildEntry({ id: 'e3', agentId: 'ar-collection', correlationId: 'corr-x' }),
+      buildEntry({
+        id: 'e3',
+        agentId: 'ar-collection',
+        correlationId: 'corr-x',
+      }),
     ];
 
     render(<RecentActivityFeed entries={entries} />);
     expect(screen.getByText('3-agent coordination completed')).toBeDefined();
-    expect(screen.getByText(/\(Inbox, Calendar, AR Collection\)/)).toBeDefined();
+    expect(
+      screen.getByText(/\(Inbox, Calendar, AR Collection\)/),
+    ).toBeDefined();
   });
 
   it('renders single entries when correlationId has fewer than 3 entries', () => {
     const entries = [
-      buildEntry({ id: 'e1', agentId: 'inbox', correlationId: 'corr-x', actionType: 'categorize-email' }),
-      buildEntry({ id: 'e2', agentId: 'calendar', correlationId: 'corr-x', actionType: 'schedule-check' }),
+      buildEntry({
+        id: 'e1',
+        agentId: 'inbox',
+        correlationId: 'corr-x',
+        actionType: 'categorize-email',
+      }),
+      buildEntry({
+        id: 'e2',
+        agentId: 'calendar',
+        correlationId: 'corr-x',
+        actionType: 'schedule-check',
+      }),
     ];
 
     render(<RecentActivityFeed entries={entries} />);
@@ -96,7 +128,9 @@ describe('RecentActivityFeed', () => {
   it('shows View full timeline link', () => {
     render(<RecentActivityFeed entries={[buildEntry()]} />);
     const links = screen.getAllByRole('link');
-    const timelineLink = links.find((l) => l.getAttribute('href') === '/agents/activity');
+    const timelineLink = links.find(
+      (l) => l.getAttribute('href') === '/agents/activity',
+    );
     expect(timelineLink).toBeDefined();
     expect(timelineLink!.textContent).toContain('View full timeline');
   });
@@ -104,9 +138,22 @@ describe('RecentActivityFeed', () => {
   it('renders mixed single and grouped entries', () => {
     const entries = [
       buildEntry({ id: 'e1', agentId: 'inbox', correlationId: 'corr-group' }),
-      buildEntry({ id: 'e2', agentId: 'calendar', correlationId: 'corr-group' }),
-      buildEntry({ id: 'e3', agentId: 'ar-collection', correlationId: 'corr-group' }),
-      buildEntry({ id: 'e4', agentId: 'weekly-report', correlationId: 'corr-solo', actionType: 'weekly-digest' }),
+      buildEntry({
+        id: 'e2',
+        agentId: 'calendar',
+        correlationId: 'corr-group',
+      }),
+      buildEntry({
+        id: 'e3',
+        agentId: 'ar-collection',
+        correlationId: 'corr-group',
+      }),
+      buildEntry({
+        id: 'e4',
+        agentId: 'weekly-report',
+        correlationId: 'corr-solo',
+        actionType: 'weekly-digest',
+      }),
     ];
 
     render(<RecentActivityFeed entries={entries} />);
@@ -117,7 +164,11 @@ describe('RecentActivityFeed', () => {
 
   it('limits display to 5 items maximum', () => {
     const entries = Array.from({ length: 8 }, (_, i) =>
-      buildEntry({ id: `e${i}`, correlationId: `corr-${i}`, actionType: `action-${i}` }),
+      buildEntry({
+        id: `e${i}`,
+        correlationId: `corr-${i}`,
+        actionType: `action-${i}`,
+      }),
     );
 
     render(<RecentActivityFeed entries={entries} />);
@@ -127,13 +178,21 @@ describe('RecentActivityFeed', () => {
 
   it('renders hours ago for entries older than 60 minutes', () => {
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-    render(<RecentActivityFeed entries={[buildEntry({ createdAt: twoHoursAgo })]} />);
+    render(
+      <RecentActivityFeed entries={[buildEntry({ createdAt: twoHoursAgo })]} />,
+    );
     expect(screen.getByText('2h ago')).toBeDefined();
   });
 
   it('renders days ago for entries older than 24 hours', () => {
-    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
-    render(<RecentActivityFeed entries={[buildEntry({ createdAt: threeDaysAgo })]} />);
+    const threeDaysAgo = new Date(
+      Date.now() - 3 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    render(
+      <RecentActivityFeed
+        entries={[buildEntry({ createdAt: threeDaysAgo })]}
+      />,
+    );
     expect(screen.getByText('3d ago')).toBeDefined();
   });
 });

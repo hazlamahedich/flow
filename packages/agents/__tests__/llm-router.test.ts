@@ -1,8 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createLLMRouter, NoAvailableProviderError } from '../shared/llm-router';
+import {
+  createLLMRouter,
+  NoAvailableProviderError,
+} from '../shared/llm-router';
 import type { CircuitBreakerPort } from '@flow/shared';
 
-function createFakeCircuitBreaker(overrides: Partial<CircuitBreakerPort> = {}): CircuitBreakerPort {
+function createFakeCircuitBreaker(
+  overrides: Partial<CircuitBreakerPort> = {},
+): CircuitBreakerPort {
   return {
     canExecute: vi.fn().mockReturnValue(true),
     recordSuccess: vi.fn(),
@@ -26,19 +31,23 @@ describe('createLLMRouter', () => {
   });
 
   it('reports unhealthy when circuit breaker blocks execution', () => {
-    const cb = createFakeCircuitBreaker({ canExecute: vi.fn().mockReturnValue(false) });
+    const cb = createFakeCircuitBreaker({
+      canExecute: vi.fn().mockReturnValue(false),
+    });
     const router = createLLMRouter(cb);
     expect(router.isHealthy('groq')).toBe(false);
   });
 
   it('throws NoAvailableProviderError when all circuits are open', async () => {
-    const cb = createFakeCircuitBreaker({ canExecute: vi.fn().mockReturnValue(false) });
+    const cb = createFakeCircuitBreaker({
+      canExecute: vi.fn().mockReturnValue(false),
+    });
     const router = createLLMRouter(cb);
     await expect(
-      router.complete(
-        [{ role: 'user', content: 'test' }],
-        { workspaceId: 'ws-1', agentId: 'inbox' },
-      ),
+      router.complete([{ role: 'user', content: 'test' }], {
+        workspaceId: 'ws-1',
+        agentId: 'inbox',
+      }),
     ).rejects.toThrow(NoAvailableProviderError);
   });
 

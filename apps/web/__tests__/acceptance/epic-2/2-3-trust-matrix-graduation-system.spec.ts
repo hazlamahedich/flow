@@ -90,7 +90,9 @@ describe('Story 2.3: Trust Matrix & Graduation System', () => {
 
     test('[P0] should enforce 7-day cooldown between automatic trust suggestions (FR30)', () => {
       const now = new Date();
-      const cooldownUntil = new Date(now.getTime() + COOLDOWN_DAYS * MS_PER_DAY);
+      const cooldownUntil = new Date(
+        now.getTime() + COOLDOWN_DAYS * MS_PER_DAY,
+      );
       const result = canGraduate({
         currentLevel: 'supervised',
         score: 80,
@@ -139,7 +141,13 @@ describe('Story 2.3: Trust Matrix & Graduation System', () => {
   describe('User-Defined Pre-Conditions', () => {
     test('[P0] should enforce user-defined pre-conditions before agent acts (FR33)', () => {
       const result = evaluatePreconditions(
-        [{ condition_key: 'business_hours', condition_expr: 'true', is_active: true }],
+        [
+          {
+            condition_key: 'business_hours',
+            condition_expr: 'true',
+            is_active: true,
+          },
+        ],
         { business_hours: 'false' },
       );
       expect(result.passed).toBe(false);
@@ -148,7 +156,13 @@ describe('Story 2.3: Trust Matrix & Graduation System', () => {
 
     test('[P1] should evaluate pre-conditions and block action if unmet', () => {
       const result = evaluatePreconditions(
-        [{ condition_key: 'mode', condition_expr: 'production', is_active: true }],
+        [
+          {
+            condition_key: 'mode',
+            condition_expr: 'production',
+            is_active: true,
+          },
+        ],
         { mode: 'production' },
       );
       expect(result.passed).toBe(true);
@@ -171,9 +185,14 @@ describe('Story 2.3: Trust Matrix & Graduation System', () => {
   describe('Trust & RLS Independence', () => {
     test('[P0] should keep packages/trust interface independent from RLS', () => {
       const trustExports = [
-        'TrustLevelSchema', 'AgentIdSchema', 'TrustDecisionSchema',
-        'applyViolation', 'canGraduate', 'evaluateTransition',
-        'evaluatePreconditions', 'calculateScoreChange',
+        'TrustLevelSchema',
+        'AgentIdSchema',
+        'TrustDecisionSchema',
+        'applyViolation',
+        'canGraduate',
+        'evaluateTransition',
+        'evaluatePreconditions',
+        'calculateScoreChange',
       ];
       for (const exp of trustExports) {
         expect(exp.length).toBeGreaterThan(0);
@@ -187,7 +206,9 @@ describe('Story 2.3: Trust Matrix & Graduation System', () => {
 
   describe('Trust Regression & Dignified Rollback Language', () => {
     test('[P1] should use dignified rollback language in regression UI (UX-DR18)', () => {
-      expect(TRUST_BADGE_DISPLAY.regressing.label).toMatch(/change|together|closer/i);
+      expect(TRUST_BADGE_DISPLAY.regressing.label).toMatch(
+        /change|together|closer/i,
+      );
     });
 
     test('[P0] should apply violation rollback correctly (FR31)', () => {

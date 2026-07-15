@@ -16,7 +16,13 @@ interface ApprovalQueueProps {
   workspaceId: string;
 }
 
-export function ApprovalQueue({ initialItems, agentBreakdown, totalCount, trustStaleIds, workspaceId }: ApprovalQueueProps) {
+export function ApprovalQueue({
+  initialItems,
+  agentBreakdown,
+  totalCount,
+  trustStaleIds,
+  workspaceId,
+}: ApprovalQueueProps) {
   const [items, setItems] = useState(initialItems);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Map<string, string>>(new Map());
@@ -60,69 +66,94 @@ export function ApprovalQueue({ initialItems, agentBreakdown, totalCount, trustS
 
   useApprovalRealtime({ workspaceId, onNewItem });
 
-  const handleAction = useCallback(async (
-    runId: string,
-    actionFn: (input: unknown) => Promise<{ success: boolean; data?: { newStatus?: AgentRunStatus }; error?: { message: string } }>,
-    input: unknown,
-    actionLabel: string,
-    itemLabel: string,
-  ) => {
-    executeOptimistic(runId, 'completed');
-    const result = await actionFn(input);
-    if (result.success) {
-      removeItems([runId]);
-      announce(`${actionLabel} — ${itemLabel}`);
-    } else {
-      handleError(runId, result.error?.message ?? 'Action failed');
-      announce(`Failed to ${actionLabel.toLowerCase()} — ${itemLabel}`);
-    }
-  }, [executeOptimistic, removeItems, announce, handleError]);
-
-  const onApprove = useCallback((id: string) => {
-    void (async () => {
-      const { approveRun } = await import('../actions/approve-run');
-      const item = items.find((i) => i.run.id === id);
-      const label = item
-        ? `${AGENT_LABELS[item.run.agentId] ?? item.run.agentId} proposal`
-        : id;
-      await handleAction(id, approveRun, { runId: id }, 'Approved', label);
-    })();
-  }, [items, handleAction]);
-
-  const onReject = useCallback((id: string) => {
-    void (async () => {
-      const { rejectRun } = await import('../actions/reject-run');
-      const item = items.find((i) => i.run.id === id);
-      const label = item
-        ? `${AGENT_LABELS[item.run.agentId] ?? item.run.agentId} proposal`
-        : id;
-      await handleAction(id, rejectRun, { runId: id }, 'Rejected', label);
-    })();
-  }, [items, handleAction]);
-
-  const onBatchApprove = useCallback((ids: string[]) => {
-    void (async () => {
-      const { batchApproveRuns } = await import('../actions/batch-approve-runs');
-      const result = await batchApproveRuns({ runIds: ids });
+  const handleAction = useCallback(
+    async (
+      runId: string,
+      actionFn: (input: unknown) => Promise<{
+        success: boolean;
+        data?: { newStatus?: AgentRunStatus };
+        error?: { message: string };
+      }>,
+      input: unknown,
+      actionLabel: string,
+      itemLabel: string,
+    ) => {
+      executeOptimistic(runId, 'completed');
+      const result = await actionFn(input);
       if (result.success) {
-        removeItems(result.data.succeeded.map((s) => s.runId));
-        result.data.failed.forEach((f) => handleError(f.runId, f.error));
-        announce(`Batch approved ${result.data.succeeded.length} items${result.data.failed.length > 0 ? `, ${result.data.failed.length} failed` : ''}`);
+        removeItems([runId]);
+        announce(`${actionLabel} — ${itemLabel}`);
+      } else {
+        handleError(runId, result.error?.message ?? 'Action failed');
+        announce(`Failed to ${actionLabel.toLowerCase()} — ${itemLabel}`);
       }
-    })();
-  }, [removeItems, handleError, announce]);
+    },
+    [executeOptimistic, removeItems, announce, handleError],
+  );
 
-  const onBatchReject = useCallback((ids: string[]) => {
-    void (async () => {
-      const { batchRejectRuns } = await import('../actions/batch-reject-runs');
-      const result = await batchRejectRuns({ runIds: ids });
-      if (result.success) {
-        removeItems(result.data.succeeded.map((s) => s.runId));
-        result.data.failed.forEach((f) => handleError(f.runId, f.error));
-        announce(`Batch rejected ${result.data.succeeded.length} items${result.data.failed.length > 0 ? `, ${result.data.failed.length} failed` : ''}`);
-      }
-    })();
-  }, [removeItems, handleError, announce]);
+  const onApprove = useCallback(
+    (id: string) => {
+      void (async () => {
+        const { approveRun } = await import('../actions/approve-run');
+        const item = items.find((i) => i.run.id === id);
+        const label = item
+          ? `${AGENT_LABELS[item.run.agentId] ?? item.run.agentId} proposal`
+          : id;
+        await handleAction(id, approveRun, { runId: id }, 'Approved', label);
+      })();
+    },
+    [items, handleAction],
+  );
+
+  const onReject = useCallback(
+    (id: string) => {
+      void (async () => {
+        const { rejectRun } = await import('../actions/reject-run');
+        const item = items.find((i) => i.run.id === id);
+        const label = item
+          ? `${AGENT_LABELS[item.run.agentId] ?? item.run.agentId} proposal`
+          : id;
+        await handleAction(id, rejectRun, { runId: id }, 'Rejected', label);
+      })();
+    },
+    [items, handleAction],
+  );
+
+  const onBatchApprove = useCallback(
+    (ids: string[]) => {
+      void (async () => {
+        const { batchApproveRuns } =
+          await import('../actions/batch-approve-runs');
+        const result = await batchApproveRuns({ runIds: ids });
+        if (result.success) {
+          removeItems(result.data.succeeded.map((s) => s.runId));
+          result.data.failed.forEach((f) => handleError(f.runId, f.error));
+          announce(
+            `Batch approved ${result.data.succeeded.length} items${result.data.failed.length > 0 ? `, ${result.data.failed.length} failed` : ''}`,
+          );
+        }
+      })();
+    },
+    [removeItems, handleError, announce],
+  );
+
+  const onBatchReject = useCallback(
+    (ids: string[]) => {
+      void (async () => {
+        const { batchRejectRuns } =
+          await import('../actions/batch-reject-runs');
+        const result = await batchRejectRuns({ runIds: ids });
+        if (result.success) {
+          removeItems(result.data.succeeded.map((s) => s.runId));
+          result.data.failed.forEach((f) => handleError(f.runId, f.error));
+          announce(
+            `Batch rejected ${result.data.succeeded.length} items${result.data.failed.length > 0 ? `, ${result.data.failed.length} failed` : ''}`,
+          );
+        }
+      })();
+    },
+    [removeItems, handleError, announce],
+  );
 
   const handleModeChange = useCallback((newMode: string) => {
     if (newMode === 'edit') {
@@ -158,12 +189,16 @@ export function ApprovalQueue({ initialItems, agentBreakdown, totalCount, trustS
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="text-4xl mb-4" aria-hidden="true">{'\u2713'}</div>
+        <div className="text-4xl mb-4" aria-hidden="true">
+          {'\u2713'}
+        </div>
         <p className="text-lg font-medium text-[var(--flow-text-primary)]">
           All clear — your agents handled everything.
         </p>
         <p className="mt-1 text-sm text-[var(--flow-text-secondary)]">
-          {totalCount > 0 ? `${totalCount} items reviewed this session.` : 'No items pending.'}
+          {totalCount > 0
+            ? `${totalCount} items reviewed this session.`
+            : 'No items pending.'}
         </p>
       </div>
     );
@@ -171,12 +206,16 @@ export function ApprovalQueue({ initialItems, agentBreakdown, totalCount, trustS
 
   return (
     <div onKeyDown={handleKeyDown} tabIndex={-1}>
-      <div id="approval-queue-start" className="sr-only">Approval queue — {items.length} items</div>
+      <div id="approval-queue-start" className="sr-only">
+        Approval queue — {items.length} items
+      </div>
 
       <div
         ref={queueRef}
         role="list"
-        aria-activedescendant={focusedItemId ? `proposal-${focusedItemId}` : undefined}
+        aria-activedescendant={
+          focusedItemId ? `proposal-${focusedItemId}` : undefined
+        }
         aria-label="Approval queue"
         className="space-y-3 focus:outline-none"
       >
@@ -201,23 +240,18 @@ export function ApprovalQueue({ initialItems, agentBreakdown, totalCount, trustS
         ))}
       </div>
 
-      <div
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
         {announcement}
       </div>
 
-      <div
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
         {modeAnnouncement}
       </div>
 
-      <div className="fixed bottom-4 right-4 rounded-[var(--flow-radius-md)] bg-[var(--flow-bg-surface)] border border-[var(--flow-border-default)] px-3 py-1.5 text-xs font-medium text-[var(--flow-text-secondary)] shadow-[var(--flow-shadow-md)]" aria-hidden="true">
+      <div
+        className="fixed bottom-4 right-4 rounded-[var(--flow-radius-md)] bg-[var(--flow-bg-surface)] border border-[var(--flow-border-default)] px-3 py-1.5 text-xs font-medium text-[var(--flow-text-secondary)] shadow-[var(--flow-shadow-md)]"
+        aria-hidden="true"
+      >
         {modeIndicator}
       </div>
     </div>

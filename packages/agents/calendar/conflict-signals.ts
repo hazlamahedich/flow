@@ -38,7 +38,14 @@ const CALENDAR_AGENT_ID = 'calendar' as const;
 export async function writeConflictSignals(
   params: WriteConflictSignalsParams,
 ): Promise<string[]> {
-  const { supabase, workspaceId, clientId, conflicts, correlationId, causationId } = params;
+  const {
+    supabase,
+    workspaceId,
+    clientId,
+    conflicts,
+    correlationId,
+    causationId,
+  } = params;
 
   if (conflicts.length === 0) {
     return [];

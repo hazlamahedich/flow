@@ -11,7 +11,9 @@ interface AgentDemoStepProps {
 export function AgentDemoStep({ demoDelayMs = 1500 }: AgentDemoStepProps) {
   const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
-  const [showDraft, setShowDraft] = useState(prefersReducedMotion || demoDelayMs === 0);
+  const [showDraft, setShowDraft] = useState(
+    prefersReducedMotion || demoDelayMs === 0,
+  );
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
   useEffect(() => {
@@ -52,7 +54,9 @@ export function AgentDemoStep({ demoDelayMs = 1500 }: AgentDemoStepProps) {
                   aria-describedby="imperfection-tooltip"
                   onClick={() => setTooltipOpen(!tooltipOpen)}
                   onBlur={() => setTooltipOpen(false)}
-                  onKeyDown={(e) => { if (e.key === 'Escape') setTooltipOpen(false); }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setTooltipOpen(false);
+                  }}
                 >
                   [confirm meeting time]
                 </button>

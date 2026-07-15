@@ -32,9 +32,15 @@ export async function savePortalBrandingAction(
   const parsed = brandingConfigSchema.safeParse(input);
   if (!parsed.success) {
     return failure(
-      createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation', {
-        issues: parsed.error.issues,
-      }),
+      createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+        {
+          issues: parsed.error.issues,
+        },
+      ),
     );
   }
 

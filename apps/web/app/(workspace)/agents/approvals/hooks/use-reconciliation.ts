@@ -15,7 +15,7 @@ export function useReconciliation<T>(
     onSuccess?: (data: T) => void;
     onRollback?: (data: T) => void;
     delayMs?: number;
-  } = {}
+  } = {},
 ) {
   const [state, setState] = useState<ReconciliationState<T>>({
     pendingAction: null,
@@ -30,38 +30,45 @@ export function useReconciliation<T>(
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
-      setState(prev => ({ ...prev, pendingAction: null }));
+      setState((prev) => ({ ...prev, pendingAction: null }));
     }
   }, []);
 
-  const execute = useCallback(async (data: T) => {
-    // 1. Set optimistic state
-    setState(prev => ({ ...prev, pendingAction: data, error: null }));
+  const execute = useCallback(
+    async (data: T) => {
+      // 1. Set optimistic state
+      setState((prev) => ({ ...prev, pendingAction: data, error: null }));
 
-    // 2. Start delay timer
-    if (timerRef.current) clearTimeout(timerRef.current);
+      // 2. Start delay timer
+      if (timerRef.current) clearTimeout(timerRef.current);
 
-    timerRef.current = setTimeout(async () => {
-      setState(prev => ({ ...prev, isProcessing: true }));
-      
-      try {
-        const result = await action(data);
-        
-        if (result.success) {
-          setState({ pendingAction: null, isProcessing: false, error: null });
-          if (options.onSuccess) options.onSuccess(data);
-        } else {
-          throw new Error(result.error?.message || 'Action failed');
+      timerRef.current = setTimeout(async () => {
+        setState((prev) => ({ ...prev, isProcessing: true }));
+
+        try {
+          const result = await action(data);
+
+          if (result.success) {
+            setState({ pendingAction: null, isProcessing: false, error: null });
+            if (options.onSuccess) options.onSuccess(data);
+          } else {
+            throw new Error(result.error?.message || 'Action failed');
+          }
+        } catch (err: any) {
+          setState({
+            pendingAction: null,
+            isProcessing: false,
+            error: err.message,
+          });
+          if (options.onRollback) options.onRollback(data);
+          toast.error(`Failed to process action: ${err.message}`);
+        } finally {
+          timerRef.current = null;
         }
-      } catch (err: any) {
-        setState({ pendingAction: null, isProcessing: false, error: err.message });
-        if (options.onRollback) options.onRollback(data);
-        toast.error(`Failed to process action: ${err.message}`);
-      } finally {
-        timerRef.current = null;
-      }
-    }, delayMs);
-  }, [action, delayMs, options]);
+      }, delayMs);
+    },
+    [action, delayMs, options],
+  );
 
   return {
     ...state,

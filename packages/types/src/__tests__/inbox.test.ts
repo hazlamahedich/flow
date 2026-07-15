@@ -12,7 +12,9 @@ describe('inbox types and schemas', () => {
     it('accepts valid access types', () => {
       expect(inboxAccessTypeEnum.parse('direct')).toBe('direct');
       expect(inboxAccessTypeEnum.parse('delegated')).toBe('delegated');
-      expect(inboxAccessTypeEnum.parse('service_account')).toBe('service_account');
+      expect(inboxAccessTypeEnum.parse('service_account')).toBe(
+        'service_account',
+      );
     });
 
     it('rejects invalid access type', () => {
@@ -22,7 +24,12 @@ describe('inbox types and schemas', () => {
 
   describe('syncStatusEnum', () => {
     it('accepts valid sync statuses', () => {
-      for (const status of ['connected', 'syncing', 'error', 'disconnected'] as const) {
+      for (const status of [
+        'connected',
+        'syncing',
+        'error',
+        'disconnected',
+      ] as const) {
         expect(syncStatusEnum.parse(status)).toBe(status);
       }
     });
@@ -98,7 +105,10 @@ describe('inbox types and schemas', () => {
 
     it('rejects invalid email', () => {
       expect(() =>
-        gmailPubSubMessageSchema.parse({ emailAddress: 'not-email', historyId: '1' }),
+        gmailPubSubMessageSchema.parse({
+          emailAddress: 'not-email',
+          historyId: '1',
+        }),
       ).toThrow();
     });
   });

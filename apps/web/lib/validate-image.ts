@@ -7,7 +7,11 @@ type MagicBytesResult =
   | { valid: true; mimeType: 'image/jpeg' | 'image/png' | 'image/webp' }
   | { valid: false };
 
-function bytesMatch(buffer: Uint8Array, offset: number, magic: number[]): boolean {
+function bytesMatch(
+  buffer: Uint8Array,
+  offset: number,
+  magic: number[],
+): boolean {
   for (let i = 0; i < magic.length; i++) {
     if (buffer[offset + i] !== magic[i]) return false;
   }

@@ -55,11 +55,15 @@ describe('updateProfile', () => {
   it('returns validation error for empty name', async () => {
     const result = await updateProfile({ name: '', timezone: 'UTC' });
     expect(result.success).toBe(false);
-    expect(result.success === false && result.error.code).toBe('VALIDATION_ERROR');
+    expect(result.success === false && result.error.code).toBe(
+      'VALIDATION_ERROR',
+    );
   });
 
   it('returns unauthorized when no session', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser(null) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser(null) as never,
+    );
     const result = await updateProfile({ name: 'Valid Name', timezone: 'UTC' });
     expect(result.success).toBe(false);
     expect(result.success === false && result.error.code).toBe('UNAUTHORIZED');
@@ -78,11 +82,16 @@ describe('updateProfile', () => {
       updatedAt: new Date().toISOString(),
     };
 
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser(mockUser) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser(mockUser) as never,
+    );
     mockUpdateUserProfile.mockResolvedValue(undefined);
     mockGetUserProfile.mockResolvedValue(mockProfile);
 
-    const result = await updateProfile({ name: 'Updated Name', timezone: 'America/New_York' });
+    const result = await updateProfile({
+      name: 'Updated Name',
+      timezone: 'America/New_York',
+    });
 
     expect(result.success).toBe(true);
     expect(result.success === true && result.data.name).toBe('Updated Name');

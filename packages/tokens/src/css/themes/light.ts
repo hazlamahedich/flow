@@ -12,13 +12,19 @@ import { zIndex } from '../../z-index';
 import { layout } from '../../layout';
 import { breakpoints } from '../../breakpoints';
 
-function objectToCustomProperties(obj: Readonly<Record<string, string>>): string {
-  return Object.entries(obj).map(([key, value]) => `${key}: ${value};`).join('\n  ');
+function objectToCustomProperties(
+  obj: Readonly<Record<string, string>>,
+): string {
+  return Object.entries(obj)
+    .map(([key, value]) => `${key}: ${value};`)
+    .join('\n  ');
 }
 
 export function generateRootFallback(): string {
   const lines: string[] = [':root {'];
-  lines.push('  /* Fallback: applies when data-theme attribute is missing (e.g. before JS hydration) */');
+  lines.push(
+    '  /* Fallback: applies when data-theme attribute is missing (e.g. before JS hydration) */',
+  );
   lines.push('  ' + objectToCustomProperties(lightSemanticColors));
   lines.push('  ' + objectToCustomProperties(agentColors));
   lines.push('  ' + objectToCustomProperties(emotionalTokens));
@@ -59,8 +65,12 @@ export function generateRootFallback(): string {
   lines.push(`  --flow-focus-ring-offset: ${focusRing.offset};`);
   lines.push(`  --flow-focus-ring-color: ${focusRing.color};`);
   lines.push(`  --flow-focus-ring-dark-glow: ${focusRing.darkGlow};`);
-  lines.push(`  --flow-state-hover-brightness: ${states.light.hoverBrightness};`);
-  lines.push(`  --flow-state-active-brightness: ${states.light.activeBrightness};`);
+  lines.push(
+    `  --flow-state-hover-brightness: ${states.light.hoverBrightness};`,
+  );
+  lines.push(
+    `  --flow-state-active-brightness: ${states.light.activeBrightness};`,
+  );
   lines.push(`  --flow-state-disabled-opacity: ${states.disabledOpacity};`);
   lines.push(`  --flow-state-readonly-opacity: ${states.readonlyOpacity};`);
   lines.push(`  --flow-state-overlay-hover: ${states.overlayHoverLight};`);
@@ -142,8 +152,12 @@ export function generateLightTheme(): string {
   lines.push(`  --flow-focus-ring-dark-glow: ${focusRing.darkGlow};`);
 
   lines.push('\n  /* Interactive States */');
-  lines.push(`  --flow-state-hover-brightness: ${states.light.hoverBrightness};`);
-  lines.push(`  --flow-state-active-brightness: ${states.light.activeBrightness};`);
+  lines.push(
+    `  --flow-state-hover-brightness: ${states.light.hoverBrightness};`,
+  );
+  lines.push(
+    `  --flow-state-active-brightness: ${states.light.activeBrightness};`,
+  );
   lines.push(`  --flow-state-disabled-opacity: ${states.disabledOpacity};`);
   lines.push(`  --flow-state-readonly-opacity: ${states.readonlyOpacity};`);
   lines.push(`  --flow-state-overlay-hover: ${states.overlayHoverLight};`);
@@ -159,7 +173,9 @@ export function generateLightTheme(): string {
   lines.push(`  --flow-main-content: ${layout.mainContent};`);
   lines.push(`  --flow-detail-pane: ${layout.detailPane};`);
 
-  lines.push('\n  /* Breakpoints (CSS vars are for documentation only — use JS mediaQueries for @media) */');
+  lines.push(
+    '\n  /* Breakpoints (CSS vars are for documentation only — use JS mediaQueries for @media) */',
+  );
   for (const [key, value] of Object.entries(breakpoints)) {
     lines.push(`  --flow-breakpoint-${key}: ${value};`);
   }

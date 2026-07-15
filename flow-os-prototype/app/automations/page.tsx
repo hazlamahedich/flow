@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link';
 import {
   Activity,
   Bell,
@@ -10,29 +10,30 @@ import {
   Webhook as WebhookIcon,
   Layers,
   TrendingUp,
-} from "lucide-react";
-import { Topbar } from "@/components/topbar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { AgentIcon } from "@/components/agent-icon";
-import { ServiceIcon } from "@/components/service-icon";
-import { AutomationBuilder } from "@/components/automation-builder";
+} from 'lucide-react';
+import { Topbar } from '@/components/topbar';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { AgentIcon } from '@/components/agent-icon';
+import { ServiceIcon } from '@/components/service-icon';
+import { AutomationBuilder } from '@/components/automation-builder';
 import {
   automations,
   automationTemplates,
   tierAutomationLimits,
   type Automation,
   type FlowStep,
-} from "@/lib/automations";
-import { relTime } from "@/lib/utils";
+} from '@/lib/automations';
+import { relTime } from '@/lib/utils';
 
-const currentTier = "Pro" as const;
+const currentTier = 'Pro' as const;
 
 export default function AutomationsPage() {
-  const active = automations.filter((a) => a.status === "active");
+  const active = automations.filter((a) => a.status === 'active');
   const limit = tierAutomationLimits[currentTier];
-  const limitLabel = limit === Infinity ? "unlimited" : `${active.length}/${limit}`;
+  const limitLabel =
+    limit === Infinity ? 'unlimited' : `${active.length}/${limit}`;
 
   return (
     <>
@@ -50,10 +51,12 @@ export default function AutomationsPage() {
             </span>
             <div className="flex-1">
               <div className="text-sm font-semibold text-ink-900">
-                {active.length} of {limit === Infinity ? "∞" : limit} active automations on {currentTier}
+                {active.length} of {limit === Infinity ? '∞' : limit} active
+                automations on {currentTier}
               </div>
               <p className="text-xs text-ink-500 mt-0.5">
-                Free includes 3, Pro includes 20, Agency is unlimited. Each workspace maps to its own isolated Activepieces project.
+                Free includes 3, Pro includes 20, Agency is unlimited. Each
+                workspace maps to its own isolated Activepieces project.
               </p>
             </div>
             <div className="w-40 h-2 rounded-full bg-ink-100 overflow-hidden">
@@ -61,7 +64,12 @@ export default function AutomationsPage() {
                 className="h-full bg-flow-600 rounded-full"
                 style={{
                   width: `${
-                    limit === Infinity ? 100 : Math.min(100, Math.round((active.length / (limit as number)) * 100))
+                    limit === Infinity
+                      ? 100
+                      : Math.min(
+                          100,
+                          Math.round((active.length / (limit as number)) * 100),
+                        )
                   }%`,
                 }}
               />
@@ -80,7 +88,7 @@ export default function AutomationsPage() {
         <section>
           <SectionHeader
             title="Your automations"
-            subtitle={`${automations.length} total · ${active.length} active · ${automations.filter((a) => a.status === "paused").length} paused`}
+            subtitle={`${automations.length} total · ${active.length} active · ${automations.filter((a) => a.status === 'paused').length} paused`}
             right={
               <div className="flex gap-2">
                 <Button variant="outline" size="sm">
@@ -114,7 +122,9 @@ export default function AutomationsPage() {
                     {t.popular && <Badge tone="warn">popular</Badge>}
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-ink-900">{t.name}</h3>
+                    <h3 className="text-sm font-semibold text-ink-900">
+                      {t.name}
+                    </h3>
                     <p className="text-xs text-ink-600 mt-1">{t.description}</p>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-ink-100">
@@ -123,7 +133,9 @@ export default function AutomationsPage() {
                       <StepMini key={s.id} step={s} />
                     ))}
                     {t.steps.length > 4 && (
-                      <span className="text-[11px] text-ink-500">+{t.steps.length - 4}</span>
+                      <span className="text-[11px] text-ink-500">
+                        +{t.steps.length - 4}
+                      </span>
                     )}
                   </div>
                   <Button variant="outline" size="sm" className="w-full">
@@ -147,21 +159,29 @@ export default function AutomationsPage() {
                   Powered by Flow OS V2 — open-source infrastructure
                 </h3>
                 <p className="text-xs text-ink-600 mt-1">
-                  Automations run on Activepieces (MIT) with workspace-scoped projects. The NL builder
-                  uses a Vercel AI SDK structured-output translator backed by your chosen LLM provider.
-                  Failed runs surface in your Agent Inbox with full step traces.
+                  Automations run on Activepieces (MIT) with workspace-scoped
+                  projects. The NL builder uses a Vercel AI SDK
+                  structured-output translator backed by your chosen LLM
+                  provider. Failed runs surface in your Agent Inbox with full
+                  step traces.
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  {["Activepieces", "Qdrant", "Mem0", "LiteLLM", "Temporal", "Novu", "PostHog"].map(
-                    (t) => (
-                      <span
-                        key={t}
-                        className="text-[10px] rounded bg-ink-100 px-1.5 py-0.5 text-ink-700"
-                      >
-                        {t}
-                      </span>
-                    )
-                  )}
+                  {[
+                    'Activepieces',
+                    'Qdrant',
+                    'Mem0',
+                    'LiteLLM',
+                    'Temporal',
+                    'Novu',
+                    'PostHog',
+                  ].map((t) => (
+                    <span
+                      key={t}
+                      className="text-[10px] rounded bg-ink-100 px-1.5 py-0.5 text-ink-700"
+                    >
+                      {t}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
@@ -193,7 +213,8 @@ function SectionHeader({
 }
 
 function AutomationCard({ a }: { a: Automation }) {
-  const successRate = a.runs.total > 0 ? Math.round((a.runs.success / a.runs.total) * 100) : 100;
+  const successRate =
+    a.runs.total > 0 ? Math.round((a.runs.success / a.runs.total) * 100) : 100;
   return (
     <Link href={`/automations/${a.id}`}>
       <Card className="h-full hover:shadow-card transition-shadow">
@@ -206,10 +227,14 @@ function AutomationCard({ a }: { a: Automation }) {
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-sm font-semibold text-ink-900">{a.name}</h3>
                 <StatusBadge status={a.status} />
-                {a.source === "natural_language" && <Badge tone="violet">NL</Badge>}
-                {a.source === "template" && <Badge>template</Badge>}
+                {a.source === 'natural_language' && (
+                  <Badge tone="violet">NL</Badge>
+                )}
+                {a.source === 'template' && <Badge>template</Badge>}
               </div>
-              <p className="text-xs text-ink-600 mt-1 line-clamp-2">{a.description}</p>
+              <p className="text-xs text-ink-600 mt-1 line-clamp-2">
+                {a.description}
+              </p>
             </div>
           </div>
 
@@ -219,7 +244,9 @@ function AutomationCard({ a }: { a: Automation }) {
               <StepMini key={s.id} step={s} />
             ))}
             {a.steps.length > 5 && (
-              <span className="text-[11px] text-ink-500">+{a.steps.length - 5}</span>
+              <span className="text-[11px] text-ink-500">
+                +{a.steps.length - 5}
+              </span>
             )}
           </div>
 
@@ -232,12 +259,14 @@ function AutomationCard({ a }: { a: Automation }) {
               <div className="text-[10px] text-ink-500">success</div>
             </div>
             <div>
-              <div className="text-xs font-semibold text-ink-900">{a.runs.total}</div>
+              <div className="text-xs font-semibold text-ink-900">
+                {a.runs.total}
+              </div>
               <div className="text-[10px] text-ink-500">total runs</div>
             </div>
             <div>
               <div className="text-xs font-semibold text-ink-900">
-                {a.lastRun ? relTime(a.lastRun.at) : "—"}
+                {a.lastRun ? relTime(a.lastRun.at) : '—'}
               </div>
               <div className="text-[10px] text-ink-500">last run</div>
             </div>
@@ -248,36 +277,51 @@ function AutomationCard({ a }: { a: Automation }) {
   );
 }
 
-function StatusBadge({ status }: { status: Automation["status"] }) {
-  if (status === "active") return <Badge tone="success">active</Badge>;
-  if (status === "paused") return <Badge tone="warn">paused</Badge>;
-  if (status === "draft") return <Badge>draft</Badge>;
+function StatusBadge({ status }: { status: Automation['status'] }) {
+  if (status === 'active') return <Badge tone="success">active</Badge>;
+  if (status === 'paused') return <Badge tone="warn">paused</Badge>;
+  if (status === 'draft') return <Badge>draft</Badge>;
   return <Badge tone="danger">error</Badge>;
 }
 
-function TriggerMini({ kind }: { kind: "agent_signal" | "schedule" | "webhook" | "manual" }) {
+function TriggerMini({
+  kind,
+}: {
+  kind: 'agent_signal' | 'schedule' | 'webhook' | 'manual';
+}) {
   const icon =
-    kind === "agent_signal" ? <Bell size={12} /> :
-    kind === "schedule" ? <Clock size={12} /> :
-    kind === "webhook" ? <WebhookIcon size={12} /> :
-    <Hand size={12} />;
+    kind === 'agent_signal' ? (
+      <Bell size={12} />
+    ) : kind === 'schedule' ? (
+      <Clock size={12} />
+    ) : kind === 'webhook' ? (
+      <WebhookIcon size={12} />
+    ) : (
+      <Hand size={12} />
+    );
   const tone =
-    kind === "agent_signal" ? "bg-flow-50 text-flow-700 ring-flow-200" :
-    kind === "schedule" ? "bg-amber-50 text-amber-700 ring-amber-200" :
-    kind === "webhook" ? "bg-violet-50 text-violet-700 ring-violet-200" :
-    "bg-ink-100 text-ink-700 ring-ink-200";
+    kind === 'agent_signal'
+      ? 'bg-flow-50 text-flow-700 ring-flow-200'
+      : kind === 'schedule'
+        ? 'bg-amber-50 text-amber-700 ring-amber-200'
+        : kind === 'webhook'
+          ? 'bg-violet-50 text-violet-700 ring-violet-200'
+          : 'bg-ink-100 text-ink-700 ring-ink-200';
   return (
-    <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-medium ring-1 ${tone}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-medium ring-1 ${tone}`}
+    >
       {icon}
-      {kind.replace("_", " ")}
+      {kind.replace('_', ' ')}
     </span>
   );
 }
 
 function StepMini({ step }: { step: FlowStep }) {
-  if (step.kind === "agent") return <AgentIcon k={step.agent} size={22} />;
-  if (step.kind === "service") return <ServiceIcon s={step.service} size={22} />;
-  if (step.kind === "condition") {
+  if (step.kind === 'agent') return <AgentIcon k={step.agent} size={22} />;
+  if (step.kind === 'service')
+    return <ServiceIcon s={step.service} size={22} />;
+  if (step.kind === 'condition') {
     return (
       <span className="size-[22px] rounded-md ring-1 ring-ink-200 bg-ink-100 grid place-items-center text-ink-700">
         <Filter size={12} />

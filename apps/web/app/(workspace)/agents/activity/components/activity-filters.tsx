@@ -17,16 +17,19 @@ export function ActivityFilters({ filters, totalCount }: ActivityFiltersProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [collapsed, setCollapsed] = useState(false);
 
-  const updateFilter = useCallback((key: string, value: string | undefined) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
-    params.delete('page');
-    router.push(`/agents/activity?${params.toString()}`);
-  }, [router, searchParams]);
+  const updateFilter = useCallback(
+    (key: string, value: string | undefined) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+      params.delete('page');
+      router.push(`/agents/activity?${params.toString()}`);
+    },
+    [router, searchParams],
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,7 +45,13 @@ export function ActivityFilters({ filters, totalCount }: ActivityFiltersProps) {
   }, []);
 
   return (
-    <div ref={containerRef} className="flex flex-wrap gap-3 items-center" role="search" aria-label="Filter agent activity" aria-keyshortcuts="f">
+    <div
+      ref={containerRef}
+      className="flex flex-wrap gap-3 items-center"
+      role="search"
+      aria-label="Filter agent activity"
+      aria-keyshortcuts="f"
+    >
       {!collapsed && (
         <>
           <select
@@ -53,13 +62,17 @@ export function ActivityFilters({ filters, totalCount }: ActivityFiltersProps) {
           >
             <option value="">All agents</option>
             {AGENT_IDS.map((id) => (
-              <option key={id} value={id}>{AGENT_IDENTITY[id].label}</option>
+              <option key={id} value={id}>
+                {AGENT_IDENTITY[id].label}
+              </option>
             ))}
           </select>
 
           <select
             value={filters.status ?? ''}
-            onChange={(e) => updateFilter('status', e.target.value || undefined)}
+            onChange={(e) =>
+              updateFilter('status', e.target.value || undefined)
+            }
             className="h-9 rounded-md border border-[var(--flow-color-border)] bg-[var(--flow-color-surface)] px-3 text-sm"
             aria-label="Filter by status"
           >
@@ -72,14 +85,18 @@ export function ActivityFilters({ filters, totalCount }: ActivityFiltersProps) {
           <input
             type="date"
             value={filters.dateFrom ?? ''}
-            onChange={(e) => updateFilter('dateFrom', e.target.value || undefined)}
+            onChange={(e) =>
+              updateFilter('dateFrom', e.target.value || undefined)
+            }
             className="h-9 rounded-md border border-[var(--flow-color-border)] bg-[var(--flow-color-surface)] px-3 text-sm"
             aria-label="From date"
           />
           <input
             type="date"
             value={filters.dateTo ?? ''}
-            onChange={(e) => updateFilter('dateTo', e.target.value || undefined)}
+            onChange={(e) =>
+              updateFilter('dateTo', e.target.value || undefined)
+            }
             className="h-9 rounded-md border border-[var(--flow-color-border)] bg-[var(--flow-color-surface)] px-3 text-sm"
             aria-label="To date"
           />

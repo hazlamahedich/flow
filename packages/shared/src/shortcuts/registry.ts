@@ -23,10 +23,13 @@ export function createShortcutRegistry(): ShortcutRegistry {
         existing.key === shortcut.key &&
         existing.context === shortcut.context
       ) {
-        if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+        if (
+          typeof process !== 'undefined' &&
+          process.env?.NODE_ENV === 'development'
+        ) {
           console.warn(
             `[ShortcutRegistry] Duplicate key "${shortcut.key}" in context "${shortcut.context}". ` +
-            `Existing: "${existing.description}", New: "${shortcut.description}".`,
+              `Existing: "${existing.description}", New: "${shortcut.description}".`,
           );
         }
       }

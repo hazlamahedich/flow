@@ -17,7 +17,12 @@ vi.mock('@/lib/supabase-server', () => ({ getServerSupabase: vi.fn() }));
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }));
 
 // Boundary mocks — service_role client + bulkArchiveClients + countActiveClients.
-const { mockServiceClient, mockBulkArchive, mockCountActive, mockGetTierConfig } = vi.hoisted(() => ({
+const {
+  mockServiceClient,
+  mockBulkArchive,
+  mockCountActive,
+  mockGetTierConfig,
+} = vi.hoisted(() => ({
   mockServiceClient: {
     from: vi.fn(),
   },
@@ -39,18 +44,25 @@ vi.mock('@flow/db', async () => {
     cacheTag: actual.cacheTag,
   };
 });
-vi.mock('@/lib/config/tier-config', () => ({ getTierConfig: mockGetTierConfig }));
+vi.mock('@/lib/config/tier-config', () => ({
+  getTierConfig: mockGetTierConfig,
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetTierConfig.mockResolvedValue({ tierLimits: { free: { maxClients: 2 } } });
+  mockGetTierConfig.mockResolvedValue({
+    tierLimits: { free: { maxClients: 2 } },
+  });
   // Workspace status check: subscription_status='active' by default.
   mockServiceClient.from.mockImplementation((table: string) => {
     if (table === 'workspaces') {
       return {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: { subscription_status: 'active' }, error: null }),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { subscription_status: 'active' },
+          error: null,
+        }),
       };
     }
     return {};
@@ -69,7 +81,11 @@ describe('[T4.8] downgradeSchema validation', () => {
   test('accepts Pro → Free downgrade', async () => {
     mockCountActive.mockResolvedValueOnce(2);
     const { applyDowngradeOnTierChange } = await loadModule();
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'pro', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'pro',
+      toTier: 'free',
+    });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toMatchObject({
@@ -81,9 +97,16 @@ describe('[T4.8] downgradeSchema validation', () => {
 
   test('accepts Agency → Free downgrade', async () => {
     mockCountActive.mockResolvedValueOnce(5);
-    mockBulkArchive.mockResolvedValueOnce({ archivedClientIds: ['c3', 'c4', 'c5'], preservedCount: 2 });
+    mockBulkArchive.mockResolvedValueOnce({
+      archivedClientIds: ['c3', 'c4', 'c5'],
+      preservedCount: 2,
+    });
     const { applyDowngradeOnTierChange } = await loadModule();
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'agency', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'agency',
+      toTier: 'free',
+    });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.archivedClientIds).toHaveLength(3);
@@ -106,10 +129,15 @@ describe('[T4.8] downgradeSchema validation', () => {
 
   test('D5: schema prevents Pro→Pro same-tier downgrade at input boundary', async () => {
     const { downgradeSchema } = await loadModule();
-    const parsed = downgradeSchema.safeParse({ fromTier: 'pro', toTier: 'pro' });
+    const parsed = downgradeSchema.safeParse({
+      fromTier: 'pro',
+      toTier: 'pro',
+    });
     expect(parsed.success).toBe(false);
     if (!parsed.success) {
-      const toTierErrors = parsed.error.issues.filter((i) => i.path.includes('toTier'));
+      const toTierErrors = parsed.error.issues.filter((i) =>
+        i.path.includes('toTier'),
+      );
       expect(toTierErrors.length).toBeGreaterThan(0);
     }
   });
@@ -134,9 +162,16 @@ describe('[T4.8] downgradeSchema validation', () => {
 describe('[T4.8] MRU-last archive logic', () => {
   test('archives excess clients via bulkArchiveClients (MRU-LAST)', async () => {
     mockCountActive.mockResolvedValueOnce(4);
-    mockBulkArchive.mockResolvedValueOnce({ archivedClientIds: ['c3', 'c4'], preservedCount: 2 });
+    mockBulkArchive.mockResolvedValueOnce({
+      archivedClientIds: ['c3', 'c4'],
+      preservedCount: 2,
+    });
     const { applyDowngradeOnTierChange } = await loadModule();
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'pro', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'pro',
+      toTier: 'free',
+    });
     expect(result.success).toBe(true);
     expect(mockBulkArchive).toHaveBeenCalledWith(expect.anything(), 'ws-1', 2);
     if (result.success) {
@@ -147,9 +182,16 @@ describe('[T4.8] MRU-last archive logic', () => {
   test('EC11 — Agency→Free with 50 clients archives 48 (Free=2)', async () => {
     mockCountActive.mockResolvedValueOnce(50);
     const archived = Array.from({ length: 48 }, (_, i) => `c${i + 3}`);
-    mockBulkArchive.mockResolvedValueOnce({ archivedClientIds: archived, preservedCount: 2 });
+    mockBulkArchive.mockResolvedValueOnce({
+      archivedClientIds: archived,
+      preservedCount: 2,
+    });
     const { applyDowngradeOnTierChange } = await loadModule();
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'agency', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'agency',
+      toTier: 'free',
+    });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.archivedClientIds).toHaveLength(48);
@@ -164,9 +206,16 @@ describe('[T4.8] MRU-last archive logic', () => {
 describe('[T4.8] no-delete guarantee', () => {
   test('downgrade never deletes — only calls bulkArchiveClients (status flip)', async () => {
     mockCountActive.mockResolvedValueOnce(3);
-    mockBulkArchive.mockResolvedValueOnce({ archivedClientIds: ['c3'], preservedCount: 2 });
+    mockBulkArchive.mockResolvedValueOnce({
+      archivedClientIds: ['c3'],
+      preservedCount: 2,
+    });
     const { applyDowngradeOnTierChange } = await loadModule();
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'pro', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'pro',
+      toTier: 'free',
+    });
     expect(result.success).toBe(true);
     // The function MUST call bulkArchiveClients (status flip) and never a DELETE.
     expect(mockBulkArchive).toHaveBeenCalledTimes(1);
@@ -174,9 +223,16 @@ describe('[T4.8] no-delete guarantee', () => {
 
   test('bulkArchiveClients archive-call shape does not include any delete verb', async () => {
     mockCountActive.mockResolvedValueOnce(5);
-    mockBulkArchive.mockResolvedValueOnce({ archivedClientIds: ['c3', 'c4', 'c5'], preservedCount: 2 });
+    mockBulkArchive.mockResolvedValueOnce({
+      archivedClientIds: ['c3', 'c4', 'c5'],
+      preservedCount: 2,
+    });
     const { applyDowngradeOnTierChange } = await loadModule();
-    await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'agency', toTier: 'free' });
+    await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'agency',
+      toTier: 'free',
+    });
     // Verify the call signature: (supabase, workspaceId, keepLimit). No delete flag.
     const [clientArg, wsArg, limitArg] = mockBulkArchive.mock.calls[0]!;
     expect(clientArg).toBeDefined();
@@ -191,9 +247,16 @@ describe('[T4.8] no-delete guarantee', () => {
 describe('[T4.8] return shape — { preservedCount, archivedClientIds, upgradePrompt }', () => {
   test('returns exact shape on archive', async () => {
     mockCountActive.mockResolvedValueOnce(4);
-    mockBulkArchive.mockResolvedValueOnce({ archivedClientIds: ['c3', 'c4'], preservedCount: 2 });
+    mockBulkArchive.mockResolvedValueOnce({
+      archivedClientIds: ['c3', 'c4'],
+      preservedCount: 2,
+    });
     const { applyDowngradeOnTierChange } = await loadModule();
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'pro', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'pro',
+      toTier: 'free',
+    });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toEqual({
@@ -207,7 +270,11 @@ describe('[T4.8] return shape — { preservedCount, archivedClientIds, upgradePr
   test('returns empty archivedClientIds + empty upgradePrompt when within limit', async () => {
     mockCountActive.mockResolvedValueOnce(2);
     const { applyDowngradeOnTierChange } = await loadModule();
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'pro', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'pro',
+      toTier: 'free',
+    });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.archivedClientIds).toEqual([]);
@@ -226,10 +293,17 @@ describe('[T4.8] EC12 — suspended workspace downgrade', () => {
     mockServiceClient.from.mockImplementationOnce(() => ({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { subscription_status: 'suspended' }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { subscription_status: 'suspended' },
+        error: null,
+      }),
     }));
     const { applyDowngradeOnTierChange } = await loadModule();
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'pro', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'pro',
+      toTier: 'free',
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('INVALID_STATE');
@@ -242,12 +316,22 @@ describe('[T4.8] EC12 — suspended workspace downgrade', () => {
     mockServiceClient.from.mockImplementationOnce(() => ({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { subscription_status: 'past_due' }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { subscription_status: 'past_due' },
+        error: null,
+      }),
     }));
     mockCountActive.mockResolvedValueOnce(4);
-    mockBulkArchive.mockResolvedValueOnce({ archivedClientIds: ['c3', 'c4'], preservedCount: 2 });
+    mockBulkArchive.mockResolvedValueOnce({
+      archivedClientIds: ['c3', 'c4'],
+      preservedCount: 2,
+    });
     const { applyDowngradeOnTierChange } = await loadModule();
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'pro', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'pro',
+      toTier: 'free',
+    });
     expect(result.success).toBe(true);
     expect(mockBulkArchive).toHaveBeenCalled();
   });
@@ -256,12 +340,22 @@ describe('[T4.8] EC12 — suspended workspace downgrade', () => {
     mockServiceClient.from.mockImplementationOnce(() => ({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { subscription_status: 'cancelled' }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { subscription_status: 'cancelled' },
+        error: null,
+      }),
     }));
     mockCountActive.mockResolvedValueOnce(4);
-    mockBulkArchive.mockResolvedValueOnce({ archivedClientIds: ['c3', 'c4'], preservedCount: 2 });
+    mockBulkArchive.mockResolvedValueOnce({
+      archivedClientIds: ['c3', 'c4'],
+      preservedCount: 2,
+    });
     const { applyDowngradeOnTierChange } = await loadModule();
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'pro', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'pro',
+      toTier: 'free',
+    });
     expect(result.success).toBe(true);
     expect(mockBulkArchive).toHaveBeenCalled();
   });
@@ -270,10 +364,17 @@ describe('[T4.8] EC12 — suspended workspace downgrade', () => {
     mockServiceClient.from.mockImplementationOnce(() => ({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { subscription_status: 'deleted' }, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { subscription_status: 'deleted' },
+        error: null,
+      }),
     }));
     const { applyDowngradeOnTierChange } = await loadModule();
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'pro', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'pro',
+      toTier: 'free',
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('INVALID_STATE');
@@ -288,7 +389,11 @@ describe('[T4.8] EC12 — suspended workspace downgrade', () => {
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     }));
     const { applyDowngradeOnTierChange } = await loadModule();
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-missing', fromTier: 'pro', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-missing',
+      fromTier: 'pro',
+      toTier: 'free',
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('WORKSPACE_NOT_FOUND');

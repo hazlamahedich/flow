@@ -10,7 +10,15 @@ import {
 
 describe('invoiceStatusEnum', () => {
   it('accepts all valid statuses', () => {
-    const statuses = ['draft', 'sent', 'viewed', 'partially_paid', 'paid', 'overdue', 'voided'];
+    const statuses = [
+      'draft',
+      'sent',
+      'viewed',
+      'partially_paid',
+      'paid',
+      'overdue',
+      'voided',
+    ];
     for (const s of statuses) {
       expect(invoiceStatusEnum.safeParse(s).success).toBe(true);
     }
@@ -148,7 +156,9 @@ describe('createInvoiceSchema', () => {
   });
 
   it('rejects empty lineItems', () => {
-    expect(createInvoiceSchema.safeParse({ ...validBase, lineItems: [] }).success).toBe(false);
+    expect(
+      createInvoiceSchema.safeParse({ ...validBase, lineItems: [] }).success,
+    ).toBe(false);
   });
 
   it('rejects more than 100 lineItems', () => {
@@ -158,7 +168,9 @@ describe('createInvoiceSchema', () => {
       quantity: 1,
       amountCents: 1000,
     }));
-    expect(createInvoiceSchema.safeParse({ ...validBase, lineItems: items }).success).toBe(false);
+    expect(
+      createInvoiceSchema.safeParse({ ...validBase, lineItems: items }).success,
+    ).toBe(false);
   });
 
   it('rejects 100 lineItems (boundary)', () => {
@@ -168,23 +180,35 @@ describe('createInvoiceSchema', () => {
       quantity: 1,
       amountCents: 1000,
     }));
-    expect(createInvoiceSchema.safeParse({ ...validBase, lineItems: items }).success).toBe(true);
+    expect(
+      createInvoiceSchema.safeParse({ ...validBase, lineItems: items }).success,
+    ).toBe(true);
   });
 
   it('rejects dueDate before issueDate', () => {
     expect(
-      createInvoiceSchema.safeParse({ ...validBase, issueDate: '2026-06-01', dueDate: '2026-05-01' }).success,
+      createInvoiceSchema.safeParse({
+        ...validBase,
+        issueDate: '2026-06-01',
+        dueDate: '2026-05-01',
+      }).success,
     ).toBe(false);
   });
 
   it('accepts dueDate equal to issueDate', () => {
     expect(
-      createInvoiceSchema.safeParse({ ...validBase, issueDate: '2026-05-26', dueDate: '2026-05-26' }).success,
+      createInvoiceSchema.safeParse({
+        ...validBase,
+        issueDate: '2026-05-26',
+        dueDate: '2026-05-26',
+      }).success,
     ).toBe(true);
   });
 
   it('accepts optional notes', () => {
-    expect(createInvoiceSchema.safeParse({ ...validBase, notes: 'Net 30' }).success).toBe(true);
+    expect(
+      createInvoiceSchema.safeParse({ ...validBase, notes: 'Net 30' }).success,
+    ).toBe(true);
   });
 
   it('accepts time_entry line items without amountCents', () => {
@@ -206,14 +230,19 @@ describe('createInvoiceSchema', () => {
 
   it('rejects invalid date format', () => {
     expect(
-      createInvoiceSchema.safeParse({ ...validBase, issueDate: '26-05-2026' }).success,
+      createInvoiceSchema.safeParse({ ...validBase, issueDate: '26-05-2026' })
+        .success,
     ).toBe(false);
   });
 });
 
 describe('updateInvoiceSchema', () => {
   it('accepts invoiceId only', () => {
-    expect(updateInvoiceSchema.safeParse({ invoiceId: '00000000-0000-0000-0000-000000000099' }).success).toBe(true);
+    expect(
+      updateInvoiceSchema.safeParse({
+        invoiceId: '00000000-0000-0000-0000-000000000099',
+      }).success,
+    ).toBe(true);
   });
 
   it('accepts notes null', () => {
@@ -238,7 +267,11 @@ describe('updateInvoiceSchema', () => {
 
 describe('voidInvoiceSchema', () => {
   it('rejects invoiceId without reason', () => {
-    expect(voidInvoiceSchema.safeParse({ invoiceId: '00000000-0000-0000-0000-000000000099' }).success).toBe(false);
+    expect(
+      voidInvoiceSchema.safeParse({
+        invoiceId: '00000000-0000-0000-0000-000000000099',
+      }).success,
+    ).toBe(false);
   });
 
   it('accepts invoiceId with reason', () => {

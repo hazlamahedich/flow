@@ -16,11 +16,19 @@ export function buildSectionsPayload(
 ): unknown[] {
   return activeSections.map((secType, index) => {
     let baseContent: Record<string, unknown> = {};
-    if (secType === 'time_summary') baseContent = { totalMinutes: aggregatedData.timeSummary.totalMinutes };
-    else if (secType === 'task_log') baseContent = { projects: aggregatedData.taskLog.projects };
-    else if (secType === 'agent_activity') baseContent = { runs: aggregatedData.agentActivity.runs };
-    else if (secType === 'invoice_summary') baseContent = aggregatedData.invoiceSummary as unknown as Record<string, unknown>;
-    else if (secType === 'stalled_items') baseContent = { items: aggregatedData.stalledItems };
+    if (secType === 'time_summary')
+      baseContent = { totalMinutes: aggregatedData.timeSummary.totalMinutes };
+    else if (secType === 'task_log')
+      baseContent = { projects: aggregatedData.taskLog.projects };
+    else if (secType === 'agent_activity')
+      baseContent = { runs: aggregatedData.agentActivity.runs };
+    else if (secType === 'invoice_summary')
+      baseContent = aggregatedData.invoiceSummary as unknown as Record<
+        string,
+        unknown
+      >;
+    else if (secType === 'stalled_items')
+      baseContent = { items: aggregatedData.stalledItems };
     return {
       section_type: secType,
       title: SECTION_TITLE_MAP[secType] ?? secType,
@@ -30,9 +38,15 @@ export function buildSectionsPayload(
   });
 }
 
-export function buildPreview(activeSections: string[], narratives: Record<string, string>): string {
+export function buildPreview(
+  activeSections: string[],
+  narratives: Record<string, string>,
+): string {
   return activeSections
     .slice(0, 3)
-    .map((secType) => `${SECTION_TITLE_MAP[secType] ?? secType}: ${narratives[secType] ?? ''}`)
+    .map(
+      (secType) =>
+        `${SECTION_TITLE_MAP[secType] ?? secType}: ${narratives[secType] ?? ''}`,
+    )
     .join('\n\n');
 }

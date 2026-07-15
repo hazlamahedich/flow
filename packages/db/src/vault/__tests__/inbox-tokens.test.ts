@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { encryptInboxTokens, decryptInboxTokens, rotateInboxTokens } from '../inbox-tokens';
+import {
+  encryptInboxTokens,
+  decryptInboxTokens,
+  rotateInboxTokens,
+} from '../inbox-tokens';
 import type { OAuthTokens } from '@flow/types';
 
 const mockTokens: OAuthTokens = {
@@ -47,7 +51,9 @@ describe('inbox-tokens vault', () => {
         ...encrypted,
         encrypted: 'A'.repeat(encrypted.encrypted.length),
       };
-      expect(() => decryptInboxTokens(tampered)).toThrow(/decryption failed|tampered/i);
+      expect(() => decryptInboxTokens(tampered)).toThrow(
+        /decryption failed|tampered/i,
+      );
     });
 
     it('throws on wrong key', () => {
@@ -58,7 +64,11 @@ describe('inbox-tokens vault', () => {
 
     it('throws on truncated ciphertext', () => {
       expect(() =>
-        decryptInboxTokens({ encrypted: Buffer.from('short').toString('base64'), iv: Buffer.alloc(12).toString('base64'), version: 1 }),
+        decryptInboxTokens({
+          encrypted: Buffer.from('short').toString('base64'),
+          iv: Buffer.alloc(12).toString('base64'),
+          version: 1,
+        }),
       ).toThrow();
     });
   });
@@ -66,7 +76,10 @@ describe('inbox-tokens vault', () => {
   describe('rotateInboxTokens', () => {
     it('replaces old tokens with new ones', () => {
       const encrypted = encryptInboxTokens(mockTokens);
-      const newTokens: OAuthTokens = { ...mockTokens, accessToken: 'ya29.new-token' };
+      const newTokens: OAuthTokens = {
+        ...mockTokens,
+        accessToken: 'ya29.new-token',
+      };
       const rotated = rotateInboxTokens(encrypted, newTokens);
       const decrypted = decryptInboxTokens(rotated);
       expect(decrypted.accessToken).toBe('ya29.new-token');
@@ -76,7 +89,9 @@ describe('inbox-tokens vault', () => {
   describe('env validation', () => {
     it('throws if GMAIL_ENCRYPTION_KEY is missing', () => {
       delete process.env.GMAIL_ENCRYPTION_KEY;
-      expect(() => encryptInboxTokens(mockTokens)).toThrow(/GMAIL_ENCRYPTION_KEY/);
+      expect(() => encryptInboxTokens(mockTokens)).toThrow(
+        /GMAIL_ENCRYPTION_KEY/,
+      );
     });
 
     it('throws if key is wrong length', () => {

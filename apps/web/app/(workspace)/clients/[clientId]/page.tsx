@@ -1,9 +1,9 @@
-import { 
-  getClientById, 
-  getActiveRetainerForClient, 
-  getRetainerUtilization, 
+import {
+  getClientById,
+  getActiveRetainerForClient,
+  getRetainerUtilization,
   listRetainersForClient,
-  getClientEngagementTimeline 
+  getClientEngagementTimeline,
 } from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { notFound } from 'next/navigation';
@@ -31,7 +31,11 @@ function deriveUtilizationState(
   type: string,
   monthlyHoursThreshold: string | null,
   packageHours: string | null,
-  utilization: { totalMinutes: number; allocatedMinutes: number; utilizationPercent: number } | null,
+  utilization: {
+    totalMinutes: number;
+    allocatedMinutes: number;
+    utilizationPercent: number;
+  } | null,
 ): UtilizationState | null {
   if (!utilization) return null;
 
@@ -40,12 +44,17 @@ function deriveUtilizationState(
   }
 
   if (type === 'flat_monthly' && !monthlyHoursThreshold) {
-    return { type: 'no_threshold', message: 'Add hours threshold to enable scope tracking.' };
+    return {
+      type: 'no_threshold',
+      message: 'Add hours threshold to enable scope tracking.',
+    };
   }
 
   if (type === 'flat_monthly' || type === 'package_based') {
-    const allocatedHoursStr = type === 'flat_monthly' ? monthlyHoursThreshold : packageHours;
-    if (!allocatedHoursStr) return { type: 'no_threshold', message: 'No allocation set.' };
+    const allocatedHoursStr =
+      type === 'flat_monthly' ? monthlyHoursThreshold : packageHours;
+    if (!allocatedHoursStr)
+      return { type: 'no_threshold', message: 'No allocation set.' };
 
     const pct = utilization.utilizationPercent;
     let label: string;
@@ -79,7 +88,9 @@ export default async function ClientDetailPage({
   const search = await searchParams;
   const supabase = await getServerSupabase();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return notFound();
 
   const workspaceId = user.app_metadata?.workspace_id as string | undefined;
@@ -91,9 +102,16 @@ export default async function ClientDetailPage({
   const client = await getClientById(supabase, { clientId, workspaceId });
   if (!client) return notFound();
 
-  const clientName = (client as { company_name?: string }).company_name ?? 'Client';
-  const retainer = await getActiveRetainerForClient(supabase, { clientId, workspaceId });
-  const allRetainers = await listRetainersForClient(supabase, { clientId, workspaceId });
+  const clientName =
+    (client as { company_name?: string }).company_name ?? 'Client';
+  const retainer = await getActiveRetainerForClient(supabase, {
+    clientId,
+    workspaceId,
+  });
+  const allRetainers = await listRetainersForClient(supabase, {
+    clientId,
+    workspaceId,
+  });
   const historicalRetainers = allRetainers.filter((r) => r.status !== 'active');
 
   let utilizationResult = null;
@@ -111,22 +129,41 @@ export default async function ClientDetailPage({
       retainer.packageHours,
       utilizationResult,
     );
-    isScopeAlert = utilizationState?.type === 'trackable' && utilizationState.percent >= 90;
+    isScopeAlert =
+      utilizationState?.type === 'trackable' && utilizationState.percent >= 90;
   }
 
-  const toastCode = typeof search.toast_code === 'string' ? search.toast_code : undefined;
-  const toastMsg = typeof search.toast_msg === 'string' ? search.toast_msg : undefined;
-  const toastLinkLabel = typeof search.toast_link_label === 'string' ? search.toast_link_label : undefined;
-  const toastLinkHref = typeof search.toast_link_href === 'string' ? search.toast_link_href : undefined;
+  const toastCode =
+    typeof search.toast_code === 'string' ? search.toast_code : undefined;
+  const toastMsg =
+    typeof search.toast_msg === 'string' ? search.toast_msg : undefined;
+  const toastLinkLabel =
+    typeof search.toast_link_label === 'string'
+      ? search.toast_link_label
+      : undefined;
+  const toastLinkHref =
+    typeof search.toast_link_href === 'string'
+      ? search.toast_link_href
+      : undefined;
 
   return (
     <div className="space-y-6">
       {toastCode && toastMsg && (
-        <WizardToast code={toastCode} message={toastMsg} linkLabel={toastLinkLabel} linkHref={toastLinkHref} />
+        <WizardToast
+          code={toastCode}
+          message={toastMsg}
+          linkLabel={toastLinkLabel}
+          linkHref={toastLinkHref}
+        />
       )}
-      {isScopeAlert && utilizationState && utilizationState.type === 'trackable' && (
-        <RetainerScopeBanner clientName={clientName} utilizationPercent={utilizationState.percent} />
-      )}
+      {isScopeAlert &&
+        utilizationState &&
+        utilizationState.type === 'trackable' && (
+          <RetainerScopeBanner
+            clientName={clientName}
+            utilizationPercent={utilizationState.percent}
+          />
+        )}
       <ClientHeader client={client as Client} role={role} />
       <ClientDetails client={client as Client} role={role} />
       <RetainerPanel
@@ -136,9 +173,14 @@ export default async function ClientDetailPage({
         role={role}
         billingPeriodEnd={utilizationResult?.billingPeriodEnd}
         clientName={clientName}
-        overageMinutes={utilizationResult && utilizationResult.allocatedMinutes > 0 && utilizationResult.totalMinutes > utilizationResult.allocatedMinutes
-          ? utilizationResult.totalMinutes - utilizationResult.allocatedMinutes
-          : undefined}
+        overageMinutes={
+          utilizationResult &&
+          utilizationResult.allocatedMinutes > 0 &&
+          utilizationResult.totalMinutes > utilizationResult.allocatedMinutes
+            ? utilizationResult.totalMinutes -
+              utilizationResult.allocatedMinutes
+            : undefined
+        }
         trackedMinutes={utilizationResult?.totalMinutes}
         historicalRetainers={historicalRetainers}
       />
@@ -149,7 +191,7 @@ export default async function ClientDetailPage({
 
       <TimelineErrorBoundary>
         <Suspense fallback={<TimelineSkeleton />}>
-          <TimelineSection 
+          <TimelineSection
             supabase={supabase}
             workspaceId={workspaceId}
             clientId={clientId}
@@ -204,7 +246,7 @@ async function TimelineSection({
   });
 
   return (
-    <ClientTimeline 
+    <ClientTimeline
       initialEvents={timeline.events}
       initialCursor={timeline.nextCursor}
       workspaceId={workspaceId}
@@ -214,4 +256,3 @@ async function TimelineSection({
     />
   );
 }
-

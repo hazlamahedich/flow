@@ -45,8 +45,14 @@ describe.skipIf(skip)('Dashboard Integration — Happy Path', () => {
   });
 
   it('cross-workspace data isolation', async () => {
-    const ownResult = await getDashboardSummary(fixture.client, fixture.tenantId);
-    const otherResult = await getDashboardSummary(fixture.client, fixture.otherTenantId);
+    const ownResult = await getDashboardSummary(
+      fixture.client,
+      fixture.tenantId,
+    );
+    const otherResult = await getDashboardSummary(
+      fixture.client,
+      fixture.otherTenantId,
+    );
 
     expect(ownResult).toEqual(otherResult);
     expect(ownResult.pendingApprovals).toBe(0);
@@ -57,7 +63,12 @@ describe.skipIf(skip)('Dashboard Integration — Happy Path', () => {
     const result = await getDashboardSummary(fixture.client, fixture.tenantId);
 
     expect(Object.keys(result).sort()).toEqual(
-      ['pendingApprovals', 'agentActivityCount', 'outstandingInvoices', 'clientHealthAlerts'].sort(),
+      [
+        'pendingApprovals',
+        'agentActivityCount',
+        'outstandingInvoices',
+        'clientHealthAlerts',
+      ].sort(),
     );
     for (const value of Object.values(result)) {
       expect(typeof value).toBe('number');

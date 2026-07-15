@@ -6,7 +6,10 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { signPortalJwt, verifyPortalJwt } from '@flow/auth/server/portal-client';
+import {
+  signPortalJwt,
+  verifyPortalJwt,
+} from '@flow/auth/server/portal-client';
 import { getServerSupabase } from '@/lib/supabase-server';
 import {
   PORTAL_COOKIE_NAME,
@@ -20,7 +23,9 @@ import type { PortalContext } from './helpers';
  * Issue the 24h `__flow_portal` HttpOnly cookie.
  * AC2 requires HttpOnly, Secure, SameSite=Lax, Path=/ unconditionally.
  */
-export async function setPortalSessionCookie(context: PortalContext): Promise<void> {
+export async function setPortalSessionCookie(
+  context: PortalContext,
+): Promise<void> {
   const jwt = await signPortalJwt(context, PORTAL_SESSION_MAX_AGE_SECONDS);
   const cookieStore = await cookies();
   cookieStore.set(PORTAL_COOKIE_NAME, jwt, {

@@ -23,31 +23,41 @@ function parseUserAgent(ua: string | null): string {
 
   if (ua.includes('Firefox/')) {
     const match = ua.match(/Firefox\/(\d+)/);
-    if (ua.includes('Mac')) return `Firefox${match ? ` ${match[1]}` : ''} on macOS`;
-    if (ua.includes('Windows')) return `Firefox${match ? ` ${match[1]}` : ''} on Windows`;
-    if (ua.includes('Linux')) return `Firefox${match ? ` ${match[1]}` : ''} on Linux`;
+    if (ua.includes('Mac'))
+      return `Firefox${match ? ` ${match[1]}` : ''} on macOS`;
+    if (ua.includes('Windows'))
+      return `Firefox${match ? ` ${match[1]}` : ''} on Windows`;
+    if (ua.includes('Linux'))
+      return `Firefox${match ? ` ${match[1]}` : ''} on Linux`;
     return `Firefox${match ? ` ${match[1]}` : ''}`;
   }
 
   if (ua.includes('Edg/')) {
     const match = ua.match(/Edg\/(\d+)/);
-    if (ua.includes('Mac')) return `Edge${match ? ` ${match[1]}` : ''} on macOS`;
-    if (ua.includes('Windows')) return `Edge${match ? ` ${match[1]}` : ''} on Windows`;
-    if (ua.includes('Linux')) return `Edge${match ? ` ${match[1]}` : ''} on Linux`;
+    if (ua.includes('Mac'))
+      return `Edge${match ? ` ${match[1]}` : ''} on macOS`;
+    if (ua.includes('Windows'))
+      return `Edge${match ? ` ${match[1]}` : ''} on Windows`;
+    if (ua.includes('Linux'))
+      return `Edge${match ? ` ${match[1]}` : ''} on Linux`;
     return `Edge${match ? ` ${match[1]}` : ''}`;
   }
 
   if (ua.includes('Chrome/')) {
     const match = ua.match(/Chrome\/(\d+)/);
-    if (ua.includes('Mac')) return `Chrome${match ? ` ${match[1]}` : ''} on macOS`;
-    if (ua.includes('Windows')) return `Chrome${match ? ` ${match[1]}` : ''} on Windows`;
-    if (ua.includes('Linux')) return `Chrome${match ? ` ${match[1]}` : ''} on Linux`;
+    if (ua.includes('Mac'))
+      return `Chrome${match ? ` ${match[1]}` : ''} on macOS`;
+    if (ua.includes('Windows'))
+      return `Chrome${match ? ` ${match[1]}` : ''} on Windows`;
+    if (ua.includes('Linux'))
+      return `Chrome${match ? ` ${match[1]}` : ''} on Linux`;
     return `Chrome${match ? ` ${match[1]}` : ''}`;
   }
 
   if (ua.includes('Safari/') && !ua.includes('Chrome')) {
     const match = ua.match(/Version\/(\d+)/);
-    if (ua.includes('Mac')) return `Safari${match ? ` ${match[1]}` : ''} on macOS`;
+    if (ua.includes('Mac'))
+      return `Safari${match ? ` ${match[1]}` : ''} on macOS`;
     if (ua.includes('iPhone')) return 'Safari on iPhone';
     if (ua.includes('iPad')) return 'Safari on iPad';
     return `Safari${match ? ` ${match[1]}` : ''}`;
@@ -103,14 +113,20 @@ export async function trustDevice(
     .single();
 
   if (error) {
-      if (error.code === '23505' && retryCount < MAX_TRUST_RETRIES) {
-        const retryParams = { ...params };
-        delete (retryParams as Record<string, unknown>).pendingToken;
-        return trustDevice(retryParams, retryCount + 1);
-      }
-    throw createFlowError(500, 'INTERNAL_ERROR', 'Failed to trust device', 'system', {
-      originalError: error.message,
-    });
+    if (error.code === '23505' && retryCount < MAX_TRUST_RETRIES) {
+      const retryParams = { ...params };
+      delete (retryParams as Record<string, unknown>).pendingToken;
+      return trustDevice(retryParams, retryCount + 1);
+    }
+    throw createFlowError(
+      500,
+      'INTERNAL_ERROR',
+      'Failed to trust device',
+      'system',
+      {
+        originalError: error.message,
+      },
+    );
   }
 
   const { data: postInsert } = await supabase
@@ -147,7 +163,10 @@ export async function verifyDeviceTrust(params: {
     .single();
 
   if (error) {
-    console.error('[device-trust] verifyDeviceTrust query failed:', error.message);
+    console.error(
+      '[device-trust] verifyDeviceTrust query failed:',
+      error.message,
+    );
     return { trusted: false };
   }
 
@@ -170,9 +189,15 @@ export async function getUserDevices(
     .order('created_at', { ascending: false });
 
   if (error) {
-    throw createFlowError(500, 'INTERNAL_ERROR', 'Failed to fetch devices', 'system', {
-      originalError: error.message,
-    });
+    throw createFlowError(
+      500,
+      'INTERNAL_ERROR',
+      'Failed to fetch devices',
+      'system',
+      {
+        originalError: error.message,
+      },
+    );
   }
 
   return (data ?? []).map((row) => ({
@@ -203,7 +228,12 @@ export async function revokeDevice(
     .single();
 
   if (error || !data) {
-    throw createFlowError(404, 'NOT_FOUND', 'Device not found or already revoked', 'validation');
+    throw createFlowError(
+      404,
+      'NOT_FOUND',
+      'Device not found or already revoked',
+      'validation',
+    );
   }
 
   return { revoked: true, deviceId: data.id };
@@ -223,9 +253,15 @@ export async function revokeAllDevices(
     .select('id');
 
   if (error) {
-    throw createFlowError(500, 'INTERNAL_ERROR', 'Failed to revoke all devices', 'system', {
-      originalError: error.message,
-    });
+    throw createFlowError(
+      500,
+      'INTERNAL_ERROR',
+      'Failed to revoke all devices',
+      'system',
+      {
+        originalError: error.message,
+      },
+    );
   }
 
   return data?.length ?? 0;
@@ -244,8 +280,14 @@ export async function renameDevice(
     .eq('user_id', params.userId);
 
   if (error) {
-    throw createFlowError(500, 'INTERNAL_ERROR', 'Failed to rename device', 'system', {
-      originalError: error.message,
-    });
+    throw createFlowError(
+      500,
+      'INTERNAL_ERROR',
+      'Failed to rename device',
+      'system',
+      {
+        originalError: error.message,
+      },
+    );
   }
 }

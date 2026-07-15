@@ -8,7 +8,7 @@ vi.mock('@flow/db', () => ({
 
 describe('brief-context', () => {
   const workspaceId = 'ws-123';
-  
+
   const resolvedData = { data: null, error: null };
   let pendingResolve: ((value: unknown) => void) | null = null;
 
@@ -39,7 +39,7 @@ describe('brief-context', () => {
     vi.clearAllMocks();
     pendingResolve = null;
     (createServiceClient as any).mockReturnValue(mockSupabase);
-    
+
     mockSupabase.from.mockImplementation(() => mockSupabase);
     mockSupabase.select.mockImplementation(() => mockSupabase);
     mockSupabase.eq.mockImplementation(() => mockSupabase);
@@ -47,29 +47,75 @@ describe('brief-context', () => {
     mockSupabase.limit.mockImplementation(() => mockSupabase);
     mockSupabase.gte.mockImplementation(() => mockSupabase);
     mockSupabase.in.mockImplementation(() => mockSupabase);
-    mockSupabase.maybeSingle.mockImplementation(() => Promise.resolve({ data: null, error: null }));
+    mockSupabase.maybeSingle.mockImplementation(() =>
+      Promise.resolve({ data: null, error: null }),
+    );
   });
 
   it('computes since as 24h ago when no previous brief exists', async () => {
     mockSupabase.maybeSingle.mockResolvedValueOnce({ data: null });
-    
+
     const context = await getMorningBriefContext(workspaceId);
-    
+
     const expectedSince = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    expect(context.since.getTime()).toBeGreaterThan(expectedSince.getTime() - 10000);
+    expect(context.since.getTime()).toBeGreaterThan(
+      expectedSince.getTime() - 10000,
+    );
   });
 
   it('aggregates emails by client and identifies threads > 3', async () => {
     const emails = [
-      { id: '1', subject: 'Urgent', sender: 'A', thread_id: 't1', client_id: 'c1', clients: { name: 'Client 1' }, email_categorizations: [{ category: 'urgent' }] },
-      { id: '2', subject: 'Action', sender: 'A', thread_id: 't1', client_id: 'c1', clients: { name: 'Client 1' }, email_categorizations: [{ category: 'action' }] },
-      { id: '3', subject: 'Info', sender: 'A', thread_id: 't1', client_id: 'c1', clients: { name: 'Client 1' }, email_categorizations: [{ category: 'info' }] },
-      { id: '4', subject: 'More Info', sender: 'A', thread_id: 't1', client_id: 'c1', clients: { name: 'Client 1' }, email_categorizations: [{ category: 'info' }] },
-      { id: '5', subject: 'Client 2', sender: 'B', thread_id: 't2', client_id: 'c2', clients: { name: 'Client 2' }, email_categorizations: [{ category: 'noise' }] },
+      {
+        id: '1',
+        subject: 'Urgent',
+        sender: 'A',
+        thread_id: 't1',
+        client_id: 'c1',
+        clients: { name: 'Client 1' },
+        email_categorizations: [{ category: 'urgent' }],
+      },
+      {
+        id: '2',
+        subject: 'Action',
+        sender: 'A',
+        thread_id: 't1',
+        client_id: 'c1',
+        clients: { name: 'Client 1' },
+        email_categorizations: [{ category: 'action' }],
+      },
+      {
+        id: '3',
+        subject: 'Info',
+        sender: 'A',
+        thread_id: 't1',
+        client_id: 'c1',
+        clients: { name: 'Client 1' },
+        email_categorizations: [{ category: 'info' }],
+      },
+      {
+        id: '4',
+        subject: 'More Info',
+        sender: 'A',
+        thread_id: 't1',
+        client_id: 'c1',
+        clients: { name: 'Client 1' },
+        email_categorizations: [{ category: 'info' }],
+      },
+      {
+        id: '5',
+        subject: 'Client 2',
+        sender: 'B',
+        thread_id: 't2',
+        client_id: 'c2',
+        clients: { name: 'Client 2' },
+        email_categorizations: [{ category: 'noise' }],
+      },
     ];
 
-    mockSupabase.maybeSingle.mockResolvedValueOnce({ data: { generated_at: '2026-05-04T06:00:00Z' } });
-    
+    mockSupabase.maybeSingle.mockResolvedValueOnce({
+      data: { generated_at: '2026-05-04T06:00:00Z' },
+    });
+
     let gteCallCount = 0;
     mockSupabase.gte.mockImplementation(() => {
       gteCallCount++;
@@ -81,7 +127,8 @@ describe('brief-context', () => {
     let eqCallCount = 0;
     mockSupabase.eq.mockImplementation(() => {
       eqCallCount++;
-      if (eqCallCount === 5) return Promise.resolve({ data: [{ id: 'c1' }, { id: 'c2' }] });
+      if (eqCallCount === 5)
+        return Promise.resolve({ data: [{ id: 'c1' }, { id: 'c2' }] });
       return mockSupabase;
     });
 
@@ -94,8 +141,24 @@ describe('brief-context', () => {
 
   it('enforces cross-client isolation in raw groups', async () => {
     const emails = [
-      { id: '1', subject: 'A', sender: 'A', thread_id: 't1', client_id: 'c1', clients: { name: 'C1' }, email_categorizations: [] },
-      { id: '2', subject: 'B', sender: 'B', thread_id: 't2', client_id: 'c2', clients: { name: 'C2' }, email_categorizations: [] },
+      {
+        id: '1',
+        subject: 'A',
+        sender: 'A',
+        thread_id: 't1',
+        client_id: 'c1',
+        clients: { name: 'C1' },
+        email_categorizations: [],
+      },
+      {
+        id: '2',
+        subject: 'B',
+        sender: 'B',
+        thread_id: 't2',
+        client_id: 'c2',
+        clients: { name: 'C2' },
+        email_categorizations: [],
+      },
     ];
 
     mockSupabase.maybeSingle.mockResolvedValueOnce({ data: null });
@@ -107,18 +170,19 @@ describe('brief-context', () => {
       if (gteCallCount === 2) queueResolve({ data: [] });
       return mockSupabase;
     });
-    
+
     let eqCallCount = 0;
     mockSupabase.eq.mockImplementation(() => {
       eqCallCount++;
-      if (eqCallCount === 5) return Promise.resolve({ data: [{ id: 'c1' }, { id: 'c2' }] });
+      if (eqCallCount === 5)
+        return Promise.resolve({ data: [{ id: 'c1' }, { id: 'c2' }] });
       return mockSupabase;
     });
 
     const context = await getMorningBriefContext(workspaceId);
 
-    const group1 = context.rawGroups.find(g => g.clientId === 'c1');
-    const group2 = context.rawGroups.find(g => g.clientId === 'c2');
+    const group1 = context.rawGroups.find((g) => g.clientId === 'c1');
+    const group2 = context.rawGroups.find((g) => g.clientId === 'c2');
 
     expect(group1!.emails).toHaveLength(1);
     expect(group2!.emails).toHaveLength(1);

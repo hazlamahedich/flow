@@ -42,7 +42,10 @@ describe('cleanupRawPayloads', () => {
   });
 
   it('throws when supabase returns error', async () => {
-    mockSupabase.lt.mockResolvedValueOnce({ count: null, error: new Error('DB error') });
+    mockSupabase.lt.mockResolvedValueOnce({
+      count: null,
+      error: new Error('DB error'),
+    });
 
     await expect(cleanupRawPayloads(7)).rejects.toThrow('DB error');
   });
@@ -52,6 +55,9 @@ describe('cleanupRawPayloads', () => {
 
     await cleanupRawPayloads();
 
-    expect(mockSupabase.lt).toHaveBeenCalledWith('created_at', expect.any(String));
+    expect(mockSupabase.lt).toHaveBeenCalledWith(
+      'created_at',
+      expect.any(String),
+    );
   });
 });

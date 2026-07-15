@@ -7,12 +7,17 @@ function createMockSupabase(
   existingMetrics: Record<string, unknown> | null = null,
   metricsError: string | null = null,
 ) {
-  const metricsRow = existingMetrics ? {
-    id: existingMetrics.id ?? 'm-1',
-    total_events: (existingMetrics.total_events as number ?? 0) + 1,
-    bypass_count: (existingMetrics.bypass_count as number ?? 0) + 1,
-    bypass_rate: ((((existingMetrics.bypass_count as number ?? 0) + 1) / ((existingMetrics.total_events as number ?? 0) + 1))).toFixed(4),
-  } : null;
+  const metricsRow = existingMetrics
+    ? {
+        id: existingMetrics.id ?? 'm-1',
+        total_events: ((existingMetrics.total_events as number) ?? 0) + 1,
+        bypass_count: ((existingMetrics.bypass_count as number) ?? 0) + 1,
+        bypass_rate: (
+          (((existingMetrics.bypass_count as number) ?? 0) + 1) /
+          (((existingMetrics.total_events as number) ?? 0) + 1)
+        ).toFixed(4),
+      }
+    : null;
 
   return {
     from: vi.fn((table: string) => {
@@ -24,7 +29,9 @@ function createMockSupabase(
                 in: vi.fn().mockReturnValue({
                   gte: vi.fn().mockReturnValue({
                     lte: vi.fn().mockReturnValue({
-                      limit: vi.fn().mockResolvedValue({ data: schedulingRequests }),
+                      limit: vi
+                        .fn()
+                        .mockResolvedValue({ data: schedulingRequests }),
                     }),
                   }),
                 }),
@@ -108,8 +115,12 @@ describe('executeDetectBypass', () => {
 
   it('updates existing metrics on subsequent bypass', async () => {
     const existingMetrics = {
-      id: 'm-1', total_events: 3, bypass_count: 1, bypass_rate: '0.3333',
-      window_start: '2026-04-24T00:00:00Z', window_end: '2026-05-24T00:00:00Z',
+      id: 'm-1',
+      total_events: 3,
+      bypass_count: 1,
+      bypass_rate: '0.3333',
+      window_start: '2026-04-24T00:00:00Z',
+      window_end: '2026-05-24T00:00:00Z',
     };
     const supabase = createMockSupabase([], existingMetrics);
 
@@ -122,8 +133,12 @@ describe('executeDetectBypass', () => {
 
   it('emits signal when bypass rate exceeds threshold', async () => {
     const existingMetrics = {
-      id: 'm-1', total_events: 2, bypass_count: 0, bypass_rate: '0.0000',
-      window_start: '2026-04-24T00:00:00Z', window_end: '2026-05-24T00:00:00Z',
+      id: 'm-1',
+      total_events: 2,
+      bypass_count: 0,
+      bypass_rate: '0.0000',
+      window_start: '2026-04-24T00:00:00Z',
+      window_end: '2026-05-24T00:00:00Z',
     };
     const supabase = createMockSupabase([], existingMetrics);
 

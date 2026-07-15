@@ -25,19 +25,31 @@ export async function checkDuplicateTimeEntries(
   if (dupError) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to check duplicate time entries.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to check duplicate time entries.',
+        'system',
+      ),
     };
   }
 
   const invoicedSet = new Set(
-    (alreadyInvoiced ?? []).map((r: Record<string, unknown>) => r.time_entry_id as string),
+    (alreadyInvoiced ?? []).map(
+      (r: Record<string, unknown>) => r.time_entry_id as string,
+    ),
   );
 
   const dupIds = timeEntryIds.filter((id) => invoicedSet.has(id));
   if (dupIds.length > 0) {
     return {
       success: false,
-      error: createFlowError(409, 'VALIDATION_ERROR', `Time entries already on another invoice: ${dupIds.join(', ')}`, 'validation'),
+      error: createFlowError(
+        409,
+        'VALIDATION_ERROR',
+        `Time entries already on another invoice: ${dupIds.join(', ')}`,
+        'validation',
+      ),
     };
   }
 

@@ -8,7 +8,9 @@ export interface PreCheckResult {
 }
 
 /** Validates sweep inputs and confirms the agent activation record is readable. */
-export async function preCheck(input: TimeIntegrityInput): Promise<PreCheckResult> {
+export async function preCheck(
+  input: TimeIntegrityInput,
+): Promise<PreCheckResult> {
   const errors: string[] = [];
 
   const parsed = timeIntegrityInputSchema.safeParse(input);

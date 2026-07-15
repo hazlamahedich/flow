@@ -4,7 +4,17 @@ import { typography } from '../typography';
 describe('typography scale', () => {
   it('has 9 font sizes (2xs through 3xl)', () => {
     const sizes = Object.keys(typography.fontSize);
-    expect(sizes).toEqual(['2xs', 'xs', 'sm', 'base', 'md', 'lg', 'xl', '2xl', '3xl']);
+    expect(sizes).toEqual([
+      '2xs',
+      'xs',
+      'sm',
+      'base',
+      'md',
+      'lg',
+      'xl',
+      '2xl',
+      '3xl',
+    ]);
   });
 
   it('base font size is 14px (0.875rem)', () => {

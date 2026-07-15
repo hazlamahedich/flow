@@ -48,7 +48,13 @@ export async function executeDetectBypass(
   const hasMatchingRequest = (requests ?? []).length > 0;
 
   if (hasMatchingRequest) {
-    return { isBypass: false, bypassRate: 0, bypassCount: 0, totalEvents: 0, signalEmitted: false };
+    return {
+      isBypass: false,
+      bypassRate: 0,
+      bypassCount: 0,
+      totalEvents: 0,
+      signalEmitted: false,
+    };
   }
 
   const metrics = await upsertBypassMetrics({
@@ -62,24 +68,22 @@ export async function executeDetectBypass(
     const today = new Date().toISOString().split('T')[0];
     const dedupKey = `cal.bypass:${clientId}:${today}`;
 
-    const { error: signalError } = await supabase
-      .from('agent_signals')
-      .insert({
-        correlation_id: crypto.randomUUID(),
-        causation_id: crypto.randomUUID(),
-        agent_id: 'calendar',
-        signal_type: 'calendar.bypass.detected',
-        payload: {
-          client_id: clientId,
-          bypass_count: metrics.bypassCount,
-          bypass_rate: metrics.bypassRate,
-          recent_event_id: eventId,
-        },
-        target_agent: 'inbox',
+    const { error: signalError } = await supabase.from('agent_signals').insert({
+      correlation_id: crypto.randomUUID(),
+      causation_id: crypto.randomUUID(),
+      agent_id: 'calendar',
+      signal_type: 'calendar.bypass.detected',
+      payload: {
         client_id: clientId,
-        workspace_id: workspaceId,
-        dedup_key: dedupKey,
-      });
+        bypass_count: metrics.bypassCount,
+        bypass_rate: metrics.bypassRate,
+        recent_event_id: eventId,
+      },
+      target_agent: 'inbox',
+      client_id: clientId,
+      workspace_id: workspaceId,
+      dedup_key: dedupKey,
+    });
 
     if (!signalError) {
       signalEmitted = true;

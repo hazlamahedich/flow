@@ -7,8 +7,7 @@ import '@testing-library/jest-dom/vitest';
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
   usePathname: () => '/onboarding/agent-demo',
-  useSearchParams: () =>
-    new URLSearchParams('clientId=cl-1&clientName=Test'),
+  useSearchParams: () => new URLSearchParams('clientId=cl-1&clientName=Test'),
 }));
 
 vi.mock('@flow/ui', async (importOriginal) => {
@@ -37,14 +36,20 @@ describe('TC-1.10-A11Y Accessibility Checklist', () => {
   it('TC-1.10-A11Y-02: step indicator has aria-label for each step', () => {
     render(<StepIndicator currentStep="welcome" />);
     expect(screen.getByLabelText('Step 1 of 4: Welcome')).toBeInTheDocument();
-    expect(screen.getByLabelText('Step 2 of 4: Agent Demo')).toBeInTheDocument();
-    expect(screen.getByLabelText('Step 3 of 4: Create Client')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Step 2 of 4: Agent Demo'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Step 3 of 4: Create Client'),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Step 4 of 4: Log Time')).toBeInTheDocument();
   });
 
   it('TC-1.10-A11Y-03: nav has aria-label', () => {
     render(<StepIndicator currentStep="welcome" />);
-    expect(screen.getByRole('navigation', { name: 'Onboarding progress' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('navigation', { name: 'Onboarding progress' }),
+    ).toBeInTheDocument();
   });
 
   it('TC-1.10-A11Y-06: tooltip is keyboard accessible', async () => {

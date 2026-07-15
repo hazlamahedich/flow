@@ -31,7 +31,12 @@ export async function updateInvoiceAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
@@ -51,19 +56,31 @@ export async function updateInvoiceAction(
   if (fetchError || !invoice) {
     return {
       success: false,
-      error: createFlowError(404, 'NOT_FOUND', 'Invoice not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'NOT_FOUND',
+        'Invoice not found.',
+        'validation',
+      ),
     };
   }
 
   if ((invoice as Record<string, unknown>).status !== 'draft') {
     return {
       success: false,
-      error: createFlowError(400, 'FINANCIAL_INVALID_STATE', 'Only draft invoices can be edited.', 'financial'),
+      error: createFlowError(
+        400,
+        'FINANCIAL_INVALID_STATE',
+        'Only draft invoices can be edited.',
+        'financial',
+      ),
     };
   }
 
   const clientId = (invoice as Record<string, unknown>).client_id as string;
-  const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  const updateData: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
   if (notes !== undefined) updateData.notes = notes;
   if (issueDate !== undefined) updateData.issue_date = issueDate;
   if (dueDate !== undefined) updateData.due_date = dueDate;
@@ -84,21 +101,30 @@ export async function updateInvoiceAction(
   const existingTimeEntryIds = new Set(
     ((existingItems as Array<Record<string, unknown>>) ?? [])
       .map((row) => row.time_entry_id as string)
-      .filter(Boolean)
+      .filter(Boolean),
   );
 
   const newTimeEntryIds = new Set(
     lineItems
       .filter((li) => li.sourceType === 'time_entry')
-      .map((li) => li.timeEntryId)
+      .map((li) => li.timeEntryId),
   );
 
-  const removedTimeEntryIds = [...existingTimeEntryIds].filter((id) => !newTimeEntryIds.has(id));
-  const addedTimeEntryIds = [...newTimeEntryIds].filter((id) => !existingTimeEntryIds.has(id));
+  const removedTimeEntryIds = [...existingTimeEntryIds].filter(
+    (id) => !newTimeEntryIds.has(id),
+  );
+  const addedTimeEntryIds = [...newTimeEntryIds].filter(
+    (id) => !existingTimeEntryIds.has(id),
+  );
 
   // -- Duplicate check for newly added time entries
   if (addedTimeEntryIds.length > 0) {
-    const dupCheck = await checkDuplicateTimeEntries(supabase, ctx.workspaceId, clientId, addedTimeEntryIds);
+    const dupCheck = await checkDuplicateTimeEntries(
+      supabase,
+      ctx.workspaceId,
+      clientId,
+      addedTimeEntryIds,
+    );
     if (dupCheck) return dupCheck;
   }
 
@@ -106,19 +132,30 @@ export async function updateInvoiceAction(
   const allTimeEntryIds = [...newTimeEntryIds];
   let timeEntriesMap = new Map<string, { durationMinutes: number }>();
   if (allTimeEntryIds.length > 0) {
-    const resolved = await resolveTimeEntryDurations(supabase, ctx.workspaceId, clientId, allTimeEntryIds);
+    const resolved = await resolveTimeEntryDurations(
+      supabase,
+      ctx.workspaceId,
+      clientId,
+      allTimeEntryIds,
+    );
     if (!resolved.success) return resolved;
     timeEntriesMap = resolved.data;
   }
 
   // -- Resolve hourly rate
-  const { data: rateResult } = await supabase
-    .rpc('resolve_hourly_rate', { p_client_id: clientId, p_workspace_id: ctx.workspaceId });
+  const { data: rateResult } = await supabase.rpc('resolve_hourly_rate', {
+    p_client_id: clientId,
+    p_workspace_id: ctx.workspaceId,
+  });
   const hourlyRateCents = rateResult ? Number(rateResult) : null;
 
   // -- Build line items and total
   // Note: We need to convert buildLineItemsAndTotal result to the update-specific DbLineItem shape (invoice_id + workspace_id)
-  const built = buildLineItemsAndTotal(lineItems, timeEntriesMap, hourlyRateCents);
+  const built = buildLineItemsAndTotal(
+    lineItems,
+    timeEntriesMap,
+    hourlyRateCents,
+  );
   if (!built.success) return built;
 
   const dbItems: DbLineItem[] = built.data.dbLineItems.map((li) => ({
@@ -146,7 +183,12 @@ export async function updateInvoiceAction(
   if (deleteError) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to update line items.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to update line items.',
+        'system',
+      ),
     };
   }
 
@@ -157,7 +199,12 @@ export async function updateInvoiceAction(
   if (insertError) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to insert line items.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to insert line items.',
+        'system',
+      ),
     };
   }
 
@@ -173,7 +220,12 @@ export async function updateInvoiceAction(
   if (updateError) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to update invoice.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to update invoice.',
+        'system',
+      ),
     };
   }
 

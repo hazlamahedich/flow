@@ -1,7 +1,17 @@
-export { sidebarCollapsedAtom, sidebarHoverExpandedAtom } from './atoms/ui-state';
-export { commandPaletteOpenAtom, shortcutOverlayOpenAtom } from './atoms/ui-state';
+export {
+  sidebarCollapsedAtom,
+  sidebarHoverExpandedAtom,
+} from './atoms/ui-state';
+export {
+  commandPaletteOpenAtom,
+  shortcutOverlayOpenAtom,
+} from './atoms/ui-state';
 export { createShortcutRegistry, safeHandler } from './shortcuts/registry';
-export { isInputFocused, hasModifierKey, isImeComposing } from './shortcuts/input-guard';
+export {
+  isInputFocused,
+  hasModifierKey,
+  isImeComposing,
+} from './shortcuts/input-guard';
 export { isBlockNoteFocused } from './shortcuts/blocknote-guard';
 export { OverlayPriority } from './shortcuts/overlay-priority';
 export { getDefaultShortcuts, isMac, isWindows } from './shortcuts/defaults';
@@ -41,7 +51,10 @@ export {
   AgentTransitionError as SharedAgentTransitionError,
 } from './agent-transitions';
 export { deriveUIStatus } from './derive-agent-ui-status';
-export { type CircuitBreakerPort, NOOP_CIRCUIT_BREAKER } from './resilience/types';
+export {
+  type CircuitBreakerPort,
+  NOOP_CIRCUIT_BREAKER,
+} from './resilience/types';
 export {
   computeTimeEntryAmount,
   formatTimeEntryDescription,
@@ -68,7 +81,10 @@ export type {
   CadenceTier,
   TrustLevelColorSet,
 } from './constants/agent-identity';
-export { mapStripeDeclineCode, isRetryableDeclineCode } from './stripe-decline-codes';
+export {
+  mapStripeDeclineCode,
+  isRetryableDeclineCode,
+} from './stripe-decline-codes';
 export type { DeclineCodeInfo } from './stripe-decline-codes';
 export {
   computeInvoiceDedupHash,

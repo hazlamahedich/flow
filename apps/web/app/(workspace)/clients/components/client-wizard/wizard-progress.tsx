@@ -45,12 +45,16 @@ export function WizardProgress({ currentStep }: WizardProgressProps) {
                   >
                     {isCompleted ? '✓' : s.step}
                   </div>
-                  <span className={`mt-1 text-xs ${isCurrent ? 'font-medium text-[var(--flow-color-text-primary)]' : 'text-[var(--flow-color-text-tertiary)]'}`}>
+                  <span
+                    className={`mt-1 text-xs ${isCurrent ? 'font-medium text-[var(--flow-color-text-primary)]' : 'text-[var(--flow-color-text-tertiary)]'}`}
+                  >
                     {s.label}
                   </span>
                 </div>
                 {s.step < 4 && (
-                  <div className={`mx-2 h-0.5 flex-1 ${s.step < currentStep ? 'bg-[var(--flow-accent-primary)]' : 'bg-[var(--flow-color-bg-tertiary)]'}`} />
+                  <div
+                    className={`mx-2 h-0.5 flex-1 ${s.step < currentStep ? 'bg-[var(--flow-accent-primary)]' : 'bg-[var(--flow-color-bg-tertiary)]'}`}
+                  />
                 )}
               </div>
             );

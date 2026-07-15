@@ -23,23 +23,39 @@ describe('HistoryEventRow', () => {
   });
 
   it('renders upgrade arrow for promotion', () => {
-    render(<HistoryEventRow event={buildEvent({ fromLevel: 'supervised', toLevel: 'confirm' })} />);
+    render(
+      <HistoryEventRow
+        event={buildEvent({ fromLevel: 'supervised', toLevel: 'confirm' })}
+      />,
+    );
     expect(screen.getByText('↑')).toBeDefined();
   });
 
   it('renders downgrade arrow for regression', () => {
-    render(<HistoryEventRow event={buildEvent({ fromLevel: 'auto', toLevel: 'confirm' })} />);
+    render(
+      <HistoryEventRow
+        event={buildEvent({ fromLevel: 'auto', toLevel: 'confirm' })}
+      />,
+    );
     expect(screen.getByText('↓')).toBeDefined();
   });
 
   it('renders from and to levels', () => {
-    render(<HistoryEventRow event={buildEvent({ fromLevel: 'supervised', toLevel: 'auto' })} />);
+    render(
+      <HistoryEventRow
+        event={buildEvent({ fromLevel: 'supervised', toLevel: 'auto' })}
+      />,
+    );
     expect(screen.getByText('supervised')).toBeDefined();
     expect(screen.getByText('auto')).toBeDefined();
   });
 
   it('renders trigger reason', () => {
-    render(<HistoryEventRow event={buildEvent({ triggerReason: 'Hard violation detected' })} />);
+    render(
+      <HistoryEventRow
+        event={buildEvent({ triggerReason: 'Hard violation detected' })}
+      />,
+    );
     expect(screen.getByText('Hard violation detected')).toBeDefined();
   });
 
