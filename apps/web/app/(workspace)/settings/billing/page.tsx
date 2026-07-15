@@ -201,15 +201,9 @@ export default async function BillingPage({
       {/* Story 9.5b AC4 — auto-upgrade prompt after downgrade (FR57). */}
       <DowngradeBanner
         archivedCount={data.archived.count}
-        archivedAt={data.archived.latestArchivedAt ?? ''}
+        archivedAt={data.archived.latestArchivedAt}
         workspaceId={ctx.workspaceId}
-        onUpgrade={async (input) => {
-          const r = await handleUpgrade(input);
-          if (r.success && 'checkoutUrl' in r.data) {
-            return { success: true as const, data: { checkoutUrl: r.data.checkoutUrl } };
-          }
-          return r as unknown as ActionResult<{ checkoutUrl: string }>;
-        }}
+        onUpgrade={handleUpgrade}
       />
 
       <section className="rounded-[var(--flow-radius-lg)] border border-[var(--flow-color-border-default)] p-5">

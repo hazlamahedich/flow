@@ -5,6 +5,7 @@ import { switchWorkspace } from './actions/switch-workspace';
 import { getTimerStateAction } from './time/actions/timer-actions';
 import { redirect } from 'next/navigation';
 import { SubscriptionStatusBanner } from './settings/billing/components/SubscriptionStatusBanner';
+import type { SubscriptionStatus } from '@flow/types';
 
 export default async function WorkspaceLayout({
   children,
@@ -60,7 +61,7 @@ export default async function WorkspaceLayout({
   // Story 9.5b AC5a — surface the agent-pause state on every workspace page
   // when subscription_status ∈ {past_due, suspended} (FR60 P0 notify).
   // Reads via the user-scoped client (RLS) — no service_role escalation.
-  let subscriptionStatus: string | undefined;
+  let subscriptionStatus: SubscriptionStatus | undefined;
   if (workspaceId) {
     try {
       const { data: wsRow } = await supabase
@@ -68,7 +69,17 @@ export default async function WorkspaceLayout({
         .select('subscription_status')
         .eq('id', workspaceId)
         .maybeSingle();
-      subscriptionStatus = (wsRow as { subscription_status?: string } | null)?.subscription_status;
+      const raw = (wsRow as { subscription_status?: string } | null)?.subscription_status;
+      if (
+        raw === 'free' ||
+        raw === 'active' ||
+        raw === 'past_due' ||
+        raw === 'cancelled' ||
+        raw === 'suspended' ||
+        raw === 'deleted'
+      ) {
+        subscriptionStatus = raw;
+      }
     } catch {
       subscriptionStatus = undefined;
     }

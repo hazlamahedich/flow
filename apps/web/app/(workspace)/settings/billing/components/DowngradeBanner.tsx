@@ -7,12 +7,12 @@ import type { ActionResult } from '@flow/types';
 interface DowngradeBannerProps {
   /** Number of clients archived by the most recent downgrade event. */
   archivedCount: number;
-  /** ISO timestamp (or any unique marker) of the latest archive event. */
-  archivedAt: string;
+  /** ISO timestamp (or null) of the latest archive event. */
+  archivedAt: string | null;
   /** Workspace ID — used to namespace localStorage dismiss state. */
   workspaceId: string;
   /** Server Action that initiates a Pro checkout (9-3b). */
-  onUpgrade: (input: { tier: 'pro'; interval: 'monthly' }) => Promise<ActionResult<{ checkoutUrl: string } | { url: string }>>;
+  onUpgrade: (input: { tier: 'pro'; interval: 'monthly' }) => Promise<ActionResult<{ checkoutUrl: string }>>;
 }
 
 const DISMISS_KEY_PREFIX = 'flow:downgrade-banner:dismissed:';
@@ -56,12 +56,14 @@ export function DowngradeBanner({
     }
   }, [workspaceId]);
 
-  // Don't render when there's nothing archived OR when the user has
-  // dismissed THIS archive event (same-or-newer timestamp).
-  if (archivedCount === 0) return null;
+  // Don't render when there's nothing archived, when no archive timestamp
+  // is available, OR when the user has dismissed THIS archive event
+  // (same-or-newer timestamp).
+  if (archivedCount === 0 || !archivedAt) return null;
   if (dismissedAt && dismissedAt >= archivedAt) return null;
 
   function handleDismiss() {
+    if (!archivedAt) return;
     try {
       window.localStorage.setItem(DISMISS_KEY_PREFIX + workspaceId, archivedAt);
     } catch {
@@ -80,9 +82,7 @@ export function DowngradeBanner({
           return;
         }
         // Redirect to Stripe Checkout URL.
-        const url = 'checkoutUrl' in result.data
-          ? result.data.checkoutUrl
-          : ('url' in result.data ? result.data.url : null);
+        const url = result.data.checkoutUrl;
         if (url) {
           window.location.href = url;
         } else {

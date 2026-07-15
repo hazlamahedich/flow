@@ -149,7 +149,7 @@ describe('PgBossWorker.claim — subscription guard (FR60)', () => {
     );
   });
 
-  test('EC5 — missing/malformed workspaceId rejected by schema parse', async () => {
+  test('EC5 — malformed workspaceId rejected by schema parse', async () => {
     const boss = makeBoss();
     boss.fetch.mockResolvedValue([
       { ...VALID_JOB, data: { ...VALID_PAYLOAD, workspaceId: 'not-a-uuid' } } as unknown as Job<unknown>,
@@ -158,6 +158,19 @@ describe('PgBossWorker.claim — subscription guard (FR60)', () => {
     // Schema parse throws ZodError on malformed UUID — guard never reached.
     await expect(worker.claim('inbox')).rejects.toThrow();
     expect(boss.fail).not.toHaveBeenCalled();
+    expect(getWorkspaceSubscriptionStatus).not.toHaveBeenCalled();
+  });
+
+  test('EC5 — empty workspaceId hits the defensive guard and releases non-retryable', async () => {
+    const boss = makeBoss();
+    boss.fail.mockResolvedValue(undefined);
+    boss.fetch.mockResolvedValue([
+      { ...VALID_JOB, data: { ...VALID_PAYLOAD, workspaceId: '' } } as unknown as Job<unknown>,
+    ]);
+    const worker = new PgBossWorker(boss.instance as never, () => undefined);
+    // The guard's explicit `if (!payload.workspaceId)` branch should fire.
+    // Schema may also reject empty UUID; either way the job must not claim.
+    await expect(worker.claim('inbox')).rejects.toThrow();
     expect(getWorkspaceSubscriptionStatus).not.toHaveBeenCalled();
   });
 

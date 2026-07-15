@@ -18,9 +18,9 @@ import type { AgentJobPayload } from './schemas';
 /**
  * Subscription-pause retry schedule (FR60).
  *
- * When a job is released via `boss.fail(retryable)`, pg-boss re-queues it
- * with this exponential backoff. The schedule mirrors the cadence used by
- * the lifecycle sweep (7-day grace + 30-day suspension): frequent early,
+ * D3 decision: pg-boss `boss.fail()` accepts a single `retryDelay` number
+ * plus `retryBackoff` (exponential doubling), not an array. We use a 60s
+ * base delay so the sequence is ~1m, 2m, 4m, 8m, 16m — frequent early,
  * sparse late. Payment recovery typically resolves in <1h.
  */
 export const SUBSCRIPTION_PAUSED_RETRY_OPTIONS = {
@@ -60,13 +60,21 @@ export async function releaseIfSubscriptionPaused(
       action: 'claim.missing_workspace', entityType: 'agent_run',
       entityId: payload.runId, details: { jobId: job.id, outcome: 'released' },
     });
-    await boss
-      .fail(`agent:${payload.agentId}`, job.id, {
+    try {
+      await boss.fail(`agent:${payload.agentId}`, job.id, {
         retryable: false,
         code: 'MISSING_WORKSPACE',
         message: 'AgentJobPayload.workspaceId missing',
-      })
-      .catch(() => { /* non-fatal */ });
+      });
+    } catch (failErr) {
+      // Non-fatal, but audit the failure so ops can see stuck jobs.
+      writeAuditLog({
+        workspaceId: '', agentId: payload.agentId,
+        action: 'claim.missing_workspace.fail_error', entityType: 'agent_run',
+        entityId: payload.runId,
+        details: { jobId: job.id, error: failErr instanceof Error ? failErr.message : String(failErr) },
+      });
+    }
     return true;
   }
 
@@ -86,21 +94,26 @@ export async function releaseIfSubscriptionPaused(
     details: { jobId: job.id, subscriptionStatus, outcome: 'released' },
   });
 
-  await boss
-    .fail(`agent:${payload.agentId}`, job.id, {
+  let failError: Error | undefined;
+  try {
+    await boss.fail(`agent:${payload.agentId}`, job.id, {
       retryable: true,
       code: 'SUBSCRIPTION_PAUSED',
       message: reason,
       ...SUBSCRIPTION_PAUSED_RETRY_OPTIONS,
-    })
-    .catch(() => { /* non-fatal — re-claim will retry */ });
-
-  try {
-    await cancelRun(payload.runId, reason);
-  } catch {
-    /* non-fatal — row will be reaped by recovery cycle if stale */
+    });
+  } catch (err) {
+    failError = err instanceof Error ? err : new Error(String(err));
   }
 
+  let cancelError: Error | undefined;
+  try {
+    await cancelRun(payload.runId, reason);
+  } catch (err) {
+    cancelError = err instanceof Error ? err : new Error(String(err));
+  }
+
+  let signalError: Error | undefined;
   try {
     const client = createServiceClient();
     await client.from('agent_signals').insert({
@@ -115,8 +128,26 @@ export async function releaseIfSubscriptionPaused(
       } as unknown as Record<string, unknown>,
       workspace_id: payload.workspaceId,
     });
-  } catch {
-    /* signal write failure is non-fatal */
+  } catch (err) {
+    signalError = err instanceof Error ? err : new Error(String(err));
+  }
+
+  // Re-audit if any side-effect failed so the failure is not silent.
+  if (failError || cancelError || signalError) {
+    writeAuditLog({
+      workspaceId: payload.workspaceId,
+      agentId: payload.agentId,
+      action: 'claim.subscription_paused.side_effect_warning',
+      entityType: 'agent_run',
+      entityId: payload.runId,
+      details: {
+        jobId: job.id,
+        subscriptionStatus,
+        failError: failError?.message,
+        cancelError: cancelError?.message,
+        signalError: signalError?.message,
+      },
+    });
   }
 
   return true;

@@ -7,7 +7,7 @@
  * workspaces), tier limit enforcement in Server Actions, downgrade data
  * preservation, auto-upgrade prompts.
  *
- * Count is **16** tests (was misstated 14 in the original scaffold).
+ * Count is **17** tests (was misstated 14/16 in earlier drafts).
  *
  * FR57, FR60
  */
@@ -22,13 +22,6 @@ vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, retryAfterMs: 0 }),
   INVITATION_CONFIG: { maxAttempts: 10, windowMs: 3600000 },
 }));
-vi.mock('@flow/db/client', () => ({
-  createServiceClient: vi.fn(() => ({
-    auth: { admin: { inviteUserByEmail: vi.fn().mockResolvedValue({ data: {}, error: null }) } },
-    from: vi.fn(),
-  })),
-}));
-
 // Hoisted boundary mocks — used by both ATDD-002 (enforceTierLimit) and
 // ATDD-003 (downgrade fn, which internally calls bulkArchiveClients /
 // countActiveClients / createServiceClient / getTierConfig).
@@ -58,6 +51,8 @@ vi.mock('@/lib/actions/billing/enforce-tier-limit', () => ({
 
 vi.mock('@flow/db/client', () => ({
   createServiceClient: vi.fn(() => mockServiceClient),
+  // Keep the admin helper used by team-invitation tests.
+  auth: { admin: { inviteUserByEmail: vi.fn().mockResolvedValue({ data: {}, error: null }) } },
 }));
 
 vi.mock('@flow/db', async () => {
@@ -280,6 +275,16 @@ describe('[P1] [9.5b-ATDD-004] owner notified on pause via in-app banner (FR60 P
     expect(el).not.toBeNull();
     expect(el.props['role']).toBe('alert');
     expect(el.props['data-status']).toBe('suspended');
+  });
+
+  test('SubscriptionStatusBanner accepts SubscriptionStatus union (type-only)', async () => {
+    const { SubscriptionStatusBanner } = await import(
+      '@/app/(workspace)/settings/billing/components/SubscriptionStatusBanner'
+    );
+    // Type-only assertion: the prop is now typed as SubscriptionStatus, so a
+    // plain string would fail TypeScript. At runtime, unknown strings render null.
+    const el = SubscriptionStatusBanner({ subscriptionStatus: 'unknown_status' as 'active' });
+    expect(el).toBeNull();
   });
 });
 

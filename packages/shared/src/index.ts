@@ -79,6 +79,7 @@ export {
 export {
   APPROACH_THRESHOLD_PERCENT,
   APPROACH_LIMIT_WARNING,
+  PRD_FREE_MAX_CLIENTS,
   checkTierLimit,
   type CheckTierLimitInput,
   type CheckTierLimitResult,

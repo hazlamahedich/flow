@@ -25,12 +25,14 @@
  * `service_role` context. It does NOT call `requireTenantContext`.
  */
 import { z } from 'zod';
+import { revalidateTag } from 'next/cache';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   createServiceClient,
   bulkArchiveClients,
   countActiveClients,
   createFlowError,
+  cacheTag,
 } from '@flow/db';
 import { downgradeSchema, type ActionResult } from '@flow/types';
 import { getTierConfig } from '@/lib/config/tier-config';
@@ -49,14 +51,14 @@ export interface DowngradeResult {
  * Free tier's `maxClients` from `getTierConfig()`. Falls back to the PRD
  * canonical value of 2 if config is missing (defensive — config IS seeded).
  */
-const PRD_FREE_CLIENTS_FALLBACK = 2;
+import { PRD_FREE_MAX_CLIENTS } from '@flow/shared';
 
 async function resolveFreeMaxClients(): Promise<number> {
   try {
     const config = await getTierConfig();
-    return config.tierLimits.free.maxClients ?? PRD_FREE_CLIENTS_FALLBACK;
+    return config.tierLimits.free.maxClients ?? PRD_FREE_MAX_CLIENTS;
   } catch {
-    return PRD_FREE_CLIENTS_FALLBACK;
+    return PRD_FREE_MAX_CLIENTS;
   }
 }
 
@@ -121,7 +123,9 @@ async function rejectIfStatusNotActive(
     return createFlowError(404, 'WORKSPACE_NOT_FOUND', 'Workspace not found.', 'validation');
   }
   const status = (data as { subscription_status: string }).subscription_status;
-  if (status !== 'active' && status !== 'free') {
+  // D2 decision: downgrade is allowed from active, free, past_due, or cancelled.
+  // Only suspended and deleted workspaces must reactivate first (EC12 / terminal).
+  if (status === 'suspended' || status === 'deleted') {
     return createFlowError(409, 'INVALID_STATE', `Cannot downgrade while subscription_status=${status}. Reactivate first.`, 'validation');
   }
   return null;
@@ -181,6 +185,8 @@ export async function applyDowngradeOnTierChange(
       input.workspaceId,
       freeMaxClients,
     );
+
+    revalidateTag(cacheTag('workspace', input.workspaceId));
 
     return {
       success: true,

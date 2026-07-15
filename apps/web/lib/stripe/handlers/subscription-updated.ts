@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getTierConfig } from '@/lib/config/tier-config';
+import { mapStripeStatusToDb } from '@flow/shared';
 import { StripePaymentProvider } from '@flow/agents/providers';
+import { writeAuditLog } from '@flow/agents/shared/audit-writer';
 import { applyDowngradeOnTierChange } from '@/lib/actions/billing/downgrade-internal';
 import type { WebhookEvent, WebhookProcessingResult } from '../webhook-types';
 
@@ -35,19 +37,12 @@ function mapPriceIdToTier(
 function mapSubscriptionStatus(
   stripeStatus: string,
 ): 'active' | 'past_due' | 'cancelled' | undefined {
-  // AC1 CHECK only allows ('free', 'active', 'past_due', 'cancelled').
-  // 'trialing' is intentionally mapped to 'active' (trial users can use the product).
-  // 'canceled'/'unpaid'/'incomplete'/'incomplete_expired' map to 'cancelled'
-  // because Stripe has stopped serving the subscription.
-  if (stripeStatus === 'active' || stripeStatus === 'trialing') return 'active';
-  if (stripeStatus === 'past_due') return 'past_due';
-  if (
-    stripeStatus === 'canceled' ||
-    stripeStatus === 'unpaid' ||
-    stripeStatus === 'incomplete' ||
-    stripeStatus === 'incomplete_expired'
-  ) {
-    return 'cancelled';
+  // D4 decision: use the shared lifecycle helper as the single source of truth
+  // for Stripe → DB status mapping. The helper returns null for unmapped or
+  // transient states (e.g. 'incomplete'), which we treat as "skip this event".
+  const mapped = mapStripeStatusToDb(stripeStatus);
+  if (mapped === 'active' || mapped === 'past_due' || mapped === 'cancelled') {
+    return mapped;
   }
   return undefined;
 }
@@ -163,12 +158,19 @@ async function syncSubscriptionFromEvent(
       });
     } catch (err) {
       // Non-fatal — tier flip already committed; archive failure surfaces
-      // as tier_drift on next reconcileSubscriptions() run. We still log
-      // to stderr for immediate ops visibility.
-      console.error('applyDowngradeOnTierChange failed (will be reconciled)', {
+      // as tier_drift on next reconcileSubscriptions() run. Log via the
+      // structured agent audit writer instead of stderr (project-context.md).
+      writeAuditLog({
         workspaceId,
-        previousTier,
-        error: err instanceof Error ? err.message : String(err),
+        agentId: 'stripe-webhook',
+        action: 'subscription.downgrade_archive_failed',
+        entityType: 'workspace',
+        entityId: workspaceId,
+        details: {
+          previousTier,
+          error: err instanceof Error ? err.message : String(err),
+          reconcileFallback: true,
+        },
       });
     }
   }

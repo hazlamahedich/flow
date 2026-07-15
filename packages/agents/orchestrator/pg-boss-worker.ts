@@ -11,6 +11,8 @@ import { runPreCheck, blockForApproval } from './gates';
 import { runPostCheck } from './post-check';
 import { writeGateSignal } from './gate-events';
 import { releaseIfSubscriptionPaused } from './subscription-guard';
+import { shouldDequeueForWorkspace } from '@flow/shared';
+import type { SubscriptionStatus } from '@flow/shared';
 import type { PreCheckResult } from './gates';
 
 const CAN_ACT_RETRY_DELAYS_MS = [1000, 5000, 15000];
@@ -72,6 +74,17 @@ export class PgBossWorker implements AgentRunWorker {
     // cancels the queued run when the workspace is paused. See
     // `subscription-guard.ts` for details + EC matrix.
     if (await releaseIfSubscriptionPaused(this.boss, payload, job)) {
+      return null;
+    }
+
+    // P30: re-check workspace status immediately before advancing the run to
+    // `running`. This closes the race window where the subscription status
+    // flipped to paused between the guard above and the conditional write
+    // below, without holding a transaction across the two.
+    const { getWorkspaceSubscriptionStatus } = await import('@flow/db');
+    const currentStatus = (await getWorkspaceSubscriptionStatus(payload.workspaceId)) as SubscriptionStatus | null;
+    if (currentStatus !== null && !shouldDequeueForWorkspace(currentStatus)) {
+      await releaseIfSubscriptionPaused(this.boss, payload, job);
       return null;
     }
 

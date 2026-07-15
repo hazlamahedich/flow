@@ -90,10 +90,13 @@ describe('[T4.8] downgradeSchema validation', () => {
     }
   });
 
-  test('rejects same-tier downgrade (EC2/EC3) with INVALID_STATE 409', async () => {
+  test('rejects same-tier downgrade (EC3) with INVALID_STATE 409', async () => {
     const { applyDowngradeOnTierChange } = await loadModule();
-    // @ts-expect-error — testing runtime rejection of malformed input
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'free', toTier: 'free' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'free' as 'pro',
+      toTier: 'free',
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.status).toBe(409);
@@ -101,10 +104,23 @@ describe('[T4.8] downgradeSchema validation', () => {
     }
   });
 
+  test('D5: schema prevents Pro→Pro same-tier downgrade at input boundary', async () => {
+    const { downgradeSchema } = await loadModule();
+    const parsed = downgradeSchema.safeParse({ fromTier: 'pro', toTier: 'pro' });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      const toTierErrors = parsed.error.issues.filter((i) => i.path.includes('toTier'));
+      expect(toTierErrors.length).toBeGreaterThan(0);
+    }
+  });
+
   test('rejects upgrade-direction (EC4) with VALIDATION_ERROR', async () => {
     const { applyDowngradeOnTierChange } = await loadModule();
-    // @ts-expect-error — testing runtime rejection of upgrade-direction
-    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'free', toTier: 'pro' });
+    const result = await applyDowngradeOnTierChange({
+      workspaceId: 'ws-1',
+      fromTier: 'free' as 'pro',
+      toTier: 'pro' as 'free',
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('VALIDATION_ERROR');
@@ -206,7 +222,7 @@ describe('[T4.8] return shape — { preservedCount, archivedClientIds, upgradePr
 // 5. EC12 — suspended workspace cannot downgrade
 // ───────────────────────────────────────────────────────────────
 describe('[T4.8] EC12 — suspended workspace downgrade', () => {
-  test('rejects downgrade while subscription_status=suspended with INVALID_STATE', async () => {
+  test('rejects downgrade while subscription_status=suspended with INVALID_STATE (EC12)', async () => {
     mockServiceClient.from.mockImplementationOnce(() => ({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -218,6 +234,49 @@ describe('[T4.8] EC12 — suspended workspace downgrade', () => {
     if (!result.success) {
       expect(result.error.code).toBe('INVALID_STATE');
       expect(result.error.status).toBe(409);
+    }
+    expect(mockBulkArchive).not.toHaveBeenCalled();
+  });
+
+  test('allows downgrade while subscription_status=past_due (D2)', async () => {
+    mockServiceClient.from.mockImplementationOnce(() => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { subscription_status: 'past_due' }, error: null }),
+    }));
+    mockCountActive.mockResolvedValueOnce(4);
+    mockBulkArchive.mockResolvedValueOnce({ archivedClientIds: ['c3', 'c4'], preservedCount: 2 });
+    const { applyDowngradeOnTierChange } = await loadModule();
+    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'pro', toTier: 'free' });
+    expect(result.success).toBe(true);
+    expect(mockBulkArchive).toHaveBeenCalled();
+  });
+
+  test('allows downgrade while subscription_status=cancelled (D2)', async () => {
+    mockServiceClient.from.mockImplementationOnce(() => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { subscription_status: 'cancelled' }, error: null }),
+    }));
+    mockCountActive.mockResolvedValueOnce(4);
+    mockBulkArchive.mockResolvedValueOnce({ archivedClientIds: ['c3', 'c4'], preservedCount: 2 });
+    const { applyDowngradeOnTierChange } = await loadModule();
+    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'pro', toTier: 'free' });
+    expect(result.success).toBe(true);
+    expect(mockBulkArchive).toHaveBeenCalled();
+  });
+
+  test('rejects downgrade while subscription_status=deleted with INVALID_STATE (EC12b)', async () => {
+    mockServiceClient.from.mockImplementationOnce(() => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { subscription_status: 'deleted' }, error: null }),
+    }));
+    const { applyDowngradeOnTierChange } = await loadModule();
+    const result = await applyDowngradeOnTierChange({ workspaceId: 'ws-1', fromTier: 'pro', toTier: 'free' });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.code).toBe('INVALID_STATE');
     }
     expect(mockBulkArchive).not.toHaveBeenCalled();
   });
