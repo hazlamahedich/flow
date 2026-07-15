@@ -1,9 +1,7 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import {
-  validatePortalSessionWithDb,
-  PORTAL_COOKIE_NAME,
-} from '@/lib/actions/portal';
+import { validatePortalSessionWithDb } from '@/lib/actions/portal/actions';
+import { PORTAL_COOKIE_NAME } from '@/lib/actions/portal/constants';
 import { PortalBrandingStyle } from '@/app/portal/components/PortalBrandingStyle';
 import { PortalBrandingProvider } from '@/app/portal/components/PortalBrandingProvider';
 import { PORTAL_FONT_CLASSES } from '@/app/portal/fonts';

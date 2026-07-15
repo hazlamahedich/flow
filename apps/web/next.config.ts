@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     '@flow/ui',
     '@flow/types',
     '@flow/auth',
+    '@flow/agents',
   ],
 };
 

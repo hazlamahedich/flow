@@ -4,8 +4,8 @@ export interface CalendarOAuthUrlParams {
   redirectUri: string;
   state: string;
   codeChallenge: string;
-  includeGrantedScopes?: boolean;
-  additionalScopes?: string[];
+  includeGrantedScopes?: boolean | undefined;
+  additionalScopes?: string[] | undefined;
 }
 
 export interface CalendarCodeExchangeResult {

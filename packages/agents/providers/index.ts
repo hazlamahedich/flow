@@ -4,7 +4,10 @@ export type {
   TransactionalEmailPayload,
   TransactionalEmailResult,
 } from './transactional-email-provider.js';
-export type { CalendarProvider } from './calendar-provider.js';
+export type {
+  CalendarProvider,
+  CalendarOAuthUrlParams,
+} from './calendar-provider.js';
 export type {
   PaymentProvider,
   CheckoutSession,
@@ -18,7 +21,10 @@ export {
   ResendApiError,
 } from './resend/resend-transactional-provider.js';
 export { GoogleCalendarProvider } from './google-calendar/google-calendar-provider.js';
-export { StripePaymentProvider } from './stripe/stripe-payment-provider.js';
+export {
+  StripePaymentProvider,
+  StripeApiError,
+} from './stripe/stripe-payment-provider.js';
 export { verifyGoogleOidcToken } from './gmail/gmail-verify.js';
 export {
   registerProvider,

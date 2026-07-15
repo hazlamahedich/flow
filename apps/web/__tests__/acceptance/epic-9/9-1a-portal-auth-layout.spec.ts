@@ -45,8 +45,6 @@ vi.mock('next/headers', () => ({
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext } from '@flow/db';
 import {
-  generatePortalLinkAction,
-  validatePortalTokenAction,
   validatePortalSession,
   PORTAL_TOKEN_BYTES,
   PORTAL_TOKEN_TTL_HOURS,
@@ -56,6 +54,10 @@ import {
   portalTokenSchema,
   generatePortalLinkSchema,
 } from '@/lib/actions/portal';
+import {
+  generatePortalLinkAction,
+  validatePortalTokenAction,
+} from '@/lib/actions/portal/actions';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock Supabase chain helper — mirrors the pattern from epic-8 ATDD files.

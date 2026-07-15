@@ -30,14 +30,15 @@ function createMockSupabase(
       if (table === 'client_calendars') {
         const chain: Record<string, ReturnType<typeof vi.fn>> = {};
         chain.select = vi.fn().mockReturnValue(chain);
-        chain.eq = vi.fn().mockImplementation(() => {
-          if (chain.eq.mock.calls.length === 2) {
+        const eqFn = vi.fn().mockImplementation(() => {
+          if (eqFn.mock.calls.length === 2) {
             chain.limit = vi
               .fn()
               .mockResolvedValue({ data: calendarData, error: null });
           }
           return chain;
         });
+        chain.eq = eqFn;
         chain.limit = vi
           .fn()
           .mockResolvedValue({ data: calendarData, error: null });
@@ -70,8 +71,10 @@ const mockProvider = {
   deleteEvent: vi.fn(),
 };
 
-function getProvider(_name: string) {
-  return mockProvider as unknown as import('../providers/calendar-provider').CalendarProvider;
+import type { CalendarProvider } from '../../providers/calendar-provider';
+
+function getProvider(_name: string): CalendarProvider {
+  return mockProvider as unknown as CalendarProvider;
 }
 
 beforeEach(() => {
@@ -82,11 +85,23 @@ beforeEach(() => {
 
 const baseOption: CascadeOption = {
   id: 'opt-1',
+  label: 'Test cascade option',
   affectedEvents: [
-    { eventId: 'evt-2', action: 'reschedule' },
-    { eventId: 'evt-3', action: 'cancel' },
+    {
+      eventId: 'evt-2',
+      title: 'Meeting A',
+      startAt: '2026-06-01T10:00:00Z',
+      endAt: '2026-06-01T11:00:00Z',
+      action: 'reschedule',
+    },
+    {
+      eventId: 'evt-3',
+      title: 'Meeting B',
+      startAt: '2026-06-01T14:00:00Z',
+      endAt: '2026-06-01T15:00:00Z',
+      action: 'cancel',
+    },
   ],
-  description: 'Test cascade option',
 };
 
 const baseEventData = [
@@ -112,8 +127,16 @@ describe('executeCascadeOption', () => {
   it('returns empty result when no events need action', async () => {
     const option: CascadeOption = {
       id: 'opt-1',
-      affectedEvents: [{ eventId: 'evt-1', action: 'keep' }],
-      description: 'Keep all',
+      label: 'Keep all',
+      affectedEvents: [
+        {
+          eventId: 'evt-1',
+          title: 'Meeting',
+          startAt: '2026-06-01T10:00:00Z',
+          endAt: '2026-06-01T11:00:00Z',
+          action: 'keep',
+        },
+      ],
     };
     const supabase = createMockSupabase();
 

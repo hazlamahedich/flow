@@ -87,7 +87,7 @@ export function createBookingMockSupabase(
           return updateChain;
         }),
         insert: vi.fn().mockImplementation((data: unknown) => {
-          capturedInsertData = data;
+          capturedInsertData = data as Record<string, unknown> | null;
           capturedInserts.push({ table, data });
           const insertChain: Record<string, MockFn> = {};
           insertChain.select = vi.fn().mockReturnValue({

@@ -171,8 +171,22 @@ describe('executeConflictDetection', () => {
     );
     mockDetectConflicts.mockResolvedValue([
       {
-        event1: { eventId: 'evt-1' },
-        event2: { eventId: 'evt-2', title: 'Conflict' },
+        event1: {
+          eventId: 'evt-1',
+          providerEventId: 'prov-1',
+          title: 'Event 1',
+          calendarId: 'cal-1',
+          startAt: new Date('2026-06-01T10:00:00Z'),
+          endAt: new Date('2026-06-01T11:00:00Z'),
+        },
+        event2: {
+          eventId: 'evt-2',
+          providerEventId: 'prov-2',
+          title: 'Conflict',
+          calendarId: 'cal-1',
+          startAt: new Date('2026-06-01T10:15:00Z'),
+          endAt: new Date('2026-06-01T11:15:00Z'),
+        },
         overlapSeconds: 1800,
       },
     ]);

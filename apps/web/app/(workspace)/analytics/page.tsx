@@ -3,6 +3,7 @@ import {
   createServerClient,
   getUsageAnalytics,
 } from '@flow/db';
+import { cookies as nextCookies } from 'next/headers';
 
 const ALLOWED_ROLES = new Set(['owner', 'admin']);
 const VALID_PERIODS = new Set(['7', '30', '90']);
@@ -68,7 +69,22 @@ export default async function AnalyticsPage({
   const rawPeriod = resolved.period ?? '30';
   const periodDays = VALID_PERIODS.has(rawPeriod) ? Number(rawPeriod) : 30;
 
-  const { workspaceId, role } = await requireTenantContext();
+  const cookieStore = await nextCookies();
+  const supabase = createServerClient({
+    getAll() {
+      return cookieStore
+        .getAll()
+        .map((c) => ({ name: c.name, value: c.value }));
+    },
+    set(name: string, value: string, options?: Record<string, unknown>) {
+      try {
+        cookieStore.set(name, value, { ...options, path: '/' });
+      } catch {
+        // Cookie setting can fail in read-only contexts (Server Components)
+      }
+    },
+  });
+  const { workspaceId, role } = await requireTenantContext(supabase);
 
   if (!ALLOWED_ROLES.has(role)) {
     return (
@@ -85,7 +101,6 @@ export default async function AnalyticsPage({
     );
   }
 
-  const supabase = createServerClient();
   const analytics = await getUsageAnalytics(supabase, workspaceId, periodDays);
 
   const completionPct = (analytics.agentCompletionRate * 100).toFixed(1);

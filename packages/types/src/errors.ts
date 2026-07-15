@@ -90,7 +90,8 @@ export type FlowErrorCode =
   | 'INVALID_DATE_RANGE'
   | 'CONCURRENT_MODIFICATION'
   | 'NOT_CONFIGURED'
-  | 'NO_ACTIVE_SUBSCRIPTION';
+  | 'NO_ACTIVE_SUBSCRIPTION'
+  | 'INVALID_OPTION';
 
 export type AgentErrorCode =
   | 'AGENT_ERROR'

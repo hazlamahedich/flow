@@ -9,7 +9,7 @@ vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
 }));
 
-vi.mock('@flow/agents/inbox', () => ({
+vi.mock('@flow/agents/inbox/schemas', () => ({
   morningBriefOutputSchema: {
     safeParse: vi.fn(),
   },
@@ -53,7 +53,7 @@ vi.mock('@flow/ui', () => ({
 import { MorningBrief } from '../morning-brief';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext } from '@flow/db';
-import { morningBriefOutputSchema } from '@flow/agents/inbox';
+import { morningBriefOutputSchema } from '@flow/agents/inbox/schemas';
 
 describe('MorningBrief', () => {
   const mockSupabase: any = {

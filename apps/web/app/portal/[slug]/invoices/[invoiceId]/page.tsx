@@ -2,7 +2,7 @@ import Link from 'next/link';
 import {
   validatePortalSlug,
   getPortalInvoiceDetail,
-} from '@/lib/actions/portal';
+} from '@/lib/actions/portal/actions';
 import { PayInvoiceButton } from '@/app/portal/components/PayInvoiceButton';
 import { ValueReceipt } from '@/app/portal/components/ValueReceipt';
 import { formatCents } from '@/lib/money';

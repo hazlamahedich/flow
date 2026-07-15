@@ -15,6 +15,7 @@ import {
   updateRunStatus,
   getRunById,
   createServiceClient,
+  getWorkspaceSubscriptionStatus,
 } from '@flow/db';
 import { writeAuditLog } from '../shared/audit-writer';
 import { CircuitBreaker } from '../shared/circuit-breaker';
@@ -131,7 +132,6 @@ export class PgBossWorker implements AgentRunWorker {
     // `running`. This closes the race window where the subscription status
     // flipped to paused between the guard above and the conditional write
     // below, without holding a transaction across the two.
-    const { getWorkspaceSubscriptionStatus } = await import('@flow/db');
     const currentStatus = (await getWorkspaceSubscriptionStatus(
       payload.workspaceId,
     )) as SubscriptionStatus | null;

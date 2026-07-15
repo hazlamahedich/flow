@@ -3,6 +3,41 @@
  */
 import { describe, test, expect, vi } from 'vitest';
 
+vi.mock('@flow/agents/providers', () => ({
+  verifyDeliveryToken: vi
+    .fn()
+    .mockResolvedValue({ invoiceId: 'inv-1', workspaceId: 'ws-1' }),
+}));
+
+vi.mock('@flow/db', () => ({
+  createServiceClient: vi.fn().mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: {
+                id: 'inv-1',
+                status: 'sent',
+                payment_url: 'https://pay.example.com',
+              },
+              error: null,
+            }),
+          }),
+        }),
+      }),
+      update: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+        }),
+      }),
+      insert: vi.fn().mockResolvedValue({ error: null }),
+    }),
+  }),
+}));
+
 describe('Rate limiter: 30 req/min per IP', () => {
   test('allows 30 requests then blocks the 31st', async () => {
     // The route module creates a module-level Map, so repeated imports inside one test
@@ -40,7 +75,9 @@ describe('Rate limiter: 30 req/min per IP', () => {
 
 describe('Webhook signature verification', () => {
   test('StripePaymentProvider.constructWebhookEvent accepts valid signature', async () => {
-    const { StripePaymentProvider } = await import('@flow/agents/providers');
+    const { StripePaymentProvider } = await vi.importActual<
+      typeof import('@flow/agents/providers')
+    >('@flow/agents/providers');
     const provider = new StripePaymentProvider({
       secretKey: 'sk_test_secret',
       webhookSecret: 'whsec_valid',
@@ -68,8 +105,9 @@ describe('Webhook signature verification', () => {
   });
 
   test('rejects expired timestamp (>5min old)', async () => {
-    const { StripePaymentProvider, StripeApiError } =
-      await import('@flow/agents/providers');
+    const { StripePaymentProvider, StripeApiError } = await vi.importActual<
+      typeof import('@flow/agents/providers')
+    >('@flow/agents/providers');
     const provider = new StripePaymentProvider({
       secretKey: 'sk_test_secret',
       webhookSecret: 'whsec_valid',

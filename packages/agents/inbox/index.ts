@@ -20,6 +20,7 @@ export type {
   ClientBreakdown,
 } from './schemas';
 export { startHistoryWorker, handleDrainHistory } from './history-worker';
+export { executeInitialSync } from './initial-sync';
 import { getMorningBriefContext } from './brief-context';
 import { generateBrief } from './brief-generator';
 import { saveMorningBrief } from '@flow/db';

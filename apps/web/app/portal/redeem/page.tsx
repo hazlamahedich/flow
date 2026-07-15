@@ -3,7 +3,7 @@ import { validatePortalTokenAction } from '@/lib/actions/portal/validate-token';
 import {
   getPortalPath,
   getFallbackPortalPath,
-} from '@/lib/actions/portal/portal-session';
+} from '@/lib/actions/portal/portal-paths';
 import { sanitizeSlug } from '@/lib/actions/portal/helpers';
 import { getServerSupabase } from '@/lib/supabase-server';
 

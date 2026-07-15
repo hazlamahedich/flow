@@ -25,6 +25,25 @@ export function HistoryTable({
   const [focusedRow, setFocusedRow] = useState(-1);
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
 
+  const handleTableKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = Math.min(focusedRow + 1, events.length - 1);
+        setFocusedRow(next);
+        const nextId = events[next]?.id;
+        if (nextId) rowRefs.current[nextId]?.focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = Math.max(focusedRow - 1, 0);
+        setFocusedRow(prev);
+        const prevId = events[prev]?.id;
+        if (prevId) rowRefs.current[prevId]?.focus();
+      }
+    },
+    [focusedRow, events],
+  );
+
   if (events.length === 0 && page === 1) {
     return (
       <div className="py-12 text-center" data-testid="history-empty">
@@ -44,25 +63,6 @@ export function HistoryTable({
     }
     router.push(`?${params.toString()}`);
   };
-
-  const handleTableKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        const next = Math.min(focusedRow + 1, events.length - 1);
-        setFocusedRow(next);
-        const nextId = events[next]?.id;
-        if (nextId) rowRefs.current[nextId]?.focus();
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        const prev = Math.max(focusedRow - 1, 0);
-        setFocusedRow(prev);
-        const prevId = events[prev]?.id;
-        if (prevId) rowRefs.current[prevId]?.focus();
-      }
-    },
-    [focusedRow, events],
-  );
 
   return (
     <div data-testid="history-table">

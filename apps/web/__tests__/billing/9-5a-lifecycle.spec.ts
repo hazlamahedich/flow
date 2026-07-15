@@ -278,10 +278,10 @@ describe('runGraceSweep', () => {
     // (the actual transitioner — webhook/reconcile — already logged it).
     const transitionCalls = (
       writeAuditLog as unknown as ReturnType<typeof vi.fn>
-    ).mock.calls.filter(
-      ([p]: [unknown]) =>
-        (p as { action?: string }).action === 'subscription.transitioned',
-    );
+    ).mock.calls.filter((call: unknown[]) => {
+      const p = call[0] as { action?: string } | undefined;
+      return p?.action === 'subscription.transitioned';
+    });
     expect(transitionCalls).toHaveLength(0);
   });
 

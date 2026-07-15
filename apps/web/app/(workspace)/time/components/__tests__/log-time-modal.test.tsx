@@ -114,14 +114,7 @@ describe('LogTimeModal', () => {
   it('[P1] calls createTimeEntryAction on valid submit', async () => {
     vi.mocked(createTimeEntryAction).mockResolvedValue({
       success: true,
-      data: {
-        id: 'te-1',
-        clientId: 'c-1',
-        projectId: null,
-        date: '2026-05-10',
-        durationMinutes: 60,
-        notes: null,
-      },
+      data: { id: 'te-1' },
     });
 
     await renderModal();

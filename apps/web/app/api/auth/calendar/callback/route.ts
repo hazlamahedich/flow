@@ -4,6 +4,7 @@ import { createServiceClient } from '@flow/db';
 import { cacheTag } from '@flow/db';
 import { encryptCalendarTokens } from '@flow/db/vault/calendar-tokens';
 import { GoogleCalendarProvider } from '@flow/agents/providers';
+import { calendarOAuthStateCookieSchema } from '@flow/types';
 import type { CalendarOAuthStateCookie } from '@flow/types';
 import { revalidateTag } from 'next/cache';
 import { getCookieStore } from '@/lib/cookie-store';
@@ -260,8 +261,9 @@ export async function POST(request: Request): Promise<Response> {
         calendarId = primaryCal.calendarId;
         calendarName = primaryCal.name;
       } else if (calendars.length > 0) {
-        calendarId = calendars[0].calendarId;
-        calendarName = calendars[0].name;
+        const fallback = calendars[0]!;
+        calendarId = fallback.calendarId;
+        calendarName = fallback.name;
       }
     } catch (listErr) {
       console.warn(

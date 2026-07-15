@@ -6,7 +6,8 @@
  *
  * Story 9.2 — AC3, AC4, AC5, AC6, AC7.
  */
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
 
 vi.mock('@/lib/supabase-server', () => {
   const mockRpc = vi.fn();
@@ -129,6 +130,10 @@ function mockPortalRpc() {
   vi.mocked(createPortalClient).mockResolvedValue(portalClient as never);
   return portalClient;
 }
+
+afterEach(() => {
+  cleanup();
+});
 
 beforeEach(() => {
   vi.clearAllMocks();

@@ -3,7 +3,7 @@ import { requireTenantContext } from '@flow/db';
 import {
   morningBriefOutputSchema,
   type MorningBriefProposal,
-} from '@flow/agents/inbox';
+} from '@flow/agents/inbox/schemas';
 import { Badge, Button } from '@flow/ui';
 import { MorningBriefTracker } from './morning-brief-tracker';
 import { FloodStateBanner } from './flood-state-banner';

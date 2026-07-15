@@ -48,6 +48,8 @@ const entry = {
   projectId: null,
   date: '2026-05-10',
   durationMinutes: 60,
+  startMinutes: null,
+  endMinutes: null,
   notes: 'Test note',
 };
 const clients = [
@@ -90,7 +92,14 @@ function saveBtn() {
 describe('EditTimeEntryModal — UI State Coverage', () => {
   describe('[P1] Loading state', () => {
     it('disables save button during submission', async () => {
-      let resolveSubmit!: (v: unknown) => void;
+      let resolveSubmit: (
+        value:
+          | { success: true; data: { id: string; updatedAt: string } }
+          | PromiseLike<{
+              success: true;
+              data: { id: string; updatedAt: string };
+            }>,
+      ) => void;
       vi.mocked(updateTimeEntryAction).mockImplementation(
         () =>
           new Promise((resolve) => {
@@ -101,7 +110,7 @@ describe('EditTimeEntryModal — UI State Coverage', () => {
       await renderAndWait();
       const btn = saveBtn();
       await act(async () => {
-        fireEvent.click(btn);
+        fireEvent.click(btn!);
       });
 
       expect(btn).toBeDisabled();
@@ -129,7 +138,7 @@ describe('EditTimeEntryModal — UI State Coverage', () => {
 
       await renderAndWait();
       await act(async () => {
-        fireEvent.click(saveBtn());
+        fireEvent.click(saveBtn()!);
       });
 
       await waitFor(() => {
@@ -204,7 +213,7 @@ describe('EditTimeEntryModal — UI State Coverage', () => {
       await renderAndWait();
       const btn = saveBtn();
       await act(async () => {
-        fireEvent.click(btn);
+        fireEvent.click(btn!);
       });
 
       await waitFor(() => {
@@ -221,13 +230,13 @@ describe('EditTimeEntryModal — UI State Coverage', () => {
           status: 409,
           code: 'CONFLICT',
           message: 'Modified concurrently',
-          category: 'conflict',
+          category: 'validation',
         },
       });
 
       await renderAndWait();
       await act(async () => {
-        fireEvent.click(saveBtn());
+        fireEvent.click(saveBtn()!);
       });
 
       await waitFor(() => {

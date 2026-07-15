@@ -151,7 +151,7 @@ function createMockSupabase(
   const client = {
     from: vi.fn().mockImplementation((table: string) => {
       if (!chains[table]) makeChain(table);
-      const c = chains[table];
+      const c = chains[table]!;
       // expose rpc at the top level too (supabase.rpc pattern)
       return {
         insert: c.insert,
@@ -365,11 +365,9 @@ describe('[9.3a] processStripeEvent dispatcher', () => {
     const result = await processStripeEvent(client, event);
     expect(result.processed).toBe(true);
     expect(client.rpc).toHaveBeenCalledWith(
-      'set_workspace_subscription_status',
+      'transition_to_suspended_any',
       expect.objectContaining({
         p_workspace_id: 'ws_123',
-        p_status: 'cancelled',
-        p_clear_period_end: true,
       }),
     );
   });
@@ -618,7 +616,7 @@ describe('[9.3a] Edge case matrix', () => {
     const result = await processStripeEvent(client, event);
     expect(result.processed).toBe(true);
     expect(client.rpc).toHaveBeenCalledWith(
-      'set_workspace_subscription_status',
+      'transition_to_suspended_any',
       expect.objectContaining({ p_workspace_id: 'ws_from_customer' }),
     );
   });

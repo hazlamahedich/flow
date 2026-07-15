@@ -19,8 +19,9 @@ describe('SwipeableCard', () => {
       </SwipeableCard>,
     );
     const cards = screen.getAllByText('Card Content');
-    fireEvent.mouseDown(cards[0]);
-    fireEvent.mouseMove(cards[0], { clientX: 100 });
+    const card = cards[0]!;
+    fireEvent.mouseDown(card);
+    fireEvent.mouseMove(card, { clientX: 100 });
   });
 
   it('should respect disabled state', () => {

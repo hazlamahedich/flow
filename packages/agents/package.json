@@ -47,6 +47,10 @@
     "./orchestrator/types": {
       "types": "./orchestrator/types.ts",
       "default": "./dist/orchestrator/types.js"
+    },
+    "./inbox/schemas": {
+      "types": "./inbox/schemas/index.ts",
+      "default": "./dist/inbox/schemas/index.js"
     }
   },
   "scripts": {

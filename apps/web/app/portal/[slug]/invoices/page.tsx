@@ -1,4 +1,7 @@
-import { validatePortalSlug, getPortalInvoices } from '@/lib/actions/portal';
+import {
+  validatePortalSlug,
+  getPortalInvoices,
+} from '@/lib/actions/portal/actions';
 import { formatCents } from '@/lib/money';
 
 /**

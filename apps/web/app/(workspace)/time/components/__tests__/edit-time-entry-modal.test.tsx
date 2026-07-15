@@ -46,6 +46,8 @@ const entry = {
   projectId: null,
   date: '2026-05-10',
   durationMinutes: 60,
+  startMinutes: null,
+  endMinutes: null,
   notes: 'Test note',
 };
 const clients = [
@@ -92,9 +94,9 @@ describe('EditTimeEntryModal', () => {
   it('shows validation error for invalid duration', async () => {
     await renderAndWait();
     const durationInputs = screen.getAllByPlaceholderText(/90 for 1h 30m/);
-    fireEvent.change(durationInputs[0], { target: { value: '0' } });
+    fireEvent.change(durationInputs[0]!, { target: { value: '0' } });
     await act(async () => {
-      fireEvent.click(saveBtn());
+      fireEvent.click(saveBtn()!);
     });
     await waitFor(() => {
       expect(screen.getByText('Minimum 1 minute')).toBeInTheDocument();
@@ -103,7 +105,7 @@ describe('EditTimeEntryModal', () => {
 
   it('calls onClose on cancel', async () => {
     await renderAndWait();
-    fireEvent.click(cancelBtn());
+    fireEvent.click(cancelBtn()!);
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -114,7 +116,7 @@ describe('EditTimeEntryModal', () => {
     });
     await renderAndWait();
     await act(async () => {
-      fireEvent.click(saveBtn());
+      fireEvent.click(saveBtn()!);
     });
     await waitFor(() => {
       expect(updateTimeEntryAction).toHaveBeenCalledWith(

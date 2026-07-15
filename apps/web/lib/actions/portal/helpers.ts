@@ -3,8 +3,6 @@
  *
  * Story 9.1a — FR8, FR51, FR54.
  */
-'use server';
-
 import { createHash } from 'node:crypto';
 import { headers } from 'next/headers';
 import { z } from 'zod';

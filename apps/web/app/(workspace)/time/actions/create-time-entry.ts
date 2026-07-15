@@ -9,6 +9,41 @@ import {
   createTimeEntry,
 } from '@flow/db';
 
+function getTodayStr(): string {
+  const t = new Date();
+  const month = String(t.getMonth() + 1).padStart(2, '0');
+  const day = String(t.getDate()).padStart(2, '0');
+  return `${t.getFullYear()}-${month}-${day}`;
+}
+
+function dateNotFuture(d: string): boolean {
+  return d <= getTodayStr();
+}
+
+interface CreateTimeEntryShape {
+  startMinutes?: number | undefined;
+  endMinutes?: number | undefined;
+  durationMinutes: number;
+}
+
+function startEndConsistent(d: CreateTimeEntryShape): boolean {
+  return (d.startMinutes != null) === (d.endMinutes != null);
+}
+
+function startBeforeEnd(d: CreateTimeEntryShape): boolean {
+  if (d.startMinutes != null && d.endMinutes != null) {
+    return d.startMinutes < d.endMinutes;
+  }
+  return true;
+}
+
+function noMidnightSpan(d: CreateTimeEntryShape): boolean {
+  if (d.startMinutes != null && d.endMinutes != null) {
+    return d.startMinutes + d.durationMinutes <= 1440;
+  }
+  return true;
+}
+
 export const createTimeEntrySchema = z
   .object({
     clientId: z.string().uuid(),
@@ -16,39 +51,20 @@ export const createTimeEntrySchema = z
     date: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/)
-      .refine((d) => {
-        const t = new Date();
-        const todayStr = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
-        return d <= todayStr;
-      }, 'Date cannot be in the future'),
+      .refine(dateNotFuture, 'Date cannot be in the future'),
     durationMinutes: z.number().int().min(1).max(1440),
     startMinutes: z.number().int().min(0).max(1439).optional(),
     endMinutes: z.number().int().min(0).max(1439).optional(),
     notes: z.string().max(500).optional(),
   })
-  .refine((d) => (d.startMinutes != null) === (d.endMinutes != null), {
+  .refine(startEndConsistent, {
     message: 'Both start and end times are required together.',
   })
-  .refine(
-    (d) => {
-      if (d.startMinutes != null && d.endMinutes != null)
-        return d.startMinutes < d.endMinutes;
-      return true;
-    },
-    { message: 'End time must be after start time.' },
-  )
-  .refine(
-    (d) => {
-      if (d.startMinutes != null && d.endMinutes != null) {
-        if (d.startMinutes + d.durationMinutes > 1440) return false;
-      }
-      return true;
-    },
-    {
-      message:
-        'Entry spans midnight. Split into two entries for each calendar day.',
-    },
-  );
+  .refine(startBeforeEnd, { message: 'End time must be after start time.' })
+  .refine(noMidnightSpan, {
+    message:
+      'Entry spans midnight. Split into two entries for each calendar day.',
+  });
 
 export async function createTimeEntryAction(
   input: unknown,

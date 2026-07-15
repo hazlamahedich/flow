@@ -63,19 +63,19 @@ export async function getAgentActionLogAction(
     };
   }
 
-  const mapped: AgentRun[] = (data ?? []).map((row: any) => ({
+  const mapped: AgentRun[] = (data ?? []).map((row) => ({
     id: row.id,
     workspaceId: row.workspace_id,
-    agentId: row.agent_id,
+    agentId: row.agent_id as AgentRun['agentId'],
     jobId: row.job_id,
     signalId: row.signal_id,
     actionType: row.action_type,
     clientId: row.client_id,
     idempotencyKey: row.idempotency_key,
-    status: row.status,
-    input: row.input,
-    output: row.output,
-    error: row.error,
+    status: row.status as AgentRun['status'],
+    input: row.input as AgentRun['input'],
+    output: row.output as AgentRun['output'],
+    error: row.error as AgentRun['error'],
     trustTierAtExecution: row.trust_tier_at_execution,
     trustSnapshotId: row.trust_snapshot_id,
     correlationId: row.correlation_id,
@@ -83,6 +83,10 @@ export async function getAgentActionLogAction(
     completedAt: row.completed_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    correctedRunId: null,
+    correctionDepth: 0,
+    correctionIssued: false,
+    source: 'agent' as AgentRun['source'],
   }));
 
   return {

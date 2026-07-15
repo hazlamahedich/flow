@@ -14,10 +14,9 @@ import { getServerSupabase } from '@/lib/supabase-server';
 import {
   PORTAL_COOKIE_NAME,
   PORTAL_SESSION_MAX_AGE_SECONDS,
-  PORTAL_SLUG_PLACEHOLDER,
 } from './constants';
-import { sanitizeSlug } from './helpers';
 import type { PortalContext } from './helpers';
+import { sanitizeSlug } from './helpers';
 
 /**
  * Issue the 24h `__flow_portal` HttpOnly cookie.
@@ -61,23 +60,6 @@ export async function validatePortalSession(): Promise<PortalContext | null> {
     workspaceId: claims.workspaceId,
     portalTokenId: claims.portalTokenId,
   };
-}
-
-/**
- * Build the canonical portal path prefix for a workspace slug.
- * Returns null if the slug is not safe to use in a URL.
- */
-export function getPortalPath(slug: string): string | null {
-  const safeSlug = sanitizeSlug(slug);
-  if (!safeSlug) {
-    return null;
-  }
-  return `/portal/${safeSlug}`;
-}
-
-/** Fallback portal path when no valid slug is available. */
-export function getFallbackPortalPath(): string {
-  return `/portal/${PORTAL_SLUG_PLACEHOLDER}`;
 }
 
 /**

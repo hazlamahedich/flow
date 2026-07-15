@@ -7,12 +7,21 @@ const compat = new FlatCompat({ baseDirectory: __dirname });
 
 const eslintConfig = [
   {
-    ignores: ['**/._*', '.next/**', 'next-env.d.ts'],
+    ignores: ['**/._*', '.next/**', 'next-env.d.ts', 'dist/**'],
   },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+      'max-lines': [
+        'warn',
+        { max: 250, skipBlankLines: true, skipComments: true },
+      ],
       '@typescript-eslint/no-restricted-imports': [
         'error',
         {

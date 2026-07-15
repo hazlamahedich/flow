@@ -1,33 +1,15 @@
 import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { getInvoiceDetailAction, getPaymentAttemptsAction } from './actions';
 import { SendInvoiceButtons } from './components/send-invoice-button';
 import { SummaryCard, StatusBadge } from './components/invoice-helpers';
 import { PaymentAttemptsSection } from './components/payment-attempts';
+import {
+  RecordPaymentButton,
+  VoidInvoiceButton,
+  IssueCreditNoteButton,
+} from './components/client-buttons';
 import { formatCentsToDollar } from '@flow/shared';
-
-const RecordPaymentButton = dynamic(
-  () =>
-    import('./components/record-payment-button').then(
-      (m) => m.RecordPaymentButton,
-    ),
-  { ssr: false },
-);
-
-const VoidInvoiceButton = dynamic(
-  () =>
-    import('./components/void-invoice-button').then((m) => m.VoidInvoiceButton),
-  { ssr: false },
-);
-
-const IssueCreditNoteButton = dynamic(
-  () =>
-    import('./components/issue-credit-note-button').then(
-      (m) => m.IssueCreditNoteButton,
-    ),
-  { ssr: false },
-);
 
 async function InvoiceDetail({ invoiceId }: { invoiceId: string }) {
   const [detailResult, attemptsResult] = await Promise.all([

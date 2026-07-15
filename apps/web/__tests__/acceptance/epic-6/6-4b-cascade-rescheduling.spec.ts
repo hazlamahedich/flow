@@ -115,6 +115,16 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
             if (eventsQueryCallCount === 2) {
               return {
                 eq: vi.fn().mockReturnValue({
+                  in: vi.fn().mockResolvedValue({
+                    data: affectedEventDetails.map((e) => ({ id: e.id })),
+                    error: null,
+                  }),
+                }),
+              };
+            }
+            if (eventsQueryCallCount === 3) {
+              return {
+                eq: vi.fn().mockReturnValue({
                   eq: vi.fn().mockReturnValue({
                     neq: vi.fn().mockReturnValue({
                       gte: vi.fn().mockReturnValue({
@@ -128,7 +138,7 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
                 }),
               };
             }
-            if (eventsQueryCallCount === 3) {
+            if (eventsQueryCallCount === 4) {
               return {
                 in: vi.fn().mockReturnValue({
                   eq: vi.fn().mockResolvedValue({
@@ -211,11 +221,22 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
                 }),
               };
             }
+            if (selectCallCount === 2) {
+              return {
+                eq: vi.fn().mockReturnValue({
+                  in: vi.fn().mockResolvedValue({
+                    data: affectedDetails.map((e) => ({ id: e.id })),
+                    error: null,
+                  }),
+                }),
+              };
+            }
             return {
               in: vi.fn().mockReturnValue({
-                eq: vi
-                  .fn()
-                  .mockResolvedValue({ data: affectedDetails, error: null }),
+                eq: vi.fn().mockResolvedValue({
+                  data: affectedDetails,
+                  error: null,
+                }),
               }),
             };
           }),

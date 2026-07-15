@@ -1,4 +1,4 @@
-import { validatePortalSlug } from '@/lib/actions/portal';
+import { validatePortalSlug } from '@/lib/actions/portal/actions';
 import { createPortalClient } from '@flow/auth/server/portal-client';
 import { PORTAL_SESSION_MAX_AGE_SECONDS } from '@/lib/actions/portal/constants';
 import { ApproveReportButton } from '@/app/portal/components/ApproveReportButton';

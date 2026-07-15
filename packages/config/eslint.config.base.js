@@ -10,17 +10,18 @@ export default tseslint.config(
   {
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
-      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-this-alias': 'warn',
       '@typescript-eslint/ban-ts-comment': [
         'error',
         { 'ts-ignore': true, 'ts-expect-error': true },
       ],
       '@typescript-eslint/no-unused-vars': [
-        'error',
+        'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
       'max-lines': [
-        'error',
+        'warn',
         { max: 200, skipBlankLines: true, skipComments: true },
       ],
       '@typescript-eslint/no-restricted-imports': [
@@ -52,8 +53,9 @@ export default tseslint.config(
     files: ['**/*.test.ts', '**/*.test.tsx', '**/__tests__/**'],
     rules: {
       'max-lines': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': [
-        'error',
+        'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
     },

@@ -115,9 +115,10 @@ describe('checkInvoiceDuplicatesAction', () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toHaveLength(1);
-      expect(result.data[0].invoiceNumber).toBe('INV-2026-DUP');
-      expect(result.data[0].reason).toBe('soft');
-      expect(result.data[0].matchingSourceIds).toContain('ret-1');
+      const first = result.data[0]!;
+      expect(first.invoiceNumber).toBe('INV-2026-DUP');
+      expect(first.reason).toBe('soft');
+      expect(first.matchingSourceIds).toContain('ret-1');
     }
   });
 
@@ -151,8 +152,9 @@ describe('checkInvoiceDuplicatesAction', () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toHaveLength(1);
-      expect(result.data[0].invoiceNumber).toBe('INV-2026-TE');
-      expect(result.data[0].matchingSourceIds).toContain('te-1');
+      const first = result.data[0]!;
+      expect(first.invoiceNumber).toBe('INV-2026-TE');
+      expect(first.matchingSourceIds).toContain('te-1');
     }
   });
 

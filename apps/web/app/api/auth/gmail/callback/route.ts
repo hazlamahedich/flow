@@ -34,12 +34,11 @@ async function enqueueInitialSync(
     client_id: params.clientId,
     correlation_id: crypto.randomUUID(),
   });
-  const { executeInitialSync } =
-    await import('@flow/agents/inbox/initial-sync');
+  const { executeInitialSync } = await import('@flow/agents/inbox');
   executeInitialSync({
     clientInboxId: params.clientInboxId,
     historyId: params.historyId,
-  }).catch((err) => {
+  }).catch((err: unknown) => {
     console.error('[initial-sync] failed for', params.clientInboxId, err);
   });
 }

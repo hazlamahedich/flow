@@ -35,7 +35,7 @@ export async function scheduleDeferredDrafts(
   let hasMore = true;
 
   while (hasMore) {
-    let query = supabase
+    const query = supabase
       .from('email_processing_state')
       .select('email_id')
       .eq('workspace_id', workspaceId)

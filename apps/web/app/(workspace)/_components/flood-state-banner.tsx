@@ -13,7 +13,7 @@ export function FloodStateBanner() {
           High Volume Detected
         </h3>
         <p className="text-sm opacity-80 leading-snug">
-          Your inbox is experiencing a flood state (30+ urgent items). I've
+          Your inbox is experiencing a flood state (30+ urgent items). I&apos;ve
           condensed the view so you can triage faster.
         </p>
       </div>

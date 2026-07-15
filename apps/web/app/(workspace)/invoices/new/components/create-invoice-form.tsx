@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createInvoiceAction, checkInvoiceDuplicatesAction } from './actions';
+import { createInvoiceAction, checkInvoiceDuplicatesAction } from '../actions';
 import type { DuplicateWarning } from '@flow/types';
 
 interface ClientOption {

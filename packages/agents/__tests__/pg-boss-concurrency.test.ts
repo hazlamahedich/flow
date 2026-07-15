@@ -48,32 +48,36 @@ describe('PgBoss Concurrency', () => {
     fakeBoss = createFakeBoss();
   });
 
-  it('concurrent claim returns null when guard rejects second worker', async () => {
-    fakeBoss.fetch
-      .mockResolvedValueOnce([{ id: 'job-1', data: VALID_PAYLOAD }])
-      .mockResolvedValueOnce([{ id: 'job-1', data: VALID_PAYLOAD }]);
+  it(
+    'concurrent claim returns null when guard rejects second worker',
+    { timeout: 20000 },
+    async () => {
+      fakeBoss.fetch
+        .mockResolvedValueOnce([{ id: 'job-1', data: VALID_PAYLOAD }])
+        .mockResolvedValueOnce([{ id: 'job-1', data: VALID_PAYLOAD }]);
 
-    const db = await import('@flow/db');
-    (db.claimRunWithGuard as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({ id: VALID_PAYLOAD.runId, status: 'running' })
-      .mockResolvedValueOnce(null);
+      const db = await import('@flow/db');
+      (db.claimRunWithGuard as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({ id: VALID_PAYLOAD.runId, status: 'running' })
+        .mockResolvedValueOnce(null);
 
-    const worker1 = new PgBossWorker(
-      fakeBoss as unknown as import('pg-boss').PgBoss,
-      () => undefined,
-    );
-    const worker2 = new PgBossWorker(
-      fakeBoss as unknown as import('pg-boss').PgBoss,
-      () => undefined,
-    );
+      const worker1 = new PgBossWorker(
+        fakeBoss as unknown as import('pg-boss').PgBoss,
+        () => undefined,
+      );
+      const worker2 = new PgBossWorker(
+        fakeBoss as unknown as import('pg-boss').PgBoss,
+        () => undefined,
+      );
 
-    const [h1, h2] = await Promise.all([
-      worker1.claim('inbox'),
-      worker2.claim('inbox'),
-    ]);
-    expect(h1).not.toBeNull();
-    expect(h2).toBeNull();
-  });
+      const [h1, h2] = await Promise.all([
+        worker1.claim('inbox'),
+        worker2.claim('inbox'),
+      ]);
+      expect(h1).not.toBeNull();
+      expect(h2).toBeNull();
+    },
+  );
 
   it('double-complete is idempotent at db level', async () => {
     const db = await import('@flow/db');

@@ -68,14 +68,22 @@ describe('Story 6-4: Bypass Detection & Cascade Rescheduling', () => {
             }
             if (selectCallCount === 2) {
               return {
-                in: vi.fn().mockReturnValue({
-                  eq: vi
-                    .fn()
-                    .mockResolvedValue({ data: [dependentEvent], error: null }),
+                eq: vi.fn().mockReturnValue({
+                  in: vi.fn().mockResolvedValue({
+                    data: [{ id: dependentEvent.id }],
+                    error: null,
+                  }),
                 }),
               };
             }
-            return {};
+            return {
+              in: vi.fn().mockReturnValue({
+                eq: vi.fn().mockResolvedValue({
+                  data: [dependentEvent],
+                  error: null,
+                }),
+              }),
+            };
           }),
         },
         calendar_event_relations: {

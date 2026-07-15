@@ -35,12 +35,12 @@ export interface EditTimeEntryResult {
   updatedAt: string;
   date?: string;
   durationMinutes?: number;
-  startMinutes?: number | null;
-  endMinutes?: number | null;
-  clientId?: string;
-  projectId?: string | null;
-  projectName?: string | null;
-  notes?: string | null;
+  startMinutes?: number | null | undefined;
+  endMinutes?: number | null | undefined;
+  clientId?: string | undefined;
+  projectId?: string | null | undefined;
+  projectName?: string | null | undefined;
+  notes?: string | null | undefined;
 }
 
 interface EditTimeEntryModalProps {
