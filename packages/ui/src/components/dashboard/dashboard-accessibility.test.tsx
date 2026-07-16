@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { renderWithTheme } from '@flow/test-utils';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { renderWithTheme, cleanup } from '@flow/test-utils';
 import { DashboardContent } from './dashboard-content';
 import type { DashboardSummary } from '@flow/db';
 
@@ -14,6 +14,13 @@ const zeroSummary: DashboardSummary = {
 beforeEach(() => {
   document.documentElement.removeAttribute('data-flow-theme-provider');
   document.documentElement.removeAttribute('data-theme');
+});
+
+afterEach(() => {
+  cleanup();
+});
+
+beforeEach(() => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: (query: string) => ({

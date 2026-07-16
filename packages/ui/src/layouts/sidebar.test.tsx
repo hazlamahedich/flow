@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, cleanup } from '@testing-library/react';
 import { Provider } from 'jotai';
 import { Sidebar } from './sidebar';
 
@@ -19,6 +19,10 @@ function renderSidebar(collapsed = false) {
 
 beforeEach(() => {
   mockUsePathname.mockReturnValue('/inbox');
+});
+
+afterEach(() => {
+  cleanup();
 });
 
 describe('Sidebar', () => {

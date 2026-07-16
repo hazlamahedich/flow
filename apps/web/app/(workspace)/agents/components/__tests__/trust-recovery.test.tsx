@@ -221,13 +221,23 @@ describe('TrustRecovery', () => {
     store.set(overlayStackAtom, { type: 'push', entry: makeRecoveryEntry() });
     renderWithStore(store, makeRecoveryEntry());
     const dialog = screen.getByRole('alertdialog');
+    const ackBtn = screen.getByRole('button', { name: 'I understand' });
+
     await act(async () => {
       fireEvent.keyDown(dialog, { key: 'Escape' });
     });
+
+    act(() => {
+      ackBtn.focus();
+    });
+
     await act(async () => {
       fireEvent.keyDown(dialog, { key: 'Escape' });
     });
-    expect(store.get(overlayStackAtom)).toHaveLength(0);
+
+    await waitFor(() => {
+      expect(store.get(overlayStackAtom)).toHaveLength(0);
+    });
   });
 
   it('handles server error on undo gracefully', async () => {

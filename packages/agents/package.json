@@ -54,7 +54,7 @@
     }
   },
   "scripts": {
-    "build": "tsup",
+    "build": "NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=8192}\" tsup",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"

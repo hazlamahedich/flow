@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { EmailTimelineEntry } from '@flow/types';
 import { Badge, Button } from '@flow/ui';
 import { Mail, Check, X, ArrowRightLeft } from 'lucide-react';
@@ -45,6 +45,14 @@ export function EmailTimelineItem({
   const [isPending, setIsPending] = useState(false);
   const [showRecategorize, setShowRecategorize] = useState(false);
   const pendingRef = useRef(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const currentCategory = optimisticCategory ?? email.category;
   const config = currentCategory ? CATEGORY_CONFIG[currentCategory] : null;
@@ -75,7 +83,9 @@ export function EmailTimelineItem({
       setOptimisticTriaged(false);
     } finally {
       pendingRef.current = false;
-      setIsPending(false);
+      if (mountedRef.current) {
+        setIsPending(false);
+      }
     }
   };
 
