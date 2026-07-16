@@ -132,4 +132,13 @@ BEGIN
     (v_workspace_id, v_owner_id, 'owner', 'active'),
     (v_workspace_id, v_admin_id, 'admin', 'active'),
     (v_workspace_id, v_member_id, 'member', 'active');
+
+  -- seed a client so the client list and timeline specs have data to exercise
+  INSERT INTO clients (id, workspace_id, name, email, status)
+  VALUES ('00000000-0000-0000-0000-000000000101', v_workspace_id, 'E2E Client', 'client@example.com', 'active')
+  ON CONFLICT (id) DO UPDATE SET
+    workspace_id = EXCLUDED.workspace_id,
+    name = EXCLUDED.name,
+    email = EXCLUDED.email,
+    status = EXCLUDED.status;
 END $$;
