@@ -3,7 +3,7 @@
 
 BEGIN;
 
-SELECT plan(4);
+SELECT plan(2);
 
 -- Workspace isolation for emails
 SELECT lives_ok(
