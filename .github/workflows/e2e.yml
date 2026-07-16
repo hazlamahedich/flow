@@ -21,8 +21,8 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU' }}
       GOOGLE_CLIENT_ID: dummy
       GOOGLE_CLIENT_SECRET: dummy
-      GMAIL_ENCRYPTION_KEY: ${{ secrets.GMAIL_ENCRYPTION_KEY || 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' }}
-      IRON_SESSION_PASSWORD: ${{ secrets.IRON_SESSION_PASSWORD || 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' }}
+      GMAIL_ENCRYPTION_KEY: ${{ secrets.GMAIL_ENCRYPTION_KEY || '0000000000000000000000000000000000000000000000000000000000000000' }}
+      IRON_SESSION_PASSWORD: ${{ secrets.IRON_SESSION_PASSWORD || '0000000000000000000000000000000000000000000000000000000000000000' }}
     strategy:
       fail-fast: false
       matrix:
@@ -71,6 +71,9 @@ jobs:
             echo "Waiting for Supabase... ($i/30)"
             sleep 2
           done
+
+      - name: Reset Supabase database
+        run: supabase db reset
 
       - name: Build packages and app
         run: pnpm build
