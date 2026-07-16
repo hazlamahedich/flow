@@ -59,19 +59,22 @@ RESET ROLE;
 -- TABLE: client_calendars — Unauthenticated access
 -- ============================================================
 
--- Test 1: Unauthenticated cannot read client_calendars
-SELECT throws_ok(
-  $$SELECT * FROM client_calendars$$,
-  '42501',
-  'Unauthenticated user cannot read client_calendars'
+-- Test 1: Unauthenticated cannot read client_calendars (RLS default-deny: 0 rows)
+SET ROLE anon;
+SELECT is(
+  (SELECT count(*) FROM client_calendars),
+  0::bigint,
+  'Unauthenticated user sees 0 client_calendars'
 );
+SELECT reset_role();
 
 -- Test 2: Unauthenticated cannot insert client_calendars
+SET ROLE anon;
 SELECT throws_ok(
-  $$INSERT INTO client_calendars (workspace_id, client_id, calendar_id, calendar_name, access_type) VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'cal-1@test.com', 'Test Calendar', 'read_only')$$,
-  '42501',
-  'Unauthenticated user cannot insert client_calendars'
+  $$INSERT INTO client_calendars (workspace_id, client_id, calendar_id, calendar_name, access_type, sync_status) VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'cal-1@test.com', 'Test Calendar', 'read_only', 'connected')$$,
+  '42501'
 );
+SELECT reset_role();
 
 
 -- ============================================================
@@ -145,19 +148,22 @@ SELECT reset_role();
 -- TABLE: calendar_events — Unauthenticated access
 -- ============================================================
 
--- Test 9: Unauthenticated cannot read calendar_events
-SELECT throws_ok(
-  $$SELECT * FROM calendar_events$$,
-  '42501',
-  'Unauthenticated user cannot read calendar_events'
+-- Test 9: Unauthenticated cannot read calendar_events (RLS default-deny: 0 rows)
+SET ROLE anon;
+SELECT is(
+  (SELECT count(*) FROM calendar_events),
+  0::bigint,
+  'Unauthenticated user sees 0 calendar_events'
 );
+SELECT reset_role();
 
 -- Test 10: Unauthenticated cannot insert calendar_events
+SET ROLE anon;
 SELECT throws_ok(
-  $$INSERT INTO calendar_events (workspace_id, client_calendar_id, provider_event_id, title, start_at, end_at) VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', (SELECT id FROM client_calendars WHERE calendar_id = 'cal-owner@test.com' LIMIT 1), 'evt-001', 'Test Event', now(), now() + interval '1 hour')$$,
-  '42501',
-  'Unauthenticated user cannot insert calendar_events'
+  $$INSERT INTO calendar_events (workspace_id, client_calendar_id, provider_event_id, title, start_at, end_at, event_type, source) VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', (SELECT id FROM client_calendars WHERE calendar_id = 'cal-owner@test.com' LIMIT 1), 'evt-001', 'Test Event', now(), now() + interval '1 hour', 'meeting', 'client_created')$$,
+  '42501'
 );
+SELECT reset_role();
 
 
 -- ============================================================
@@ -275,12 +281,14 @@ RESET ROLE;
 -- TABLE: calendar_bypass_metrics — RLS tests (Story 6.4)
 -- ============================================================
 
--- Test 21: Unauthenticated cannot read calendar_bypass_metrics
-SELECT throws_ok(
-  $$SELECT * FROM calendar_bypass_metrics$$,
-  '42501',
-  'Unauthenticated user cannot read calendar_bypass_metrics'
+-- Test 21: Unauthenticated cannot read calendar_bypass_metrics (RLS default-deny: 0 rows)
+SET ROLE anon;
+SELECT is(
+  (SELECT count(*) FROM calendar_bypass_metrics),
+  0::bigint,
+  'Unauthenticated user sees 0 calendar_bypass_metrics'
 );
+SELECT reset_role();
 
 -- Test 22: Owner can insert bypass metrics
 SELECT set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}', false);

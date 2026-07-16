@@ -57,7 +57,7 @@ BEGIN
     raw_user_meta_data
   )
   VALUES
-    (v_instance_id, gen_random_uuid(), 'authenticated', 'authenticated', 'owner@test.com', v_password_hash, now(), '', '', '', '', '', '', '', '', NULL, now(), now(), jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')), jsonb_build_object('email_verified', true))
+    (v_instance_id, gen_random_uuid(), 'authenticated', 'authenticated', 'owner@test.com', v_password_hash, now(), '', '', '', '', '', '', '', '', NULL, now(), now(), jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email'), 'workspace_id', v_workspace_id::text, 'role', 'owner'), jsonb_build_object('email_verified', true))
   RETURNING id INTO v_owner_id;
 
   INSERT INTO auth.users (
@@ -83,7 +83,7 @@ BEGIN
     raw_user_meta_data
   )
   VALUES
-    (v_instance_id, gen_random_uuid(), 'authenticated', 'authenticated', 'admin@test.com', v_password_hash, now(), '', '', '', '', '', '', '', '', NULL, now(), now(), jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')), jsonb_build_object('email_verified', true))
+    (v_instance_id, gen_random_uuid(), 'authenticated', 'authenticated', 'admin@test.com', v_password_hash, now(), '', '', '', '', '', '', '', '', NULL, now(), now(), jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email'), 'workspace_id', v_workspace_id::text, 'role', 'admin'), jsonb_build_object('email_verified', true))
   RETURNING id INTO v_admin_id;
 
   INSERT INTO auth.users (
@@ -109,7 +109,7 @@ BEGIN
     raw_user_meta_data
   )
   VALUES
-    (v_instance_id, gen_random_uuid(), 'authenticated', 'authenticated', 'member@test.com', v_password_hash, now(), '', '', '', '', '', '', '', '', NULL, now(), now(), jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')), jsonb_build_object('email_verified', true))
+    (v_instance_id, gen_random_uuid(), 'authenticated', 'authenticated', 'member@test.com', v_password_hash, now(), '', '', '', '', '', '', '', '', NULL, now(), now(), jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email'), 'workspace_id', v_workspace_id::text, 'role', 'member'), jsonb_build_object('email_verified', true))
   RETURNING id INTO v_member_id;
 
   -- identities required for GoTrue password sign-in

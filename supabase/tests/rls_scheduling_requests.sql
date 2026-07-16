@@ -47,19 +47,22 @@ ON CONFLICT (id) DO NOTHING;
 RESET ROLE;
 
 
--- Test 1: Unauthenticated cannot read scheduling_requests
-SELECT throws_ok(
-  $$SELECT * FROM scheduling_requests$$,
-  '42501',
-  'Unauthenticated user cannot read scheduling_requests'
+-- Test 1: Unauthenticated cannot read scheduling_requests (RLS default-deny: 0 rows)
+SET ROLE anon;
+SELECT is(
+  (SELECT count(*) FROM scheduling_requests),
+  0::bigint,
+  'Unauthenticated user sees 0 scheduling_requests'
 );
+SELECT reset_role();
 
 -- Test 2: Unauthenticated cannot insert scheduling_requests
+SET ROLE anon;
 SELECT throws_ok(
-  $$INSERT INTO scheduling_requests (workspace_id, client_id, source_type, request_type, requested_by) VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'c1111111-1111-1111-1111-111111111111', 'va_manual', 'book_new', '{"name": "VA"}')$$,
-  '42501',
-  'Unauthenticated user cannot insert scheduling_requests'
+  $$INSERT INTO scheduling_requests (workspace_id, client_id, source_type, request_type, requested_by, status) VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'c1111111-1111-1111-1111-111111111111', 'va_manual', 'book_new', '{"name": "VA"}', 'pending')$$,
+  '42501'
 );
+SELECT reset_role();
 
 
 -- Test 3: Owner can insert scheduling_requests
@@ -106,8 +109,7 @@ SELECT set_config('request.jwt.claims', '{"sub": "33333333-3333-3333-3333-333333
 SET ROLE authenticated;
 SELECT throws_ok(
   $$INSERT INTO scheduling_requests (workspace_id, client_id, source_type, request_type, requested_by, status) VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'c1111111-1111-1111-1111-111111111111', 'va_manual', 'book_new', '{"name": "Evil"}', 'pending')$$,
-  '42501',
-  'Outsider cannot insert scheduling_requests into other workspace'
+  '42501'
 );
 SELECT reset_role();
 

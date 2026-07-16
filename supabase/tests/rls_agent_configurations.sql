@@ -118,13 +118,15 @@ SELECT lives_ok(
 );
 RESET ROLE;
 
--- TC-09: Member cannot UPDATE
+-- TC-09: Member cannot UPDATE (no matching UPDATE policy, 0 rows affected)
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-000000000003", "workspace_id": "a0000000-0000-0000-0000-000000000001", "role": "member"}', false);
-SELECT throws_ok(
-  $$ UPDATE agent_configurations SET schedule = '{}' WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' AND agent_id = 'inbox' $$,
-  '42501',
-  NULL,
+WITH update_result AS (
+  UPDATE agent_configurations SET schedule = '{}' WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' AND agent_id = 'inbox' RETURNING id
+)
+SELECT is(
+  (SELECT count(*)::bigint FROM update_result),
+  0::bigint,
   'TC-09: member cannot update config'
 );
 RESET ROLE;
@@ -132,10 +134,12 @@ RESET ROLE;
 -- TC-10: No DELETE for anyone (even owner)
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims', '{"sub": "b0000000-0000-0000-0000-000000000001", "workspace_id": "a0000000-0000-0000-0000-000000000001", "role": "owner"}', false);
-SELECT throws_ok(
-  $$ DELETE FROM agent_configurations WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' AND agent_id = 'inbox' $$,
-  '42501',
-  NULL,
+WITH delete_result AS (
+  DELETE FROM agent_configurations WHERE workspace_id = 'a0000000-0000-0000-0000-000000000001' AND agent_id = 'inbox' RETURNING id
+)
+SELECT is(
+  (SELECT count(*)::bigint FROM delete_result),
+  0::bigint,
   'TC-10: owner cannot delete config'
 );
 RESET ROLE;

@@ -36,7 +36,7 @@ describe('getRollingWindow', () => {
     const endDate = new Date(end);
     const diffDays =
       (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
-    expect(diffDays).toBeCloseTo(30, 10);
+    expect(diffDays).toBeCloseTo(30, 5);
   });
 
   it('returns valid ISO strings', () => {

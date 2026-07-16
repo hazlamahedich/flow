@@ -21,7 +21,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT plan(5);
+SELECT plan(6);
 
 -- ── Test data ──
 -- Owner A (workspace ws-a) + Member B (workspace ws-b) + their clients.
@@ -39,6 +39,13 @@ INSERT INTO auth.users (id, email) VALUES
   ('11111111-aaaa-aaaa-aaaa-111111111111', 'pgtap-orch-owner-a@example.test'),
   ('22222222-bbbb-bbbb-bbbb-222222222222', 'pgtap-orch-owner-b@example.test'),
   ('33333333-cccc-cccc-cccc-333333333333', 'pgtap-orch-member-a@example.test')
+ON CONFLICT (id) DO NOTHING;
+
+-- Create public users records to satisfy workspace_members FK.
+INSERT INTO users (id, email, name, timezone) VALUES
+  ('11111111-aaaa-aaaa-aaaa-111111111111', 'pgtap-orch-owner-a@example.test', 'owner-a', 'UTC'),
+  ('22222222-bbbb-bbbb-bbbb-222222222222', 'pgtap-orch-owner-b@example.test', 'owner-b', 'UTC'),
+  ('33333333-cccc-cccc-cccc-333333333333', 'pgtap-orch-member-a@example.test', 'member-a', 'UTC')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO workspace_members (workspace_id, user_id, role, status) VALUES

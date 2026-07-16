@@ -6,7 +6,7 @@
 -- "permission denied for table" when using supabase start/test db.
 
 -- Grant usage on the public schema (safe noop if already granted).
-GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role, portal;
 
 -- Grant privileges on all existing tables and sequences.
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO authenticated, service_role;

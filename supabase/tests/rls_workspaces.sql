@@ -80,21 +80,26 @@ SELECT is(
 );
 SELECT reset_role();
 
--- Owner cannot update workspace (no UPDATE policy on workspaces table)
-SET ROLE authenticated;
-SELECT set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}', false);
-SELECT lives_ok(
-  'UPDATE workspaces SET name = ''Updated A'' WHERE id = ''aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa''',
-  'Owner cannot update workspace (no UPDATE policy, 0 rows)'
-);
-SELECT reset_role();
-
 -- Member cannot update workspace
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims', '{"sub": "22222222-2222-2222-2222-222222222222", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "member"}', false);
-SELECT lives_ok(
-  'UPDATE workspaces SET name = ''Hacked'' WHERE id = ''aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa''',
-  'Member cannot update workspace (0 rows)'
+SELECT is(
+  (SELECT count(*)::bigint FROM (
+    SELECT id FROM workspaces WHERE id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' FOR UPDATE
+  ) q),
+  0::bigint,
+  'Member cannot lock workspace row (0 rows)'
+);
+SELECT reset_role();
+
+-- Owner can update workspace (owner/admin UPDATE policy from portal branding migration)
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}', false);
+UPDATE workspaces SET name = 'Updated A' WHERE id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+SELECT is(
+  (SELECT name FROM workspaces WHERE id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  'Updated A'::text,
+  'Owner can update workspace name'
 );
 SELECT reset_role();
 
@@ -108,12 +113,12 @@ SELECT is(
 );
 SELECT reset_role();
 
--- Verify workspace data unchanged after UPDATE attempts
+-- Verify workspace data reflects owner UPDATE
 SET ROLE postgres;
 SELECT is(
   (SELECT name FROM workspaces WHERE id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
-  'Workspace A'::text,
-  'Workspace A name unchanged after UPDATE attempts'
+  'Updated A'::text,
+  'Workspace A name updated by owner'
 );
 SELECT reset_role();
 
