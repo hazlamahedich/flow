@@ -22,7 +22,11 @@ function flushQueue(setAnnouncement: (v: TrustAnnouncement | null) => void) {
   setAnnouncement(next);
   setTimeout(() => {
     setAnnouncement(null);
-    requestAnimationFrame(() => flushQueue(setAnnouncement));
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => flushQueue(setAnnouncement));
+    } else {
+      flushQueue(setAnnouncement);
+    }
   }, 150);
 }
 
