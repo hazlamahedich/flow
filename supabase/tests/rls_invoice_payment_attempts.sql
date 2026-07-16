@@ -4,7 +4,7 @@
 
 BEGIN;
 
-SELECT plan(14);
+SELECT plan(7);
 
 -- Setup
 SET ROLE postgres;
@@ -107,24 +107,28 @@ SELECT lives_ok(
 );
 RESET ROLE;
 
--- Test 6: No UPDATE allowed — append-only
+-- Test 6: No UPDATE allowed — append-only (no UPDATE policy, 0 rows affected)
 SET ROLE authenticated;
 SET request.jwt.claims TO '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}';
-SELECT throws_ok(
-  'UPDATE invoice_payment_attempts SET status = ''succeeded'' WHERE id = ''b0000000-0000-0000-0000-000000000001''',
-  '42501',
-  null,
+WITH update_result AS (
+  UPDATE invoice_payment_attempts SET status = 'succeeded' WHERE id = 'b0000000-0000-0000-0000-000000000001' RETURNING id
+)
+SELECT is(
+  (SELECT count(*)::bigint FROM update_result),
+  0::bigint,
   'Cannot UPDATE invoice_payment_attempts — append-only'
 );
 RESET ROLE;
 
--- Test 7: No DELETE allowed — append-only
+-- Test 7: No DELETE allowed — append-only (no DELETE policy, 0 rows affected)
 SET ROLE authenticated;
 SET request.jwt.claims TO '{"sub": "11111111-1111-1111-1111-111111111111", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "owner"}';
-SELECT throws_ok(
-  'DELETE FROM invoice_payment_attempts WHERE id = ''b0000000-0000-0000-0000-000000000001''',
-  '42501',
-  null,
+WITH delete_result AS (
+  DELETE FROM invoice_payment_attempts WHERE id = 'b0000000-0000-0000-0000-000000000001' RETURNING id
+)
+SELECT is(
+  (SELECT count(*)::bigint FROM delete_result),
+  0::bigint,
   'Cannot DELETE invoice_payment_attempts — append-only'
 );
 RESET ROLE;

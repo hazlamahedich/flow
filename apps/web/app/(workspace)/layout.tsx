@@ -22,9 +22,9 @@ export default async function WorkspaceLayout({
   }
 
   let agentCount = 0;
-  const workspaceId = session.user.app_metadata.workspace_id as
+  const workspaceId = (session.user.app_metadata?.workspace_id as
     | string
-    | undefined;
+    | undefined) ?? (session.user.user_metadata?.workspace_id as string | undefined);
 
   if (typeof workspaceId === 'string' && workspaceId.length > 0) {
     try {

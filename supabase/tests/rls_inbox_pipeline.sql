@@ -3,12 +3,27 @@
 
 BEGIN;
 
-SELECT plan(18);
+SELECT plan(17);
 
--- 1. Setup test data
-INSERT INTO workspaces (id, name, slug) 
+-- 1. Setup test users, workspaces, clients, inboxes and email
+INSERT INTO auth.users (id, email, raw_user_meta_data, created_at, updated_at)
+VALUES
+  ('aaaaaaaa-1111-1111-1111-111111111111', 'owner-a@inbox.test', '{}', now(), now()),
+  ('bbbbbbbb-2222-2222-2222-222222222222', 'owner-b@inbox.test', '{}', now(), now());
+
+INSERT INTO users (id, email, name)
+VALUES
+  ('aaaaaaaa-1111-1111-1111-111111111111', 'owner-a@inbox.test', 'Owner A'),
+  ('bbbbbbbb-2222-2222-2222-222222222222', 'owner-b@inbox.test', 'Owner B');
+
+INSERT INTO workspaces (id, name, slug)
 VALUES ('11111111-1111-1111-1111-111111111111', 'Workspace A', 'workspace-a'),
        ('22222222-2222-2222-2222-222222222222', 'Workspace B', 'workspace-b');
+
+INSERT INTO workspace_members (workspace_id, user_id, role, status)
+VALUES
+  ('11111111-1111-1111-1111-111111111111', 'aaaaaaaa-1111-1111-1111-111111111111', 'owner', 'active'),
+  ('22222222-2222-2222-2222-222222222222', 'bbbbbbbb-2222-2222-2222-222222222222', 'owner', 'active');
 
 INSERT INTO clients (id, workspace_id, name, email)
 VALUES ('44444444-4444-4444-4444-444444444444', '11111111-1111-1111-1111-111111111111', 'Client A', 'clientA@test.com');
@@ -21,11 +36,11 @@ VALUES ('55555555-5555-5555-5555-555555555555', '11111111-1111-1111-1111-1111111
 
 -- 2. Test extracted_actions RLS
 SET ROLE authenticated;
-SET request.jwt.claims = '{"workspace_id": "11111111-1111-1111-1111-111111111111"}';
+SET request.jwt.claims = '{"workspace_id": "11111111-1111-1111-1111-111111111111", "sub": "aaaaaaaa-1111-1111-1111-111111111111", "role": "owner"}';
 
 -- Insert should succeed for own workspace
 SELECT lives_ok(
-  $$ INSERT INTO extracted_actions (email_id, workspace_id, client_inbox_id, action_type, description, confidence) 
+  $$ INSERT INTO extracted_actions (email_id, workspace_id, client_inbox_id, action_type, description, confidence)
      VALUES ('55555555-5555-5555-5555-555555555555', '11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333', 'task', 'Test action', 0.9) $$,
   'Authenticated user can insert extracted_actions for their workspace'
 );
@@ -38,7 +53,7 @@ SELECT results_eq(
 );
 
 -- Select should NOT return data for other workspace
-SET request.jwt.claims = '{"workspace_id": "22222222-2222-2222-2222-222222222222"}';
+SET request.jwt.claims = '{"workspace_id": "22222222-2222-2222-2222-222222222222", "sub": "bbbbbbbb-2222-2222-2222-222222222222", "role": "owner"}';
 SELECT results_eq(
   $$ SELECT count(*)::int FROM extracted_actions WHERE workspace_id = '11111111-1111-1111-1111-111111111111' $$,
   ARRAY[0],
@@ -46,9 +61,9 @@ SELECT results_eq(
 );
 
 -- 3. Test draft_responses RLS
-SET request.jwt.claims = '{"workspace_id": "11111111-1111-1111-1111-111111111111"}';
+SET request.jwt.claims = '{"workspace_id": "11111111-1111-1111-1111-111111111111", "sub": "aaaaaaaa-1111-1111-1111-111111111111", "role": "owner"}';
 SELECT lives_ok(
-  $$ INSERT INTO draft_responses (email_id, workspace_id, client_inbox_id, draft_content, trust_at_generation) 
+  $$ INSERT INTO draft_responses (email_id, workspace_id, client_inbox_id, draft_content, trust_at_generation)
      VALUES ('55555555-5555-5555-5555-555555555555', '11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333', 'Draft content', 2) $$,
   'Authenticated user can insert draft_responses for their workspace'
 );
@@ -61,14 +76,14 @@ SELECT results_eq(
 
 -- 4. Test workspace_voice_profiles RLS
 SELECT lives_ok(
-  $$ INSERT INTO workspace_voice_profiles (workspace_id, default_tone) 
+  $$ INSERT INTO workspace_voice_profiles (workspace_id, default_tone)
      VALUES ('11111111-1111-1111-1111-111111111111', 'professional') $$,
   'Authenticated user can insert workspace_voice_profiles for their workspace'
 );
 
 -- 5. Test client_tone_overrides RLS
 SELECT lives_ok(
-  $$ INSERT INTO client_tone_overrides (workspace_id, client_id, tone) 
+  $$ INSERT INTO client_tone_overrides (workspace_id, client_id, tone)
      VALUES ('11111111-1111-1111-1111-111111111111', '44444444-4444-4444-4444-444444444444', 'casual') $$,
   'Authenticated user can insert client_tone_overrides for their workspace'
 );
@@ -79,7 +94,7 @@ INSERT INTO inbox_trust_metrics (workspace_id, client_inbox_id, metric_type, met
 VALUES ('11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333', 'recategorization_rate', 0.05, 100);
 
 SET ROLE authenticated;
-SET request.jwt.claims = '{"workspace_id": "11111111-1111-1111-1111-111111111111"}';
+SET request.jwt.claims = '{"workspace_id": "11111111-1111-1111-1111-111111111111", "sub": "aaaaaaaa-1111-1111-1111-111111111111", "role": "owner"}';
 SELECT results_eq(
   $$ SELECT count(*)::int FROM inbox_trust_metrics WHERE workspace_id = '11111111-1111-1111-1111-111111111111' $$,
   ARRAY[1],
@@ -88,7 +103,7 @@ SELECT results_eq(
 
 -- 7. Test email_processing_state RLS
 SELECT lives_ok(
-  $$ INSERT INTO email_processing_state (email_id, workspace_id, state) 
+  $$ INSERT INTO email_processing_state (email_id, workspace_id, state)
      VALUES ('55555555-5555-5555-5555-555555555555', '11111111-1111-1111-1111-111111111111', 'extraction_complete') $$,
   'Authenticated user can insert email_processing_state for their workspace'
 );
@@ -102,7 +117,7 @@ SELECT lives_ok(
 
 -- Additional assertions for isolation
 SET ROLE authenticated;
-SET request.jwt.claims = '{"workspace_id": "22222222-2222-2222-2222-222222222222"}';
+SET request.jwt.claims = '{"workspace_id": "22222222-2222-2222-2222-222222222222", "sub": "bbbbbbbb-2222-2222-2222-222222222222", "role": "owner"}';
 
 SELECT is_empty(
   $$ SELECT * FROM extracted_actions WHERE workspace_id = '11111111-1111-1111-1111-111111111111' $$,

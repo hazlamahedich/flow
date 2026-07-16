@@ -78,24 +78,28 @@ SELECT throws_ok(
 );
 RESET ROLE;
 
--- TC-05: No UPDATE by any authenticated user
+-- TC-05: No UPDATE by any authenticated user (no UPDATE policy, 0 rows affected)
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims', '{"sub": "d0000000-0000-0000-0000-000000000001", "workspace_id": "c0000000-0000-0000-0000-000000000001", "role": "owner"}', false);
-SELECT throws_ok(
-  $$ UPDATE llm_cost_logs SET actual_cost_cents = 999 $$,
-  '42501',
-  NULL,
+WITH update_result AS (
+  UPDATE llm_cost_logs SET actual_cost_cents = 999 WHERE workspace_id = 'c0000000-0000-0000-0000-000000000001' RETURNING id
+)
+SELECT is(
+  (SELECT count(*)::bigint FROM update_result),
+  0::bigint,
   'TC-05: owner cannot update cost logs (immutable)'
 );
 RESET ROLE;
 
--- TC-06: No DELETE by any authenticated user
+-- TC-06: No DELETE by any authenticated user (no DELETE policy, 0 rows affected)
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claims', '{"sub": "d0000000-0000-0000-0000-000000000001", "workspace_id": "c0000000-0000-0000-0000-000000000001", "role": "owner"}', false);
-SELECT throws_ok(
-  $$ DELETE FROM llm_cost_logs WHERE workspace_id = 'c0000000-0000-0000-0000-000000000001' $$,
-  '42501',
-  NULL,
+WITH delete_result AS (
+  DELETE FROM llm_cost_logs WHERE workspace_id = 'c0000000-0000-0000-0000-000000000001' RETURNING id
+)
+SELECT is(
+  (SELECT count(*)::bigint FROM delete_result),
+  0::bigint,
   'TC-06: owner cannot delete cost logs (immutable)'
 );
 RESET ROLE;

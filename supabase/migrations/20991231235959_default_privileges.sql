@@ -9,12 +9,13 @@
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role, portal;
 
 -- Grant privileges on all existing tables and sequences.
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO authenticated, service_role;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO authenticated, service_role;
+-- anon is included so RLS (not permission errors) governs unauthenticated reads.
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
 
 -- Ensure future objects created by postgres in public are accessible.
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
-GRANT ALL ON TABLES TO authenticated, service_role;
+GRANT ALL ON TABLES TO anon, authenticated, service_role;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
-GRANT ALL ON SEQUENCES TO authenticated, service_role;
+GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
