@@ -10,7 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:rls": "supabase test db",
-    "seed:e2e": "tsx tests/support/seed-test-user.ts",
+    "seed:e2e": "psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -f tests/support/seed-e2e.sql",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",

@@ -21,3 +21,4 @@ skills
 AGENTS.md
 *.md
 !packages/**/*.md
+packages/tokens/src/css/generated-themes.css
