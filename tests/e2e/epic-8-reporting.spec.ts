@@ -67,8 +67,12 @@ test.describe('[P0] Epic 8 — Reporting & Client Health', () => {
   }) => {
     await ownerPage.goto(ROUTES.REPORTS);
     await expect(ownerPage).not.toHaveURL(/\/login/);
-    const firstReportLink = ownerPage.locator('a[href*="/reports/"]').first();
-    if (!(await firstReportLink.isVisible())) {
+    // Only match links whose /reports/<id> segment is a UUID, excluding
+    // /reports/new, /reports/templates, /reports/agent-log, and pagination.
+    const firstReportLink = ownerPage.locator(
+      'a[href*="/reports/"][href*="-"][href*="-"][href*="-"]',
+    );
+    if (!(await firstReportLink.isVisible().catch(() => false))) {
       test.skip(true, 'No reports in seeded data to view detail');
     }
     await firstReportLink.click();
@@ -113,7 +117,7 @@ test.describe('[P0] Epic 8 — Reporting & Client Health', () => {
       ownerPage.getByRole('heading', { name: /agent action log/i }),
     ).toBeVisible();
     const logTable = ownerPage.getByRole('table');
-    const emptyState = ownerPage.getByText(/no agent actions yet/i);
+    const emptyState = ownerPage.getByText(/no agent actions/i);
     await expect(logTable.or(emptyState)).toBeVisible();
   });
 

@@ -25,13 +25,12 @@ test.describe('[P1] Mobile Responsive Layout', () => {
     const sidebarWasVisible = await sidebar.isVisible();
 
     await ownerPage.setViewportSize({ width: 768, height: 1024 });
-    await expect(async () => {
-      const width = await sidebar.evaluate(
-        (el) => el.getBoundingClientRect().width,
-      );
-      const visible = await sidebar.isVisible();
-      expect(width <= 80 || !visible).toBeTruthy();
-    }).toPass({ timeout: 5000 });
+    // The sidebar is rendered with `hidden lg:flex`, so below the lg
+    // breakpoint (1024px) it is fully hidden rather than narrowed to a
+    // rail. Asserting on visibility alone is more robust than measuring
+    // getBoundingClientRect().width, which returns 0 on display:none
+    // elements and races the layout transition.
+    await expect(sidebar).toBeHidden();
 
     test.skip(
       !sidebarWasVisible,
