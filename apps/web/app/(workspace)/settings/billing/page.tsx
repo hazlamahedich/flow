@@ -29,7 +29,7 @@ import {
   countActiveAgents,
 } from '@flow/db';
 import type { ActionResult, SubscriptionTier } from '@flow/types';
-import { getTierConfig } from '@/lib/config/tier-config';
+import { getTierConfig, getProTeamMemberLimit } from '@/lib/config/tier-config';
 import {
   getTierLimits,
   type TierLimit,
@@ -123,9 +123,10 @@ async function loadPageData(
     tierLimits = await getTierLimits(
       workspace.subscription_tier as SubscriptionTier,
     );
-    // 9-5c AC1: Pro team-member limit for the downgrade heads-up. Sourced from
-    // config (PD1 = 5), never hardcoded. Defensive fallback to 5 if null.
-    proTeamMemberLimit = tierConfig.tierLimits.pro.maxTeamMembers ?? 5;
+    // 9-5c AC1: Pro team-member limit for the downgrade heads-up. Sourced
+    // from the shared helper (PD1 = 5) so the page and the webhook agree on
+    // the same fallback (review M4).
+    proTeamMemberLimit = await getProTeamMemberLimit();
   } catch {
     planDisplayPrices = {
       pro: { label: '$29 / month', interval: 'month' },

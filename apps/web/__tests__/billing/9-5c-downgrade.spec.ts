@@ -33,6 +33,7 @@ const {
   mockCountActiveMembers,
   mockGetTierConfig,
   mockInvalidateSessions,
+  mockLogWorkspaceEvent,
 } = vi.hoisted(() => ({
   mockServiceClient: {
     from: vi.fn(),
@@ -41,6 +42,7 @@ const {
   mockCountActiveMembers: vi.fn(),
   mockGetTierConfig: vi.fn(),
   mockInvalidateSessions: vi.fn(),
+  mockLogWorkspaceEvent: vi.fn(async () => {}),
 }));
 
 vi.mock('@flow/db/client', () => ({
@@ -62,10 +64,20 @@ vi.mock('@flow/db', async () => {
 
 vi.mock('@/lib/config/tier-config', () => ({
   getTierConfig: mockGetTierConfig,
+  getProTeamMemberLimit: vi.fn(async () => 5),
 }));
 
 vi.mock('@flow/auth/server-admin', () => ({
   invalidateUserSessions: mockInvalidateSessions,
+}));
+
+// Mock the audit logger so we can assert the webhook handler passes its
+// service_role client (review I3 — the audit row carries the
+// sessionsAttempted/sessionsConfirmed observability contract and must
+// actually land, which requires service_role since audit_log has no INSERT
+// policy for authenticated).
+vi.mock('@/lib/workspace-audit', () => ({
+  logWorkspaceEvent: mockLogWorkspaceEvent,
 }));
 
 // NOTE: the two modules under test
@@ -522,6 +534,44 @@ describe('[AC2] applyAgencyToProDowngrade handler', () => {
     if (result.success) {
       expect(result.data.warnings).toContain('session_invalidation_partial');
     }
+  });
+
+  test('I3 — audit log written via the passed-in service_role client with observability counts', async () => {
+    // review I3: the member_suspended audit row carries the
+    // sessionsAttempted/sessionsConfirmed observability contract (Murat
+    // P0-1). audit_log has SELECT-only RLS (no INSERT policy for
+    // authenticated), so the handler MUST pass its service_role client —
+    // otherwise the row silently fails to land and the contract is void.
+    mockCountActiveMembers.mockResolvedValueOnce(7);
+    activeMemberRows = [
+      mkMember('m1', 'owner', '2024-01-01'),
+      mkMember('m2', 'admin', '2024-02-01'),
+      mkMember('m3', 'admin', '2024-03-01'),
+      mkMember('m4', 'admin', '2024-04-01'),
+      mkMember('m5', 'member', '2024-05-01'),
+      mkMember('m6', 'member', '2024-06-01'),
+      mkMember('m7', 'member', '2024-07-01'),
+    ];
+    const { applyAgencyToProDowngrade } = await loadDowngradeModule();
+    await applyAgencyToProDowngrade({
+      workspaceId: 'ws-1',
+      supabase: mockServiceClient as unknown as SupabaseClient,
+    });
+    // The audit call happened exactly once, with the member_suspended event
+    // shape (observability contract fields) AND the service_role client as
+    // the 2nd arg (review I3 — without it the audit row never lands because
+    // audit_log has no INSERT policy for authenticated).
+    expect(mockLogWorkspaceEvent).toHaveBeenCalledTimes(1);
+    expect(mockLogWorkspaceEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'member_suspended',
+        workspaceId: 'ws-1',
+        reason: 'tier_downgrade_agency_to_pro',
+        sessionsAttempted: 2,
+        sessionsConfirmed: 2,
+      }),
+      mockServiceClient,
+    );
   });
 
   test('revalidates workspace_member + workspace_client cache tags', async () => {

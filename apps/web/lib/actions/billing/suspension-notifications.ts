@@ -1,6 +1,10 @@
 /**
- * Story 9.5c AC5 — suspension notification email templates + best-effort
- * dispatch (FR57a).
+ * Story 9.5c AC5 — suspension notification email templates (FR57a).
+ *
+ * Pure template builders only — no side effects, no SupabaseClient, no
+ * provider resolution. The side-effectful dispatch helpers live in the
+ * sibling `suspension-dispatch.ts` (split for the 250-line file limit and
+ * concern separation — review I1).
  *
  * Two templates:
  *  - `buildMemberSuspendedEmail` — to the suspended member. Copy attributes
@@ -10,13 +14,6 @@
  *  - `buildOwnerSuspendedEmail` — to the workspace owner. Lists who was
  *    suspended and why, with two deep links ("Upgrade back to Agency" +
  *    "Manage team"). This is the owner's override window.
- *
- * Dispatch helpers (`sendMemberSuspendedNotification`,
- * `sendOwnerSuspendedNotification`) are **best-effort, never throw**: on
- * provider failure they log via `writeAuditLog` and return. AC5 explicitly
- * allows this ("If a notification service is unavailable, log + continue —
- * do not roll back the suspension"), matching the session-invalidation
- * contract (Murat P0-1).
  *
  * Templated on `apps/web/lib/actions/portal/client-notification-templates.ts`
  * (hand-written HTML strings — no @react-email in this repo).
@@ -28,7 +25,6 @@
  * the provider is filed as tech-debt td-9-5c-02 (out of scope for this story).
  */
 import type { TransactionalEmailPayload } from '@flow/agents/providers';
-import { writeAuditLog } from '@flow/agents/shared/audit-writer';
 
 function escapeHtml(s: string): string {
   return s
@@ -141,85 +137,4 @@ You have two options:
       suspended_count: String(count),
     },
   };
-}
-
-/**
- * Best-effort dispatch contract for suspension notifications. Returned by
- * the send helpers so the caller can record partial-failure observability
- * alongside the session-invalidation contract (EC6).
- */
-export interface NotificationDispatchResult {
-  /** 'sent' on provider success, 'failed' on any error (never throws). */
-  status: 'sent' | 'failed';
-  /** Provider messageId on success; error message on failure. */
-  detail: string;
-}
-
-/**
- * Send the member-suspended email. Best-effort — never throws. On failure,
- * logs via `writeAuditLog` and returns `{ status: 'failed' }` so the caller
- * can record it without rolling back the suspension (AC5 / EC6 contract).
- *
- * Caller passes the already-resolved provider (resolved once per webhook
- * invocation, not per member) so a missing `RESEND_API_KEY` fails fast once
- * rather than once per suspended member.
- */
-export async function sendMemberSuspendedNotification(args: {
-  provider: { send: (p: TransactionalEmailPayload) => Promise<{ messageId: string }> };
-  payload: TransactionalEmailPayload;
-  workspaceId: string;
-  memberUserId: string;
-}): Promise<NotificationDispatchResult> {
-  try {
-    const result = await args.provider.send(args.payload);
-    return { status: 'sent', detail: result.messageId };
-  } catch (err) {
-    writeAuditLog({
-      workspaceId: args.workspaceId,
-      agentId: 'stripe-webhook',
-      action: 'notification.member_suspended_email_failed',
-      entityType: 'user',
-      entityId: args.memberUserId,
-      details: {
-        to: args.payload.to,
-        error: err instanceof Error ? err.message : String(err),
-      },
-    });
-    return {
-      status: 'failed',
-      detail: err instanceof Error ? err.message : String(err),
-    };
-  }
-}
-
-/**
- * Send the owner-suspended email. Same best-effort contract as the member
- * variant. The owner email is the floor (Sally's finding: the banner alone
- * assumes the owner logs in).
- */
-export async function sendOwnerSuspendedNotification(args: {
-  provider: { send: (p: TransactionalEmailPayload) => Promise<{ messageId: string }> };
-  payload: TransactionalEmailPayload;
-  workspaceId: string;
-}): Promise<NotificationDispatchResult> {
-  try {
-    const result = await args.provider.send(args.payload);
-    return { status: 'sent', detail: result.messageId };
-  } catch (err) {
-    writeAuditLog({
-      workspaceId: args.workspaceId,
-      agentId: 'stripe-webhook',
-      action: 'notification.owner_suspended_email_failed',
-      entityType: 'workspace',
-      entityId: args.workspaceId,
-      details: {
-        to: args.payload.to,
-        error: err instanceof Error ? err.message : String(err),
-      },
-    });
-    return {
-      status: 'failed',
-      detail: err instanceof Error ? err.message : String(err),
-    };
-  }
 }

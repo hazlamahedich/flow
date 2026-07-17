@@ -11,7 +11,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT plan(19);
+SELECT plan(20);
 
 -- Setup: Create tenants with various roles (run as superuser to avoid RLS recursion)
 SET ROLE postgres;
@@ -231,6 +231,31 @@ SELECT is(
   'Owner B cannot see Workspace A suspended members (cross-tenant denied)'
 );
 SELECT reset_role();
+
+-- Defense-in-depth (code review M1, 2026-07-17): the admin_update policy
+-- (`20260717000003`) now has an EXPLICIT `status='active'` guard in its
+-- USING clause. Prior to that migration the guard was implicit — correct
+-- only because UPDATE visibility requires SELECT visibility, and all SELECT
+-- policies gate on status='active'. This test pins the explicit guard so a
+-- future policy edit cannot silently re-open the suspended-state mutation
+-- path. ADMIN JWT attempt to flip a suspended row → UPDATE 0 (row untouched).
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub": "22222222-2222-2222-2222-222222222222", "workspace_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "role": "admin"}', false);
+UPDATE workspace_members
+SET status = 'active', suspended_at = NULL
+WHERE workspace_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+  AND user_id = '88888888-8888-8888-8888-888888888888';
+SELECT reset_role();
+-- Verify via service_role (postgres): the admin JWT's SELECT is also gated
+-- on status='active', so it cannot see the suspended row to confirm. This
+-- is the intended asymmetry — same pattern as test 14.
+SET ROLE postgres;
+SELECT is(
+  (SELECT status FROM workspace_members WHERE workspace_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' AND user_id = '88888888-8888-8888-8888-888888888888'),
+  'suspended',
+  'admin_update explicit status guard: admin JWT cannot reactivate suspended (row untouched)'
+);
+RESET ROLE;
 
 -- The status CHECK constraint accepts 'suspended' (widened by 20260717000001).
 -- Reuse an existing test user (88888888) to avoid an FK violation; insert then

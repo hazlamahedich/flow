@@ -41,16 +41,13 @@ import {
   cacheTag,
 } from '@flow/db';
 import type { ActionResult } from '@flow/types';
-import { getTierConfig } from '@/lib/config/tier-config';
+import { getProTeamMemberLimit } from '@/lib/config/tier-config';
 import { invalidateUserSessions } from '@flow/auth/server-admin';
 import { logWorkspaceEvent } from '@/lib/workspace-audit';
 import {
-  buildMemberSuspendedEmail,
-  buildOwnerSuspendedEmail,
-  sendMemberSuspendedNotification,
-  sendOwnerSuspendedNotification,
-} from '@/lib/actions/billing/suspension-notifications';
-import type { TransactionalEmailPayload } from '@flow/agents/providers';
+  dispatchSuspensionNotifications,
+  type SuspendedMemberForNotification,
+} from '@/lib/actions/billing/suspension-dispatch';
 
 /** Reason recorded on suspended rows + audit events (machine-readable). */
 const SUSPENSION_REASON = 'tier_downgrade_agency_to_pro';
@@ -89,9 +86,9 @@ export async function applyAgencyToProDowngrade(input: {
 }): Promise<ActionResult<AgencyToProDowngradeResult>> {
   const supabase = input.supabase ?? createServiceClient();
 
-  // PD1: Pro limit sourced from config (never hardcoded).
-  const config = await getTierConfig();
-  const proLimit = config.tierLimits.pro.maxTeamMembers ?? 5;
+  // PD1: Pro limit sourced from config (never hardcoded). Single helper so
+  // the webhook and the billing UI share the same fallback (review M4).
+  const proLimit = await getProTeamMemberLimit();
 
   const activeCount = await countActiveTeamMembers(supabase, input.workspaceId);
   const excess = Math.max(0, activeCount - proLimit);
@@ -122,13 +119,7 @@ export async function applyAgencyToProDowngrade(input: {
     // name for the AC5 notification dispatch (single pass, fewer round-trips).
     let sessionsConfirmed = 0;
     let partialFailure = false;
-    const suspendedForNotify: Array<{
-      userId: string;
-      memberId: string;
-      email: string;
-      name: string | null;
-      suspendedAt: string;
-    }> = [];
+    const suspendedForNotify: SuspendedMemberForNotification[] = [];
     const suspendedAtIso = new Date().toISOString();
     for (const memberId of suspendedMemberIds) {
       // `memberId` here is the workspace_members.id; invalidateUserSessions
@@ -162,17 +153,25 @@ export async function applyAgencyToProDowngrade(input: {
     }
 
     // Audit log (best-effort — never fail the action on audit write failure).
+    // Pass the webhook's service_role client: audit_log has SELECT-only RLS
+    // (no INSERT policy for authenticated), so a user-scoped client would
+    // silently no-op and the member_suspended row — which carries the
+    // sessionsAttempted/sessionsConfirmed observability contract (Murat
+    // P0-1) — would never land.
     try {
-      await logWorkspaceEvent({
-        type: 'member_suspended',
-        workspaceId: input.workspaceId,
-        memberId: suspendedMemberIds.join(','),
-        reason: SUSPENSION_REASON,
-        triggeredBy: 'stripe-webhook',
-        sessionsAttempted: suspendedMemberIds.length,
-        sessionsConfirmed,
-        timestamp: new Date().toISOString(),
-      });
+      await logWorkspaceEvent(
+        {
+          type: 'member_suspended',
+          workspaceId: input.workspaceId,
+          memberId: suspendedMemberIds.join(','),
+          reason: SUSPENSION_REASON,
+          triggeredBy: 'stripe-webhook',
+          sessionsAttempted: suspendedMemberIds.length,
+          sessionsConfirmed,
+          timestamp: new Date().toISOString(),
+        },
+        supabase,
+      );
     } catch {
       // Audit logging best-effort — do not fail the action.
     }
@@ -181,101 +180,16 @@ export async function applyAgencyToProDowngrade(input: {
     revalidateTag(cacheTag('workspace_client', input.workspaceId));
 
     // AC5 — notification dispatch (best-effort, log + continue on failure,
-    // never roll back the suspension). Resolve the workspace name + owner
-    // email + provider once, then send member emails + the owner email.
-    // `void ... .catch()` would drop the per-recipient results; we await so
-    // partial-failure observability is recorded in `notificationsFailed`.
-    let notificationsFailed = 0;
-    try {
-      // Workspace name + owner email for the templates.
-      const { data: wsRow } = await supabase
-        .from('workspaces')
-        .select('name, slug')
-        .eq('id', input.workspaceId)
-        .maybeSingle();
-      const workspaceName =
-        (wsRow as { name?: string } | null)?.name ?? 'your workspace';
-      const { data: ownerRow } = await supabase
-        .from('workspace_members')
-        .select('users(email)')
-        .eq('workspace_id', input.workspaceId)
-        .eq('role', 'owner')
-        .eq('status', 'active')
-        .limit(1)
-        .maybeSingle();
-      const ownerEmail =
-        (
-          ownerRow as { users?: { email?: string } | null } | null
-        )?.users?.email ?? '';
-
-      // Resolve the transactional email provider once. If RESEND_API_KEY is
-      // unset the registry throws — treat as a best-effort skip (the whole
-      // notification dispatch is non-blocking per AC5).
-      let provider: {
-        send: (p: TransactionalEmailPayload) => Promise<{ messageId: string }>;
-      } | null = null;
-      try {
-        const { getTransactionalEmailProvider } = await import(
-          '@flow/agents/providers'
-        );
-        const resolved = getTransactionalEmailProvider('resend');
-        provider = { send: (p) => resolved.send(p) };
-      } catch {
-        // Provider unavailable (e.g. missing API key in this env). Skip
-        // notification dispatch — AC5 explicitly allows log + continue.
-        provider = null;
-      }
-
-      if (provider && ownerEmail) {
-        // Member emails (parallel — independent best-effort sends).
-        const memberResults = await Promise.all(
-          suspendedForNotify.map((m) =>
-            sendMemberSuspendedNotification({
-              provider,
-              payload: buildMemberSuspendedEmail({
-                to: m.email,
-                workspaceName,
-                ownerEmail,
-                suspendedAt: new Date(m.suspendedAt).toLocaleDateString(),
-              }),
-              workspaceId: input.workspaceId,
-              memberUserId: m.userId,
-            }),
-          ),
-        );
-        notificationsFailed += memberResults.filter(
-          (r) => r.status === 'failed',
-        ).length;
-
-        // Owner email (one summary, with two deep links per AC5).
-        const appOrigin = process.env.NEXT_PUBLIC_APP_ORIGIN ?? '';
-        // Build the suspended-members list for the owner email. Omit `name`
-        // when null (exactOptionalPropertyTypes: the optional key must be
-        // absent, not present-and-undefined).
-        const ownerList = suspendedForNotify.map((m) =>
-          m.name
-            ? { email: m.email, name: m.name }
-            : { email: m.email },
-        );
-        const ownerResult = await sendOwnerSuspendedNotification({
-          provider,
-          payload: buildOwnerSuspendedEmail({
-            to: ownerEmail,
-            workspaceName,
-            suspendedMembers: ownerList,
-            billingUrl: `${appOrigin}/settings/billing`,
-            teamUrl: `${appOrigin}/settings/team`,
-          }),
-          workspaceId: input.workspaceId,
-        });
-        if (ownerResult.status === 'failed') notificationsFailed += 1;
-      }
-    } catch {
-      // Notification dispatch is entirely best-effort. Any uncaught error
-      // here does NOT roll back the suspension (AC5). Count as a failure for
-      // observability but do not throw.
-      notificationsFailed += 1;
-    }
+    // never roll back the suspension). Delegated to the extracted helper so
+    // this handler stays under the 250-line file limit and the notification
+    // concern is testable in isolation. `failed > 0` feeds the EC6 warnings
+    // contract alongside the session-invalidation partial-failure signal.
+    const { failed: notificationsFailed } =
+      await dispatchSuspensionNotifications({
+        supabase,
+        workspaceId: input.workspaceId,
+        suspendedMembers: suspendedForNotify,
+      });
     if (notificationsFailed > 0) partialFailure = true;
 
     // Build the result. `warnings` is included ONLY when there was a partial

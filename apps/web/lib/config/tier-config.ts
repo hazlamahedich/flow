@@ -126,3 +126,19 @@ const DEFAULT_DISPLAY_PRICES: Record<'pro' | 'agency', PlanDisplayPrice> = {
   pro: { label: '$29 / month', interval: 'month' },
   agency: { label: '$99 / month', interval: 'month' },
 };
+
+/**
+ * The Pro plan team-member limit, sourced from `getTierConfig()` (PD1: 5).
+ *
+ * Single source of truth for the `?? 5` defensive fallback that previously
+ * appeared in 3 places (webhook handler + billing page × 2). Centralizing
+ * it guarantees the webhook and the UI agree on the limit even when the
+ * config load partially fails — the same value flows everywhere.
+ *
+ * @example
+ *   const proLimit = await getProTeamMemberLimit();
+ */
+export async function getProTeamMemberLimit(): Promise<number> {
+  const config = await getTierConfig();
+  return config.tierLimits.pro.maxTeamMembers ?? 5;
+}

@@ -4,7 +4,7 @@ import {
   countSuspendedMembers,
 } from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { getTierConfig } from '@/lib/config/tier-config';
+import { getProTeamMemberLimit } from '@/lib/config/tier-config';
 import type { Metadata } from 'next';
 import { TeamMemberList } from './components/team-member-list';
 import { InviteForm } from './components/invite-form';
@@ -52,13 +52,12 @@ export default async function TeamPage() {
   // 9-5c AC4 — suspended-member count + Pro limit for the dual-placement
   // banner. service_role for the count (owner RLS gates on status='active').
   // Best-effort: if config/count fail, the banner renders nothing (count 0).
+  // Pro limit sourced from the shared helper (review M4).
   const [suspendedMembersCount, proTeamMemberLimit] = await Promise.all([
     countSuspendedMembers(createServiceClient(), ctx.workspaceId).catch(
       () => 0,
     ),
-    getTierConfig()
-      .then((c) => c.tierLimits.pro.maxTeamMembers ?? 5)
-      .catch(() => 5),
+    getProTeamMemberLimit().catch(() => 5),
   ]);
 
   if (membersError || invitationsError || workspaceError) {
