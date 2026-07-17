@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { listProjectsAction } from '../actions/list-projects';
-import type { WorkspaceMemberSummary } from '../actions/list-workspace-members';
+import type { WorkspaceMemberSummary } from '../actions/schemas';
 
 interface ClientOption {
   id: string;

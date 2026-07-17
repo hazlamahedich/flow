@@ -11,7 +11,7 @@ import { LogTimeModal } from './log-time-modal';
 import { EditTimeEntryModal } from './edit-time-entry-modal';
 import type { EditTimeEntryResult } from './edit-time-entry-modal';
 import { TimeEntryFilters } from './time-entry-filters';
-import type { WorkspaceMemberSummary } from '../actions/list-workspace-members';
+import type { WorkspaceMemberSummary } from '../actions/schemas';
 
 interface ClientOption {
   id: string;

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { createTimeEntrySchema } from '../../../app/(workspace)/time/actions/create-time-entry';
+import { createTimeEntrySchema } from '../../../app/(workspace)/time/actions/schemas';
 
 function baseInput(overrides: Record<string, unknown> = {}) {
   return {

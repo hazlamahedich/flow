@@ -3,11 +3,9 @@
 import type { ActionResult } from '@flow/types';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext, createFlowError } from '@flow/db';
-
-export interface WorkspaceMemberSummary {
-  userId: string;
-  displayName: string;
-}
+// Type lives in a sibling non-'use server' module because Next.js 15
+// forbids exporting non-function values from 'use server' files.
+import type { WorkspaceMemberSummary } from './schemas';
 
 export async function listWorkspaceMembersAction(): Promise<
   ActionResult<WorkspaceMemberSummary[]>

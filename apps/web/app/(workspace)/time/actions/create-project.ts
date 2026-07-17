@@ -1,6 +1,5 @@
 'use server';
 
-import { z } from 'zod';
 import type { ActionResult } from '@flow/types';
 import { getServerSupabase } from '@/lib/supabase-server';
 import {
@@ -9,17 +8,10 @@ import {
   createProject,
   ProjectNameDuplicateError,
 } from '@flow/db';
-
-const createProjectSchema = z.object({
-  clientId: z.string().uuid(),
-  name: z.string().min(1).max(100),
-});
-
-export interface CreatedProject {
-  id: string;
-  name: string;
-  clientId: string;
-}
+// Schema and return type live in a sibling non-'use server' module because
+// Next.js 15 forbids exporting non-function values from 'use server' files.
+import { createProjectSchema } from './schemas';
+import type { CreatedProject } from './schemas';
 
 export async function createProjectAction(
   input: unknown,
