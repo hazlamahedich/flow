@@ -43,7 +43,7 @@ test.describe('[P0] Invoice List Page', () => {
       ownerPage.getByRole('heading', { name: 'Invoices' }),
     ).toBeVisible();
     await expect(
-      ownerPage.getByRole('link', { name: 'Create Invoice' }),
+      ownerPage.getByRole('link', { name: 'Create Invoice' }).first(),
     ).toBeVisible();
   });
 
@@ -75,8 +75,9 @@ test.describe('[P0] Invoice List Page', () => {
     ownerPage,
   }) => {
     await expect(ownerPage).not.toHaveURL(/\/login/);
-    const activePill = ownerPage.getByRole('button', { name: 'Active' });
+    const activePill = ownerPage.getByRole('tab', { name: 'Active' });
     await expect(activePill).toBeVisible();
+    await expect(activePill).toHaveAttribute('aria-selected', 'true');
   });
 });
 

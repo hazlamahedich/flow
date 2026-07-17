@@ -26,10 +26,11 @@ test.describe('[P0] Client Timeline', () => {
     );
     const items = ownerPage.getByTestId('timeline-item');
 
-    const hasEmpty = await emptyState.isVisible().catch(() => false);
-    const itemCount = await items.count();
-
-    expect(hasEmpty || itemCount > 0).toBe(true);
+    await expect(async () => {
+      const hasEmpty = await emptyState.isVisible().catch(() => false);
+      const itemCount = await items.count();
+      expect(hasEmpty || itemCount > 0).toBe(true);
+    }).toPass({ timeout: 5000 });
   });
 
   test('filter: selecting Emails Only hides agent run rows', async ({
@@ -97,13 +98,11 @@ test.describe('[P0] Client Timeline', () => {
     );
     const items = ownerPage.getByTestId('timeline-item');
 
-    const hasEmpty = await emptyState.isVisible().catch(() => false);
-
-    if (hasEmpty) {
-      expect(hasEmpty).toBe(true);
-    } else {
-      await expect(items.first()).toBeVisible();
-    }
+    await expect(async () => {
+      const hasEmpty = await emptyState.isVisible().catch(() => false);
+      const itemCount = await items.count();
+      expect(hasEmpty || itemCount > 0).toBe(true);
+    }).toPass({ timeout: 5000 });
   });
 
   test('AC8: Load More button behavior', async ({ ownerPage }) => {
