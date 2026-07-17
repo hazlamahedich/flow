@@ -78,7 +78,7 @@ describe('[P0] [9.1b-ATDD-002] curated branding presets available (UX-DR4)', () 
     for (const [, preset] of Object.entries(PORTAL_BRANDING_PRESETS)) {
       expect(Object.keys(preset.visual)).toHaveLength(8);
       expect(Object.keys(preset.visual).sort()).toEqual(
-        [...VISUAL_VAR_KEYS].sort()
+        [...VISUAL_VAR_KEYS].sort(),
       );
     }
   });
@@ -87,14 +87,14 @@ describe('[P0] [9.1b-ATDD-002] curated branding presets available (UX-DR4)', () 
     for (const [, preset] of Object.entries(PORTAL_BRANDING_PRESETS)) {
       expect(Object.keys(preset.content)).toHaveLength(4);
       expect(Object.keys(preset.content).sort()).toEqual(
-        [...CONTENT_VAR_KEYS].sort()
+        [...CONTENT_VAR_KEYS].sort(),
       );
     }
   });
 
   test('warm-host preset uses Playfair Display heading', () => {
     expect(PORTAL_BRANDING_PRESETS['warm-host'].visual.fontHeading).toBe(
-      'Playfair Display'
+      'Playfair Display',
     );
   });
 });
@@ -115,7 +115,7 @@ describe('[P0] [9.1b-ATDD-003] customization constrained to 8 visual + 4 content
     const tooMany: PortalBrandingConfig = {
       preset: 'minimalist',
       visual: Object.fromEntries(
-        Array.from({ length: 9 }, (_, i) => [`v${i}`, '#000000'])
+        Array.from({ length: 9 }, (_, i) => [`v${i}`, '#000000']),
       ),
     };
     expect(brandingConfigSchema.safeParse(tooMany).success).toBe(false);
@@ -125,7 +125,7 @@ describe('[P0] [9.1b-ATDD-003] customization constrained to 8 visual + 4 content
     const tooMany: PortalBrandingConfig = {
       preset: 'minimalist',
       content: Object.fromEntries(
-        Array.from({ length: 5 }, (_, i) => [`c${i}`, 'x'])
+        Array.from({ length: 5 }, (_, i) => [`c${i}`, 'x']),
       ),
     };
     expect(brandingConfigSchema.safeParse(tooMany).success).toBe(false);
@@ -208,9 +208,15 @@ describe('[P0] [9.1b-ATDD-003] customization constrained to 8 visual + 4 content
 describe('[P1] [9.1b-ATDD-004] resolveBrandingPreset merges preset with overrides', () => {
   test('resolveBrandingPreset returns all preset defaults with no overrides', () => {
     const resolved = resolveBrandingPreset('minimalist', {});
-    expect(Object.keys(resolved.visual).sort()).toEqual([...VISUAL_VAR_KEYS].sort());
-    expect(Object.keys(resolved.content).sort()).toEqual([...CONTENT_VAR_KEYS].sort());
-    expect(resolved.visual.accent).toBe(PORTAL_BRANDING_PRESETS.minimalist.visual.accent);
+    expect(Object.keys(resolved.visual).sort()).toEqual(
+      [...VISUAL_VAR_KEYS].sort(),
+    );
+    expect(Object.keys(resolved.content).sort()).toEqual(
+      [...CONTENT_VAR_KEYS].sort(),
+    );
+    expect(resolved.visual.accent).toBe(
+      PORTAL_BRANDING_PRESETS.minimalist.visual.accent,
+    );
   });
 
   test('resolveBrandingPreset applies visual overrides over preset', () => {
@@ -219,7 +225,7 @@ describe('[P1] [9.1b-ATDD-004] resolveBrandingPreset merges preset with override
     });
     expect(overridden.visual.accent).toBe('#FF0000');
     expect(overridden.visual.surface).toBe(
-      PORTAL_BRANDING_PRESETS['bold-professional'].visual.surface
+      PORTAL_BRANDING_PRESETS['bold-professional'].visual.surface,
     );
   });
 
@@ -229,7 +235,7 @@ describe('[P1] [9.1b-ATDD-004] resolveBrandingPreset merges preset with override
     });
     expect(overridden.content.greeting).toBe('Welcome');
     expect(overridden.content.tagline).toBe(
-      PORTAL_BRANDING_PRESETS['warm-host'].content.tagline
+      PORTAL_BRANDING_PRESETS['warm-host'].content.tagline,
     );
   });
 
@@ -245,7 +251,9 @@ describe('[P1] [9.1b-ATDD-004] resolveBrandingPreset merges preset with override
       content: { greeting: 'Hi' },
     });
     expect(resolved.visual.accent).toBe('#111111');
-    expect(resolved.visual.surface).toBe(PORTAL_BRANDING_PRESETS.minimalist.visual.surface);
+    expect(resolved.visual.surface).toBe(
+      PORTAL_BRANDING_PRESETS.minimalist.visual.surface,
+    );
     expect(resolved.content.greeting).toBe('Hi');
     expect(Object.keys(resolved.content)).toHaveLength(4);
   });
@@ -259,11 +267,13 @@ describe('[P0] [9.1b-ATDD-005] PortalBrandingStyle injects scoped CSS vars', () 
     const { container } = render(
       <PortalBrandingStyle config={{ preset: 'warm-host' }}>
         <div data-testid="child">child</div>
-      </PortalBrandingStyle>
+      </PortalBrandingStyle>,
     );
 
     expect(screen.getByTestId('child')).toBeInTheDocument();
-    expect(container.querySelector('[data-portal-branding]')).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-portal-branding]'),
+    ).toBeInTheDocument();
 
     const style = container.querySelector('style');
     expect(style).toBeInTheDocument();
@@ -276,7 +286,7 @@ describe('[P0] [9.1b-ATDD-005] PortalBrandingStyle injects scoped CSS vars', () 
     const { container } = render(
       <PortalBrandingStyle config={{ preset: 'warm-host' }}>
         <div />
-      </PortalBrandingStyle>
+      </PortalBrandingStyle>,
     );
     const style = container.querySelector('style');
     expect(style?.textContent).not.toContain('--flow-bg-canvas');
@@ -304,15 +314,15 @@ describe('[P1] [9.1b-ATDD-006] PortalBrandingProvider exposes content vars via C
     render(
       <PortalBrandingProvider config={{ preset: 'warm-host' }}>
         <ContentConsumer />
-      </PortalBrandingProvider>
+      </PortalBrandingProvider>,
     );
 
     const el = screen.getByTestId('content');
     expect(el.textContent).toContain(
-      PORTAL_BRANDING_PRESETS['warm-host'].content.greeting
+      PORTAL_BRANDING_PRESETS['warm-host'].content.greeting,
     );
     expect(el.textContent).toContain(
-      PORTAL_BRANDING_PRESETS['warm-host'].content.tagline
+      PORTAL_BRANDING_PRESETS['warm-host'].content.tagline,
     );
   });
 
@@ -322,7 +332,7 @@ describe('[P1] [9.1b-ATDD-006] PortalBrandingProvider exposes content vars via C
         config={{ preset: 'minimalist', content: { greeting: 'Hey' } }}
       >
         <ContentConsumer />
-      </PortalBrandingProvider>
+      </PortalBrandingProvider>,
     );
 
     expect(screen.getByTestId('content').textContent).toContain('Hey');

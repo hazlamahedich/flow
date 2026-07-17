@@ -8,19 +8,22 @@ export interface WriteRelationParams {
   supabase: SupabaseClient;
 }
 
-export async function writeEventRelation(params: WriteRelationParams): Promise<void> {
+export async function writeEventRelation(
+  params: WriteRelationParams,
+): Promise<void> {
   const { parentEventId, childEventId, relationType, supabase } = params;
 
-  const { error } = await supabase
-    .from('calendar_event_relations')
-    .upsert(
-      {
-        parent_event_id: parentEventId,
-        child_event_id: childEventId,
-        relation_type: relationType,
-      },
-      { onConflict: 'parent_event_id,child_event_id,relation_type', ignoreDuplicates: true },
-    );
+  const { error } = await supabase.from('calendar_event_relations').upsert(
+    {
+      parent_event_id: parentEventId,
+      child_event_id: childEventId,
+      relation_type: relationType,
+    },
+    {
+      onConflict: 'parent_event_id,child_event_id,relation_type',
+      ignoreDuplicates: true,
+    },
+  );
 
   if (error) {
     throw Object.assign(
@@ -85,11 +88,17 @@ export async function findDependentEvents(
     .eq('workspace_id', workspaceId)
     .in('id', eventIds);
 
-  const validEventIds = new Set((eventCheck ?? []).map((r: Record<string, unknown>) => r.id as string));
+  const validEventIds = new Set(
+    (eventCheck ?? []).map((r: Record<string, unknown>) => r.id as string),
+  );
 
   return relations
     .map((row) => EventRelationRowSchema.parse(row))
-    .filter((parsed) => validEventIds.has(parsed.parent_event_id) || validEventIds.has(parsed.child_event_id))
+    .filter(
+      (parsed) =>
+        validEventIds.has(parsed.parent_event_id) ||
+        validEventIds.has(parsed.child_event_id),
+    )
     .map((parsed) => ({
       id: parsed.id,
       parentEventId: parsed.parent_event_id,

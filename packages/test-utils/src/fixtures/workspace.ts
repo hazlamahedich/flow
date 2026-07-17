@@ -13,7 +13,12 @@ interface WorkspaceOverrides {
 export function buildWorkspace(overrides: WorkspaceOverrides = {}) {
   const id = overrides.id ?? crypto.randomUUID();
   const name = overrides.name ?? `Test Workspace ${id.slice(0, 8)}`;
-  const slug = overrides.slug ?? name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+  const slug =
+    overrides.slug ??
+    name
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]/g, '');
   return {
     id,
     name,
@@ -67,14 +72,19 @@ interface InvitationOverrides {
 
 export function buildInvitation(overrides: InvitationOverrides = {}) {
   const rawToken = crypto.randomUUID();
-  const tokenHash = overrides.tokenHash ?? createHash('sha256').update(rawToken).digest('hex');
+  const tokenHash =
+    overrides.tokenHash ?? createHash('sha256').update(rawToken).digest('hex');
   return {
     id: overrides.id ?? crypto.randomUUID(),
     workspaceId: overrides.workspaceId ?? crypto.randomUUID(),
-    email: overrides.email ?? `invite-${randomBytes(4).toString('hex')}@test.flow.local`,
+    email:
+      overrides.email ??
+      `invite-${randomBytes(4).toString('hex')}@test.flow.local`,
     role: overrides.role ?? 'member',
     tokenHash,
-    expiresAt: overrides.expiresAt ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    expiresAt:
+      overrides.expiresAt ??
+      new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     acceptedAt: overrides.acceptedAt ?? null,
     invitedBy: overrides.invitedBy ?? crypto.randomUUID(),
     createdAt: overrides.createdAt ?? new Date().toISOString(),
@@ -101,7 +111,9 @@ export function buildTransferRequest(overrides: TransferRequestOverrides = {}) {
     toUserId: overrides.toUserId ?? crypto.randomUUID(),
     status: overrides.status ?? 'pending',
     createdAt: overrides.createdAt ?? new Date().toISOString(),
-    expiresAt: overrides.expiresAt ?? new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+    expiresAt:
+      overrides.expiresAt ??
+      new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
     acceptedAt: overrides.acceptedAt ?? null,
   };
 }

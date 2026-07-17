@@ -1,4 +1,13 @@
-import { pgTable, uuid, integer, date, text, timestamp, index, check } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  integer,
+  date,
+  text,
+  timestamp,
+  index,
+  check,
+} from 'drizzle-orm/pg-core';
 import { workspaces } from './workspaces';
 import { clients } from './clients';
 import { users } from './users';
@@ -18,7 +27,9 @@ export const timeEntries = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    projectId: uuid('project_id').references(() => projects.id, { onDelete: 'set null' }),
+    projectId: uuid('project_id').references(() => projects.id, {
+      onDelete: 'set null',
+    }),
     date: date('date').notNull(),
     durationMinutes: integer('duration_minutes').notNull(),
     startMinutes: integer('start_minutes'),
@@ -26,19 +37,24 @@ export const timeEntries = pgTable(
     notes: text('notes'),
     invoicedAt: timestamp('invoiced_at', { withTimezone: true }),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('idx_time_entries_workspace_id').on(table.workspaceId),
     index('idx_time_entries_client_id').on(table.clientId),
     index('idx_time_entries_user_id').on(table.userId),
-    index('idx_time_entries_workspace_client_date').on(table.workspaceId, table.clientId, table.date),
-    index('idx_time_entries_invoiced_at').on(table.invoicedAt),
-    check(
-      'time_entries_duration_check',
-      sql`duration_minutes > 0`,
+    index('idx_time_entries_workspace_client_date').on(
+      table.workspaceId,
+      table.clientId,
+      table.date,
     ),
+    index('idx_time_entries_invoiced_at').on(table.invoicedAt),
+    check('time_entries_duration_check', sql`duration_minutes > 0`),
   ],
 );
 

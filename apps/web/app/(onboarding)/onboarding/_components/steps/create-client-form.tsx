@@ -65,7 +65,9 @@ export function CreateClientForm() {
         return;
       }
 
-      router.push(`/onboarding/log-time?clientId=${result.data.id}&clientName=${encodeURIComponent(result.data.name)}`);
+      router.push(
+        `/onboarding/log-time?clientId=${result.data.id}&clientName=${encodeURIComponent(result.data.name)}`,
+      );
     },
     [state.name, state.email, state.phone, router],
   );
@@ -77,7 +79,10 @@ export function CreateClientForm() {
       </h1>
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
-          <label htmlFor="client-name" className="block text-sm font-medium text-[var(--flow-color-foreground)]">
+          <label
+            htmlFor="client-name"
+            className="block text-sm font-medium text-[var(--flow-color-foreground)]"
+          >
             Client name
           </label>
           <input
@@ -85,47 +90,69 @@ export function CreateClientForm() {
             type="text"
             value={state.name}
             onChange={(e) => dispatch({ field: 'name', value: e.target.value })}
-            aria-describedby={state.errors.name ? 'client-name-error' : undefined}
+            aria-describedby={
+              state.errors.name ? 'client-name-error' : undefined
+            }
             aria-invalid={!!state.errors.name}
             className="mt-1 block w-full rounded-[var(--flow-radius-md)] border border-[var(--flow-color-border)] px-3 py-2 text-sm"
             required
           />
           {state.errors.name && (
-            <p id="client-name-error" className="mt-1 text-sm text-red-600" role="alert">
+            <p
+              id="client-name-error"
+              className="mt-1 text-sm text-red-600"
+              role="alert"
+            >
               {state.errors.name}
             </p>
           )}
         </div>
 
         <div>
-          <label htmlFor="client-email" className="block text-sm font-medium text-[var(--flow-color-foreground)]">
+          <label
+            htmlFor="client-email"
+            className="block text-sm font-medium text-[var(--flow-color-foreground)]"
+          >
             Email (optional)
           </label>
           <input
             id="client-email"
             type="email"
             value={state.email}
-            onChange={(e) => dispatch({ field: 'email', value: e.target.value })}
-            aria-describedby={state.errors.email ? 'client-email-error' : undefined}
+            onChange={(e) =>
+              dispatch({ field: 'email', value: e.target.value })
+            }
+            aria-describedby={
+              state.errors.email ? 'client-email-error' : undefined
+            }
             aria-invalid={!!state.errors.email}
             className="mt-1 block w-full rounded-[var(--flow-radius-md)] border border-[var(--flow-color-border)] px-3 py-2 text-sm"
           />
           {state.errors.email && (
-            <p id="client-email-error" className="mt-1 text-sm text-red-600" role="alert">
+            <p
+              id="client-email-error"
+              className="mt-1 text-sm text-red-600"
+              role="alert"
+            >
               {state.errors.email}
             </p>
           )}
         </div>
 
         <div>
-          <label htmlFor="client-phone" className="block text-sm font-medium text-[var(--flow-color-foreground)]">
+          <label
+            htmlFor="client-phone"
+            className="block text-sm font-medium text-[var(--flow-color-foreground)]"
+          >
             Phone (optional)
           </label>
           <input
             id="client-phone"
             type="tel"
             value={state.phone}
-            onChange={(e) => dispatch({ field: 'phone', value: e.target.value })}
+            onChange={(e) =>
+              dispatch({ field: 'phone', value: e.target.value })
+            }
             className="mt-1 block w-full rounded-[var(--flow-radius-md)] border border-[var(--flow-color-border)] px-3 py-2 text-sm"
           />
         </div>

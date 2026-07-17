@@ -24,7 +24,10 @@ describe('preCheck', () => {
   test('fails for non-UUID workspaceId', async () => {
     const { preCheck } = await import('../pre-check');
 
-    const result = await preCheck({ workspaceId: 'not-a-uuid', sweepDate: '2026-05-12' });
+    const result = await preCheck({
+      workspaceId: 'not-a-uuid',
+      sweepDate: '2026-05-12',
+    });
 
     expect(result.passed).toBe(false);
     expect(result.errors.some((e) => e.includes('workspaceId'))).toBe(true);
@@ -43,7 +46,9 @@ describe('preCheck', () => {
   });
 
   test('fails when agent configuration is unreadable', async () => {
-    mockGetAgentConfiguration.mockRejectedValue(new Error('connection timeout'));
+    mockGetAgentConfiguration.mockRejectedValue(
+      new Error('connection timeout'),
+    );
     const { preCheck } = await import('../pre-check');
 
     const result = await preCheck({

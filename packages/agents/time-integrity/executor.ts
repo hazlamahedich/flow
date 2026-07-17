@@ -1,16 +1,37 @@
-import { createServiceClient, getAgentConfiguration, insertRun } from '@flow/db';
+import {
+  createServiceClient,
+  getAgentConfiguration,
+  insertRun,
+} from '@flow/db';
 import type { ActionResult } from '@flow/types';
 import type { TrustClient } from '@flow/trust';
 import { writeAuditLog } from '../shared/audit-writer';
-import { detectGaps, detectOverlaps, detectLowHours, type TimeEntryForDetection } from './anomaly-detection';
-import { GAP_THRESHOLD_MINUTES, LOW_HOURS_TARGET, type TimeIntegrityInput, type SweepResult, type AnomalySignal } from './schemas';
-import { buildProposalTitle, subtractDays, PROPOSAL_REASONING } from './executor-helpers';
+import {
+  detectGaps,
+  detectOverlaps,
+  detectLowHours,
+  type TimeEntryForDetection,
+} from './anomaly-detection';
+import {
+  GAP_THRESHOLD_MINUTES,
+  LOW_HOURS_TARGET,
+  type TimeIntegrityInput,
+  type SweepResult,
+  type AnomalySignal,
+} from './schemas';
+import {
+  buildProposalTitle,
+  subtractDays,
+  PROPOSAL_REASONING,
+} from './executor-helpers';
 
 export interface SweepDeps {
   trustClient?: TrustClient | undefined;
 }
 
-export function mapRawEntryToDetection(r: Record<string, unknown>): TimeEntryForDetection {
+export function mapRawEntryToDetection(
+  r: Record<string, unknown>,
+): TimeEntryForDetection {
   return {
     id: r.id as string,
     date: r.date as string,
@@ -34,7 +55,9 @@ export async function execute(
 
   // AC10: application-layer isolation guard — must be first (P7)
   if (!workspaceId) {
-    throw new Error('time-integrity.execute: workspaceId must not be null or undefined');
+    throw new Error(
+      'time-integrity.execute: workspaceId must not be null or undefined',
+    );
   }
 
   const client = createServiceClient();
@@ -47,7 +70,9 @@ export async function execute(
       action: 'sweep.trust_client.missing',
       entityType: 'workspace',
       entityId: workspaceId,
-      details: { note: 'no trustClient injected; signals default to supervised without trust check (AC6 bypass)' },
+      details: {
+        note: 'no trustClient injected; signals default to supervised without trust check (AC6 bypass)',
+      },
     });
   }
 
@@ -79,7 +104,12 @@ export async function execute(
   if (fetchError) {
     return {
       success: false,
-      error: { status: 500, code: 'INTERNAL_ERROR', message: fetchError.message, category: 'system' },
+      error: {
+        status: 500,
+        code: 'INTERNAL_ERROR',
+        message: fetchError.message,
+        category: 'system',
+      },
     };
   }
 
@@ -90,11 +120,17 @@ export async function execute(
       action: 'sweep.entries.cap_hit',
       entityType: 'workspace',
       entityId: workspaceId,
-      details: { sweepDate, entriesCapped: ENTRY_FETCH_LIMIT, note: 'sweep may be incomplete; pagination needed' },
+      details: {
+        sweepDate,
+        entriesCapped: ENTRY_FETCH_LIMIT,
+        note: 'sweep may be incomplete; pagination needed',
+      },
     });
   }
 
-  const entries: TimeEntryForDetection[] = (rawEntries ?? []).map(mapRawEntryToDetection);
+  const entries: TimeEntryForDetection[] = (rawEntries ?? []).map(
+    mapRawEntryToDetection,
+  );
 
   // AC3: run all three detectors
   const allSignals: AnomalySignal[] = [
@@ -116,7 +152,11 @@ export async function execute(
         action: 'sweep.signal.missing_date',
         entityType: 'workspace',
         entityId: workspaceId,
-        details: { anomalyType: signal.anomalyType, signalKey: signal.signalKey, fallback: sweepDate },
+        details: {
+          anomalyType: signal.anomalyType,
+          signalKey: signal.signalKey,
+          fallback: sweepDate,
+        },
       });
     }
     const signalDate = rawSignalDate ?? sweepDate;
@@ -141,7 +181,10 @@ export async function execute(
             action: 'sweep.signal.precondition_failed',
             entityType: 'workspace',
             entityId: workspaceId,
-            details: { anomalyType: signal.anomalyType, failedKey: decision.failedPreconditionKey },
+            details: {
+              anomalyType: signal.anomalyType,
+              failedKey: decision.failedPreconditionKey,
+            },
           });
           continue;
         }
@@ -266,7 +309,12 @@ export async function execute(
     action: 'sweep.complete',
     entityType: 'workspace',
     entityId: workspaceId,
-    details: { sweepDate, signalsCreated, skippedDuplicates, entriesAnalyzed: entries.length },
+    details: {
+      sweepDate,
+      signalsCreated,
+      skippedDuplicates,
+      entriesAnalyzed: entries.length,
+    },
   });
 
   return { success: true, data: { signalsCreated, skippedDuplicates } };

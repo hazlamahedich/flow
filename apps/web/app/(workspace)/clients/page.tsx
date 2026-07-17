@@ -25,22 +25,38 @@ export default async function ClientsPage({
   const rawFilters = {
     status: typeof params.status === 'string' ? params.status : undefined,
     search: typeof params.search === 'string' ? params.search : undefined,
-    page: typeof params.page === 'string' ? parseInt(params.page, 10) : undefined,
+    page:
+      typeof params.page === 'string' ? parseInt(params.page, 10) : undefined,
     sortBy: typeof params.sort === 'string' ? params.sort : undefined,
     sortOrder: typeof params.order === 'string' ? params.order : undefined,
   };
 
   const parsedFilters = clientListFiltersSchema.safeParse(rawFilters);
-  const filters = parsedFilters.success ? parsedFilters.data : clientListFiltersSchema.parse({});
+  const filters = parsedFilters.success
+    ? parsedFilters.data
+    : clientListFiltersSchema.parse({});
 
   const [result, activeCount, tierInfo] = await Promise.all([
     listClients(supabase, { workspaceId, userId: user.id, role, filters }),
     countActiveClients(supabase, workspaceId),
     (async () => {
-      const { data: cfg } = await supabase.from('app_config').select('value').eq('key', 'tier_limits').single();
-      const { data: ws } = await supabase.from('workspaces').select('settings').eq('id', workspaceId).single();
-      const tier = (ws?.settings as Record<string, unknown> | null)?.tier as string ?? 'free';
-      const limits = cfg?.value as Record<string, { maxClients?: number }> | null;
+      const { data: cfg } = await supabase
+        .from('app_config')
+        .select('value')
+        .eq('key', 'tier_limits')
+        .single();
+      const { data: ws } = await supabase
+        .from('workspaces')
+        .select('settings')
+        .eq('id', workspaceId)
+        .single();
+      const tier =
+        ((ws?.settings as Record<string, unknown> | null)?.tier as string) ??
+        'free';
+      const limits = cfg?.value as Record<
+        string,
+        { maxClients?: number }
+      > | null;
       const limit = limits?.[tier]?.maxClients ?? 5;
       return { tier, limit };
     })(),

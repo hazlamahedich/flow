@@ -1,4 +1,8 @@
-export { insertSignal, getSignalsByCorrelationId, getSignalsByWorkspace } from './signals';
+export {
+  insertSignal,
+  getSignalsByCorrelationId,
+  getSignalsByWorkspace,
+} from './signals';
 export {
   insertRun,
   updateRunStatus,

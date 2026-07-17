@@ -26,7 +26,10 @@ vi.mock('../../providers/index.js', () => ({
 }));
 
 import { createServiceClient } from '@flow/db';
-import { decryptInboxTokens, encryptInboxTokens } from '@flow/db/vault/inbox-tokens';
+import {
+  decryptInboxTokens,
+  encryptInboxTokens,
+} from '@flow/db/vault/inbox-tokens';
 
 const mockSupabase: any = {
   from: vi.fn().mockReturnThis(),
@@ -93,7 +96,10 @@ describe('executeInitialSync', () => {
   });
 
   it('sets sync_status to error when token decryption fails', async () => {
-    mockSupabase.maybeSingle.mockResolvedValue({ data: connectedInbox, error: null });
+    mockSupabase.maybeSingle.mockResolvedValue({
+      data: connectedInbox,
+      error: null,
+    });
     (decryptInboxTokens as any).mockImplementation(() => {
       throw new Error('Decryption failed');
     });
@@ -101,12 +107,18 @@ describe('executeInitialSync', () => {
     await executeInitialSync(input);
 
     expect(mockSupabase.update).toHaveBeenCalledWith(
-      expect.objectContaining({ sync_status: 'error', error_message: 'Token decryption failed' }),
+      expect.objectContaining({
+        sync_status: 'error',
+        error_message: 'Token decryption failed',
+      }),
     );
   });
 
   it('sets sync_status to connected on successful sync', async () => {
-    mockSupabase.maybeSingle.mockResolvedValue({ data: connectedInbox, error: null });
+    mockSupabase.maybeSingle.mockResolvedValue({
+      data: connectedInbox,
+      error: null,
+    });
     (decryptInboxTokens as any).mockReturnValue({
       accessToken: 'at',
       refreshToken: 'rt',
@@ -124,7 +136,10 @@ describe('executeInitialSync', () => {
   });
 
   it('sets sync_status to error when sync throws', async () => {
-    mockSupabase.maybeSingle.mockResolvedValue({ data: connectedInbox, error: null });
+    mockSupabase.maybeSingle.mockResolvedValue({
+      data: connectedInbox,
+      error: null,
+    });
     (decryptInboxTokens as any).mockReturnValue({
       accessToken: 'at',
       refreshToken: 'rt',
@@ -135,28 +150,18 @@ describe('executeInitialSync', () => {
     await executeInitialSync(input);
 
     expect(mockSupabase.update).toHaveBeenCalledWith(
-      expect.objectContaining({ sync_status: 'error', error_message: 'Gmail API down' }),
+      expect.objectContaining({
+        sync_status: 'error',
+        error_message: 'Gmail API down',
+      }),
     );
   });
 
   it('refreshes token when expired', async () => {
-    mockSupabase.maybeSingle.mockResolvedValue({ data: connectedInbox, error: null });
-    (decryptInboxTokens as any).mockReturnValue({
-      accessToken: 'at',
-      refreshToken: 'rt',
-      expiryDate: Date.now() - 1000,
+    mockSupabase.maybeSingle.mockResolvedValue({
+      data: connectedInbox,
+      error: null,
     });
-    mockRefreshToken.mockResolvedValue({ accessToken: 'new-at', refreshToken: 'new-rt', expiryDate: Date.now() + 3600000 });
-    (encryptInboxTokens as any).mockReturnValue({ encrypted: 'new', iv: 'new', version: 1 });
-
-    await executeInitialSync(input);
-
-    expect(mockRefreshToken).toHaveBeenCalledWith('rt');
-    expect(encryptInboxTokens).toHaveBeenCalled();
-  });
-
-  it('encrypts tokens at rest via encryptInboxTokens after refresh (NFR16c)', async () => {
-    mockSupabase.maybeSingle.mockResolvedValue({ data: connectedInbox, error: null });
     (decryptInboxTokens as any).mockReturnValue({
       accessToken: 'at',
       refreshToken: 'rt',
@@ -167,7 +172,38 @@ describe('executeInitialSync', () => {
       refreshToken: 'new-rt',
       expiryDate: Date.now() + 3600000,
     });
-    (encryptInboxTokens as any).mockReturnValue({ encrypted: 'new-enc', iv: 'new-iv', version: 1 });
+    (encryptInboxTokens as any).mockReturnValue({
+      encrypted: 'new',
+      iv: 'new',
+      version: 1,
+    });
+
+    await executeInitialSync(input);
+
+    expect(mockRefreshToken).toHaveBeenCalledWith('rt');
+    expect(encryptInboxTokens).toHaveBeenCalled();
+  });
+
+  it('encrypts tokens at rest via encryptInboxTokens after refresh (NFR16c)', async () => {
+    mockSupabase.maybeSingle.mockResolvedValue({
+      data: connectedInbox,
+      error: null,
+    });
+    (decryptInboxTokens as any).mockReturnValue({
+      accessToken: 'at',
+      refreshToken: 'rt',
+      expiryDate: Date.now() - 1000,
+    });
+    mockRefreshToken.mockResolvedValue({
+      accessToken: 'new-at',
+      refreshToken: 'new-rt',
+      expiryDate: Date.now() + 3600000,
+    });
+    (encryptInboxTokens as any).mockReturnValue({
+      encrypted: 'new-enc',
+      iv: 'new-iv',
+      version: 1,
+    });
 
     await executeInitialSync(input);
 
@@ -186,7 +222,10 @@ describe('executeInitialSync', () => {
   });
 
   it('never stores raw tokens in database (NFR16c)', async () => {
-    mockSupabase.maybeSingle.mockResolvedValue({ data: connectedInbox, error: null });
+    mockSupabase.maybeSingle.mockResolvedValue({
+      data: connectedInbox,
+      error: null,
+    });
     (decryptInboxTokens as any).mockReturnValue({
       accessToken: 'plaintext-at',
       refreshToken: 'plaintext-rt',
@@ -197,7 +236,11 @@ describe('executeInitialSync', () => {
       refreshToken: 'new-plaintext-rt',
       expiryDate: Date.now() + 3600000,
     });
-    (encryptInboxTokens as any).mockReturnValue({ encrypted: 'encrypted-blob', iv: 'iv-value', version: 1 });
+    (encryptInboxTokens as any).mockReturnValue({
+      encrypted: 'encrypted-blob',
+      iv: 'iv-value',
+      version: 1,
+    });
 
     await executeInitialSync(input);
 
@@ -205,8 +248,14 @@ describe('executeInitialSync', () => {
     for (const call of updateCalls) {
       const updateData = call[0];
       if (updateData.oauth_state) {
-        expect(updateData.oauth_state).toEqual({ encrypted: 'encrypted-blob', iv: 'iv-value', version: 1 });
-        expect(JSON.stringify(updateData.oauth_state)).not.toContain('plaintext');
+        expect(updateData.oauth_state).toEqual({
+          encrypted: 'encrypted-blob',
+          iv: 'iv-value',
+          version: 1,
+        });
+        expect(JSON.stringify(updateData.oauth_state)).not.toContain(
+          'plaintext',
+        );
       }
     }
   });

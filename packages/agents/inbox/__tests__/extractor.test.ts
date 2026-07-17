@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { extractionWorker } from '../extractor';
 import { createServiceClient } from '@flow/db';
-import { createLLMRouter, tokenizePII, ContextBoundary } from '../../shared/index.js';
+import {
+  createLLMRouter,
+  tokenizePII,
+  ContextBoundary,
+} from '../../shared/index.js';
 import { SAMPLE_EMAILS } from './fixtures/sample-emails';
 import { LLM_EXTRACTION_RESPONSES } from './fixtures/llm-extraction-responses';
 
@@ -54,7 +58,10 @@ describe('extractor', () => {
     };
     (createLLMRouter as any).mockReturnValue(mockLlmRouter);
 
-    (tokenizePII as any).mockImplementation((text: string) => ({ text, tokens: [] }));
+    (tokenizePII as any).mockImplementation((text: string) => ({
+      text,
+      tokens: [],
+    }));
     (ContextBoundary as any).mockImplementation(() => ({
       wrapContent: (text: string) => text,
     }));
@@ -65,7 +72,9 @@ describe('extractor', () => {
   it('should extract actions and persist them', async () => {
     const email = SAMPLE_EMAILS.simple;
     mockSupabase.single.mockResolvedValue({ data: email, error: null });
-    mockLlmRouter.complete.mockResolvedValue({ text: JSON.stringify(LLM_EXTRACTION_RESPONSES.simple) });
+    mockLlmRouter.complete.mockResolvedValue({
+      text: JSON.stringify(LLM_EXTRACTION_RESPONSES.simple),
+    });
 
     await extractionWorker(
       {
@@ -75,11 +84,13 @@ describe('extractor', () => {
           clientInboxId: 'i1111111-1111-1111-1111-111111111111',
         },
       } as any,
-      mockBoss
+      mockBoss,
     );
 
     expect(mockSupabase.insert).toHaveBeenCalledWith(
-      expect.arrayContaining([expect.objectContaining({ action_type: 'meeting' })])
+      expect.arrayContaining([
+        expect.objectContaining({ action_type: 'meeting' }),
+      ]),
     );
   });
 
@@ -98,7 +109,7 @@ describe('extractor', () => {
           clientInboxId: 'i1111111-1111-1111-1111-111111111111',
         },
       } as any,
-      mockBoss
+      mockBoss,
     );
 
     expect(mockSupabase.insert).not.toHaveBeenCalled();
@@ -107,7 +118,9 @@ describe('extractor', () => {
   it('should strip quoted text before LLM call', async () => {
     const email = SAMPLE_EMAILS.withQuoted;
     mockSupabase.single.mockResolvedValue({ data: email, error: null });
-    mockLlmRouter.complete.mockResolvedValue({ text: JSON.stringify(LLM_EXTRACTION_RESPONSES.empty) });
+    mockLlmRouter.complete.mockResolvedValue({
+      text: JSON.stringify(LLM_EXTRACTION_RESPONSES.empty),
+    });
 
     await extractionWorker(
       {
@@ -117,7 +130,7 @@ describe('extractor', () => {
           clientInboxId: 'i1111111-1111-1111-1111-111111111111',
         },
       } as any,
-      mockBoss
+      mockBoss,
     );
 
     const call = mockLlmRouter.complete.mock.calls[0];
@@ -129,12 +142,14 @@ describe('extractor', () => {
   it('should cap at 5 actions', async () => {
     const email = SAMPLE_EMAILS.simple;
     mockSupabase.single.mockResolvedValue({ data: email, error: null });
-    
+
     // Create response with 6 actions
     const sixActions = {
-        actions: Array(6).fill(LLM_EXTRACTION_RESPONSES.simple.actions[0])
+      actions: Array(6).fill(LLM_EXTRACTION_RESPONSES.simple.actions[0]),
     };
-    mockLlmRouter.complete.mockResolvedValue({ text: JSON.stringify(sixActions) });
+    mockLlmRouter.complete.mockResolvedValue({
+      text: JSON.stringify(sixActions),
+    });
 
     await extractionWorker(
       {
@@ -144,7 +159,7 @@ describe('extractor', () => {
           clientInboxId: 'i1111111-1111-1111-1111-111111111111',
         },
       } as any,
-      mockBoss
+      mockBoss,
     );
 
     const insertCall = mockSupabase.insert.mock.calls[0][0];

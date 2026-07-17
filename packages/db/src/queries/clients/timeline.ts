@@ -1,5 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { TimelineEvent, EmailTimelineEntry, AgentRunTimelineEntry } from '@flow/types';
+import type {
+  TimelineEvent,
+  EmailTimelineEntry,
+  AgentRunTimelineEntry,
+} from '@flow/types';
 
 interface GetClientEngagementTimelineInput {
   workspaceId: string;
@@ -14,7 +18,11 @@ interface GetClientEngagementTimelineInput {
 export async function getClientEngagementTimeline(
   supabase: SupabaseClient,
   input: GetClientEngagementTimelineInput,
-): Promise<{ events: TimelineEvent[]; nextCursor: string | null; hasMore: boolean }> {
+): Promise<{
+  events: TimelineEvent[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}> {
   const {
     workspaceId,
     clientId,
@@ -31,11 +39,16 @@ export async function getClientEngagementTimeline(
 
   if (cursor) {
     try {
-      const decoded = JSON.parse(Buffer.from(cursor, 'base64').toString('utf8'));
+      const decoded = JSON.parse(
+        Buffer.from(cursor, 'base64').toString('utf8'),
+      );
       if (
-        typeof decoded.timestamp === 'string' && decoded.timestamp.length > 0 &&
-        typeof decoded.id === 'string' && decoded.id.length > 0 &&
-        typeof decoded.kind === 'string' && decoded.kind.length > 0
+        typeof decoded.timestamp === 'string' &&
+        decoded.timestamp.length > 0 &&
+        typeof decoded.id === 'string' &&
+        decoded.id.length > 0 &&
+        typeof decoded.kind === 'string' &&
+        decoded.kind.length > 0
       ) {
         cursorTimestamp = decoded.timestamp;
         cursorId = decoded.id;
@@ -60,16 +73,29 @@ export async function getClientEngagementTimeline(
 
   if (error) throw error;
 
-  type RpcRow = { kind: 'email' | 'agent_run'; id: string; sort_timestamp: string; data: unknown };
+  type RpcRow = {
+    kind: 'email' | 'agent_run';
+    id: string;
+    sort_timestamp: string;
+    data: unknown;
+  };
   const results = (data ?? []) as RpcRow[];
   const hasMore = results.length > limit;
   const items = results.slice(0, limit);
 
   const events: TimelineEvent[] = items.map((row): TimelineEvent => {
     if (row.kind === 'email') {
-      return { kind: 'email', sortKey: row.sort_timestamp, data: row.data as EmailTimelineEntry };
+      return {
+        kind: 'email',
+        sortKey: row.sort_timestamp,
+        data: row.data as EmailTimelineEntry,
+      };
     }
-    return { kind: 'agent_run', sortKey: row.sort_timestamp, data: row.data as AgentRunTimelineEntry };
+    return {
+      kind: 'agent_run',
+      sortKey: row.sort_timestamp,
+      data: row.data as AgentRunTimelineEntry,
+    };
   });
 
   let nextCursor: string | null = null;

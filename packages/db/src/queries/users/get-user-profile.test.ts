@@ -37,7 +37,10 @@ describe('getUserProfile', () => {
       from: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: null, error: { message: 'not found' } }),
+            single: vi.fn().mockResolvedValue({
+              data: null,
+              error: { message: 'not found' },
+            }),
           }),
         }),
       }),
@@ -63,7 +66,10 @@ describe('getUserProfile', () => {
 
   it('[P1] generates signed URL for storage-path avatar', async () => {
     const client = mockClient();
-    const single = client.from('users').select('id, name, email, timezone, avatar_url, updated_at').eq('id', 'user-1').single;
+    const single = client
+      .from('users')
+      .select('id, name, email, timezone, avatar_url, updated_at')
+      .eq('id', 'user-1').single;
     vi.mocked(single).mockResolvedValue({
       data: {
         id: 'user-1',
@@ -77,13 +83,18 @@ describe('getUserProfile', () => {
     } as Awaited<ReturnType<typeof single>>);
 
     const result = await getUserProfile(client, 'user-1');
-    expect(result?.avatarUrl).toBe('https://storage.example.com/signed-avatar.jpg');
+    expect(result?.avatarUrl).toBe(
+      'https://storage.example.com/signed-avatar.jpg',
+    );
     expect(client.storage.from).toHaveBeenCalledWith('avatars');
   });
 
   it('[P1] keeps HTTP avatar URL as-is', async () => {
     const client = mockClient();
-    const single = client.from('users').select('id, name, email, timezone, avatar_url, updated_at').eq('id', 'user-1').single;
+    const single = client
+      .from('users')
+      .select('id, name, email, timezone, avatar_url, updated_at')
+      .eq('id', 'user-1').single;
     vi.mocked(single).mockResolvedValue({
       data: {
         id: 'user-1',

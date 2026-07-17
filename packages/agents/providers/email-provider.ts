@@ -46,18 +46,37 @@ export interface EmailMessage extends EmailMetadata {
 
 export interface EmailProvider {
   getOAuthUrl(params: OAuthUrlParams): string;
-  exchangeCode(code: string, redirectUri: string, codeVerifier: string): Promise<CodeExchangeResult>;
+  exchangeCode(
+    code: string,
+    redirectUri: string,
+    codeVerifier: string,
+  ): Promise<CodeExchangeResult>;
   refreshToken(refreshToken: string): Promise<OAuthTokens>;
   revokeToken(accessToken: string): Promise<void>;
   getUserEmail(accessToken: string): Promise<string>;
-  getHistorySince(accessToken: string, startHistoryId: string): Promise<EmailHistoryItem[]>;
-  listMessages(accessToken: string, query: string, maxResults: number): Promise<EmailHistoryItem[]>;
-  getMessageMetadata(accessToken: string, messageId: string): Promise<EmailMetadata>;
+  getHistorySince(
+    accessToken: string,
+    startHistoryId: string,
+  ): Promise<EmailHistoryItem[]>;
+  listMessages(
+    accessToken: string,
+    query: string,
+    maxResults: number,
+  ): Promise<EmailHistoryItem[]>;
+  getMessageMetadata(
+    accessToken: string,
+    messageId: string,
+  ): Promise<EmailMetadata>;
   getMessage(accessToken: string, messageId: string): Promise<EmailMessage>;
-  getProfile(accessToken: string): Promise<{ emailAddress: string; historyId: string }>;
+  getProfile(
+    accessToken: string,
+  ): Promise<{ emailAddress: string; historyId: string }>;
   watchInbox(accessToken: string, topicName: string): Promise<WatchInboxResult>;
   stopWatch(accessToken: string): Promise<void>;
-  verifyDelegation(delegatedEmail: string, accessToken: string): Promise<boolean>;
+  verifyDelegation(
+    delegatedEmail: string,
+    accessToken: string,
+  ): Promise<boolean>;
 }
 
 export type { OAuthTokens, OAuthStateEncrypted };

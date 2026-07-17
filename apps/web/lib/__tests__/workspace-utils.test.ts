@@ -35,7 +35,9 @@ describe('generateSlug', () => {
   });
 
   it('generates unique slugs on repeated calls', () => {
-    const results = new Set(Array.from({ length: 10 }, () => generateSlug('Test')));
+    const results = new Set(
+      Array.from({ length: 10 }, () => generateSlug('Test')),
+    );
     expect(results.size).toBeGreaterThan(1);
   });
 });

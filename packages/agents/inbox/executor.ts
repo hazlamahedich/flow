@@ -2,7 +2,11 @@ import type { InboxProposal, InboxActionInput } from './schemas';
 import { handleDrainHistory } from './history-worker';
 import { categorizeEmail } from './categorizer';
 import { generateMorningBrief } from './index';
-import { insertSignal, updateEmailCategorization, createServiceClient } from '@flow/db';
+import {
+  insertSignal,
+  updateEmailCategorization,
+  createServiceClient,
+} from '@flow/db';
 import { transitionState } from './state-machine';
 import { PgBossProducer } from '../orchestrator/pg-boss-producer.js';
 import { getBossInstance } from '../orchestrator/boss-di.js';
@@ -14,11 +18,15 @@ import { scanSignalForPII } from './pii-scanner';
 export async function registerInboxPipelineWorkers(boss: PgBoss) {
   const { setBossInstance } = await import('../orchestrator/boss-di.js');
   setBossInstance(boss);
-  await boss.work('extract_actions', (job) => extractionWorker(job as any, boss));
+  await boss.work('extract_actions', (job) =>
+    extractionWorker(job as any, boss),
+  );
   await boss.work('generate_draft', (job) => draftWorker(job as any, boss));
 }
 
-export async function execute(input: InboxActionInput): Promise<InboxProposal | void> {
+export async function execute(
+  input: InboxActionInput,
+): Promise<InboxProposal | void> {
   if (input.actionType === 'email_processing') {
     await handleDrainHistory({
       workspace_id: input.workspaceId,
@@ -71,7 +79,11 @@ export async function execute(input: InboxActionInput): Promise<InboxProposal | 
 
       if (inbox) {
         await transitionState(email.id, email.workspace_id, 'categorized');
-        await transitionState(email.id, email.workspace_id, 'extraction_pending');
+        await transitionState(
+          email.id,
+          email.workspace_id,
+          'extraction_pending',
+        );
 
         const boss = getBossInstance();
         const producer = new PgBossProducer(boss);
@@ -93,9 +105,13 @@ export async function execute(input: InboxActionInput): Promise<InboxProposal | 
     const totalLatencyMs = email.created_at
       ? Date.now() - new Date(email.created_at).getTime()
       : -1;
-    console.log(`[inbox] Categorization completed in ${durationMs}ms (P95 target: 5000ms)`);
+    console.log(
+      `[inbox] Categorization completed in ${durationMs}ms (P95 target: 5000ms)`,
+    );
     if (totalLatencyMs >= 0) {
-      console.log(`[inbox] Total pipeline latency: ${totalLatencyMs}ms (P95 target: 8000ms)`);
+      console.log(
+        `[inbox] Total pipeline latency: ${totalLatencyMs}ms (P95 target: 8000ms)`,
+      );
     }
 
     const receivedPayload = {
@@ -108,7 +124,10 @@ export async function execute(input: InboxActionInput): Promise<InboxProposal | 
     };
     const receivedScan = scanSignalForPII(receivedPayload, email.workspace_id);
     if (receivedScan.hasPII) {
-      console.warn(`[inbox] PII detected in email.received signal for email ${email.id}:`, receivedScan.findings);
+      console.warn(
+        `[inbox] PII detected in email.received signal for email ${email.id}:`,
+        receivedScan.findings,
+      );
     }
     await insertSignal({
       workspaceId: email.workspace_id,
@@ -120,7 +139,10 @@ export async function execute(input: InboxActionInput): Promise<InboxProposal | 
     });
 
     if (proposal.category === 'urgent' || proposal.requires_confirmation) {
-      const signalType = proposal.category === 'urgent' ? 'email.client_urgent' : 'email.low_trust';
+      const signalType =
+        proposal.category === 'urgent'
+          ? 'email.client_urgent'
+          : 'email.low_trust';
       const alertPayload = {
         email_id: email.id,
         reasoning: proposal.reasoning,
@@ -128,7 +150,10 @@ export async function execute(input: InboxActionInput): Promise<InboxProposal | 
       };
       const alertScan = scanSignalForPII(alertPayload, email.workspace_id);
       if (alertScan.hasPII) {
-        console.warn(`[inbox] PII detected in ${signalType} signal for email ${email.id}:`, alertScan.findings);
+        console.warn(
+          `[inbox] PII detected in ${signalType} signal for email ${email.id}:`,
+          alertScan.findings,
+        );
       }
       await insertSignal({
         workspaceId: email.workspace_id,

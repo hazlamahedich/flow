@@ -44,10 +44,14 @@ function buildInvitation(overrides: Record<string, unknown> = {}) {
   return {
     id: (overrides.id as string) ?? crypto.randomUUID(),
     workspaceId: (overrides.workspaceId as string) ?? crypto.randomUUID(),
-    email: (overrides.email as string) ?? `invite-${token.slice(0, 8)}@test.flow.local`,
+    email:
+      (overrides.email as string) ??
+      `invite-${token.slice(0, 8)}@test.flow.local`,
     role: (overrides.role as string) ?? 'member',
     tokenHash: (overrides.tokenHash as string) ?? token,
-    expiresAt: (overrides.expiresAt as string) ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    expiresAt:
+      (overrides.expiresAt as string) ??
+      new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     acceptedAt: (overrides.acceptedAt as string | null) ?? null,
     invitedBy: (overrides.invitedBy as string) ?? crypto.randomUUID(),
     createdAt: (overrides.createdAt as string) ?? new Date().toISOString(),
@@ -62,7 +66,9 @@ function buildTransferRequest(overrides: Record<string, unknown> = {}) {
     toUserId: (overrides.toUserId as string) ?? crypto.randomUUID(),
     status: (overrides.status as string) ?? 'pending',
     createdAt: (overrides.createdAt as string) ?? new Date().toISOString(),
-    expiresAt: (overrides.expiresAt as string) ?? new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+    expiresAt:
+      (overrides.expiresAt as string) ??
+      new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
     acceptedAt: (overrides.acceptedAt as string | null) ?? null,
   };
 }
@@ -213,7 +219,11 @@ describe('workspace-schema', () => {
 
     it('buildMember applies overrides', () => {
       const wsId = crypto.randomUUID();
-      const member = buildMember({ workspaceId: wsId, role: 'owner', status: 'revoked' });
+      const member = buildMember({
+        workspaceId: wsId,
+        role: 'owner',
+        status: 'revoked',
+      });
       expect(member.workspaceId).toBe(wsId);
       expect(member.role).toBe('owner');
       expect(member.status).toBe('revoked');

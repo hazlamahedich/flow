@@ -81,7 +81,10 @@ export async function listTimeEntries(
     .order('date', { ascending: false })
     .order('created_at', { ascending: false });
 
-  const { data, error, count } = await query.range(offset, offset + pageSize - 1);
+  const { data, error, count } = await query.range(
+    offset,
+    offset + pageSize - 1,
+  );
   if (error) throw error;
 
   const items = (data ?? []).map((row) => {
@@ -89,5 +92,11 @@ export async function listTimeEntries(
     return mapTimeEntryRow(parsed, parsed.projects?.name ?? null);
   });
   const total = count ?? 0;
-  return { items, total, page, pageSize, hasNextPage: offset + pageSize < total };
+  return {
+    items,
+    total,
+    page,
+    pageSize,
+    hasNextPage: offset + pageSize < total,
+  };
 }

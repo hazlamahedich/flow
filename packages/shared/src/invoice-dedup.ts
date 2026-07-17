@@ -16,7 +16,9 @@ export interface ComputeInvoiceDedupHashInput {
   issueDate: string;
 }
 
-export function computeInvoiceDedupHash(input: ComputeInvoiceDedupHashInput): string {
+export function computeInvoiceDedupHash(
+  input: ComputeInvoiceDedupHashInput,
+): string {
   const signatures = input.lineItems.map((item) => {
     const sourceId = item.timeEntryId ?? item.retainerId ?? '';
     return [

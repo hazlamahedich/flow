@@ -1,6 +1,12 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  cleanup,
+} from '@testing-library/react';
 import { mockMatchMedia } from './helpers/match-media-mock';
 
 mockMatchMedia();
@@ -47,7 +53,13 @@ describe('TrustCheckInPrompt', () => {
   });
 
   it('hides Remind me later when pinned (max deferrals)', () => {
-    render(<TrustCheckInPrompt {...defaultProps} isPinned={true} deferredCount={3} />);
+    render(
+      <TrustCheckInPrompt
+        {...defaultProps}
+        isPinned={true}
+        deferredCount={3}
+      />,
+    );
     expect(screen.getByText('Take a look')).toBeInTheDocument();
     expect(screen.queryByText('Remind me later')).not.toBeInTheDocument();
   });
@@ -66,16 +78,29 @@ describe('TrustCheckInPrompt', () => {
 
   it('auto-dismisses after 20 seconds', () => {
     const { container } = render(<TrustCheckInPrompt {...defaultProps} />);
-    expect(container.querySelector('[data-testid="checkin-prompt-inbox"]')).toBeInTheDocument();
-    act(() => { vi.advanceTimersByTime(20_000); });
-    expect(container.querySelector('[data-testid="checkin-prompt-inbox"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="checkin-prompt-inbox"]'),
+    ).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(20_000);
+    });
+    expect(
+      container.querySelector('[data-testid="checkin-prompt-inbox"]'),
+    ).toBeNull();
   });
 
   it('shows error state when defer fails', async () => {
-    mockDefer.mockResolvedValueOnce({ success: false, error: { message: 'fail' } });
+    mockDefer.mockResolvedValueOnce({
+      success: false,
+      error: { message: 'fail' },
+    });
     render(<TrustCheckInPrompt {...defaultProps} />);
-    await act(async () => { fireEvent.click(screen.getByText('Remind me later')); });
-    expect(screen.getByText('Could not snooze. Please try again.')).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Remind me later'));
+    });
+    expect(
+      screen.getByText('Could not snooze. Please try again.'),
+    ).toBeInTheDocument();
   });
 
   it('keyboard tab between buttons', () => {

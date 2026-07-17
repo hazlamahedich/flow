@@ -15,7 +15,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT plan(10);
+SELECT plan(17);
 
 -- ── Test data: two workspaces in known lifecycle states ──
 INSERT INTO workspaces (id, name, slug, subscription_status, subscription_tier) VALUES
@@ -37,6 +37,7 @@ SELECT throws_ok(
     'past_due', 'suspended', false
   )$$,
   42501,
+  NULL,
   'anon cannot call transition_workspace_subscription_status (no EXECUTE grant)'
 );
 SELECT reset_role();
@@ -58,10 +59,10 @@ SELECT lives_ok(
   )$$,
   'authenticated can call transition_workspace_subscription_status (EXECUTE granted)'
 );
--- Reset the row for subsequent tests
+-- Reset the row for subsequent tests (must bypass RLS)
+SELECT reset_role();
 UPDATE workspaces SET subscription_status = 'past_due'
   WHERE id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
-SELECT reset_role();
 
 -- ════════════════════════════════════════════════════════════════
 -- 3. service_role CAN call transition_workspace_subscription_status
@@ -153,6 +154,7 @@ SELECT throws_ok(
   $$UPDATE workspaces SET subscription_status = 'expired'
     WHERE id = '11111111-0000-0000-0000-000000000001'$$,
   23514,
+  NULL,
   'CHECK rejects invalid status (expired)'
 );
 
@@ -192,6 +194,7 @@ SELECT set_config(
 SELECT throws_ok(
   $$SELECT transition_to_suspended_any('dddddddd-dddd-dddd-dddd-dddddddddddd'::uuid)$$,
   42501,
+  NULL,
   'authenticated cannot call transition_to_suspended_any (service_role only)'
 );
 SELECT reset_role();

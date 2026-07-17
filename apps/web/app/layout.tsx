@@ -35,9 +35,7 @@ export default function RootLayout({
     >
       <body>
         <NuqsAdapter>
-          <ThemeProvider defaultTheme="dark">
-            {children}
-          </ThemeProvider>
+          <ThemeProvider defaultTheme="dark">{children}</ThemeProvider>
         </NuqsAdapter>
       </body>
     </html>

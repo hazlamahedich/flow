@@ -16,12 +16,24 @@ describe('ErrorDisplay', () => {
   });
 
   it('renders entity when present', () => {
-    render(<ErrorDisplay error={{ code: 'NOT_FOUND', entity: 'workspace', retryable: false }} />);
+    render(
+      <ErrorDisplay
+        error={{ code: 'NOT_FOUND', entity: 'workspace', retryable: false }}
+      />,
+    );
     expect(screen.getByText(/Affected: workspace/)).toBeDefined();
   });
 
   it('renders resolution when present', () => {
-    render(<ErrorDisplay error={{ code: 'TIMEOUT', resolution: 'Retry in 30s', retryable: false }} />);
+    render(
+      <ErrorDisplay
+        error={{
+          code: 'TIMEOUT',
+          resolution: 'Retry in 30s',
+          retryable: false,
+        }}
+      />,
+    );
     expect(screen.getByText('Retry in 30s')).toBeDefined();
   });
 

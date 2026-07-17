@@ -6,7 +6,12 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({ status, code, message, category }),
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({ status, code, message, category }),
   cacheTag: vi.fn((entity: string, id: string) => `${entity}:${id}`),
   getClientById: vi.fn(),
   updateClient: vi.fn(),
@@ -30,14 +35,25 @@ const UUID = '550e8400-e29b-41d4-a716-446655440000';
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetServerSupabase.mockResolvedValue({} as never);
-  mockRequireTenantContext.mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'owner' });
-  mockGetClientById.mockResolvedValue({ id: UUID, name: 'Test', status: 'active' } as never);
+  mockRequireTenantContext.mockResolvedValue({
+    workspaceId: 'ws1',
+    userId: 'u1',
+    role: 'owner',
+  });
+  mockGetClientById.mockResolvedValue({
+    id: UUID,
+    name: 'Test',
+    status: 'active',
+  } as never);
   mockUpdateClient.mockResolvedValue({ id: UUID, name: 'Updated' } as never);
 });
 
 describe('updateWorkspaceClient', () => {
   it('updates client with valid input', async () => {
-    const result = await updateWorkspaceClient({ clientId: UUID, name: 'Updated Name' });
+    const result = await updateWorkspaceClient({
+      clientId: UUID,
+      name: 'Updated Name',
+    });
     expect(result.success).toBe(true);
     expect(mockUpdateClient).toHaveBeenCalled();
   });
@@ -49,7 +65,11 @@ describe('updateWorkspaceClient', () => {
   });
 
   it('rejects members from updating clients', async () => {
-    mockRequireTenantContext.mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'member' });
+    mockRequireTenantContext.mockResolvedValue({
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'member',
+    });
     const result = await updateWorkspaceClient({ clientId: UUID, name: 'X' });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('INSUFFICIENT_ROLE');
@@ -63,7 +83,11 @@ describe('updateWorkspaceClient', () => {
   });
 
   it('blocks editing archived client', async () => {
-    mockGetClientById.mockResolvedValue({ id: UUID, name: 'Archived', status: 'archived' } as never);
+    mockGetClientById.mockResolvedValue({
+      id: UUID,
+      name: 'Archived',
+      status: 'archived',
+    } as never);
     const result = await updateWorkspaceClient({ clientId: UUID, name: 'X' });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('RESOURCE_ARCHIVED');
@@ -75,7 +99,10 @@ describe('updateWorkspaceClient', () => {
   });
 
   it('allows updating hourlyRateCents', async () => {
-    const result = await updateWorkspaceClient({ clientId: UUID, hourlyRateCents: 10000 });
+    const result = await updateWorkspaceClient({
+      clientId: UUID,
+      hourlyRateCents: 10000,
+    });
     expect(result.success).toBe(true);
   });
 

@@ -41,7 +41,9 @@ export const subscriptionLifecycleStatusSchema = z.enum([
   'suspended',
   'deleted',
 ]);
-export type SubscriptionLifecycleStatus = z.infer<typeof subscriptionLifecycleStatusSchema>;
+export type SubscriptionLifecycleStatus = z.infer<
+  typeof subscriptionLifecycleStatusSchema
+>;
 
 export const ReconciliationReportSchema = z.object({
   checked: z.number().int().nonnegative(),
@@ -51,13 +53,13 @@ export const ReconciliationReportSchema = z.object({
       fromStatus: subscriptionStatusSchema,
       toStatus: subscriptionStatusSchema,
       corrected: z.boolean(),
-    })
+    }),
   ),
   uncorrectable: z.array(
     z.object({
       workspaceId: z.string(),
       reason: z.string(),
-    })
+    }),
   ),
 });
 export type ReconciliationReport = z.infer<typeof ReconciliationReportSchema>;
@@ -72,7 +74,9 @@ export const createCheckoutSessionSchema = z.object({
   tier: upgradableTierSchema,
   interval: checkoutIntervalSchema,
 });
-export type CreateCheckoutSessionInput = z.infer<typeof createCheckoutSessionSchema>;
+export type CreateCheckoutSessionInput = z.infer<
+  typeof createCheckoutSessionSchema
+>;
 
 /**
  * changeTierSchema — write model for `changeTierAction` (Story 9.4 AC4, FR62).
@@ -104,7 +108,9 @@ export const downgradeSchema = z.object({
 export type DowngradeInput = z.infer<typeof downgradeSchema>;
 
 export const createPortalSessionSchema = z.object({}).optional();
-export type CreatePortalSessionInput = z.infer<typeof createPortalSessionSchema>;
+export type CreatePortalSessionInput = z.infer<
+  typeof createPortalSessionSchema
+>;
 
 /**
  * Empty input schema for billing management actions that accept no meaningful

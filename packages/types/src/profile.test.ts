@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { updateProfileSchema, uploadAvatarSchema, requestEmailChangeSchema } from '@flow/types';
+import {
+  updateProfileSchema,
+  uploadAvatarSchema,
+  requestEmailChangeSchema,
+} from '@flow/types';
 
 describe('updateProfileSchema', () => {
   it('accepts valid name and timezone', () => {
@@ -32,7 +36,9 @@ describe('updateProfileSchema', () => {
       timezone: 'UTC',
     });
     expect(result.success).toBe(false);
-    expect(result.success === false && result.error.issues[0]?.message).toContain('1 and 100');
+    expect(
+      result.success === false && result.error.issues[0]?.message,
+    ).toContain('1 and 100');
   });
 
   it('rejects 101-character name', () => {
@@ -41,7 +47,9 @@ describe('updateProfileSchema', () => {
       timezone: 'UTC',
     });
     expect(result.success).toBe(false);
-    expect(result.success === false && result.error.issues[0]?.message).toContain('1 and 100');
+    expect(
+      result.success === false && result.error.issues[0]?.message,
+    ).toContain('1 and 100');
   });
 
   it('rejects invalid timezone', () => {
@@ -50,7 +58,9 @@ describe('updateProfileSchema', () => {
       timezone: 'Invalid/Timezone',
     });
     expect(result.success).toBe(false);
-    expect(result.success === false && result.error.issues[0]?.message).toContain('timezone');
+    expect(
+      result.success === false && result.error.issues[0]?.message,
+    ).toContain('timezone');
   });
 });
 
@@ -85,7 +95,9 @@ describe('uploadAvatarSchema', () => {
       fileSize: 2 * 1024 * 1024 + 1,
     });
     expect(result.success).toBe(false);
-    expect(result.success === false && result.error.issues[0]?.message).toContain('2MB');
+    expect(
+      result.success === false && result.error.issues[0]?.message,
+    ).toContain('2MB');
   });
 
   it('rejects wrong MIME type', () => {
@@ -110,7 +122,9 @@ describe('requestEmailChangeSchema', () => {
       newEmail: 'not-an-email',
     });
     expect(result.success).toBe(false);
-    expect(result.success === false && result.error.issues[0]?.message).toContain('valid email');
+    expect(
+      result.success === false && result.error.issues[0]?.message,
+    ).toContain('valid email');
   });
 
   it('rejects empty email', () => {

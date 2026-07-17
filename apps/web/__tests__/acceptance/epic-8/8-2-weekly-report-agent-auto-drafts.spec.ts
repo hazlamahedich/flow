@@ -19,7 +19,11 @@ vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
   return {
     ...actual,
-    requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' }),
+    requireTenantContext: vi.fn().mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    }),
     createFlowError: actual.createFlowError,
     cacheTag: vi.fn((entity: string, ws: string) => `${entity}:${ws}`),
     invalidateAfterMutation: vi.fn(),
@@ -56,7 +60,10 @@ vi.mock('@flow/agents/orchestrator/pg-boss-producer', () => {
 
 process.env.DATABASE_URL = 'postgres://dummy';
 
-import { execute, preCheck } from '../../../../../packages/agents/weekly-report';
+import {
+  execute,
+  preCheck,
+} from '../../../../../packages/agents/weekly-report';
 import { submitWeeklyReportRunAction } from '../../../lib/actions/reports/submit-weekly-report-run';
 import { getAgentActionLogAction } from '../../../lib/actions/reports/get-agent-action-log';
 
@@ -73,7 +80,7 @@ describe('[P0] [8.2-ATDD-001] weekly report agent auto-drafts report based on pe
 
   test('auto-draft submit action is defined and registers runs', async () => {
     expect(submitWeeklyReportRunAction).toBeDefined();
-    
+
     mockGetServerSupabase.mockReturnValue({
       from: mockFrom,
     });
@@ -82,7 +89,9 @@ describe('[P0] [8.2-ATDD-001] weekly report agent auto-drafts report based on pe
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: { id: 'usr-1' }, error: null }),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'cli-1' }, error: null }),
+      maybeSingle: vi
+        .fn()
+        .mockResolvedValue({ data: { id: 'cli-1' }, error: null }),
     });
 
     const result = await submitWeeklyReportRunAction({
@@ -104,7 +113,14 @@ describe('[P0] [8.2-ATDD-001] weekly report agent auto-drafts report based on pe
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [8.2-ATDD-002] draft follows client customized template if one exists', () => {
   test('agent exports function properly and checks active enums', () => {
-    const keys = ['time_summary', 'task_log', 'agent_activity', 'invoice_summary', 'stalled_items', 'highlights'];
+    const keys = [
+      'time_summary',
+      'task_log',
+      'agent_activity',
+      'invoice_summary',
+      'stalled_items',
+      'highlights',
+    ];
     expect(keys).toContain('stalled_items');
     expect(keys).toContain('highlights');
   });
@@ -144,8 +160,22 @@ describe('[P0] [8.2-ATDD-004] users can review chronological log of all agent ac
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({
         data: [
-          { id: 'run-2', agent_id: 'weekly-report', action_type: 'weekly_report_draft', status: 'completed', created_at: '2026-05-20T10:05:00Z', workspace_id: 'ws-1' },
-          { id: 'run-1', agent_id: 'weekly-report', action_type: 'weekly_report_draft', status: 'completed', created_at: '2026-05-20T10:00:00Z', workspace_id: 'ws-1' },
+          {
+            id: 'run-2',
+            agent_id: 'weekly-report',
+            action_type: 'weekly_report_draft',
+            status: 'completed',
+            created_at: '2026-05-20T10:05:00Z',
+            workspace_id: 'ws-1',
+          },
+          {
+            id: 'run-1',
+            agent_id: 'weekly-report',
+            action_type: 'weekly_report_draft',
+            status: 'completed',
+            created_at: '2026-05-20T10:00:00Z',
+            workspace_id: 'ws-1',
+          },
         ],
         error: null,
       }),
@@ -156,7 +186,9 @@ describe('[P0] [8.2-ATDD-004] users can review chronological log of all agent ac
     if (logResult.success) {
       expect(logResult.data).toHaveLength(2);
       expect(logResult.data[0].id).toBe('run-2');
-      expect(new Date(logResult.data[0].createdAt).getTime()).toBeGreaterThanOrEqual(new Date(logResult.data[1].createdAt).getTime());
+      expect(
+        new Date(logResult.data[0].createdAt).getTime(),
+      ).toBeGreaterThanOrEqual(new Date(logResult.data[1].createdAt).getTime());
     }
   });
 });

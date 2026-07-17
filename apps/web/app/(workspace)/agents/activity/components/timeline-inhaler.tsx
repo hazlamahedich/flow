@@ -9,14 +9,26 @@ interface TimelineInhalerProps {
   filters: ActionHistoryFilters;
 }
 
-export function TimelineInhaler({ totalCount, filteredCount, filters }: TimelineInhalerProps) {
-  const hasFilters = filters.agentId || filters.status || filters.dateFrom || filters.dateTo || filters.clientId;
+export function TimelineInhaler({
+  totalCount,
+  filteredCount,
+  filters,
+}: TimelineInhalerProps) {
+  const hasFilters =
+    filters.agentId ||
+    filters.status ||
+    filters.dateFrom ||
+    filters.dateTo ||
+    filters.clientId;
   const text = hasFilters
     ? INHALER_TEMPLATES.filtered(filteredCount, totalCount)
     : INHALER_TEMPLATES.summary(filteredCount, 0, 0);
 
   return (
-    <p className="text-sm text-[var(--flow-color-text-secondary)]" aria-live="polite">
+    <p
+      className="text-sm text-[var(--flow-color-text-secondary)]"
+      aria-live="polite"
+    >
       {text}
     </p>
   );

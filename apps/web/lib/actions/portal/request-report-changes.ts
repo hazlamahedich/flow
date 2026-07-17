@@ -19,7 +19,11 @@ import type { PortalContext } from './helpers';
 
 const requestReportChangesInputSchema = z.object({
   reportId: z.string().uuid(),
-  message: z.string().trim().min(1, 'Feedback message is required').max(2000, 'Feedback too long (max 2000 characters)'),
+  message: z
+    .string()
+    .trim()
+    .min(1, 'Feedback message is required')
+    .max(2000, 'Feedback too long (max 2000 characters)'),
 });
 
 export async function requestReportChangesAction(
@@ -30,28 +34,50 @@ export async function requestReportChangesAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
   const supabase = await getServerSupabase();
 
-  const rlResult = await checkRequestChangesRateLimit(supabase, portalCtx.portalTokenId);
+  const rlResult = await checkRequestChangesRateLimit(
+    supabase,
+    portalCtx.portalTokenId,
+  );
   if (rlResult.limited) {
-    return { success: false, error: createRateLimitError(rlResult.retryAfterMs) };
+    return {
+      success: false,
+      error: createRateLimitError(rlResult.retryAfterMs),
+    };
   }
 
-  const portalClient = await createPortalClient(portalCtx, PORTAL_SESSION_MAX_AGE_SECONDS);
-  const { data: rpcResult, error } = await portalClient.rpc('request_report_changes_via_portal', {
-    p_report_id: parsed.data.reportId,
-    p_client_id: portalCtx.clientId,
-    p_message: parsed.data.message,
-  });
+  const portalClient = await createPortalClient(
+    portalCtx,
+    PORTAL_SESSION_MAX_AGE_SECONDS,
+  );
+  const { data: rpcResult, error } = await portalClient.rpc(
+    'request_report_changes_via_portal',
+    {
+      p_report_id: parsed.data.reportId,
+      p_client_id: portalCtx.clientId,
+      p_message: parsed.data.message,
+    },
+  );
 
   if (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to submit change request.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to submit change request.',
+        'system',
+      ),
     };
   }
 
@@ -63,25 +89,45 @@ export async function requestReportChangesAction(
   if (status === 'INVALID_STATE') {
     return {
       success: false,
-      error: createFlowError(409, 'INVALID_STATE', 'Report cannot be modified in its current state.', 'validation'),
+      error: createFlowError(
+        409,
+        'INVALID_STATE',
+        'Report cannot be modified in its current state.',
+        'validation',
+      ),
     };
   }
   if (status === 'INVALID_MESSAGE') {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Feedback must be 1–2000 characters.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Feedback must be 1–2000 characters.',
+        'validation',
+      ),
     };
   }
   if (status === 'FORBIDDEN') {
     return {
       success: false,
-      error: createFlowError(403, 'FORBIDDEN', 'You do not have access to this report.', 'auth'),
+      error: createFlowError(
+        403,
+        'FORBIDDEN',
+        'You do not have access to this report.',
+        'auth',
+      ),
     };
   }
 
   return {
     success: false,
-    error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to submit change request.', 'system'),
+    error: createFlowError(
+      500,
+      'INTERNAL_ERROR',
+      'Failed to submit change request.',
+      'system',
+    ),
   };
 }
 

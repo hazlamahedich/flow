@@ -16,7 +16,9 @@ export function TimeSummarySection({ content }: { content: any }) {
         </p>
       )}
       {total === 0 ? (
-        <p className="text-sm text-muted-foreground">No time logged this period</p>
+        <p className="text-sm text-muted-foreground">
+          No time logged this period
+        </p>
       ) : (
         <div className="rounded-md border p-4">
           <p className="text-2xl font-bold">{formatDuration(total)}</p>

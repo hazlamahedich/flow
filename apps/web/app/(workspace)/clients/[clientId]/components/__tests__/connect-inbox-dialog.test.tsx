@@ -6,7 +6,12 @@ import { ConnectInboxDialog } from '../connect-inbox-dialog';
 vi.mock('../../actions/inbox/initiate-oauth', () => ({
   initiateOAuth: vi.fn().mockResolvedValue({
     success: false,
-    error: { status: 500, code: 'INTERNAL_ERROR', message: 'Test error', category: 'system' },
+    error: {
+      status: 500,
+      code: 'INTERNAL_ERROR',
+      message: 'Test error',
+      category: 'system',
+    },
   }),
 }));
 

@@ -1,4 +1,10 @@
-import { pgTable, uuid, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { workspaces } from './workspaces';
 
@@ -13,7 +19,9 @@ export const transferRequests = pgTable(
     toUserId: uuid('to_user_id').notNull(),
     status: text('status').notNull().default('pending'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull().default(sql`now() + interval '48 hours'`),
+    expiresAt: timestamp('expires_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now() + interval '48 hours'`),
     acceptedAt: timestamp('accepted_at', { withTimezone: true }),
   },
   (table) => [

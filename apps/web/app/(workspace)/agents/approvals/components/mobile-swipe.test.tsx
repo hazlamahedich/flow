@@ -7,7 +7,7 @@ describe('SwipeableCard', () => {
     render(
       <SwipeableCard onApprove={vi.fn()} onReject={vi.fn()}>
         <div>Card Content</div>
-      </SwipeableCard>
+      </SwipeableCard>,
     );
     expect(screen.getByText('Card Content')).toBeDefined();
   });
@@ -16,11 +16,12 @@ describe('SwipeableCard', () => {
     render(
       <SwipeableCard onApprove={vi.fn()} onReject={vi.fn()}>
         <div>Card Content</div>
-      </SwipeableCard>
+      </SwipeableCard>,
     );
     const cards = screen.getAllByText('Card Content');
-    fireEvent.mouseDown(cards[0]);
-    fireEvent.mouseMove(cards[0], { clientX: 100 });
+    const card = cards[0]!;
+    fireEvent.mouseDown(card);
+    fireEvent.mouseMove(card, { clientX: 100 });
   });
 
   it('should respect disabled state', () => {
@@ -28,7 +29,7 @@ describe('SwipeableCard', () => {
     render(
       <SwipeableCard onApprove={onApprove} onReject={vi.fn()} disabled>
         <div>Disabled Card</div>
-      </SwipeableCard>
+      </SwipeableCard>,
     );
     const card = screen.getByText('Disabled Card');
     fireEvent.mouseDown(card);

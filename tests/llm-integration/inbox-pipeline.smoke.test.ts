@@ -14,7 +14,9 @@ describe('inbox-pipeline LLM smoke tests', () => {
   it('should perform real extraction from sample email', async () => {
     // This is a placeholder for a manual smoke test
     // To run: pnpm vitest run tests/llm-integration/
-    console.log('Smoke test: extractionWorker needs to be called with a real job');
+    console.log(
+      'Smoke test: extractionWorker needs to be called with a real job',
+    );
   });
 
   it('should perform real draft generation with voice profile', async () => {

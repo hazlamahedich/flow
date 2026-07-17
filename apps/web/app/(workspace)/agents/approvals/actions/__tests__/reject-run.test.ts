@@ -6,8 +6,16 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({
-    status, code, message, category,
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({
+    status,
+    code,
+    message,
+    category,
   }),
 }));
 
@@ -17,13 +25,18 @@ import { requireTenantContext } from '@flow/db';
 
 const VALID_UUID = '00000000-0000-0000-0000-000000000001';
 
-function setupSupabaseMock(selectResult: { data: Record<string, unknown> | null; error: null | { message: string } }) {
+function setupSupabaseMock(selectResult: {
+  data: Record<string, unknown> | null;
+  error: null | { message: string };
+}) {
   const chain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue(selectResult),
     maybeSingle: vi.fn().mockResolvedValue({
-      data: selectResult.data ? { id: selectResult.data.id, status: 'cancelled' } : null,
+      data: selectResult.data
+        ? { id: selectResult.data.id, status: 'cancelled' }
+        : null,
       error: null,
     }),
     update: vi.fn().mockReturnValue({
@@ -31,7 +44,9 @@ function setupSupabaseMock(selectResult: { data: Record<string, unknown> | null;
         eq: vi.fn().mockReturnValue({
           select: vi.fn().mockReturnValue({
             maybeSingle: vi.fn().mockResolvedValue({
-              data: selectResult.data ? { id: selectResult.data.id, status: 'cancelled' } : null,
+              data: selectResult.data
+                ? { id: selectResult.data.id, status: 'cancelled' }
+                : null,
               error: null,
             }),
           }),
@@ -46,16 +61,25 @@ function setupSupabaseMock(selectResult: { data: Record<string, unknown> | null;
   } as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
 
   vi.mocked(requireTenantContext).mockResolvedValue({
-    workspaceId: 'ws-1', userId: 'user-1', role: 'owner',
+    workspaceId: 'ws-1',
+    userId: 'user-1',
+    role: 'owner',
   });
 }
 
 describe('rejectRun', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('rejects a waiting_approval run → cancelled', async () => {
     setupSupabaseMock({
-      data: { id: VALID_UUID, status: 'waiting_approval', output: {}, workspace_id: 'ws-1' },
+      data: {
+        id: VALID_UUID,
+        status: 'waiting_approval',
+        output: {},
+        workspace_id: 'ws-1',
+      },
       error: null,
     });
 
@@ -68,7 +92,12 @@ describe('rejectRun', () => {
 
   it('rejects with optional reason omitted', async () => {
     setupSupabaseMock({
-      data: { id: VALID_UUID, status: 'waiting_approval', output: {}, workspace_id: 'ws-1' },
+      data: {
+        id: VALID_UUID,
+        status: 'waiting_approval',
+        output: {},
+        workspace_id: 'ws-1',
+      },
       error: null,
     });
 
@@ -78,7 +107,12 @@ describe('rejectRun', () => {
 
   it('returns idempotent success for already cancelled', async () => {
     setupSupabaseMock({
-      data: { id: VALID_UUID, status: 'cancelled', output: null, workspace_id: 'ws-1' },
+      data: {
+        id: VALID_UUID,
+        status: 'cancelled',
+        output: null,
+        workspace_id: 'ws-1',
+      },
       error: null,
     });
 
@@ -91,7 +125,12 @@ describe('rejectRun', () => {
 
   it('returns error for wrong status', async () => {
     setupSupabaseMock({
-      data: { id: VALID_UUID, status: 'running', output: null, workspace_id: 'ws-1' },
+      data: {
+        id: VALID_UUID,
+        status: 'running',
+        output: null,
+        workspace_id: 'ws-1',
+      },
       error: null,
     });
 

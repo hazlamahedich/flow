@@ -1,5 +1,8 @@
 import { createFlowError } from '@flow/db';
-import { computeTimeEntryAmount, formatTimeEntryDescription } from '@flow/shared';
+import {
+  computeTimeEntryAmount,
+  formatTimeEntryDescription,
+} from '@flow/shared';
 import type { CreateInvoiceInput } from '@flow/types';
 
 export interface DbLineItem {
@@ -22,7 +25,9 @@ export function buildLineItemsAndTotal(
   lineItems: CreateInvoiceInput['lineItems'],
   timeEntriesMap: Map<string, { durationMinutes: number }>,
   hourlyRateCents: number | null,
-): { success: true; data: LineItemsResult } | { success: false; error: ReturnType<typeof createFlowError> } {
+):
+  | { success: true; data: LineItemsResult }
+  | { success: false; error: ReturnType<typeof createFlowError> } {
   const dbLineItems: DbLineItem[] = [];
   let totalCents = 0;
 
@@ -32,24 +37,40 @@ export function buildLineItemsAndTotal(
       if (!te) {
         return {
           success: false,
-          error: createFlowError(400, 'VALIDATION_ERROR', `Time entry ${item.timeEntryId} not found.`, 'validation'),
+          error: createFlowError(
+            400,
+            'VALIDATION_ERROR',
+            `Time entry ${item.timeEntryId} not found.`,
+            'validation',
+          ),
         };
       }
 
       if (hourlyRateCents == null || hourlyRateCents <= 0) {
         return {
           success: false,
-          error: createFlowError(400, 'NO_HOURLY_RATE', 'No hourly rate configured for this client. Set a retainer or client rate first.', 'validation'),
+          error: createFlowError(
+            400,
+            'NO_HOURLY_RATE',
+            'No hourly rate configured for this client. Set a retainer or client rate first.',
+            'validation',
+          ),
         };
       }
 
-      const amountCents = computeTimeEntryAmount(te.durationMinutes, hourlyRateCents);
+      const amountCents = computeTimeEntryAmount(
+        te.durationMinutes,
+        hourlyRateCents,
+      );
       const quantity = te.durationMinutes / 60;
 
       dbLineItems.push({
         source_type: 'time_entry',
         time_entry_id: item.timeEntryId,
-        description: formatTimeEntryDescription(item.description, te.durationMinutes),
+        description: formatTimeEntryDescription(
+          item.description,
+          te.durationMinutes,
+        ),
         quantity: quantity.toFixed(2),
         unit_price_cents: hourlyRateCents,
         amount_cents: amountCents,

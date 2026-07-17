@@ -108,7 +108,7 @@ export const morningBriefOutputSchema = z.object({
       sender: z.string(),
       actionTaken: z.string(),
       clientName: z.string(),
-    })
+    }),
   ),
   needsAttentionItems: z.array(
     z.object({
@@ -118,7 +118,7 @@ export const morningBriefOutputSchema = z.object({
       category: z.enum(['urgent', 'action']),
       reason: z.string(),
       clientName: z.string(),
-    })
+    }),
   ),
   threadSummaries: z.array(
     z.object({
@@ -126,7 +126,7 @@ export const morningBriefOutputSchema = z.object({
       emailCount: z.number(),
       summary: z.string(),
       clientName: z.string(),
-    })
+    }),
   ),
   reassuranceMessage: z.string().optional(),
   clientBreakdown: z.array(
@@ -137,7 +137,7 @@ export const morningBriefOutputSchema = z.object({
       urgentCount: z.number(),
       actionCount: z.number(),
       handledCount: z.number(),
-    })
+    }),
   ),
   floodState: z.boolean().optional(),
 });

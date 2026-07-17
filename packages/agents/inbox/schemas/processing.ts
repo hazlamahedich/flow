@@ -22,7 +22,10 @@ export const VALID_TRANSITIONS: Record<ProcessingState, ProcessingState[]> = {
   draft_deferred: ['draft_pending', 'draft_complete'],
 };
 
-export function isValidTransition(from: ProcessingState, to: ProcessingState): boolean {
+export function isValidTransition(
+  from: ProcessingState,
+  to: ProcessingState,
+): boolean {
   return VALID_TRANSITIONS[from]?.includes(to) ?? false;
 }
 

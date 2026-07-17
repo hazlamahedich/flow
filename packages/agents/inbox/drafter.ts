@@ -12,7 +12,10 @@ import { loadVoiceContext, buildDraftPrompt } from './voice';
 import { computeTrustLevel } from './trust';
 import type { PgBoss } from 'pg-boss';
 
-export async function draftWorker(job: { data: DraftJobPayload }, boss: PgBoss) {
+export async function draftWorker(
+  job: { data: DraftJobPayload },
+  boss: PgBoss,
+) {
   const { emailId, workspaceId, clientInboxId } = job.data;
   const supabase = createServiceClient();
   const llmRouter = createLLMRouter();
@@ -49,18 +52,21 @@ export async function draftWorker(job: { data: DraftJobPayload }, boss: PgBoss) 
     // PII Tokenization for prompt safety
     const { text: tokenizedBody, tokens: bodyTokens } = tokenizePII(
       email.body_clean || '',
-      workspaceId
+      workspaceId,
     );
     const { text: tokenizedSubject, tokens: subjectTokens } = tokenizePII(
       email.subject || '',
-      workspaceId
+      workspaceId,
     );
 
     const prompt = buildDraftPrompt(
       voiceContext,
       tokenizedBody,
       tokenizedSubject,
-      actions?.map((a) => ({ description: a.description, actionType: a.action_type })) || []
+      actions?.map((a) => ({
+        description: a.description,
+        actionType: a.action_type,
+      })) || [],
     );
 
     const wrappedPrompt = boundary.wrapContent(prompt, 'draft_request');
@@ -73,15 +79,22 @@ export async function draftWorker(job: { data: DraftJobPayload }, boss: PgBoss) 
 
     const response = await llmRouter.complete(
       [
-        { role: 'system', content: 'You are an expert executive assistant drafting email replies.' },
+        {
+          role: 'system',
+          content:
+            'You are an expert executive assistant drafting email replies.',
+        },
         { role: 'user', content: wrappedPrompt },
       ],
       executionContext,
-      { taskTier: 'quality', temperature: 0.7 }
+      { taskTier: 'quality', temperature: 0.7 },
     );
 
     // Detokenize the draft content (using union of tokens)
-    const finalDraft = detokenizePII(response.text, [...bodyTokens, ...subjectTokens]);
+    const finalDraft = detokenizePII(response.text, [
+      ...bodyTokens,
+      ...subjectTokens,
+    ]);
 
     // Load voice profile ID for traceability
     const { data: profile } = await supabase
@@ -91,15 +104,17 @@ export async function draftWorker(job: { data: DraftJobPayload }, boss: PgBoss) 
       .maybeSingle();
 
     // Persist draft
-    const { error: insertError } = await supabase.from('draft_responses').insert({
-      email_id: emailId,
-      workspace_id: workspaceId,
-      client_inbox_id: clientInboxId,
-      draft_content: finalDraft,
-      voice_profile_id: profile?.id ?? null,
-      trust_at_generation: trustLevel,
-      status: 'pending',
-    });
+    const { error: insertError } = await supabase
+      .from('draft_responses')
+      .insert({
+        email_id: emailId,
+        workspace_id: workspaceId,
+        client_inbox_id: clientInboxId,
+        draft_content: finalDraft,
+        voice_profile_id: profile?.id ?? null,
+        trust_at_generation: trustLevel,
+        status: 'pending',
+      });
 
     if (insertError) throw insertError;
 
@@ -114,7 +129,10 @@ export async function draftWorker(job: { data: DraftJobPayload }, boss: PgBoss) 
         await transitionState(emailId, workspaceId, 'extraction_complete');
       }
     } catch (stateErr) {
-      console.error('[inbox] Failed to reset processing state after draft failure:', stateErr);
+      console.error(
+        '[inbox] Failed to reset processing state after draft failure:',
+        stateErr,
+      );
     }
     throw error;
   }

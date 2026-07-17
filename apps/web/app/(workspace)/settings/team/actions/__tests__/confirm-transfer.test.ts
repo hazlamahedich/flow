@@ -54,7 +54,9 @@ describe('confirmTransfer', () => {
       error: 'transfer_not_found',
     });
 
-    const result = await confirmTransfer({ transferId: '550e8400-e29b-41d4-a716-446655440000' });
+    const result = await confirmTransfer({
+      transferId: '550e8400-e29b-41d4-a716-446655440000',
+    });
     expect(result.success).toBe(false);
   });
 
@@ -65,7 +67,9 @@ describe('confirmTransfer', () => {
       toUserId: 'user-b',
     });
 
-    const result = await confirmTransfer({ transferId: '550e8400-e29b-41d4-a716-446655440000' });
+    const result = await confirmTransfer({
+      transferId: '550e8400-e29b-41d4-a716-446655440000',
+    });
     expect(result.success).toBe(true);
     expect(invalidateUserSessions).toHaveBeenCalledWith('user-a');
     expect(invalidateUserSessions).toHaveBeenCalledWith('user-b');
@@ -79,7 +83,9 @@ describe('confirmTransfer', () => {
     });
     vi.mocked(invalidateUserSessions).mockRejectedValue(new Error('timeout'));
 
-    const result = await confirmTransfer({ transferId: '550e8400-e29b-41d4-a716-446655440000' });
+    const result = await confirmTransfer({
+      transferId: '550e8400-e29b-41d4-a716-446655440000',
+    });
     expect(result.success).toBe(true);
   });
 
@@ -89,7 +95,9 @@ describe('confirmTransfer', () => {
       error: 'expired',
     });
 
-    const result = await confirmTransfer({ transferId: '550e8400-e29b-41d4-a716-446655440000' });
+    const result = await confirmTransfer({
+      transferId: '550e8400-e29b-41d4-a716-446655440000',
+    });
     expect(result.success).toBe(false);
   });
 });

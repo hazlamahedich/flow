@@ -20,7 +20,11 @@ vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
   return {
     ...actual,
-    requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' }),
+    requireTenantContext: vi.fn().mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    }),
     createFlowError: actual.createFlowError,
     cacheTag: vi.fn((entity: string, ws: string) => `${entity}:${ws}`),
     invalidateAfterMutation: vi.fn(),
@@ -33,32 +37,57 @@ vi.mock('next/cache', () => ({
 
 function mockSupabase(rpcResult: any, rpcError?: any, rowData?: any) {
   // A function that returns a chainable thenable
-  const buildChain = (data: any, error: any = null, count: number | null = null) => {
+  const buildChain = (
+    data: any,
+    error: any = null,
+    count: number | null = null,
+  ) => {
     const result = { data, error, count };
     const self: Record<string, any> = {};
     const methods = [
-      'select', 'eq', 'neq', 'gte', 'lte', 'lt', 'is', 'in', 'order', 
-      'upsert', 'insert', 'update', 'delete', 'limit', 'range', 'or', 'not'
+      'select',
+      'eq',
+      'neq',
+      'gte',
+      'lte',
+      'lt',
+      'is',
+      'in',
+      'order',
+      'upsert',
+      'insert',
+      'update',
+      'delete',
+      'limit',
+      'range',
+      'or',
+      'not',
     ];
     for (const m of methods) {
       self[m] = vi.fn().mockReturnValue(self);
     }
     self.maybeSingle = vi.fn().mockResolvedValue(result);
     self.single = vi.fn().mockResolvedValue(result);
-    self.then = function(onF: any, onR: any) {
+    self.then = function (onF: any, onR: any) {
       return Promise.resolve(result).then(onF, onR);
     };
     return self;
   };
 
   return {
-    rpc: vi.fn().mockResolvedValue({ data: rpcResult ?? null, error: rpcError ?? null }),
+    rpc: vi
+      .fn()
+      .mockResolvedValue({ data: rpcResult ?? null, error: rpcError ?? null }),
     from: vi.fn().mockImplementation((table: string) => {
       if (table === 'weekly_reports') {
         if (rowData) {
           return buildChain(rowData);
         }
-        if (rpcResult && typeof rpcResult === 'object' && 'items' in rpcResult) {
+        if (
+          rpcResult &&
+          typeof rpcResult === 'object' &&
+          'items' in rpcResult
+        ) {
           // This is a query from getWeeklyReportsAction!
           return buildChain(rpcResult.items, null, rpcResult.total);
         }
@@ -75,7 +104,9 @@ function mockSupabase(rpcResult: any, rpcError?: any, rowData?: any) {
       }
       // default fallbacks for aggregation tables in generateWeeklyReportAction
       if (table === 'time_entries') {
-        return buildChain([{ duration_minutes: 60, date: '2026-05-20', notes: 'Done' }]);
+        return buildChain([
+          { duration_minutes: 60, date: '2026-05-20', notes: 'Done' },
+        ]);
       }
       if (table === 'invoices') {
         return buildChain([{ id: 'inv-1', total_cents: 10000 }]);
@@ -165,9 +196,12 @@ describe('[P0] [8.1a-ATDD-001] generateWeeklyReportAction aggregates time, tasks
 
   test('generateWeeklyReportAction returns report with 4 sections on success', async () => {
     const client = mockSupabase(
-      { report: mockWeeklyReportRow('draft'), sections: [mockReportSection('time_summary')] },
+      {
+        report: mockWeeklyReportRow('draft'),
+        sections: [mockReportSection('time_summary')],
+      },
       undefined,
-      mockWeeklyReportRow('draft')
+      mockWeeklyReportRow('draft'),
     );
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 
@@ -210,7 +244,7 @@ describe('[P0] [8.1a-ATDD-001] generateWeeklyReportAction aggregates time, tasks
     const client = mockSupabase(
       { report: mockWeeklyReportRow('draft'), sections: [] },
       undefined,
-      mockWeeklyReportRow('draft')
+      mockWeeklyReportRow('draft'),
     );
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 
@@ -258,7 +292,7 @@ describe('[P0] [8.1a-ATDD-002] report persistence stores header and sections ato
     const client = mockSupabase(
       { report: mockWeeklyReportRow('draft'), sections: [] },
       undefined,
-      mockWeeklyReportRow('draft')
+      mockWeeklyReportRow('draft'),
     );
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 
@@ -269,7 +303,10 @@ describe('[P0] [8.1a-ATDD-002] report persistence stores header and sections ato
     });
 
     expect(result.success).toBe(true);
-    expect(client.rpc).toHaveBeenCalledWith('create_weekly_report_with_sections', expect.any(Object));
+    expect(client.rpc).toHaveBeenCalledWith(
+      'create_weekly_report_with_sections',
+      expect.any(Object),
+    );
   });
 
   test('template_snapshot is stored on weekly_reports at generation time', () => {
@@ -290,7 +327,7 @@ describe('[P0] [8.1a-ATDD-003] report list page shows paginated reports per clie
   test('report list fetches via getWeeklyReportsAction server action with pagination', async () => {
     const client = mockSupabase(
       { items: [mockWeeklyReportRow('draft')], total: 1, hasNextPage: false },
-      undefined
+      undefined,
     );
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 
@@ -304,8 +341,12 @@ describe('[P0] [8.1a-ATDD-003] report list page shows paginated reports per clie
 
   test('pagination returns correct page boundaries (20 items/page)', async () => {
     const client = mockSupabase(
-      { items: Array(20).fill(mockWeeklyReportRow('draft')), total: 21, hasNextPage: true },
-      undefined
+      {
+        items: Array(20).fill(mockWeeklyReportRow('draft')),
+        total: 21,
+        hasNextPage: true,
+      },
+      undefined,
     );
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 
@@ -320,7 +361,7 @@ describe('[P0] [8.1a-ATDD-003] report list page shows paginated reports per clie
   test('empty state shows CTA when no reports exist', async () => {
     const client = mockSupabase(
       { items: [], total: 0, hasNextPage: false },
-      undefined
+      undefined,
     );
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 
@@ -342,17 +383,17 @@ describe('[P0] [8.1a-ATDD-004] report detail view shows formatted sections from 
   });
 
   test('getWeeklyReportById returns report + sections ordered by sort_order', async () => {
-    const client = mockSupabase(
-      null,
-      undefined,
-      mockWeeklyReportRow('draft')
-    );
+    const client = mockSupabase(null, undefined, mockWeeklyReportRow('draft'));
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 
-    const result = await getWeeklyReportByIdAction('ea0e897a-391f-4739-b86a-e243cc05d4c9');
+    const result = await getWeeklyReportByIdAction(
+      'ea0e897a-391f-4739-b86a-e243cc05d4c9',
+    );
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.report.id).toBe('ea0e897a-391f-4739-b86a-e243cc05d4c9');
+      expect(result.data.report.id).toBe(
+        'ea0e897a-391f-4739-b86a-e243cc05d4c9',
+      );
       expect(result.data.sections).toBeDefined();
     }
   });
@@ -377,7 +418,7 @@ describe('[P0] [8.1a-ATDD-005] permissions enforce role-based access on reports'
     const client = mockSupabase(
       { report: mockWeeklyReportRow('draft'), sections: [] },
       undefined,
-      mockWeeklyReportRow('draft')
+      mockWeeklyReportRow('draft'),
     );
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 
@@ -393,7 +434,7 @@ describe('[P0] [8.1a-ATDD-005] permissions enforce role-based access on reports'
     const client = mockSupabase(
       { report: mockWeeklyReportRow('draft'), sections: [] },
       undefined,
-      mockWeeklyReportRow('draft')
+      mockWeeklyReportRow('draft'),
     );
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 
@@ -435,7 +476,7 @@ describe('[P0] [8.1a-ATDD-005] permissions enforce role-based access on reports'
 
     const client = mockSupabase(
       { items: [mockWeeklyReportRow('draft')], total: 1, hasNextPage: false },
-      undefined
+      undefined,
     );
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 
@@ -485,7 +526,7 @@ describe('[P0] [8.1a-ATDD-007] edge cases: zero data in reporting period', () =>
     const client = mockSupabase(
       { report: mockWeeklyReportRow('draft'), sections: [] },
       undefined,
-      mockWeeklyReportRow('draft')
+      mockWeeklyReportRow('draft'),
     );
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 
@@ -501,7 +542,7 @@ describe('[P0] [8.1a-ATDD-007] edge cases: zero data in reporting period', () =>
     const client = mockSupabase(
       { report: mockWeeklyReportRow('draft'), sections: [] },
       undefined,
-      mockWeeklyReportRow('draft')
+      mockWeeklyReportRow('draft'),
     );
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 
@@ -517,7 +558,7 @@ describe('[P0] [8.1a-ATDD-007] edge cases: zero data in reporting period', () =>
     const client = mockSupabase(
       { report: mockWeeklyReportRow('draft'), sections: [] },
       undefined,
-      mockWeeklyReportRow('draft')
+      mockWeeklyReportRow('draft'),
     );
     (getServerSupabase as ReturnType<typeof vi.fn>).mockResolvedValue(client);
 

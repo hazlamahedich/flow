@@ -6,8 +6,17 @@ import {
 } from './types';
 import type { UndoEntry, UndoStack } from './types';
 
-export type { UndoEntry, UndoStack, UndoActionType, UndoActionSeverity } from './types';
-export { UNDO_MAX_ENTRIES, UNDO_WINDOW_MS, UNDO_MAX_SNAPSHOT_BYTES } from './types';
+export type {
+  UndoEntry,
+  UndoStack,
+  UndoActionType,
+  UndoActionSeverity,
+} from './types';
+export {
+  UNDO_MAX_ENTRIES,
+  UNDO_WINDOW_MS,
+  UNDO_MAX_SNAPSHOT_BYTES,
+} from './types';
 
 function createEmptyStack(): UndoStack {
   return {
@@ -43,7 +52,10 @@ export function createUndoStackActions(workspaceId: string) {
       return stacks.get(key) ?? createEmptyStack();
     },
 
-    addEntry(stacks: Map<string, UndoStack>, entry: UndoEntry): Map<string, UndoStack> {
+    addEntry(
+      stacks: Map<string, UndoStack>,
+      entry: UndoEntry,
+    ): Map<string, UndoStack> {
       const next = new Map(stacks);
       const stack = next.get(key) ?? createEmptyStack();
       const now = Date.now();

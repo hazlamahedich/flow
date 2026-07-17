@@ -4,6 +4,8 @@ export function createUndoWorkspaceContextValue(workspaceId: string): string {
   return workspaceId;
 }
 
-export function readUndoWorkspaceContextValue(value: string | null): string | null {
+export function readUndoWorkspaceContextValue(
+  value: string | null,
+): string | null {
   return value;
 }

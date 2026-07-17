@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation';
 
 export default async function WorkspacePickerPage() {
   const supabase = await getServerSupabase();
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   if (!session) {
     redirect('/login');
@@ -36,7 +38,8 @@ export default async function WorkspacePickerPage() {
                 href={`/?workspace=${m.workspace_id}`}
                 className="block rounded-md border border-[var(--flow-color-border-default)] px-4 py-3 text-sm text-[var(--flow-color-text-primary)] transition-colors hover:bg-[var(--flow-color-bg-tertiary)]"
               >
-                {(m.workspaces as unknown as { name: string } | null)?.name ?? 'Untitled Workspace'}
+                {(m.workspaces as unknown as { name: string } | null)?.name ??
+                  'Untitled Workspace'}
               </a>
             </li>
           ))}

@@ -31,34 +31,56 @@ beforeEach(() => {
 describe('WorkspaceSwitcher', () => {
   it('renders workspace name', () => {
     const { container } = renderWithTheme(
-      <WorkspaceSwitcher workspaces={workspaces} activeWorkspaceId="ws-1" onSwitch={mockOnSwitch} />,
+      <WorkspaceSwitcher
+        workspaces={workspaces}
+        activeWorkspaceId="ws-1"
+        onSwitch={mockOnSwitch}
+      />,
     );
     expect(container.textContent).toContain('Acme Corp');
   });
 
   it('renders trigger for multi-workspace', () => {
     const { container } = renderWithTheme(
-      <WorkspaceSwitcher workspaces={workspaces} activeWorkspaceId="ws-1" onSwitch={mockOnSwitch} />,
+      <WorkspaceSwitcher
+        workspaces={workspaces}
+        activeWorkspaceId="ws-1"
+        onSwitch={mockOnSwitch}
+      />,
     );
-    const trigger = container.querySelector('[data-testid="workspace-switcher-trigger"]');
+    const trigger = container.querySelector(
+      '[data-testid="workspace-switcher-trigger"]',
+    );
     expect(trigger).toBeTruthy();
   });
 
   it('renders name only for single workspace', () => {
     const single = [{ id: 'ws-1', name: 'Solo', role: 'owner' }];
     const { container } = renderWithTheme(
-      <WorkspaceSwitcher workspaces={single} activeWorkspaceId="ws-1" onSwitch={mockOnSwitch} />,
+      <WorkspaceSwitcher
+        workspaces={single}
+        activeWorkspaceId="ws-1"
+        onSwitch={mockOnSwitch}
+      />,
     );
-    const trigger = container.querySelector('[data-testid="workspace-switcher-trigger"]');
+    const trigger = container.querySelector(
+      '[data-testid="workspace-switcher-trigger"]',
+    );
     expect(trigger).toBeNull();
     expect(container.textContent).toContain('Solo');
   });
 
   it('shows chevron icon for multi-workspace', () => {
     const { container } = renderWithTheme(
-      <WorkspaceSwitcher workspaces={workspaces} activeWorkspaceId="ws-1" onSwitch={mockOnSwitch} />,
+      <WorkspaceSwitcher
+        workspaces={workspaces}
+        activeWorkspaceId="ws-1"
+        onSwitch={mockOnSwitch}
+      />,
     );
-    const trigger = container.querySelector('[data-testid="workspace-switcher-trigger"]');
+    const trigger = container.querySelector(
+      '[data-testid="workspace-switcher-trigger"]',
+    );
     expect(trigger?.querySelector('svg')).toBeTruthy();
   });
 });

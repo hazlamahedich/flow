@@ -32,7 +32,11 @@ export function ActivityTimelineClient({
   return (
     <div className="space-y-4" aria-keyshortcuts="f g">
       <ActivityFilters filters={filters} totalCount={totalCount} />
-      <TimelineInhaler totalCount={totalCount} filteredCount={initialData.length} filters={filters} />
+      <TimelineInhaler
+        totalCount={totalCount}
+        filteredCount={initialData.length}
+        filters={filters}
+      />
       <TimelineList
         entries={initialData}
         totalCount={totalCount}

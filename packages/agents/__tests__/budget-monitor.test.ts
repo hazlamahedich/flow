@@ -2,9 +2,14 @@ import { describe, it, expect, vi } from 'vitest';
 import { createBudgetMonitor } from '../shared/budget-monitor';
 import type { BudgetMonitorDeps } from '../shared/budget-monitor';
 
-function makeDeps(overrides: Partial<BudgetMonitorDeps> = {}): BudgetMonitorDeps {
+function makeDeps(
+  overrides: Partial<BudgetMonitorDeps> = {},
+): BudgetMonitorDeps {
   return {
-    getAgentBudget: vi.fn().mockResolvedValue({ monthlyBudgetCents: 10000, periodStart: new Date('2026-04-01') }),
+    getAgentBudget: vi.fn().mockResolvedValue({
+      monthlyBudgetCents: 10000,
+      periodStart: new Date('2026-04-01'),
+    }),
     getSpendForPeriod: vi.fn().mockResolvedValue(5000),
     ...overrides,
   };
@@ -12,7 +17,9 @@ function makeDeps(overrides: Partial<BudgetMonitorDeps> = {}): BudgetMonitorDeps
 
 describe('createBudgetMonitor', () => {
   it('allows when under 80% budget', async () => {
-    const deps = makeDeps({ getSpendForPeriod: vi.fn().mockResolvedValue(7000) });
+    const deps = makeDeps({
+      getSpendForPeriod: vi.fn().mockResolvedValue(7000),
+    });
     const monitor = createBudgetMonitor(deps);
     const result = await monitor.check('ws-1');
     expect(result.allowed).toBe(true);
@@ -21,7 +28,9 @@ describe('createBudgetMonitor', () => {
   });
 
   it('warns at 80% threshold', async () => {
-    const deps = makeDeps({ getSpendForPeriod: vi.fn().mockResolvedValue(8000) });
+    const deps = makeDeps({
+      getSpendForPeriod: vi.fn().mockResolvedValue(8000),
+    });
     const monitor = createBudgetMonitor(deps);
     const result = await monitor.check('ws-1');
     expect(result.allowed).toBe(true);
@@ -30,7 +39,9 @@ describe('createBudgetMonitor', () => {
   });
 
   it('blocks at 100% threshold', async () => {
-    const deps = makeDeps({ getSpendForPeriod: vi.fn().mockResolvedValue(10000) });
+    const deps = makeDeps({
+      getSpendForPeriod: vi.fn().mockResolvedValue(10000),
+    });
     const monitor = createBudgetMonitor(deps);
     const result = await monitor.check('ws-1');
     expect(result.allowed).toBe(false);
@@ -39,7 +50,9 @@ describe('createBudgetMonitor', () => {
   });
 
   it('blocks when over budget', async () => {
-    const deps = makeDeps({ getSpendForPeriod: vi.fn().mockResolvedValue(12000) });
+    const deps = makeDeps({
+      getSpendForPeriod: vi.fn().mockResolvedValue(12000),
+    });
     const monitor = createBudgetMonitor(deps);
     const result = await monitor.check('ws-1');
     expect(result.allowed).toBe(false);
@@ -47,7 +60,11 @@ describe('createBudgetMonitor', () => {
   });
 
   it('allows unlimited when budget is 0', async () => {
-    const deps = makeDeps({ getAgentBudget: vi.fn().mockResolvedValue({ monthlyBudgetCents: 0, periodStart: null }) });
+    const deps = makeDeps({
+      getAgentBudget: vi
+        .fn()
+        .mockResolvedValue({ monthlyBudgetCents: 0, periodStart: null }),
+    });
     const monitor = createBudgetMonitor(deps);
     const result = await monitor.check('ws-1');
     expect(result.allowed).toBe(true);
@@ -65,7 +82,9 @@ describe('createBudgetMonitor', () => {
   it('uses rolling 30-day window when periodStart is null', async () => {
     const spendFn = vi.fn().mockResolvedValue(5000);
     const deps = makeDeps({
-      getAgentBudget: vi.fn().mockResolvedValue({ monthlyBudgetCents: 10000, periodStart: null }),
+      getAgentBudget: vi
+        .fn()
+        .mockResolvedValue({ monthlyBudgetCents: 10000, periodStart: null }),
       getSpendForPeriod: spendFn,
     });
     const monitor = createBudgetMonitor(deps);
@@ -79,7 +98,9 @@ describe('createBudgetMonitor', () => {
   });
 
   it('handles jump-skip from 60% to 100%', async () => {
-    const deps = makeDeps({ getSpendForPeriod: vi.fn().mockResolvedValue(10000) });
+    const deps = makeDeps({
+      getSpendForPeriod: vi.fn().mockResolvedValue(10000),
+    });
     const monitor = createBudgetMonitor(deps);
     const result = await monitor.check('ws-1');
     expect(result.allowed).toBe(false);

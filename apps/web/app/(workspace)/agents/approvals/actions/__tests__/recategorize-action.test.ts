@@ -17,7 +17,12 @@ vi.mock('next/cache', () => ({
 }));
 
 import { recategorizeEmail } from '../recategorize-action';
-import { requireTenantContext, createFlowError, recategorizeEmail as recategorizeQuery, insertSignal } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  recategorizeEmail as recategorizeQuery,
+  insertSignal,
+} from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
 
 describe('recategorizeEmail action', () => {
@@ -42,7 +47,10 @@ describe('recategorizeEmail action', () => {
   });
 
   it('returns validation error for invalid input', async () => {
-    const result = await recategorizeEmail({ emailId: 'not-uuid', newCategory: 'urgent' });
+    const result = await recategorizeEmail({
+      emailId: 'not-uuid',
+      newCategory: 'urgent',
+    });
 
     expect(result.success).toBe(false);
   });
@@ -53,7 +61,10 @@ describe('recategorizeEmail action', () => {
       error: new Error('Not found'),
     });
 
-    const result = await recategorizeEmail({ emailId: 'e1111111-1111-1111-1111-111111111111', newCategory: 'urgent' });
+    const result = await recategorizeEmail({
+      emailId: 'e1111111-1111-1111-1111-111111111111',
+      newCategory: 'urgent',
+    });
 
     expect(result.success).toBe(false);
   });
@@ -64,7 +75,10 @@ describe('recategorizeEmail action', () => {
       error: null,
     });
 
-    const result = await recategorizeEmail({ emailId: 'e1111111-1111-1111-1111-111111111111', newCategory: 'urgent' });
+    const result = await recategorizeEmail({
+      emailId: 'e1111111-1111-1111-1111-111111111111',
+      newCategory: 'urgent',
+    });
 
     expect(result.success).toBe(true);
     expect(recategorizeQuery).not.toHaveBeenCalled();
@@ -80,7 +94,10 @@ describe('recategorizeEmail action', () => {
       error: null,
     });
 
-    const result = await recategorizeEmail({ emailId: 'e1111111-1111-1111-1111-111111111111', newCategory: 'urgent' });
+    const result = await recategorizeEmail({
+      emailId: 'e1111111-1111-1111-1111-111111111111',
+      newCategory: 'urgent',
+    });
 
     expect(result.success).toBe(true);
     expect(recategorizeQuery).toHaveBeenCalled();
@@ -97,7 +114,10 @@ describe('recategorizeEmail action', () => {
     });
     (recategorizeQuery as any).mockRejectedValue(new Error('DB error'));
 
-    const result = await recategorizeEmail({ emailId: 'e1111111-1111-1111-1111-111111111111', newCategory: 'urgent' });
+    const result = await recategorizeEmail({
+      emailId: 'e1111111-1111-1111-1111-111111111111',
+      newCategory: 'urgent',
+    });
 
     expect(result.success).toBe(false);
   });
@@ -109,7 +129,10 @@ describe('recategorizeEmail action', () => {
       error: null,
     });
 
-    const result = await recategorizeEmail({ emailId: 'e1111111-1111-1111-1111-111111111111', newCategory: 'urgent' });
+    const result = await recategorizeEmail({
+      emailId: 'e1111111-1111-1111-1111-111111111111',
+      newCategory: 'urgent',
+    });
 
     expect(result.success).toBe(false);
   });

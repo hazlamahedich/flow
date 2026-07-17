@@ -18,7 +18,10 @@ export function RecentActivityFeed({ entries }: RecentActivityFeedProps) {
   }
 
   const groups = groupByCorrelation(entries);
-  const items: Array<{ type: 'single'; entry: ActionHistoryRow } | { type: 'group'; count: number; agents: string[] }> = [];
+  const items: Array<
+    | { type: 'single'; entry: ActionHistoryRow }
+    | { type: 'group'; count: number; agents: string[] }
+  > = [];
   const seenCorrelationIds = new Set<string>();
 
   let i = 0;
@@ -32,7 +35,15 @@ export function RecentActivityFeed({ entries }: RecentActivityFeedProps) {
       items.push({
         type: 'group' as const,
         count: groupEntries.length,
-        agents: [...new Set(groupEntries.map((e) => AGENT_IDENTITY[e.agentId as keyof typeof AGENT_IDENTITY]?.label ?? e.agentId))],
+        agents: [
+          ...new Set(
+            groupEntries.map(
+              (e) =>
+                AGENT_IDENTITY[e.agentId as keyof typeof AGENT_IDENTITY]
+                  ?.label ?? e.agentId,
+            ),
+          ),
+        ],
       });
       i += groupEntries.length;
     } else {
@@ -48,29 +59,51 @@ export function RecentActivityFeed({ entries }: RecentActivityFeedProps) {
           <div key={item.entry.id} className="flex items-center gap-2 text-sm">
             <div
               className="h-6 w-6 rounded-full flex items-center justify-center text-xs font-medium shrink-0"
-              style={{ backgroundColor: AGENT_IDENTITY[item.entry.agentId].color + '20', color: AGENT_IDENTITY[item.entry.agentId].color }}
+              style={{
+                backgroundColor:
+                  AGENT_IDENTITY[item.entry.agentId].color + '20',
+                color: AGENT_IDENTITY[item.entry.agentId].color,
+              }}
             >
               {AGENT_IDENTITY[item.entry.agentId].iconInitial}
             </div>
-            <span className="text-[var(--flow-color-text-primary)]">{AGENT_IDENTITY[item.entry.agentId].label}</span>
-            <span className="text-[var(--flow-color-text-secondary)]">{item.entry.actionType}</span>
-            <span className="ml-auto text-xs text-[var(--flow-color-text-secondary)]">{getRelativeTime(item.entry.createdAt)}</span>
+            <span className="text-[var(--flow-color-text-primary)]">
+              {AGENT_IDENTITY[item.entry.agentId].label}
+            </span>
+            <span className="text-[var(--flow-color-text-secondary)]">
+              {item.entry.actionType}
+            </span>
+            <span className="ml-auto text-xs text-[var(--flow-color-text-secondary)]">
+              {getRelativeTime(item.entry.createdAt)}
+            </span>
           </div>
         ) : (
-          <div key={`group-${idx}`} className="flex items-center gap-2 text-sm px-2 py-1 rounded bg-[var(--flow-color-surface-elevated)]">
-            <span className="text-[var(--flow-color-text-primary)] font-medium">{item.count}-agent coordination completed</span>
-            <span className="text-[var(--flow-color-text-secondary)]">({item.agents.join(', ')})</span>
+          <div
+            key={`group-${idx}`}
+            className="flex items-center gap-2 text-sm px-2 py-1 rounded bg-[var(--flow-color-surface-elevated)]"
+          >
+            <span className="text-[var(--flow-color-text-primary)] font-medium">
+              {item.count}-agent coordination completed
+            </span>
+            <span className="text-[var(--flow-color-text-secondary)]">
+              ({item.agents.join(', ')})
+            </span>
           </div>
         ),
       )}
-      <Link href="/agents/activity" className="text-sm text-[var(--flow-color-primary)] hover:underline block pt-1">
+      <Link
+        href="/agents/activity"
+        className="text-sm text-[var(--flow-color-primary)] hover:underline block pt-1"
+      >
         View full timeline
       </Link>
     </div>
   );
 }
 
-function groupByCorrelation(entries: ActionHistoryRow[]): Map<string, ActionHistoryRow[]> {
+function groupByCorrelation(
+  entries: ActionHistoryRow[],
+): Map<string, ActionHistoryRow[]> {
   const map = new Map<string, ActionHistoryRow[]>();
   for (const entry of entries) {
     if (!map.has(entry.correlationId)) map.set(entry.correlationId, []);

@@ -32,9 +32,12 @@ type ParsedBlock = {
 
 export type ParsedApprovalOutput = ParsedProposal | ParsedBlock | null;
 
-export function parseApprovalOutput(output: Record<string, unknown> | null): ParsedApprovalOutput {
+export function parseApprovalOutput(
+  output: Record<string, unknown> | null,
+): ParsedApprovalOutput {
   if (!output) return null;
-  const hasProposalFields = typeof output.confidence === 'number' && typeof output.title === 'string';
+  const hasProposalFields =
+    typeof output.confidence === 'number' && typeof output.title === 'string';
   if (hasProposalFields) {
     return {
       proposalType: 'agent_proposal',
@@ -46,11 +49,15 @@ export function parseApprovalOutput(output: Record<string, unknown> | null): Par
       },
     };
   }
-  const hasBlockFields = typeof output.decision === 'string' && typeof output.reason === 'string';
+  const hasBlockFields =
+    typeof output.decision === 'string' && typeof output.reason === 'string';
   if (hasBlockFields) {
     return {
       proposalType: 'trust_blocked',
-      block: { decision: output.decision as string, reason: output.reason as string },
+      block: {
+        decision: output.decision as string,
+        reason: output.reason as string,
+      },
     };
   }
   return null;

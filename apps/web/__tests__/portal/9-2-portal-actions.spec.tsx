@@ -6,7 +6,8 @@
  *
  * Story 9.2 — AC3, AC4, AC5, AC6, AC7.
  */
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
 
 vi.mock('@/lib/supabase-server', () => {
   const mockRpc = vi.fn();
@@ -17,7 +18,9 @@ vi.mock('@/lib/supabase-server', () => {
         order: vi.fn(() => ({
           range: vi.fn().mockResolvedValue({ data: [], error: null, count: 0 }),
         })),
-        gt: vi.fn(() => ({ maybeSingle: vi.fn().mockResolvedValue({ data: null }) })),
+        gt: vi.fn(() => ({
+          maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+        })),
       })),
     })),
     insert: vi.fn().mockResolvedValue({ error: null }),
@@ -66,11 +69,16 @@ vi.mock('next/headers', () => ({
   }),
 }));
 
-const mockCreateCheckout = vi.fn().mockResolvedValue({ url: 'https://checkout.stripe.com/cs_test', sessionId: 'cs_test' });
+const mockCreateCheckout = vi.fn().mockResolvedValue({
+  url: 'https://checkout.stripe.com/cs_test',
+  sessionId: 'cs_test',
+});
 const mockProviderSend = vi.fn().mockResolvedValue({ messageId: 'msg_test' });
 
 vi.mock('@flow/agents/providers', () => ({
-  getPaymentProvider: vi.fn(() => ({ createCheckoutSession: mockCreateCheckout })),
+  getPaymentProvider: vi.fn(() => ({
+    createCheckoutSession: mockCreateCheckout,
+  })),
   getTransactionalEmailProvider: vi.fn(() => ({ send: mockProviderSend })),
 }));
 
@@ -102,8 +110,12 @@ function mockPortalClientInvoice(invoice: Record<string, unknown> | null) {
     from: vi.fn(() => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
-          maybeSingle: vi.fn().mockResolvedValue({ data: invoice, error: null }),
-          order: vi.fn(() => ({ limit: vi.fn().mockResolvedValue({ data: [], error: null }) })),
+          maybeSingle: vi
+            .fn()
+            .mockResolvedValue({ data: invoice, error: null }),
+          order: vi.fn(() => ({
+            limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+          })),
         })),
       })),
     })),
@@ -118,6 +130,10 @@ function mockPortalRpc() {
   vi.mocked(createPortalClient).mockResolvedValue(portalClient as never);
   return portalClient;
 }
+
+afterEach(() => {
+  cleanup();
+});
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -143,158 +159,302 @@ beforeEach(() => {
 describe('[9.2] payInvoicePortalAction edge cases', () => {
   test('EC1: rejects paid invoice with FINANCIAL_INVALID_STATE', async () => {
     mockPortalClientInvoice({
-      id: INVOICE_ID, client_id: PORTAL_CTX.clientId, workspace_id: PORTAL_CTX.workspaceId,
-      status: 'paid', total_cents: 10000, amount_paid_cents: 10000, credit_balance_cents: 0,
-      currency: 'usd', invoice_number: 'INV-001', payment_url: null, payment_url_expires_at: null,
+      id: INVOICE_ID,
+      client_id: PORTAL_CTX.clientId,
+      workspace_id: PORTAL_CTX.workspaceId,
+      status: 'paid',
+      total_cents: 10000,
+      amount_paid_cents: 10000,
+      credit_balance_cents: 0,
+      currency: 'usd',
+      invoice_number: 'INV-001',
+      payment_url: null,
+      payment_url_expires_at: null,
     });
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
     supabase.rpc.mockResolvedValue({ data: { allowed: true }, error: null });
 
-    const result = await payInvoicePortalAction(PORTAL_CTX, { invoiceId: INVOICE_ID, slug: SLUG });
+    const result = await payInvoicePortalAction(PORTAL_CTX, {
+      invoiceId: INVOICE_ID,
+      slug: SLUG,
+    });
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.code).toBe('FINANCIAL_INVALID_STATE');
+    if (!result.success)
+      expect(result.error.code).toBe('FINANCIAL_INVALID_STATE');
   });
 
   test('EC2: rejects voided invoice with FINANCIAL_INVALID_STATE', async () => {
     mockPortalClientInvoice({
-      id: INVOICE_ID, client_id: PORTAL_CTX.clientId, workspace_id: PORTAL_CTX.workspaceId,
-      status: 'voided', total_cents: 5000, amount_paid_cents: 0, credit_balance_cents: 0,
-      currency: 'usd', invoice_number: 'INV-002', payment_url: null, payment_url_expires_at: null,
+      id: INVOICE_ID,
+      client_id: PORTAL_CTX.clientId,
+      workspace_id: PORTAL_CTX.workspaceId,
+      status: 'voided',
+      total_cents: 5000,
+      amount_paid_cents: 0,
+      credit_balance_cents: 0,
+      currency: 'usd',
+      invoice_number: 'INV-002',
+      payment_url: null,
+      payment_url_expires_at: null,
     });
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
     supabase.rpc.mockResolvedValue({ data: { allowed: true }, error: null });
 
-    const result = await payInvoicePortalAction(PORTAL_CTX, { invoiceId: INVOICE_ID, slug: SLUG });
+    const result = await payInvoicePortalAction(PORTAL_CTX, {
+      invoiceId: INVOICE_ID,
+      slug: SLUG,
+    });
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.code).toBe('FINANCIAL_INVALID_STATE');
+    if (!result.success)
+      expect(result.error.code).toBe('FINANCIAL_INVALID_STATE');
   });
 
   test('EC3: rejects zero-balance invoice with FINANCIAL_INVALID_STATE', async () => {
     mockPortalClientInvoice({
-      id: INVOICE_ID, client_id: PORTAL_CTX.clientId, workspace_id: PORTAL_CTX.workspaceId,
-      status: 'partially_paid', total_cents: 10000, amount_paid_cents: 10000, credit_balance_cents: 0,
-      currency: 'usd', invoice_number: 'INV-003', payment_url: null, payment_url_expires_at: null,
+      id: INVOICE_ID,
+      client_id: PORTAL_CTX.clientId,
+      workspace_id: PORTAL_CTX.workspaceId,
+      status: 'partially_paid',
+      total_cents: 10000,
+      amount_paid_cents: 10000,
+      credit_balance_cents: 0,
+      currency: 'usd',
+      invoice_number: 'INV-003',
+      payment_url: null,
+      payment_url_expires_at: null,
     });
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
     supabase.rpc.mockResolvedValue({ data: { allowed: true }, error: null });
 
-    const result = await payInvoicePortalAction(PORTAL_CTX, { invoiceId: INVOICE_ID, slug: SLUG });
+    const result = await payInvoicePortalAction(PORTAL_CTX, {
+      invoiceId: INVOICE_ID,
+      slug: SLUG,
+    });
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.code).toBe('FINANCIAL_INVALID_STATE');
+    if (!result.success)
+      expect(result.error.code).toBe('FINANCIAL_INVALID_STATE');
   });
 
   test('EC4: rejects invoice hidden by RLS (not found)', async () => {
     mockPortalClientInvoice(null);
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
     supabase.rpc.mockResolvedValue({ data: { allowed: true }, error: null });
 
-    const result = await payInvoicePortalAction(PORTAL_CTX, { invoiceId: INVOICE_ID, slug: SLUG });
+    const result = await payInvoicePortalAction(PORTAL_CTX, {
+      invoiceId: INVOICE_ID,
+      slug: SLUG,
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('NOT_FOUND');
   });
 
   test('EC5: mints fresh checkout for partially_paid invoice (no URL reuse)', async () => {
     const portalClient = mockPortalClientInvoice({
-      id: INVOICE_ID, client_id: PORTAL_CTX.clientId, workspace_id: PORTAL_CTX.workspaceId,
-      status: 'partially_paid', total_cents: 10000, amount_paid_cents: 3000, credit_balance_cents: 0,
-      currency: 'usd', invoice_number: 'INV-005',
+      id: INVOICE_ID,
+      client_id: PORTAL_CTX.clientId,
+      workspace_id: PORTAL_CTX.workspaceId,
+      status: 'partially_paid',
+      total_cents: 10000,
+      amount_paid_cents: 3000,
+      credit_balance_cents: 0,
+      currency: 'usd',
+      invoice_number: 'INV-005',
       payment_url: 'https://old.stripe.com/cs_old',
       payment_url_expires_at: new Date(Date.now() + 86400000).toISOString(),
     });
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: true, retry_after_ms: 0 }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: true, retry_after_ms: 0 },
+      error: null,
+    });
     portalClient.rpc.mockResolvedValue({ data: 'OK', error: null });
 
-    const result = await payInvoicePortalAction(PORTAL_CTX, { invoiceId: INVOICE_ID, slug: SLUG });
+    const result = await payInvoicePortalAction(PORTAL_CTX, {
+      invoiceId: INVOICE_ID,
+      slug: SLUG,
+    });
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.checkoutUrl).toBe('https://checkout.stripe.com/cs_test');
-      expect(mockCreateCheckout).toHaveBeenCalledWith(expect.objectContaining({ amountCents: 7000 }));
+      expect(result.data.checkoutUrl).toBe(
+        'https://checkout.stripe.com/cs_test',
+      );
+      expect(mockCreateCheckout).toHaveBeenCalledWith(
+        expect.objectContaining({ amountCents: 7000 }),
+      );
     }
   });
 
   test('happy path: returns checkout URL for sent invoice', async () => {
     const portalClient = mockPortalClientInvoice({
-      id: INVOICE_ID, client_id: PORTAL_CTX.clientId, workspace_id: PORTAL_CTX.workspaceId,
-      status: 'sent', total_cents: 10000, amount_paid_cents: 0, credit_balance_cents: 0,
-      currency: 'usd', invoice_number: 'INV-100',
-      payment_url: null, payment_url_expires_at: null,
+      id: INVOICE_ID,
+      client_id: PORTAL_CTX.clientId,
+      workspace_id: PORTAL_CTX.workspaceId,
+      status: 'sent',
+      total_cents: 10000,
+      amount_paid_cents: 0,
+      credit_balance_cents: 0,
+      currency: 'usd',
+      invoice_number: 'INV-100',
+      payment_url: null,
+      payment_url_expires_at: null,
     });
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: true, retry_after_ms: 0 }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: true, retry_after_ms: 0 },
+      error: null,
+    });
     portalClient.rpc.mockResolvedValue({ data: 'OK', error: null });
 
-    const result = await payInvoicePortalAction(PORTAL_CTX, { invoiceId: INVOICE_ID, slug: SLUG });
+    const result = await payInvoicePortalAction(PORTAL_CTX, {
+      invoiceId: INVOICE_ID,
+      slug: SLUG,
+    });
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.checkoutUrl).toBeDefined();
   });
 
   test('reuses valid, non-expired payment_url for sent (non-partial) invoice', async () => {
     mockPortalClientInvoice({
-      id: INVOICE_ID, client_id: PORTAL_CTX.clientId, workspace_id: PORTAL_CTX.workspaceId,
-      status: 'sent', total_cents: 10000, amount_paid_cents: 0, credit_balance_cents: 0,
-      currency: 'usd', invoice_number: 'INV-101',
+      id: INVOICE_ID,
+      client_id: PORTAL_CTX.clientId,
+      workspace_id: PORTAL_CTX.workspaceId,
+      status: 'sent',
+      total_cents: 10000,
+      amount_paid_cents: 0,
+      credit_balance_cents: 0,
+      currency: 'usd',
+      invoice_number: 'INV-101',
       payment_url: 'https://existing.stripe.com/cs_existing',
       payment_url_expires_at: new Date(Date.now() + 3600000).toISOString(),
     });
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: true, retry_after_ms: 0 }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: true, retry_after_ms: 0 },
+      error: null,
+    });
 
-    const result = await payInvoicePortalAction(PORTAL_CTX, { invoiceId: INVOICE_ID, slug: SLUG });
+    const result = await payInvoicePortalAction(PORTAL_CTX, {
+      invoiceId: INVOICE_ID,
+      slug: SLUG,
+    });
     expect(result.success).toBe(true);
-    if (result.success) expect(result.data.checkoutUrl).toBe('https://existing.stripe.com/cs_existing');
+    if (result.success)
+      expect(result.data.checkoutUrl).toBe(
+        'https://existing.stripe.com/cs_existing',
+      );
     expect(mockCreateCheckout).not.toHaveBeenCalled();
   });
 
   test('EC16: rejects rate-limited pay attempt with RATE_LIMITED', async () => {
     mockPortalClientInvoice({
-      id: INVOICE_ID, client_id: PORTAL_CTX.clientId, workspace_id: PORTAL_CTX.workspaceId,
-      status: 'sent', total_cents: 10000, amount_paid_cents: 0, credit_balance_cents: 0,
-      currency: 'usd', invoice_number: 'INV-102',
-      payment_url: null, payment_url_expires_at: null,
+      id: INVOICE_ID,
+      client_id: PORTAL_CTX.clientId,
+      workspace_id: PORTAL_CTX.workspaceId,
+      status: 'sent',
+      total_cents: 10000,
+      amount_paid_cents: 0,
+      credit_balance_cents: 0,
+      currency: 'usd',
+      invoice_number: 'INV-102',
+      payment_url: null,
+      payment_url_expires_at: null,
     });
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: false, retry_after_ms: 5000 }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: false, retry_after_ms: 5000 },
+      error: null,
+    });
 
-    const result = await payInvoicePortalAction(PORTAL_CTX, { invoiceId: INVOICE_ID, slug: SLUG });
+    const result = await payInvoicePortalAction(PORTAL_CTX, {
+      invoiceId: INVOICE_ID,
+      slug: SLUG,
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('RATE_LIMITED');
   });
 
   test('PROVIDER_ERROR when Stripe fails', async () => {
     mockPortalClientInvoice({
-      id: INVOICE_ID, client_id: PORTAL_CTX.clientId, workspace_id: PORTAL_CTX.workspaceId,
-      status: 'sent', total_cents: 10000, amount_paid_cents: 0, credit_balance_cents: 0,
-      currency: 'usd', invoice_number: 'INV-103',
-      payment_url: null, payment_url_expires_at: null,
+      id: INVOICE_ID,
+      client_id: PORTAL_CTX.clientId,
+      workspace_id: PORTAL_CTX.workspaceId,
+      status: 'sent',
+      total_cents: 10000,
+      amount_paid_cents: 0,
+      credit_balance_cents: 0,
+      currency: 'usd',
+      invoice_number: 'INV-103',
+      payment_url: null,
+      payment_url_expires_at: null,
     });
     mockCreateCheckout.mockRejectedValueOnce(new Error('Stripe down'));
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: true, retry_after_ms: 0 }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: true, retry_after_ms: 0 },
+      error: null,
+    });
 
-    const result = await payInvoicePortalAction(PORTAL_CTX, { invoiceId: INVOICE_ID, slug: SLUG });
+    const result = await payInvoicePortalAction(PORTAL_CTX, {
+      invoiceId: INVOICE_ID,
+      slug: SLUG,
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('PROVIDER_ERROR');
   });
 
   test('FORBIDDEN when refresh_portal_checkout_url RPC returns FORBIDDEN', async () => {
     const portalClient = mockPortalClientInvoice({
-      id: INVOICE_ID, client_id: PORTAL_CTX.clientId, workspace_id: PORTAL_CTX.workspaceId,
-      status: 'sent', total_cents: 10000, amount_paid_cents: 0, credit_balance_cents: 0,
-      currency: 'usd', invoice_number: 'INV-104',
-      payment_url: null, payment_url_expires_at: null,
+      id: INVOICE_ID,
+      client_id: PORTAL_CTX.clientId,
+      workspace_id: PORTAL_CTX.workspaceId,
+      status: 'sent',
+      total_cents: 10000,
+      amount_paid_cents: 0,
+      credit_balance_cents: 0,
+      currency: 'usd',
+      invoice_number: 'INV-104',
+      payment_url: null,
+      payment_url_expires_at: null,
     });
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: true, retry_after_ms: 0 }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: true, retry_after_ms: 0 },
+      error: null,
+    });
     portalClient.rpc.mockResolvedValue({ data: 'FORBIDDEN', error: null });
 
-    const result = await payInvoicePortalAction(PORTAL_CTX, { invoiceId: INVOICE_ID, slug: SLUG });
+    const result = await payInvoicePortalAction(PORTAL_CTX, {
+      invoiceId: INVOICE_ID,
+      slug: SLUG,
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('FORBIDDEN');
   });
 
   test('rejects invalid invoiceId with VALIDATION_ERROR', async () => {
-    const result = await payInvoicePortalAction(PORTAL_CTX, { invoiceId: 'not-a-uuid' });
+    const result = await payInvoicePortalAction(PORTAL_CTX, {
+      invoiceId: 'not-a-uuid',
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('VALIDATION_ERROR');
   });
@@ -306,41 +466,69 @@ describe('[9.2] payInvoicePortalAction edge cases', () => {
 describe('[9.2] approveReportAction edge cases', () => {
   test('happy path: approves a sent report', async () => {
     const portalClient = mockPortalRpc();
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: true, retry_after_ms: 0 }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: true, retry_after_ms: 0 },
+      error: null,
+    });
     portalClient.rpc.mockResolvedValue({ data: 'OK', error: null });
 
-    const result = await approveReportAction(PORTAL_CTX, { reportId: REPORT_ID });
+    const result = await approveReportAction(PORTAL_CTX, {
+      reportId: REPORT_ID,
+    });
     expect(result.success).toBe(true);
   });
 
   test('EC6: rejects already-approved report with INVALID_STATE', async () => {
     const portalClient = mockPortalRpc();
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: true, retry_after_ms: 0 }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: true, retry_after_ms: 0 },
+      error: null,
+    });
     portalClient.rpc.mockResolvedValue({ data: 'INVALID_STATE', error: null });
 
-    const result = await approveReportAction(PORTAL_CTX, { reportId: REPORT_ID });
+    const result = await approveReportAction(PORTAL_CTX, {
+      reportId: REPORT_ID,
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('INVALID_STATE');
   });
 
   test('EC9: rejects cross-client report with FORBIDDEN', async () => {
     const portalClient = mockPortalRpc();
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: true, retry_after_ms: 0 }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: true, retry_after_ms: 0 },
+      error: null,
+    });
     portalClient.rpc.mockResolvedValue({ data: 'FORBIDDEN', error: null });
 
-    const result = await approveReportAction(PORTAL_CTX, { reportId: REPORT_ID });
+    const result = await approveReportAction(PORTAL_CTX, {
+      reportId: REPORT_ID,
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('FORBIDDEN');
   });
 
   test('EC16: rate-limited approve returns RATE_LIMITED', async () => {
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: false, retry_after_ms: 5000 }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: false, retry_after_ms: 5000 },
+      error: null,
+    });
 
-    const result = await approveReportAction(PORTAL_CTX, { reportId: REPORT_ID });
+    const result = await approveReportAction(PORTAL_CTX, {
+      reportId: REPORT_ID,
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('RATE_LIMITED');
   });
@@ -352,44 +540,77 @@ describe('[9.2] approveReportAction edge cases', () => {
 describe('[9.2] requestReportChangesAction edge cases', () => {
   test('happy path: records change request', async () => {
     const portalClient = mockPortalRpc();
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: true, retry_after_ms: 0 }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: true, retry_after_ms: 0 },
+      error: null,
+    });
     portalClient.rpc.mockResolvedValue({ data: 'OK', error: null });
 
-    const result = await requestReportChangesAction(PORTAL_CTX, { reportId: REPORT_ID, message: 'Please fix the hours.' });
+    const result = await requestReportChangesAction(PORTAL_CTX, {
+      reportId: REPORT_ID,
+      message: 'Please fix the hours.',
+    });
     expect(result.success).toBe(true);
   });
 
   test('EC8: rejects change request on approved report with INVALID_STATE', async () => {
     const portalClient = mockPortalRpc();
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: true, retry_after_ms: 0 }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: true, retry_after_ms: 0 },
+      error: null,
+    });
     portalClient.rpc.mockResolvedValue({ data: 'INVALID_STATE', error: null });
 
-    const result = await requestReportChangesAction(PORTAL_CTX, { reportId: REPORT_ID, message: 'Change something' });
+    const result = await requestReportChangesAction(PORTAL_CTX, {
+      reportId: REPORT_ID,
+      message: 'Change something',
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('INVALID_STATE');
   });
 
   test('rejects empty message with VALIDATION_ERROR', async () => {
-    const result = await requestReportChangesAction(PORTAL_CTX, { reportId: REPORT_ID, message: '' });
+    const result = await requestReportChangesAction(PORTAL_CTX, {
+      reportId: REPORT_ID,
+      message: '',
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('VALIDATION_ERROR');
   });
 
   test('rejects too-long message (>2000 chars) with VALIDATION_ERROR', async () => {
-    const result = await requestReportChangesAction(PORTAL_CTX, { reportId: REPORT_ID, message: 'x'.repeat(2001) });
+    const result = await requestReportChangesAction(PORTAL_CTX, {
+      reportId: REPORT_ID,
+      message: 'x'.repeat(2001),
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('VALIDATION_ERROR');
   });
 
   test('INVALID_MESSAGE from RPC maps to VALIDATION_ERROR', async () => {
     const portalClient = mockPortalRpc();
-    const supabase = await getServerSupabase() as never as { rpc: ReturnType<typeof vi.fn> };
-    supabase.rpc.mockResolvedValue({ data: { allowed: true, retry_after_ms: 0 }, error: null });
-    portalClient.rpc.mockResolvedValue({ data: 'INVALID_MESSAGE', error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    supabase.rpc.mockResolvedValue({
+      data: { allowed: true, retry_after_ms: 0 },
+      error: null,
+    });
+    portalClient.rpc.mockResolvedValue({
+      data: 'INVALID_MESSAGE',
+      error: null,
+    });
 
-    const result = await requestReportChangesAction(PORTAL_CTX, { reportId: REPORT_ID, message: 'valid message' });
+    const result = await requestReportChangesAction(PORTAL_CTX, {
+      reportId: REPORT_ID,
+      message: 'valid message',
+    });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('VALIDATION_ERROR');
   });
@@ -404,15 +625,32 @@ describe('[9.2] sendClientNotificationAction edge cases', () => {
       from: vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
-            maybeSingle: vi.fn().mockResolvedValue({ data: { email: null, name: 'Test', workspace_id: PORTAL_CTX.workspaceId }, error: null }),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: {
+                email: null,
+                name: 'Test',
+                workspace_id: PORTAL_CTX.workspaceId,
+              },
+              error: null,
+            }),
           })),
         })),
       })),
     };
     vi.mocked(createPortalClient).mockResolvedValue(portalClient as never);
 
-    const supabase = await getServerSupabase() as never as { from: ReturnType<typeof vi.fn>; rpc: ReturnType<typeof vi.fn> };
-    const mockMaybeSingle = vi.fn().mockResolvedValue({ data: { email: null, name: 'Test', workspace_id: PORTAL_CTX.workspaceId }, error: null });
+    const supabase = (await getServerSupabase()) as never as {
+      from: ReturnType<typeof vi.fn>;
+      rpc: ReturnType<typeof vi.fn>;
+    };
+    const mockMaybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        email: null,
+        name: 'Test',
+        workspace_id: PORTAL_CTX.workspaceId,
+      },
+      error: null,
+    });
     const secondEq = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));
     const firstEq = vi.fn(() => ({ eq: secondEq }));
     supabase.from.mockReturnValue({
@@ -460,7 +698,12 @@ describe('[9.2] buildClientNotificationEmail', () => {
       clientName: 'Test Client',
       workspaceName: 'Test WS',
       type: 'invoice_created',
-      payload: { invoiceId: INVOICE_ID, invoiceNumber: 'INV-001', amountCents: 10000, currency: 'usd' },
+      payload: {
+        invoiceId: INVOICE_ID,
+        invoiceNumber: 'INV-001',
+        amountCents: 10000,
+        currency: 'usd',
+      },
     });
     expect(payload.to).toBe('client@test.com');
     expect(payload.subject).toContain('INV-001');
@@ -474,7 +717,12 @@ describe('[9.2] buildClientNotificationEmail', () => {
       clientName: 'Test Client',
       workspaceName: 'Test WS',
       type: 'payment_confirmed',
-      payload: { invoiceId: INVOICE_ID, invoiceNumber: 'INV-001', amountCents: 5000, currency: 'usd' },
+      payload: {
+        invoiceId: INVOICE_ID,
+        invoiceNumber: 'INV-001',
+        amountCents: 5000,
+        currency: 'usd',
+      },
     });
     expect(payload.subject).toContain('Payment confirmed');
     expect(payload.htmlBody).toContain('50.00');
@@ -509,7 +757,9 @@ describe('[9.2] ZeroThoughtTasksHero component', () => {
   });
 
   test('renders trending arrow when current > previous', () => {
-    const { container } = render(<ZeroThoughtTasksHero count={5} previousWeekCount={3} />);
+    const { container } = render(
+      <ZeroThoughtTasksHero count={5} previousWeekCount={3} />,
+    );
     // After animation completes (we render synchronously, so checking the text)
     expect(container.textContent).toContain('Zero-thought tasks this week');
   });
@@ -520,7 +770,9 @@ describe('[9.2] ZeroThoughtTasksHero component', () => {
 // ───────────────────────────────────────────────────────────────
 describe('[9.2] ValueReceipt component', () => {
   test('renders task and meeting counts with pluralization', () => {
-    const { container } = render(<ValueReceipt taskCount={3} meetingCount={2} />);
+    const { container } = render(
+      <ValueReceipt taskCount={3} meetingCount={2} />,
+    );
     expect(container.textContent).toContain('3');
     expect(container.textContent).toContain('tasks');
     expect(container.textContent).toContain('2');
@@ -528,13 +780,17 @@ describe('[9.2] ValueReceipt component', () => {
   });
 
   test('uses singular labels for count of 1', () => {
-    const { container } = render(<ValueReceipt taskCount={1} meetingCount={1} />);
+    const { container } = render(
+      <ValueReceipt taskCount={1} meetingCount={1} />,
+    );
     expect(container.textContent).toContain('1task');
     expect(container.textContent).toContain('1meeting');
   });
 
   test('clamps negative counts to zero', () => {
-    const { container } = render(<ValueReceipt taskCount={-1} meetingCount={-5} />);
+    const { container } = render(
+      <ValueReceipt taskCount={-1} meetingCount={-5} />,
+    );
     expect(container.textContent).toContain('0tasks');
     expect(container.textContent).toContain('0meetings');
   });
@@ -542,7 +798,11 @@ describe('[9.2] ValueReceipt component', () => {
 
 describe('[9.2] NextWeekPreview component', () => {
   test('renders events list', () => {
-    const { container } = render(<NextWeekPreview events={[{ title: 'Team Sync', startAt: new Date().toISOString() }]} />);
+    const { container } = render(
+      <NextWeekPreview
+        events={[{ title: 'Team Sync', startAt: new Date().toISOString() }]}
+      />,
+    );
     expect(container.textContent).toContain('Team Sync');
   });
 
@@ -552,7 +812,11 @@ describe('[9.2] NextWeekPreview component', () => {
   });
 
   test('shows Date TBD for invalid startAt', () => {
-    const { container } = render(<NextWeekPreview events={[{ title: 'Bad Event', startAt: 'not-a-date' }]} />);
+    const { container } = render(
+      <NextWeekPreview
+        events={[{ title: 'Bad Event', startAt: 'not-a-date' }]}
+      />,
+    );
     expect(container.textContent).toContain('Bad Event');
     expect(container.textContent).toContain('Date TBD');
   });

@@ -18,7 +18,12 @@ export async function approveBooking(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -36,14 +41,24 @@ export async function approveBooking(
   if (selectError || !req) {
     return {
       success: false,
-      error: createFlowError(404, 'NOT_FOUND', 'Scheduling request not found', 'validation'),
+      error: createFlowError(
+        404,
+        'NOT_FOUND',
+        'Scheduling request not found',
+        'validation',
+      ),
     };
   }
 
   if (req.status !== 'options_proposed') {
     return {
       success: false,
-      error: createFlowError(409, 'CONFLICT', `Request is in '${req.status}' status, expected options_proposed`, 'validation'),
+      error: createFlowError(
+        409,
+        'CONFLICT',
+        `Request is in '${req.status}' status, expected options_proposed`,
+        'validation',
+      ),
     };
   }
 
@@ -51,7 +66,12 @@ export async function approveBooking(
   if (!proposedOptions || selectedOptionIndex >= proposedOptions.length) {
     return {
       success: false,
-      error: createFlowError(400, 'INVALID_OPTION', `Invalid option index: ${selectedOptionIndex}`, 'validation'),
+      error: createFlowError(
+        400,
+        'INVALID_OPTION',
+        `Invalid option index: ${selectedOptionIndex}`,
+        'validation',
+      ),
     };
   }
 
@@ -70,7 +90,12 @@ export async function approveBooking(
   if (updateError || !updated) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to update scheduling request', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to update scheduling request',
+        'system',
+      ),
     };
   }
 
@@ -95,7 +120,12 @@ export async function approveBooking(
       .eq('workspace_id', ctx.workspaceId);
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to enqueue event creation', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to enqueue event creation',
+        'system',
+      ),
     };
   }
 

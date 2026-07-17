@@ -22,14 +22,23 @@ interface InvoiceDeliveryRow {
 interface SimpleSupabase {
   from(table: 'invoice_deliveries'): {
     select: (columns: string) => {
-      eq: (column: string, value: string) => {
-        eq: (column: string, value: string) => {
+      eq: (
+        column: string,
+        value: string,
+      ) => {
+        eq: (
+          column: string,
+          value: string,
+        ) => {
           single: () => Promise<{ data: unknown; error: unknown }>;
         };
       };
     };
     update: (values: Record<string, unknown>) => {
-      eq: (column: string, value: string) => {
+      eq: (
+        column: string,
+        value: string,
+      ) => {
         eq: (column: string, value: string) => Promise<{ error: unknown }>;
       };
     };
@@ -42,13 +51,20 @@ export async function scheduleRetry(
   workspaceId: string,
   attemptCount: number,
 ): Promise<void> {
-  const interval = RETRY_INTERVALS[attemptCount - 1] ?? RETRY_INTERVALS[RETRY_INTERVALS.length - 1] ?? 1;
+  const interval =
+    RETRY_INTERVALS[attemptCount - 1] ??
+    RETRY_INTERVALS[RETRY_INTERVALS.length - 1] ??
+    1;
   const retryAfter = new Date(Date.now() + interval * 60 * 1000);
 
-  await boss.send('invoice:retry-delivery', { deliveryId, workspaceId } as RetryPayload, {
-    retryLimit: 0,
-    startAfter: retryAfter.toISOString(),
-  });
+  await boss.send(
+    'invoice:retry-delivery',
+    { deliveryId, workspaceId } as RetryPayload,
+    {
+      retryLimit: 0,
+      startAfter: retryAfter.toISOString(),
+    },
+  );
 }
 
 export async function handleRetryDelivery(
@@ -60,9 +76,7 @@ export async function handleRetryDelivery(
 
   const { data, error } = await supabase
     .from('invoice_deliveries')
-    .select(
-      'id, invoice_id, status, retry_count, message_id, last_error',
-    )
+    .select('id, invoice_id, status, retry_count, message_id, last_error')
     .eq('id', deliveryId)
     .eq('workspace_id', workspaceId)
     .single();
@@ -80,10 +94,14 @@ export async function handleRetryDelivery(
   // reconstruct email payload, and call provider.
   // For 7-2 MVP we surface the retry scaffolding.
 
-  await supabase.from('invoice_deliveries').update({
-    last_error: 'Retry handler scaffold — full retry in 7-2b',
-    retry_count: retryCount + 1,
-  }).eq('id', deliveryId).eq('workspace_id', workspaceId);
+  await supabase
+    .from('invoice_deliveries')
+    .update({
+      last_error: 'Retry handler scaffold — full retry in 7-2b',
+      retry_count: retryCount + 1,
+    })
+    .eq('id', deliveryId)
+    .eq('workspace_id', workspaceId);
 }
 
 function buildEmailPayload(args: {
@@ -111,5 +129,9 @@ function buildEmailPayload(args: {
 }
 
 function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }

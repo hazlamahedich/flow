@@ -9,7 +9,7 @@ vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
 }));
 
-vi.mock('@flow/agents/inbox', () => ({
+vi.mock('@flow/agents/inbox/schemas', () => ({
   morningBriefOutputSchema: {
     safeParse: vi.fn(),
   },
@@ -24,8 +24,16 @@ vi.mock('../flood-state-banner', () => ({
 }));
 
 vi.mock('../collapsed-email-cluster', () => ({
-  CollapsedEmailCluster: ({ title, items }: { title: string; items: any[] }) => (
-    <div>{title} ({items.length})</div>
+  CollapsedEmailCluster: ({
+    title,
+    items,
+  }: {
+    title: string;
+    items: any[];
+  }) => (
+    <div>
+      {title} ({items.length})
+    </div>
   ),
 }));
 
@@ -34,14 +42,18 @@ vi.mock('../morning-brief-quiet-summary', () => ({
 }));
 
 vi.mock('@flow/ui', () => ({
-  Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
-  Button: ({ children }: { children: React.ReactNode }) => <button>{children}</button>,
+  Badge: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
+  Button: ({ children }: { children: React.ReactNode }) => (
+    <button>{children}</button>
+  ),
 }));
 
 import { MorningBrief } from '../morning-brief';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext } from '@flow/db';
-import { morningBriefOutputSchema } from '@flow/agents/inbox';
+import { morningBriefOutputSchema } from '@flow/agents/inbox/schemas';
 
 describe('MorningBrief', () => {
   const mockSupabase: any = {
@@ -139,7 +151,10 @@ describe('MorningBrief', () => {
       data: null,
       error: null,
     });
-    mockSupabase.limit.mockResolvedValueOnce({ data: [{ id: 'inbox-1' }], error: null });
+    mockSupabase.limit.mockResolvedValueOnce({
+      data: [{ id: 'inbox-1' }],
+      error: null,
+    });
 
     const result = await MorningBrief();
     expect(result).toBeNull();
@@ -194,7 +209,9 @@ describe('MorningBrief', () => {
     const jsx = await MorningBrief();
     render(jsx);
 
-    expect(screen.getByText('Connect an inbox to get your first Morning Brief')).toBeDefined();
+    expect(
+      screen.getByText('Connect an inbox to get your first Morning Brief'),
+    ).toBeDefined();
   });
 
   describe('inhale-before-exhale pattern (UX-DR6)', () => {
@@ -281,7 +298,9 @@ describe('MorningBrief', () => {
       const jsx = await MorningBrief();
       render(jsx);
 
-      expect(screen.getByText(/All clear.*your agents handled everything/i)).toBeDefined();
+      expect(
+        screen.getByText(/All clear.*your agents handled everything/i),
+      ).toBeDefined();
     });
   });
 });

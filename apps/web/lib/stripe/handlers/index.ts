@@ -1,8 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { WebhookEvent, WebhookProcessingResult } from '../webhook-types';
 import { handleCheckoutSessionCompleted } from './checkout-completed';
-import { handleSubscriptionUpdated, handleSubscriptionDeleted } from './subscription-updated';
-import { handleInvoicePaid, handleInvoicePaymentFailed } from './invoice-payment';
+import {
+  handleSubscriptionUpdated,
+  handleSubscriptionDeleted,
+} from './subscription-updated';
+import {
+  handleInvoicePaid,
+  handleInvoicePaymentFailed,
+} from './invoice-payment';
 import { handlePaymentFailure } from './payment-failures';
 
 export async function processStripeEvent(
@@ -28,6 +34,9 @@ export async function processStripeEvent(
     case 'checkout.session.expired':
       return handlePaymentFailure(supabase, event);
     default:
-      return { processed: false, reason: `unhandled event type: ${event.type}` };
+      return {
+        processed: false,
+        reason: `unhandled event type: ${event.type}`,
+      };
   }
 }

@@ -8,10 +8,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-[var(--flow-accent-primary)] text-[var(--flow-accent-primary-text)] hover:brightness-[var(--flow-state-hover-brightness)]',
-        destructive: 'bg-[var(--flow-status-error)] text-white hover:brightness-[var(--flow-state-hover-brightness)]',
-        outline: 'border border-[var(--flow-border-default)] bg-transparent hover:bg-[var(--flow-state-overlay-hover)]',
-        secondary: 'bg-[var(--flow-bg-surface-raised)] text-[var(--flow-text-primary)] hover:brightness-[var(--flow-state-hover-brightness)]',
+        default:
+          'bg-[var(--flow-accent-primary)] text-[var(--flow-accent-primary-text)] hover:brightness-[var(--flow-state-hover-brightness)]',
+        destructive:
+          'bg-[var(--flow-status-error)] text-white hover:brightness-[var(--flow-state-hover-brightness)]',
+        outline:
+          'border border-[var(--flow-border-default)] bg-transparent hover:bg-[var(--flow-state-overlay-hover)]',
+        secondary:
+          'bg-[var(--flow-bg-surface-raised)] text-[var(--flow-text-primary)] hover:brightness-[var(--flow-state-hover-brightness)]',
         ghost: 'hover:bg-[var(--flow-state-overlay-hover)]',
         link: 'text-[var(--flow-accent-primary)] underline-offset-4 hover:underline',
       },
@@ -30,7 +34,8 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
@@ -38,7 +43,13 @@ export interface ButtonProps
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button';
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
   },
 );
 Button.displayName = 'Button';

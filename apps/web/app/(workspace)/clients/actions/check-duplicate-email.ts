@@ -1,7 +1,11 @@
 'use server';
 
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, checkDuplicateEmail } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  checkDuplicateEmail,
+} from '@flow/db';
 import type { ActionResult } from '@flow/types';
 
 interface DuplicateEmailResult {
@@ -24,11 +28,20 @@ export async function checkDuplicateEmailAction(input: {
   if (ctx.role === 'member') {
     return {
       success: false,
-      error: createFlowError(403, 'INSUFFICIENT_ROLE', 'Members cannot check duplicate emails.', 'auth'),
+      error: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Members cannot check duplicate emails.',
+        'auth',
+      ),
     };
   }
 
-  const existing = await checkDuplicateEmail(supabase, ctx.workspaceId, email.trim());
+  const existing = await checkDuplicateEmail(
+    supabase,
+    ctx.workspaceId,
+    email.trim(),
+  );
   if (existing) {
     return {
       success: true,

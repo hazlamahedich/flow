@@ -32,7 +32,14 @@ export function DashboardSection({
     >
       <div
         className="flex items-center justify-between border-b border-[var(--flow-color-border-default)] px-4 py-3"
-        style={accent ? { borderLeftWidth: '3px', borderLeftColor: accentColors[accent] ?? undefined } : undefined}
+        style={
+          accent
+            ? {
+                borderLeftWidth: '3px',
+                borderLeftColor: accentColors[accent] ?? undefined,
+              }
+            : undefined
+        }
       >
         <h2
           id={headingId}

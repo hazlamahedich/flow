@@ -8,7 +8,9 @@ function createMockSupabase() {
     is: vi.fn().mockResolvedValue({ error: null }),
   };
   return {
-    from: vi.fn().mockReturnValue({ update: vi.fn().mockReturnValue(updateChain) }),
+    from: vi
+      .fn()
+      .mockReturnValue({ update: vi.fn().mockReturnValue(updateChain) }),
     _updateChain: updateChain,
   } as unknown as SupabaseClient & { _updateChain: typeof updateChain };
 }
@@ -17,7 +19,10 @@ describe('softDeleteTimeEntry', () => {
   it('[P0] sets deleted_at and returns true for owner', async () => {
     const supabase = createMockSupabase();
     const result = await softDeleteTimeEntry(supabase, {
-      id: 'e-1', workspaceId: 'ws-1', userId: 'u-1', role: 'owner',
+      id: 'e-1',
+      workspaceId: 'ws-1',
+      userId: 'u-1',
+      role: 'owner',
     });
     expect(result).toBe(true);
   });
@@ -32,7 +37,10 @@ describe('softDeleteTimeEntry', () => {
     supabase._updateChain.is.mockImplementation(() => supabase._updateChain);
 
     await softDeleteTimeEntry(supabase, {
-      id: 'e-1', workspaceId: 'ws-1', userId: 'u-1', role: 'member',
+      id: 'e-1',
+      workspaceId: 'ws-1',
+      userId: 'u-1',
+      role: 'member',
     });
 
     const columns = eqCalls.map((c) => c[0]);
@@ -49,7 +57,10 @@ describe('softDeleteTimeEntry', () => {
     supabase._updateChain.is.mockImplementation(() => supabase._updateChain);
 
     await softDeleteTimeEntry(supabase, {
-      id: 'e-1', workspaceId: 'ws-1', userId: 'u-1', role: 'owner',
+      id: 'e-1',
+      workspaceId: 'ws-1',
+      userId: 'u-1',
+      role: 'owner',
     });
 
     const columns = eqCalls.map((c) => c[0]);
@@ -62,9 +73,14 @@ describe('softDeleteTimeEntry', () => {
       error: { message: 'RLS violation', code: '42501' },
     });
 
-    await expect(softDeleteTimeEntry(supabase, {
-      id: 'e-1', workspaceId: 'ws-1', userId: 'u-1', role: 'owner',
-    })).rejects.toEqual(expect.objectContaining({ code: '42501' }));
+    await expect(
+      softDeleteTimeEntry(supabase, {
+        id: 'e-1',
+        workspaceId: 'ws-1',
+        userId: 'u-1',
+        role: 'owner',
+      }),
+    ).rejects.toEqual(expect.objectContaining({ code: '42501' }));
   });
 
   it('[P1] does not add user_id filter for admin role (treated same as owner)', async () => {
@@ -77,7 +93,10 @@ describe('softDeleteTimeEntry', () => {
     supabase._updateChain.is.mockImplementation(() => supabase._updateChain);
 
     await softDeleteTimeEntry(supabase, {
-      id: 'e-1', workspaceId: 'ws-1', userId: 'u-1', role: 'admin',
+      id: 'e-1',
+      workspaceId: 'ws-1',
+      userId: 'u-1',
+      role: 'admin',
     });
 
     const columns = eqCalls.map((c) => c[0]);

@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface UsageAnalytics {
   agentCompletionRate: number;
@@ -9,9 +9,7 @@ export interface UsageAnalytics {
 }
 
 function sinceDate(periodDays: number): string {
-  return new Date(
-    Date.now() - periodDays * 24 * 60 * 60 * 1000,
-  ).toISOString();
+  return new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000).toISOString();
 }
 
 export async function getUsageAnalytics(
@@ -23,17 +21,17 @@ export async function getUsageAnalytics(
 
   const [completedRes, failedRes] = await Promise.all([
     client
-      .from("agent_runs")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspaceId)
-      .eq("status", "completed")
-      .gte("created_at", from),
+      .from('agent_runs')
+      .select('id', { count: 'exact', head: true })
+      .eq('workspace_id', workspaceId)
+      .eq('status', 'completed')
+      .gte('created_at', from),
     client
-      .from("agent_runs")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspaceId)
-      .eq("status", "failed")
-      .gte("created_at", from),
+      .from('agent_runs')
+      .select('id', { count: 'exact', head: true })
+      .eq('workspace_id', workspaceId)
+      .eq('status', 'failed')
+      .gte('created_at', from),
   ]);
 
   const completed = completedRes.count ?? 0;
@@ -43,37 +41,36 @@ export async function getUsageAnalytics(
 
   const [approvedRes, rejectedRes, modifiedRes] = await Promise.all([
     client
-      .from("agent_approvals")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspaceId)
-      .eq("decision", "approved")
-      .gte("created_at", from),
+      .from('agent_approvals')
+      .select('id', { count: 'exact', head: true })
+      .eq('workspace_id', workspaceId)
+      .eq('decision', 'approved')
+      .gte('created_at', from),
     client
-      .from("agent_approvals")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspaceId)
-      .eq("decision", "rejected")
-      .gte("created_at", from),
+      .from('agent_approvals')
+      .select('id', { count: 'exact', head: true })
+      .eq('workspace_id', workspaceId)
+      .eq('decision', 'rejected')
+      .gte('created_at', from),
     client
-      .from("agent_approvals")
-      .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspaceId)
-      .eq("decision", "modified")
-      .gte("created_at", from),
+      .from('agent_approvals')
+      .select('id', { count: 'exact', head: true })
+      .eq('workspace_id', workspaceId)
+      .eq('decision', 'modified')
+      .gte('created_at', from),
   ]);
 
   const approved = approvedRes.count ?? 0;
   const rejected = rejectedRes.count ?? 0;
   const modified = modifiedRes.count ?? 0;
   const totalDecisions = approved + rejected + modified;
-  const agentApprovalRate =
-    totalDecisions > 0 ? approved / totalDecisions : 0;
+  const agentApprovalRate = totalDecisions > 0 ? approved / totalDecisions : 0;
 
   const { data: trustRows } = await client
-    .from("trust_snapshots")
-    .select("trust_level")
-    .eq("workspace_id", workspaceId)
-    .gte("recorded_at", from);
+    .from('trust_snapshots')
+    .select('trust_level')
+    .eq('workspace_id', workspaceId)
+    .gte('recorded_at', from);
 
   const trustDistribution: Record<string, number> = {};
   for (const row of trustRows ?? []) {

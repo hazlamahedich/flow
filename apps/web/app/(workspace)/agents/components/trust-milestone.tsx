@@ -15,10 +15,10 @@ interface TrustMilestoneProps {
 }
 
 export function TrustMilestone({ entry }: TrustMilestoneProps) {
-  const {
-    agentLabel = '',
-    milestoneType = '',
-  } = entry.props as Record<string, unknown>;
+  const { agentLabel = '', milestoneType = '' } = entry.props as Record<
+    string,
+    unknown
+  >;
 
   const [, dispatch] = useAtom(overlayStackAtom);
   const announce = useTrustAnnouncer();
@@ -51,7 +51,8 @@ export function TrustMilestone({ entry }: TrustMilestoneProps) {
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibility);
   }, [startTimer]);
 
   const milestone = MILESTONE_COPY[milestoneType as MilestoneType];
@@ -84,7 +85,9 @@ export function TrustMilestone({ entry }: TrustMilestoneProps) {
     >
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-yellow-500 bg-yellow-500/10">
-          <span className="text-lg" aria-hidden="true">★</span>
+          <span className="text-lg" aria-hidden="true">
+            ★
+          </span>
         </div>
         <div>
           <p className="text-sm font-semibold text-[var(--flow-color-text-primary)]">

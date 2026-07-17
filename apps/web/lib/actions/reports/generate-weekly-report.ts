@@ -6,20 +6,22 @@ import { generateWeeklyReportSchema } from '@flow/types';
 import type { ActionResult } from '@flow/types';
 import type { WeeklyReport, WeeklyReportSection } from '@flow/types';
 
-
 interface GenerateReportResult {
   report: WeeklyReport;
   sections: WeeklyReportSection[];
 }
 
-  const SECTION_ORDER: Array<{ type: string; title: string }> = [
-    { type: 'time_summary', title: 'Time Summary' },
-    { type: 'task_log', title: 'Task Log' },
-    { type: 'agent_activity', title: 'Agent Activity' },
-    { type: 'invoice_summary', title: 'Invoice Summary' },
-  ];
+const SECTION_ORDER: Array<{ type: string; title: string }> = [
+  { type: 'time_summary', title: 'Time Summary' },
+  { type: 'task_log', title: 'Task Log' },
+  { type: 'agent_activity', title: 'Agent Activity' },
+  { type: 'invoice_summary', title: 'Invoice Summary' },
+];
 
-function validateResult<T>(result: { data: T | null; error: unknown }): result is { data: T; error: null } {
+function validateResult<T>(result: {
+  data: T | null;
+  error: unknown;
+}): result is { data: T; error: null } {
   return result.error === null && result.data !== null;
 }
 
@@ -51,23 +53,46 @@ export async function generateWeeklyReportAction(
   const parsed = generateWeeklyReportSchema.safeParse(input);
   if (!parsed.success) {
     const issues = parsed.error.issues;
-    const periodTooLong = issues.some((i) => i.path.includes('periodEnd') && i.message.includes('31 days'));
-    const invalidOrder = issues.some((i) => i.path.includes('periodStart') && i.message.includes('<= periodEnd'));
+    const periodTooLong = issues.some(
+      (i) => i.path.includes('periodEnd') && i.message.includes('31 days'),
+    );
+    const invalidOrder = issues.some(
+      (i) =>
+        i.path.includes('periodStart') && i.message.includes('<= periodEnd'),
+    );
     if (periodTooLong) {
       return {
         success: false,
-        error: createFlowError(400, 'PERIOD_TOO_LONG', 'Date range must not exceed 31 days.', 'validation', { issues }),
+        error: createFlowError(
+          400,
+          'PERIOD_TOO_LONG',
+          'Date range must not exceed 31 days.',
+          'validation',
+          { issues },
+        ),
       };
     }
     if (invalidOrder) {
       return {
         success: false,
-        error: createFlowError(400, 'INVALID_DATE_RANGE', 'periodStart must be <= periodEnd.', 'validation', { issues }),
+        error: createFlowError(
+          400,
+          'INVALID_DATE_RANGE',
+          'periodStart must be <= periodEnd.',
+          'validation',
+          { issues },
+        ),
       };
     }
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation', { issues }),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+        { issues },
+      ),
     };
   }
 
@@ -78,14 +103,24 @@ export async function generateWeeklyReportAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
   if (!['owner', 'admin'].includes(ctx.role)) {
     return {
       success: false,
-      error: createFlowError(403, 'FORBIDDEN', 'Only workspace owners and admins can generate reports.', 'auth'),
+      error: createFlowError(
+        403,
+        'FORBIDDEN',
+        'Only workspace owners and admins can generate reports.',
+        'auth',
+      ),
     };
   }
 
@@ -102,7 +137,12 @@ export async function generateWeeklyReportAction(
   if (clientResult.error || !clientResult.data) {
     return {
       success: false,
-      error: createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found in workspace.', 'validation'),
+      error: createFlowError(
+        404,
+        'CLIENT_NOT_FOUND',
+        'Client not found in workspace.',
+        'validation',
+      ),
     };
   }
 
@@ -162,16 +202,24 @@ export async function generateWeeklyReportAction(
   }
 
   // Hardcoded fallback if absolutely nothing
-  const sectionsConfig = (templateSnapshot.sections_config as Record<string, { enabled?: boolean; sort_order?: number }> | undefined) ?? {};
-  const fallbackOrder = ['time_summary', 'task_log', 'agent_activity', 'invoice_summary'] as const;
+  const sectionsConfig =
+    (templateSnapshot.sections_config as
+      | Record<string, { enabled?: boolean; sort_order?: number }>
+      | undefined) ?? {};
+  const fallbackOrder = [
+    'time_summary',
+    'task_log',
+    'agent_activity',
+    'invoice_summary',
+  ] as const;
   const hasEnabledConfig = Object.keys(sectionsConfig).length > 0;
 
   // Build ordered section list respecting enabled flags
   const orderedSections = hasEnabledConfig
-    ? (Object.entries(sectionsConfig)
+    ? Object.entries(sectionsConfig)
         .filter(([, cfg]) => cfg?.enabled)
         .sort(([, a], [, b]) => (a?.sort_order ?? 0) - (b?.sort_order ?? 0))
-        .map(([type]) => type))
+        .map(([type]) => type)
     : fallbackOrder.map((t) => t);
 
   // Preserve sort_order in payload for each section
@@ -183,7 +231,9 @@ export async function generateWeeklyReportAction(
   const [timeResult, invResult, agentResult] = await Promise.all([
     supabase
       .from('time_entries')
-      .select('duration_minutes, notes, date, client_id, project_id, projects(name)')
+      .select(
+        'duration_minutes, notes, date, client_id, project_id, projects(name)',
+      )
       .eq('client_id', clientId)
       .eq('workspace_id', ctx.workspaceId)
       .gte('date', periodStart)
@@ -206,10 +256,19 @@ export async function generateWeeklyReportAction(
       .lt('created_at', `${periodEndNext}T00:00:00Z`),
   ]);
 
-  if (!validateResult(timeResult) || !validateResult(invResult) || !validateResult(agentResult)) {
+  if (
+    !validateResult(timeResult) ||
+    !validateResult(invResult) ||
+    !validateResult(agentResult)
+  ) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to aggregate report data.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to aggregate report data.',
+        'system',
+      ),
     };
   }
 
@@ -217,9 +276,15 @@ export async function generateWeeklyReportAction(
   const invRows = invResult.data;
   const agentRows = agentResult.data;
 
-  const totalMinutes = timeRows.reduce((sum, r) => sum + safeNum(r.duration_minutes), 0);
+  const totalMinutes = timeRows.reduce(
+    (sum, r) => sum + safeNum(r.duration_minutes),
+    0,
+  );
 
-  const totalInvoiceCents = invRows.reduce((sum, r) => sum + safeNum(r.total_cents), 0);
+  const totalInvoiceCents = invRows.reduce(
+    (sum, r) => sum + safeNum(r.total_cents),
+    0,
+  );
 
   const invoiceIds = invRows.map((r) => r.id as string);
   let totalPaidCents = 0;
@@ -235,11 +300,19 @@ export async function generateWeeklyReportAction(
     if (payResult.error) {
       return {
         success: false,
-        error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to aggregate payment data.', 'system'),
+        error: createFlowError(
+          500,
+          'INTERNAL_ERROR',
+          'Failed to aggregate payment data.',
+          'system',
+        ),
       };
     }
 
-    totalPaidCents = (payResult.data ?? []).reduce((sum, r) => sum + safeNum(r.amount_cents), 0);
+    totalPaidCents = (payResult.data ?? []).reduce(
+      (sum, r) => sum + safeNum(r.amount_cents),
+      0,
+    );
   }
 
   const sectionsPayload: Array<Record<string, unknown>> = [];
@@ -250,10 +323,21 @@ export async function generateWeeklyReportAction(
     if (secType === 'time_summary') {
       content = { totalMinutes };
     } else if (secType === 'task_log') {
-      const projectMap = new Map<string, { projectName: string; entries: Array<{ date: string; durationMinutes: number; notes: string }> }>();
+      const projectMap = new Map<
+        string,
+        {
+          projectName: string;
+          entries: Array<{
+            date: string;
+            durationMinutes: number;
+            notes: string;
+          }>;
+        }
+      >();
       for (const r of timeRows) {
         const pid = safeStr(r.project_id);
-        const pname = (((r.projects as unknown) as { name?: string } | null)?.name) ?? '';
+        const pname =
+          (r.projects as unknown as { name?: string } | null)?.name ?? '';
         if (!projectMap.has(pid)) {
           projectMap.set(pid, { projectName: pname, entries: [] });
         }
@@ -267,7 +351,10 @@ export async function generateWeeklyReportAction(
         projects: Array.from(projectMap.values()),
       };
     } else if (secType === 'agent_activity') {
-      const counts = new Map<string, { actionType: string; status: string; count: number }>();
+      const counts = new Map<
+        string,
+        { actionType: string; status: string; count: number }
+      >();
       for (const r of agentRows) {
         const actionType = (r.action_type as string) ?? '';
         const status = (r.status as string) ?? '';
@@ -313,7 +400,12 @@ export async function generateWeeklyReportAction(
   if (rpcError || !reportId) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', rpcError?.message ?? 'Failed to generate report.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        rpcError?.message ?? 'Failed to generate report.',
+        'system',
+      ),
     };
   }
 
@@ -326,7 +418,12 @@ export async function generateWeeklyReportAction(
   if (reportErr || !reportRow) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Report created but could not be retrieved.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Report created but could not be retrieved.',
+        'system',
+      ),
     };
   }
 
@@ -350,20 +447,23 @@ export async function generateWeeklyReportAction(
     version: safeNum(reportRow.version),
     parentReportId: (reportRow.parent_report_id as string | null) ?? null,
     versionGroupId: (reportRow.version_group_id as string | null) ?? null,
-    templateSnapshot: (reportRow.template_snapshot as Record<string, unknown>) ?? {},
+    templateSnapshot:
+      (reportRow.template_snapshot as Record<string, unknown>) ?? {},
     createdAt: nullSafeStr(reportRow.created_at) ?? '',
     updatedAt: nullSafeStr(reportRow.updated_at) ?? '',
   };
 
-  const sections: WeeklyReportSection[] = (sectionRows ?? []).map((s: Record<string, unknown>) => ({
-    id: s.id as string,
-    reportId: s.report_id as string,
-    sectionType: s.section_type as WeeklyReportSection['sectionType'],
-    title: s.title as string,
-    content: (s.content as Record<string, unknown>) ?? {},
-    sortOrder: safeNum(s.sort_order),
-    createdAt: safeStr(s.created_at),
-  }));
+  const sections: WeeklyReportSection[] = (sectionRows ?? []).map(
+    (s: Record<string, unknown>) => ({
+      id: s.id as string,
+      reportId: s.report_id as string,
+      sectionType: s.section_type as WeeklyReportSection['sectionType'],
+      title: s.title as string,
+      content: (s.content as Record<string, unknown>) ?? {},
+      sortOrder: safeNum(s.sort_order),
+      createdAt: safeStr(s.created_at),
+    }),
+  );
 
   return {
     success: true,

@@ -6,7 +6,11 @@ interface TierLimitBannerProps {
   tierName?: string;
 }
 
-export function TierLimitBanner({ activeCount, limit, tierName = 'Free' }: TierLimitBannerProps) {
+export function TierLimitBanner({
+  activeCount,
+  limit,
+  tierName = 'Free',
+}: TierLimitBannerProps) {
   if (limit === -1) return null;
   if (activeCount >= limit * 0.8) {
     return (
@@ -14,7 +18,9 @@ export function TierLimitBanner({ activeCount, limit, tierName = 'Free' }: TierL
         {activeCount} of {limit} clients ({tierName} plan)
         {activeCount >= limit && ' — Limit reached. '}
         {activeCount >= limit && (
-          <span className="font-medium text-[var(--flow-color-text-brand)]">Upgrade</span>
+          <span className="font-medium text-[var(--flow-color-text-brand)]">
+            Upgrade
+          </span>
         )}
       </div>
     );

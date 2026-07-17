@@ -1,7 +1,10 @@
 'use client';
 
 import { cn } from '../../lib/utils';
-import type { FieldResolution, DiffField } from '@flow/db/queries/undo/conflict-types';
+import type {
+  FieldResolution,
+  DiffField,
+} from '@flow/db/queries/undo/conflict-types';
 
 function formatValue(value: unknown): string {
   if (value === null) return 'null';
@@ -29,11 +32,12 @@ export function FieldDiff({ field, choice, onChoice }: FieldDiffProps) {
         You changed <strong>{field.fieldLabel}</strong> to{' '}
         <span className="rounded bg-[var(--flow-color-bg-surface-hover)] px-1.5 py-0.5 font-mono text-xs">
           {formatValue(field.clientValue)}
-        </span>.{' '}
-        The current value is{' '}
+        </span>
+        . The current value is{' '}
         <span className="rounded bg-[var(--flow-color-bg-surface-hover)] px-1.5 py-0.5 font-mono text-xs">
           {formatValue(field.serverValue)}
-        </span>.
+        </span>
+        .
       </p>
       <div className="flex gap-2">
         <button

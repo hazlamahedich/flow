@@ -1,9 +1,7 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import {
-  validatePortalSessionWithDb,
-  PORTAL_COOKIE_NAME,
-} from '@/lib/actions/portal';
+import { validatePortalSessionWithDb } from '@/lib/actions/portal/actions';
+import { PORTAL_COOKIE_NAME } from '@/lib/actions/portal/constants';
 import { PortalBrandingStyle } from '@/app/portal/components/PortalBrandingStyle';
 import { PortalBrandingProvider } from '@/app/portal/components/PortalBrandingProvider';
 import { PORTAL_FONT_CLASSES } from '@/app/portal/fonts';
@@ -64,16 +62,19 @@ export default async function PortalLayout({
   }
 
   // 9-1b T3.1: resolve workspace branding config (defaults to warm-host if none).
-  const brandingConfig: PortalBrandingConfig | undefined = await getPortalBranding(
-    session.workspaceId,
-  );
+  const brandingConfig: PortalBrandingConfig | undefined =
+    await getPortalBranding(session.workspaceId);
 
   return (
     <PortalBrandingStyle config={brandingConfig}>
       <PortalBrandingProvider config={brandingConfig}>
-        <div className={`min-h-screen flex flex-col bg-[var(--flow-bg-canvas)] ${PORTAL_FONT_CLASSES}`}>
+        <div
+          className={`min-h-screen flex flex-col bg-[var(--flow-bg-canvas)] ${PORTAL_FONT_CLASSES}`}
+        >
           <header className="border-b border-[var(--flow-border-default)] px-4 py-2">
-            <p className="text-sm text-[var(--flow-text-muted)]">Client Portal</p>
+            <p className="text-sm text-[var(--flow-text-muted)]">
+              Client Portal
+            </p>
           </header>
           <main className="flex-1">{children}</main>
           <PoweredByFooter slug={slug} />

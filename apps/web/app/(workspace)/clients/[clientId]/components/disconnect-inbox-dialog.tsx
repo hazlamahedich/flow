@@ -39,14 +39,13 @@ export function DisconnectInboxDialog({
           Disconnect Inbox
         </h2>
         <p className="mt-2 text-sm text-[var(--flow-color-text-secondary)]">
-          Are you sure you want to disconnect <strong>{inbox.emailAddress}</strong>?
-          This will stop email processing and revoke Gmail access. The inbox record will be
-          preserved for audit history.
+          Are you sure you want to disconnect{' '}
+          <strong>{inbox.emailAddress}</strong>? This will stop email processing
+          and revoke Gmail access. The inbox record will be preserved for audit
+          history.
         </p>
 
-        {error && (
-          <p className="mt-3 text-sm text-red-600">{error}</p>
-        )}
+        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
         <div className="mt-6 flex justify-end gap-3">
           <button

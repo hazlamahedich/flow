@@ -35,7 +35,9 @@ function mockSupabaseWithUser(user: { id: string; email: string } | null) {
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: { avatar_url: null }, error: null }),
+          single: vi
+            .fn()
+            .mockResolvedValue({ data: { avatar_url: null }, error: null }),
         }),
       }),
     }),
@@ -57,7 +59,9 @@ describe('uploadAvatar', () => {
   });
 
   it('returns unauthorized when no session', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser(null) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser(null) as never,
+    );
     const formData = new FormData();
     const result = await uploadAvatar(formData);
     expect(result.success).toBe(false);
@@ -67,7 +71,9 @@ describe('uploadAvatar', () => {
   });
 
   it('returns error when no file provided', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never,
+    );
     const formData = new FormData();
     const result = await uploadAvatar(formData);
     expect(result.success).toBe(false);
@@ -77,9 +83,15 @@ describe('uploadAvatar', () => {
   });
 
   it('returns error for oversized file', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never,
+    );
     const formData = new FormData();
-    const largeFile = new File([new ArrayBuffer(2 * 1024 * 1024 + 1)], 'big.jpg', { type: 'image/jpeg' });
+    const largeFile = new File(
+      [new ArrayBuffer(2 * 1024 * 1024 + 1)],
+      'big.jpg',
+      { type: 'image/jpeg' },
+    );
     formData.append('avatar', largeFile);
     const result = await uploadAvatar(formData);
     expect(result.success).toBe(false);
@@ -89,7 +101,9 @@ describe('uploadAvatar', () => {
   });
 
   it('returns error for SVG with .jpg extension (magic bytes fail)', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never,
+    );
     const formData = new FormData();
     const svgContent = '<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>';
     const svgFile = new File([svgContent], 'fake.jpg', { type: 'image/jpeg' });
@@ -105,7 +119,9 @@ describe('uploadAvatar', () => {
   });
 
   it('returns error for empty file (0 bytes)', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never,
+    );
     const formData = new FormData();
     const emptyFile = new File([], 'empty.jpg', { type: 'image/jpeg' });
     formData.append('avatar', emptyFile);
@@ -117,9 +133,15 @@ describe('uploadAvatar', () => {
   });
 
   it('rejects file at exactly 2MB + 1 byte boundary', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never,
+    );
     const formData = new FormData();
-    const boundaryFile = new File([new ArrayBuffer(2 * 1024 * 1024 + 1)], 'boundary.jpg', { type: 'image/jpeg' });
+    const boundaryFile = new File(
+      [new ArrayBuffer(2 * 1024 * 1024 + 1)],
+      'boundary.jpg',
+      { type: 'image/jpeg' },
+    );
     formData.append('avatar', boundaryFile);
     const result = await uploadAvatar(formData);
     expect(result.success).toBe(false);
@@ -129,10 +151,16 @@ describe('uploadAvatar', () => {
   });
 
   it('rejects executable disguised as image (wrong magic bytes)', async () => {
-    mockGetServerSupabase.mockResolvedValue(mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never);
+    mockGetServerSupabase.mockResolvedValue(
+      mockSupabaseWithUser({ id: 'user-1', email: 'test@test.com' }) as never,
+    );
     const formData = new FormData();
-    const exeHeader = new Uint8Array([0x4d, 0x5a, 0x90, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00]);
-    const exeFile = new File([exeHeader], 'malware.jpg', { type: 'image/jpeg' });
+    const exeHeader = new Uint8Array([
+      0x4d, 0x5a, 0x90, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00,
+    ]);
+    const exeFile = new File([exeHeader], 'malware.jpg', {
+      type: 'image/jpeg',
+    });
     Object.defineProperty(exeFile, 'arrayBuffer', {
       value: () => Promise.resolve(exeHeader.buffer),
     });

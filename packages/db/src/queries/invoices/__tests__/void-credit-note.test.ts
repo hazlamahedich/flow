@@ -5,7 +5,9 @@ import { getClientFinancialSummary } from '../get-client-financial-summary';
 
 function mockSupabase(rpcResult: unknown, rpcError?: Error) {
   return {
-    rpc: vi.fn().mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
+    rpc: vi
+      .fn()
+      .mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -23,7 +25,12 @@ describe('voidInvoiceViaRpc', () => {
       time_entries_cleared: 2,
     });
 
-    const result = await voidInvoiceViaRpc(client, 'inv-1', 'ws-1', 'Client cancelled');
+    const result = await voidInvoiceViaRpc(
+      client,
+      'inv-1',
+      'ws-1',
+      'Client cancelled',
+    );
     expect(result).toEqual({
       success: true,
       status: 'voided',
@@ -58,7 +65,14 @@ describe('issueCreditNoteViaRpc', () => {
       line_item_sort_order: 3,
     });
 
-    const result = await issueCreditNoteViaRpc(client, 'inv-1', 'ws-1', 500, 'Overcharge', 'user-1');
+    const result = await issueCreditNoteViaRpc(
+      client,
+      'inv-1',
+      'ws-1',
+      500,
+      'Overcharge',
+      'user-1',
+    );
     expect(result).toEqual({
       creditNoteId: 'cn-1',
       newCreditBalanceCents: 500,
@@ -68,7 +82,14 @@ describe('issueCreditNoteViaRpc', () => {
 
   it('returns null when RPC returns error', async () => {
     const client = mockSupabase({ error: 'CREDIT_EXCEEDS_BALANCE' });
-    const result = await issueCreditNoteViaRpc(client, 'inv-1', 'ws-1', 5000, 'Too much', 'user-1');
+    const result = await issueCreditNoteViaRpc(
+      client,
+      'inv-1',
+      'ws-1',
+      5000,
+      'Too much',
+      'user-1',
+    );
     expect(result).toBeNull();
   });
 });
@@ -81,10 +102,30 @@ describe('getClientFinancialSummary', () => {
           eq: vi.fn().mockReturnValue({
             eq: vi.fn().mockResolvedValue({
               data: [
-                { total_cents: 10000, amount_paid_cents: 5000, credit_balance_cents: 0, status: 'sent' },
-                { total_cents: 20000, amount_paid_cents: 20000, credit_balance_cents: 0, status: 'paid' },
-                { total_cents: 5000, amount_paid_cents: 0, credit_balance_cents: 500, status: 'draft' },
-                { total_cents: 3000, amount_paid_cents: 1000, credit_balance_cents: 0, status: 'voided' },
+                {
+                  total_cents: 10000,
+                  amount_paid_cents: 5000,
+                  credit_balance_cents: 0,
+                  status: 'sent',
+                },
+                {
+                  total_cents: 20000,
+                  amount_paid_cents: 20000,
+                  credit_balance_cents: 0,
+                  status: 'paid',
+                },
+                {
+                  total_cents: 5000,
+                  amount_paid_cents: 0,
+                  credit_balance_cents: 500,
+                  status: 'draft',
+                },
+                {
+                  total_cents: 3000,
+                  amount_paid_cents: 1000,
+                  credit_balance_cents: 0,
+                  status: 'voided',
+                },
               ],
               error: null,
             }),
@@ -95,7 +136,7 @@ describe('getClientFinancialSummary', () => {
 
     const result = await getClientFinancialSummary(client, 'c-1', 'ws-1');
     expect(result.totalInvoicedCents).toBe(35000); // excludes voided 3000
-    expect(result.totalPaidCents).toBe(26000);     // 5000 + 20000 + 0 + 1000
+    expect(result.totalPaidCents).toBe(26000); // 5000 + 20000 + 0 + 1000
     expect(result.totalOutstandingCents).toBe(9500);
     // sent: total 10000, paid 5000, credit 0 => outstanding 5000
     // paid: excluded

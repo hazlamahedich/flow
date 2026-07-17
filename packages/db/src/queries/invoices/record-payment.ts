@@ -20,17 +20,16 @@ export async function recordPaymentViaRpc(
     createdBy?: string | null;
   },
 ): Promise<InvoicePaymentResult | null> {
-  const { data, error } = await client
-    .rpc('record_payment_with_concurrency', {
-      p_invoice_id: args.invoiceId,
-      p_workspace_id: args.workspaceId,
-      p_amount_cents: args.amountCents,
-      p_payment_method: args.paymentMethod,
-      p_payment_date: args.paymentDate,
-      p_notes: args.notes ?? null,
-      p_stripe_payment_intent_id: args.stripePaymentIntentId ?? null,
-      p_created_by: args.createdBy ?? null,
-    });
+  const { data, error } = await client.rpc('record_payment_with_concurrency', {
+    p_invoice_id: args.invoiceId,
+    p_workspace_id: args.workspaceId,
+    p_amount_cents: args.amountCents,
+    p_payment_method: args.paymentMethod,
+    p_payment_date: args.paymentDate,
+    p_notes: args.notes ?? null,
+    p_stripe_payment_intent_id: args.stripePaymentIntentId ?? null,
+    p_created_by: args.createdBy ?? null,
+  });
 
   if (error) throw error;
   if (!data) return null;

@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { renderWithTheme } from '@flow/test-utils';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { renderWithTheme, cleanup } from '@flow/test-utils';
 import { DashboardContent } from './dashboard-content';
 import type { DashboardSummary } from '@flow/db';
 
@@ -14,6 +14,13 @@ const zeroSummary: DashboardSummary = {
 beforeEach(() => {
   document.documentElement.removeAttribute('data-flow-theme-provider');
   document.documentElement.removeAttribute('data-theme');
+});
+
+afterEach(() => {
+  cleanup();
+});
+
+beforeEach(() => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: (query: string) => ({
@@ -32,10 +39,7 @@ beforeEach(() => {
 describe('Dashboard Accessibility', () => {
   it('each section is a landmark with aria-labelledby', () => {
     const { container } = renderWithTheme(
-      <DashboardContent
-        summary={zeroSummary}
-        profile={null}
-      />,
+      <DashboardContent summary={zeroSummary} profile={null} />,
     );
 
     const sections = container.querySelectorAll('section');
@@ -51,10 +55,7 @@ describe('Dashboard Accessibility', () => {
 
   it('empty state cards have role="region" with aria-label', () => {
     const { container } = renderWithTheme(
-      <DashboardContent
-        summary={zeroSummary}
-        profile={null}
-      />,
+      <DashboardContent summary={zeroSummary} profile={null} />,
     );
 
     const regions = container.querySelectorAll('[role="region"]');
@@ -68,10 +69,7 @@ describe('Dashboard Accessibility', () => {
 
   it('section headings are focusable via semantic HTML', () => {
     const { container } = renderWithTheme(
-      <DashboardContent
-        summary={zeroSummary}
-        profile={null}
-      />,
+      <DashboardContent summary={zeroSummary} profile={null} />,
     );
 
     const headings = container.querySelectorAll('h2');
@@ -84,10 +82,7 @@ describe('Dashboard Accessibility', () => {
 
   it('needs-attention section has correct id for scroll anchor', () => {
     const { container } = renderWithTheme(
-      <DashboardContent
-        summary={zeroSummary}
-        profile={null}
-      />,
+      <DashboardContent summary={zeroSummary} profile={null} />,
     );
 
     const needsAttention = container.querySelector('#needs-attention');
@@ -97,10 +92,7 @@ describe('Dashboard Accessibility', () => {
 
   it('greeting heading exists with h1', () => {
     const { container } = renderWithTheme(
-      <DashboardContent
-        summary={zeroSummary}
-        profile={null}
-      />,
+      <DashboardContent summary={zeroSummary} profile={null} />,
     );
 
     const h1 = container.querySelector('h1');
@@ -109,10 +101,7 @@ describe('Dashboard Accessibility', () => {
 
   it('CTA links in empty states are accessible', () => {
     const { container } = renderWithTheme(
-      <DashboardContent
-        summary={zeroSummary}
-        profile={null}
-      />,
+      <DashboardContent summary={zeroSummary} profile={null} />,
     );
 
     const links = container.querySelectorAll('a');
@@ -123,13 +112,12 @@ describe('Dashboard Accessibility', () => {
 
   it('all dashboard sections are rendered in correct order', () => {
     const { container } = renderWithTheme(
-      <DashboardContent
-        summary={zeroSummary}
-        profile={null}
-      />,
+      <DashboardContent summary={zeroSummary} profile={null} />,
     );
 
-    const sectionHeadings = Array.from(container.querySelectorAll('section h2'));
+    const sectionHeadings = Array.from(
+      container.querySelectorAll('section h2'),
+    );
     const headingTexts = sectionHeadings.map((h) => h.textContent);
 
     expect(headingTexts).toContain('Needs your attention');

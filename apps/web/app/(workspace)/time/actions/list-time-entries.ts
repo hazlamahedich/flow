@@ -3,26 +3,46 @@
 import { z } from 'zod';
 import type { ActionResult } from '@flow/types';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, listTimeEntries } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  listTimeEntries,
+} from '@flow/db';
 import type { TimeEntryFilters } from '@flow/db';
 
 const filterSchema = z.object({
   clientId: z.string().uuid().optional(),
   projectId: z.string().uuid().optional(),
-  dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  dateFrom: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  dateTo: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   userId: z.string().uuid().optional(),
   page: z.number().int().min(1).optional(),
 });
 
-export async function listTimeEntriesAction(
-  input: unknown,
-): Promise<ActionResult<{ items: unknown[]; total: number; page: number; hasNextPage: boolean }>> {
+export async function listTimeEntriesAction(input: unknown): Promise<
+  ActionResult<{
+    items: unknown[];
+    total: number;
+    page: number;
+    hasNextPage: boolean;
+  }>
+> {
   const parsed = filterSchema.safeParse(input);
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
@@ -49,7 +69,12 @@ export async function listTimeEntriesAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to load time entries', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to load time entries',
+        'system',
+      ),
     };
   }
 }

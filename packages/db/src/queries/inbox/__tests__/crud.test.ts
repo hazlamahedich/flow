@@ -1,7 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-function mockSupabase(returnData: unknown, returnError: unknown = null): SupabaseClient {
+function mockSupabase(
+  returnData: unknown,
+  returnError: unknown = null,
+): SupabaseClient {
   const chain = {
     select: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
@@ -9,7 +12,9 @@ function mockSupabase(returnData: unknown, returnError: unknown = null): Supabas
     delete: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     in: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: returnData, error: returnError }),
+    maybeSingle: vi
+      .fn()
+      .mockResolvedValue({ data: returnData, error: returnError }),
     single: vi.fn().mockResolvedValue({ data: returnData, error: returnError }),
     order: vi.fn().mockReturnThis(),
   };
@@ -60,7 +65,11 @@ describe('inbox CRUD queries', () => {
   describe('getClientInboxByEmail', () => {
     it('returns inbox when found', async () => {
       const supabase = mockSupabase(mockInbox);
-      const result = await getClientInboxByEmail(supabase, 'ws-1', 'test@gmail.com');
+      const result = await getClientInboxByEmail(
+        supabase,
+        'ws-1',
+        'test@gmail.com',
+      );
       expect(result?.emailAddress).toBe('test@gmail.com');
     });
   });
@@ -68,16 +77,26 @@ describe('inbox CRUD queries', () => {
   describe('updateClientInboxSyncStatus', () => {
     it('updates sync status and extras', async () => {
       const supabase = mockSupabase({ ...mockInbox, sync_status: 'syncing' });
-      const result = await updateClientInboxSyncStatus(supabase, 'inbox-1', 'ws-1', 'syncing', {
-        syncCursor: '500',
-      });
+      const result = await updateClientInboxSyncStatus(
+        supabase,
+        'inbox-1',
+        'ws-1',
+        'syncing',
+        {
+          syncCursor: '500',
+        },
+      );
       expect(result?.syncStatus).toBe('syncing');
     });
   });
 
   describe('clearClientInboxTokens', () => {
     it('clears oauth state and sets disconnected', async () => {
-      const supabase = mockSupabase({ ...mockInbox, sync_status: 'disconnected', oauth_state: {} });
+      const supabase = mockSupabase({
+        ...mockInbox,
+        sync_status: 'disconnected',
+        oauth_state: {},
+      });
       const result = await clearClientInboxTokens(supabase, 'inbox-1', 'ws-1');
       expect(result?.syncStatus).toBe('disconnected');
     });

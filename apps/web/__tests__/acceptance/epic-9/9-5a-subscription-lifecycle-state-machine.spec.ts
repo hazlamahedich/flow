@@ -84,7 +84,9 @@ describe('[P0] [9.5a-ATDD-002] lifecycle follows Active → Past Due → Suspend
   });
 
   test('cancelled → suspended is valid when cancel-at-period-end subscription ends', () => {
-    expect(transitionSubscriptionStatus('cancelled', 'suspended').ok).toBe(true);
+    expect(transitionSubscriptionStatus('cancelled', 'suspended').ok).toBe(
+      true,
+    );
   });
 
   test('free → active is valid on first subscription', () => {
@@ -147,7 +149,11 @@ describe('[P0] [9.5a-ATDD-005] nightly reconciliation corrects Stripe/Supabase d
   });
 
   test('reconciliation returns a success result with a drift array', async () => {
-    vi.mocked(runReconciliation).mockResolvedValueOnce({ checked: 0, drift: [], uncorrectable: [] });
+    vi.mocked(runReconciliation).mockResolvedValueOnce({
+      checked: 0,
+      drift: [],
+      uncorrectable: [],
+    });
     const result = await reconcileSubscriptionsAction();
     expect(result.success).toBe(true);
     if (result.success) {
@@ -159,7 +165,14 @@ describe('[P0] [9.5a-ATDD-005] nightly reconciliation corrects Stripe/Supabase d
   test('reconciliation reports drift when Stripe and DB disagree', async () => {
     const report = {
       checked: 1,
-      drift: [{ workspaceId: 'ws-1', fromStatus: 'active', toStatus: 'suspended', corrected: true }],
+      drift: [
+        {
+          workspaceId: 'ws-1',
+          fromStatus: 'active',
+          toStatus: 'suspended',
+          corrected: true,
+        },
+      ],
       uncorrectable: [],
     };
     vi.mocked(runReconciliation).mockResolvedValueOnce(report);

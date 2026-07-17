@@ -33,7 +33,12 @@ export async function beginDrain(
     throw new Error(`Cannot drain agent in ${currentStatus} state`);
   }
 
-  await transitionAgentStatus(workspaceId, agentId, 'draining', expectedVersion);
+  await transitionAgentStatus(
+    workspaceId,
+    agentId,
+    'draining',
+    expectedVersion,
+  );
 
   const client = createServiceClient();
   const { data: runs, error: fetchError } = await client
@@ -48,7 +53,8 @@ export async function beginDrain(
   const affectedRuns: AffectedRun[] = (runs ?? []).map((run) => ({
     runId: run.id,
     status: run.status,
-    outcome: run.status === 'running' ? 'draining' as const : 'cancelled' as const,
+    outcome:
+      run.status === 'running' ? ('draining' as const) : ('cancelled' as const),
   }));
 
   const cancelIds = (runs ?? [])
@@ -63,12 +69,21 @@ export async function beginDrain(
     if (cancelError) throw cancelError;
   }
 
-  const runningCount = affectedRuns.filter((r) => r.outcome === 'draining').length;
+  const runningCount = affectedRuns.filter(
+    (r) => r.outcome === 'draining',
+  ).length;
   if (runningCount === 0) {
     const updatedConfig = await getAgentConfiguration(workspaceId, agentId);
-    if (!updatedConfig) throw new Error('Agent configuration lost during drain');
-    const currentVersion = (updatedConfig as Record<string, unknown>).lifecycle_version as number;
-    await transitionAgentStatus(workspaceId, agentId, 'inactive', currentVersion);
+    if (!updatedConfig)
+      throw new Error('Agent configuration lost during drain');
+    const currentVersion = (updatedConfig as Record<string, unknown>)
+      .lifecycle_version as number;
+    await transitionAgentStatus(
+      workspaceId,
+      agentId,
+      'inactive',
+      currentVersion,
+    );
   }
 
   return { affectedRuns };
@@ -101,6 +116,7 @@ export async function completeDrain(
     throw new Error(`Cannot complete drain: ${count} runs still in progress`);
   }
 
-  const currentVersion = (config as Record<string, unknown>).lifecycle_version as number;
+  const currentVersion = (config as Record<string, unknown>)
+    .lifecycle_version as number;
   await transitionAgentStatus(workspaceId, agentId, 'inactive', currentVersion);
 }

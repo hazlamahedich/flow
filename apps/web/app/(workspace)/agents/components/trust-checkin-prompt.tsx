@@ -11,7 +11,13 @@ interface TrustCheckInPromptProps {
   deferredCount: number;
   isPinned: boolean;
   onAccept: () => void;
-  onDefer: () => Promise<ActionResult<{ deferredCount: number; nextCheckIn: string | null; pinned: boolean }>>;
+  onDefer: () => Promise<
+    ActionResult<{
+      deferredCount: number;
+      nextCheckIn: string | null;
+      pinned: boolean;
+    }>
+  >;
 }
 
 export function TrustCheckInPrompt({
@@ -103,7 +109,9 @@ export function TrustCheckInPrompt({
       </p>
 
       {error && (
-        <p className="text-xs text-red-600 mb-2" role="alert">{error}</p>
+        <p className="text-xs text-red-600 mb-2" role="alert">
+          {error}
+        </p>
       )}
 
       <div className="flex gap-2">

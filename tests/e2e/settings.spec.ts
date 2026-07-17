@@ -10,7 +10,9 @@ test.describe('[P0] Dashboard — Authenticated', () => {
     await expect(ownerPage.locator('#main-content')).toBeVisible();
   });
 
-  test('sidebar navigation is visible on desktop with 2+ agents', async ({ ownerPage }) => {
+  test('sidebar navigation is visible on desktop with 2+ agents', async ({
+    ownerPage,
+  }) => {
     await expect(ownerPage).not.toHaveURL(/\/login/);
     await ownerPage.setViewportSize({ width: 1280, height: 720 });
 
@@ -59,7 +61,10 @@ test.describe('[P0] Team Management', () => {
     await expect(ownerPage).not.toHaveURL(/\/login/);
     const inviteButton = ownerPage.getByRole('button', { name: /invite/i });
     const hasInvite = await inviteButton.isVisible().catch(() => false);
-    test.skip(!hasInvite, 'Invite button not visible — feature may not be active for this workspace');
+    test.skip(
+      !hasInvite,
+      'Invite button not visible — feature may not be active for this workspace',
+    );
     await expect(inviteButton).toBeVisible();
   });
 });
@@ -76,7 +81,9 @@ test.describe('[P0] Device Management', () => {
     ).toBeVisible();
   });
 
-  test('devices page renders device list or empty state', async ({ ownerPage }) => {
+  test('devices page renders device list or empty state', async ({
+    ownerPage,
+  }) => {
     await expect(ownerPage).not.toHaveURL(/\/login/);
     const heading = ownerPage.getByRole('heading', { name: /your devices/i });
     await expect(heading).toBeVisible();

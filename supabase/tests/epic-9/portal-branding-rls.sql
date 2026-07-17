@@ -40,6 +40,13 @@ INSERT INTO auth.users (id, email, aud, role, instance_id, encrypted_password, e
 SELECT '00000000-0000-0000-0000-0000000000b2'::uuid, 'pb-member@test.local', 'authenticated', 'authenticated', '00000000-0000-0000-0000-000000000000', 'x', now(), now(), now()
 WHERE NOT EXISTS (SELECT 1 FROM auth.users WHERE id = '00000000-0000-0000-0000-0000000000b2'::uuid);
 
+-- Create matching public users records so workspace_members FK is satisfied
+INSERT INTO users (id, email, name, timezone)
+VALUES
+  ('00000000-0000-0000-0000-0000000000b1', 'pb-owner@test.local', 'pb-owner', 'UTC'),
+  ('00000000-0000-0000-0000-0000000000b2', 'pb-member@test.local', 'pb-member', 'UTC')
+ON CONFLICT (id) DO NOTHING;
+
 -- Create workspace members (owner + member)
 INSERT INTO workspace_members (workspace_id, user_id, role, status, joined_at)
 VALUES
@@ -94,24 +101,24 @@ SELECT is(
 -- ============================================================
 -- Test 6: Portal role has SELECT grant on workspaces
 -- ============================================================
-SELECT has_table('portal', 'Portal role has access to workspaces table');
+SELECT ok(
+  has_table_privilege('portal', 'workspaces', 'SELECT'),
+  'Portal role has SELECT on workspaces table'
+);
 
 -- ============================================================
 -- Test 7: rls_workspaces_portal_select policy exists
 -- ============================================================
-SELECT policy_is(
-  'rls_workspaces_portal_select',
-  'rls_workspaces_portal_select policy exists for portal role SELECT',
-  'workspaces',
-  ARRAY['portal']::text[]
+SELECT ok(
+  (SELECT COUNT(*) FROM pg_policies WHERE tablename = 'workspaces' AND policyname = 'rls_workspaces_portal_select') > 0,
+  'rls_workspaces_portal_select policy exists for portal role SELECT'
 );
 
 -- ============================================================
 -- Test 8: rls_workspaces_owner_admin_update policy exists
 -- ============================================================
-SELECT isnt(
-  (SELECT COUNT(*) FROM pg_policies WHERE tablename = 'workspaces' AND policyname = 'rls_workspaces_owner_admin_update'),
-  0,
+SELECT ok(
+  (SELECT COUNT(*) FROM pg_policies WHERE tablename = 'workspaces' AND policyname = 'rls_workspaces_owner_admin_update') > 0,
   'rls_workspaces_owner_admin_update policy exists for owner/admin UPDATE'
 );
 

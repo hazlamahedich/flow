@@ -21,7 +21,10 @@ export function DayTwoInput() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-6">
-      <label htmlFor="day-two-task" className="block text-sm font-medium text-[var(--flow-color-foreground)]">
+      <label
+        htmlFor="day-two-task"
+        className="block text-sm font-medium text-[var(--flow-color-foreground)]"
+      >
         What are you working on today?
       </label>
       <div className="mt-2 flex gap-2">

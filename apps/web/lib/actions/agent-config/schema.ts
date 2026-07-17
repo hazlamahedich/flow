@@ -25,5 +25,9 @@ export const updateAgentTriggerConfigSchema = z.object({
 
 export type ActivateAgentInput = z.infer<typeof activateAgentSchema>;
 export type DeactivateAgentInput = z.infer<typeof deactivateAgentSchema>;
-export type UpdateAgentScheduleInput = z.infer<typeof updateAgentScheduleSchema>;
-export type UpdateAgentTriggerConfigInput = z.infer<typeof updateAgentTriggerConfigSchema>;
+export type UpdateAgentScheduleInput = z.infer<
+  typeof updateAgentScheduleSchema
+>;
+export type UpdateAgentTriggerConfigInput = z.infer<
+  typeof updateAgentTriggerConfigSchema
+>;

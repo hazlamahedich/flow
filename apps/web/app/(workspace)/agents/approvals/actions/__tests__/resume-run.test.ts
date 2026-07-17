@@ -6,8 +6,16 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({
-    status, code, message, category,
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({
+    status,
+    code,
+    message,
+    category,
   }),
 }));
 
@@ -15,9 +23,23 @@ import { resumeRun } from '../resume-run';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext } from '@flow/db';
 
-function setupSupabaseMock(selectResult: { data: Record<string, unknown> | null; error: null | { message: string } }, updateResult?: { data: Record<string, unknown> | null; error: null | { message: string } }) {
+function setupSupabaseMock(
+  selectResult: {
+    data: Record<string, unknown> | null;
+    error: null | { message: string };
+  },
+  updateResult?: {
+    data: Record<string, unknown> | null;
+    error: null | { message: string };
+  },
+) {
   const maybeSingleUpdate = vi.fn().mockResolvedValue(
-    updateResult ?? { data: selectResult.data ? { id: selectResult.data.id, status: 'running' } : null, error: null },
+    updateResult ?? {
+      data: selectResult.data
+        ? { id: selectResult.data.id, status: 'running' }
+        : null,
+      error: null,
+    },
   );
 
   const selectChain = {
@@ -37,7 +59,9 @@ function setupSupabaseMock(selectResult: { data: Record<string, unknown> | null;
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({
-      data: updateResult?.data ? { status: 'running' } : { status: 'timed_out' },
+      data: updateResult?.data
+        ? { status: 'running' }
+        : { status: 'timed_out' },
       error: null,
     }),
   };
@@ -71,7 +95,9 @@ function setupSupabaseMock(selectResult: { data: Record<string, unknown> | null;
 
 describe('resumeRun', () => {
   const VALID_UUID = '00000000-0000-0000-0000-000000000001';
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('resumes a timed_out run', async () => {
     setupSupabaseMock({
@@ -101,7 +127,11 @@ describe('resumeRun', () => {
 
   it('returns conflict for non-timed_out status', async () => {
     setupSupabaseMock({
-      data: { id: VALID_UUID, status: 'waiting_approval', workspace_id: 'ws-1' },
+      data: {
+        id: VALID_UUID,
+        status: 'waiting_approval',
+        workspace_id: 'ws-1',
+      },
       error: null,
     });
 
@@ -132,7 +162,10 @@ describe('resumeRun', () => {
 
   it('handles concurrent status change gracefully', async () => {
     setupSupabaseMock(
-      { data: { id: VALID_UUID, status: 'timed_out', workspace_id: 'ws-1' }, error: null },
+      {
+        data: { id: VALID_UUID, status: 'timed_out', workspace_id: 'ws-1' },
+        error: null,
+      },
       { data: null, error: null },
     );
 
@@ -145,7 +178,10 @@ describe('resumeRun', () => {
 
   it('handles database update error', async () => {
     setupSupabaseMock(
-      { data: { id: VALID_UUID, status: 'timed_out', workspace_id: 'ws-1' }, error: null },
+      {
+        data: { id: VALID_UUID, status: 'timed_out', workspace_id: 'ws-1' },
+        error: null,
+      },
       { data: null, error: { message: 'DB error' } },
     );
 

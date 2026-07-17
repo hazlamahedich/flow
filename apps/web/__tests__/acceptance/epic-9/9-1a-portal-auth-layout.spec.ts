@@ -45,8 +45,6 @@ vi.mock('next/headers', () => ({
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext } from '@flow/db';
 import {
-  generatePortalLinkAction,
-  validatePortalTokenAction,
   validatePortalSession,
   PORTAL_TOKEN_BYTES,
   PORTAL_TOKEN_TTL_HOURS,
@@ -56,20 +54,26 @@ import {
   portalTokenSchema,
   generatePortalLinkSchema,
 } from '@/lib/actions/portal';
+import {
+  generatePortalLinkAction,
+  validatePortalTokenAction,
+} from '@/lib/actions/portal/actions';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock Supabase chain helper — mirrors the pattern from epic-8 ATDD files.
 // Returns a supabase-like object whose `from(table)` returns a chainable
 // builder and whose `rpc(...)` returns the supplied payload.
 // ─────────────────────────────────────────────────────────────────────────────
-function mockSupabase(options: {
-  rpcResult?: unknown;
-  rpcError?: unknown;
-  clientRow?: Record<string, unknown> | null;
-  workspaceRow?: Record<string, unknown> | null;
-  insertedRow?: Record<string, unknown> | null;
-  updatedRow?: Record<string, unknown> | null;
-} = {}) {
+function mockSupabase(
+  options: {
+    rpcResult?: unknown;
+    rpcError?: unknown;
+    clientRow?: Record<string, unknown> | null;
+    workspaceRow?: Record<string, unknown> | null;
+    insertedRow?: Record<string, unknown> | null;
+    updatedRow?: Record<string, unknown> | null;
+  } = {},
+) {
   const {
     rpcResult = null,
     rpcError = null,
@@ -83,8 +87,22 @@ function mockSupabase(options: {
     const result = { data: resolvedData, error: null, count };
     const self: Record<string, ReturnType<typeof vi.fn>> = {};
     for (const m of [
-      'select', 'eq', 'neq', 'gte', 'lte', 'lt', 'is', 'in', 'order',
-      'insert', 'update', 'delete', 'limit', 'range', 'or', 'not',
+      'select',
+      'eq',
+      'neq',
+      'gte',
+      'lte',
+      'lt',
+      'is',
+      'in',
+      'order',
+      'insert',
+      'update',
+      'delete',
+      'limit',
+      'range',
+      'or',
+      'not',
     ]) {
       self[m] = vi.fn().mockReturnValue(self);
     }
@@ -119,7 +137,9 @@ function mockSupabase(options: {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(requireTenantContext).mockResolvedValue({
-    workspaceId: 'ws-1', userId: 'user-1', role: 'owner',
+    workspaceId: 'ws-1',
+    userId: 'user-1',
+    role: 'owner',
   } as any);
 });
 
@@ -138,18 +158,29 @@ describe('[P0] [9.1a-ATDD-001] generatePortalLinkAction creates time-limited lin
 
   test('portal token TTL is enforced (default 72 hours per FR51 time-limited)', () => {
     expect(PORTAL_TOKEN_TTL_HOURS).toBeGreaterThan(0);
-    expect(PORTAL_TOKEN_TTL_HOURS).toBeLessThanOrEqual(PORTAL_TOKEN_TTL_MAX_HOURS);
+    expect(PORTAL_TOKEN_TTL_HOURS).toBeLessThanOrEqual(
+      PORTAL_TOKEN_TTL_MAX_HOURS,
+    );
     expect(PORTAL_TOKEN_TTL_MAX_HOURS).toBeLessThanOrEqual(168);
   });
 
   test('generatePortalLinkAction returns url with /portal/ substring for a valid client', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase({
-      clientRow: { id: 'cli-1', workspace_id: 'ws-1', status: 'active', email: 'c@example.com' },
-      workspaceRow: { slug: 'ws-slug' },
-      insertedRow: { id: 'tok-1' },
-    }));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase({
+        clientRow: {
+          id: 'cli-1',
+          workspace_id: 'ws-1',
+          status: 'active',
+          email: 'c@example.com',
+        },
+        workspaceRow: { slug: 'ws-slug' },
+        insertedRow: { id: 'tok-1' },
+      }),
+    );
 
-    const result = await generatePortalLinkAction({ clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9' });
+    const result = await generatePortalLinkAction({
+      clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
+    });
 
     expect(result.success).toBe(true);
     if (result.success) {
@@ -161,11 +192,15 @@ describe('[P0] [9.1a-ATDD-001] generatePortalLinkAction creates time-limited lin
 
   test('generatePortalLinkAction rejects caller without owner/admin role (INSUFFICIENT_ROLE)', async () => {
     vi.mocked(requireTenantContext).mockResolvedValueOnce({
-      workspaceId: 'ws-1', userId: 'user-1', role: 'member',
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'member',
     } as any);
     vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase());
 
-    const result = await generatePortalLinkAction({ clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9' });
+    const result = await generatePortalLinkAction({
+      clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
+    });
 
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -175,11 +210,15 @@ describe('[P0] [9.1a-ATDD-001] generatePortalLinkAction creates time-limited lin
   });
 
   test('generatePortalLinkAction rejects archived client (CLIENT_ARCHIVED — EC9)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase({
-      clientRow: { id: 'cli-1', workspace_id: 'ws-1', status: 'archived' },
-    }));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase({
+        clientRow: { id: 'cli-1', workspace_id: 'ws-1', status: 'archived' },
+      }),
+    );
 
-    const result = await generatePortalLinkAction({ clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9' });
+    const result = await generatePortalLinkAction({
+      clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
+    });
 
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -188,9 +227,13 @@ describe('[P0] [9.1a-ATDD-001] generatePortalLinkAction creates time-limited lin
   });
 
   test('generatePortalLinkAction rejects unknown client (CLIENT_NOT_FOUND)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase({ clientRow: null }));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase({ clientRow: null }),
+    );
 
-    const result = await generatePortalLinkAction({ clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9' });
+    const result = await generatePortalLinkAction({
+      clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
+    });
 
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -199,12 +242,16 @@ describe('[P0] [9.1a-ATDD-001] generatePortalLinkAction creates time-limited lin
   });
 
   test('generatePortalLinkAction rejects rate-limited caller (RATE_LIMITED — FR8)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase({
-      clientRow: { id: 'cli-1', workspace_id: 'ws-1', status: 'active' },
-      rpcResult: { allowed: false, retry_after_ms: 60000 },
-    }));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase({
+        clientRow: { id: 'cli-1', workspace_id: 'ws-1', status: 'active' },
+        rpcResult: { allowed: false, retry_after_ms: 60000 },
+      }),
+    );
 
-    const result = await generatePortalLinkAction({ clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9' });
+    const result = await generatePortalLinkAction({
+      clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
+    });
 
     expect(result.success).toBe(false);
     if (!result.success) {
@@ -214,15 +261,19 @@ describe('[P0] [9.1a-ATDD-001] generatePortalLinkAction creates time-limited lin
   });
 
   test('generatePortalLinkSchema accepts optional ttlHours bounded by 168', () => {
-    expect(generatePortalLinkSchema.safeParse({
-      clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
-      ttlHours: 168,
-    }).success).toBe(true);
+    expect(
+      generatePortalLinkSchema.safeParse({
+        clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
+        ttlHours: 168,
+      }).success,
+    ).toBe(true);
 
-    expect(generatePortalLinkSchema.safeParse({
-      clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
-      ttlHours: 169,
-    }).success).toBe(false);
+    expect(
+      generatePortalLinkSchema.safeParse({
+        clientId: 'ba0e897a-391f-4739-b86a-e243cc05d4c9',
+        ttlHours: 169,
+      }).success,
+    ).toBe(false);
   });
 });
 
@@ -231,17 +282,21 @@ describe('[P0] [9.1a-ATDD-001] generatePortalLinkAction creates time-limited lin
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [9.1a-ATDD-002] validatePortalTokenAction enforces TTL and revocation', () => {
   test('valid unexpired token resolves to client context (EC1)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase({
-      rpcResult: [
-        {
-          client_id: 'cli-1',
-          workspace_id: 'ws-1',
-          token_id: 'tok-1',
-        },
-      ],
-    }));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase({
+        rpcResult: [
+          {
+            client_id: 'cli-1',
+            workspace_id: 'ws-1',
+            token_id: 'tok-1',
+          },
+        ],
+      }),
+    );
 
-    const ctx = await validatePortalTokenAction('valid-opaque-token-1234567890');
+    const ctx = await validatePortalTokenAction(
+      'valid-opaque-token-1234567890',
+    );
 
     expect(ctx).not.toBeNull();
     expect(ctx?.clientId).toBe('cli-1');
@@ -251,24 +306,40 @@ describe('[P0] [9.1a-ATDD-002] validatePortalTokenAction enforces TTL and revoca
 
   test('expired token is rejected (returns null — EC3)', async () => {
     // verify_portal_token returns empty for expired — action maps to null.
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase({ rpcResult: [] }));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase({ rpcResult: [] }),
+    );
 
-    expect(await validatePortalTokenAction('expired-token-1234567890')).toBeNull();
+    expect(
+      await validatePortalTokenAction('expired-token-1234567890'),
+    ).toBeNull();
   });
 
   test('revoked token is rejected (returns null — EC4)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase({ rpcResult: [] }));
-    expect(await validatePortalTokenAction('revoked-token-1234567890')).toBeNull();
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase({ rpcResult: [] }),
+    );
+    expect(
+      await validatePortalTokenAction('revoked-token-1234567890'),
+    ).toBeNull();
   });
 
   test('already-used token is rejected (returns null — EC2 single-use)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase({ rpcResult: [] }));
-    expect(await validatePortalTokenAction('used-token-1234567890123')).toBeNull();
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase({ rpcResult: [] }),
+    );
+    expect(
+      await validatePortalTokenAction('used-token-1234567890123'),
+    ).toBeNull();
   });
 
   test('unknown token returns null (no enumeration leak per FR8)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase({ rpcResult: [] }));
-    expect(await validatePortalTokenAction('nonexistent-token-12345678')).toBeNull();
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase({ rpcResult: [] }),
+    );
+    expect(
+      await validatePortalTokenAction('nonexistent-token-12345678'),
+    ).toBeNull();
   });
 
   test('malformed token string is rejected by Zod before DB lookup (EC6)', async () => {
@@ -281,15 +352,21 @@ describe('[P0] [9.1a-ATDD-002] validatePortalTokenAction enforces TTL and revoca
   });
 
   test('rate-limited validation returns null (FR8)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase({
-      rpcResult: { allowed: false, retry_after_ms: 1000 }, // first call = rate limit check
-    }));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase({
+        rpcResult: { allowed: false, retry_after_ms: 1000 }, // first call = rate limit check
+      }),
+    );
 
-    expect(await validatePortalTokenAction('rate-limited-test-12345678')).toBeNull();
+    expect(
+      await validatePortalTokenAction('rate-limited-test-12345678'),
+    ).toBeNull();
   });
 
   test('portalTokenSchema rejects malformed token strings', () => {
-    expect(portalTokenSchema.safeParse({ token: '', clientId: '' }).success).toBe(false);
+    expect(
+      portalTokenSchema.safeParse({ token: '', clientId: '' }).success,
+    ).toBe(false);
     expect(
       portalTokenSchema.safeParse({
         token: 'valid-token-chars_123',
@@ -328,13 +405,17 @@ describe('[P0] [9.1a-ATDD-004] abuse prevention on portal access (FR8)', () => {
   test('repeated token validation attempts are rate-limited per IP', async () => {
     // Rate limit returns allowed:false on the 6th attempt within an hour.
     // The action receives this on the first RPC call and short-circuits to null.
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase({
-      rpcResult: { allowed: false, retry_after_ms: 5000 },
-    }));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase({
+        rpcResult: { allowed: false, retry_after_ms: 5000 },
+      }),
+    );
 
     const results = await Promise.all(
       Array.from({ length: 5 }, () =>
-        validatePortalTokenAction('bad-token-rate-limit-test-12').catch(() => null),
+        validatePortalTokenAction('bad-token-rate-limit-test-12').catch(
+          () => null,
+        ),
       ),
     );
     expect(results.every((r) => r === null)).toBe(true);

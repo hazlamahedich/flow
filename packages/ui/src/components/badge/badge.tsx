@@ -7,20 +7,30 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-[var(--flow-accent-primary)] text-[var(--flow-accent-primary-text)]',
-        secondary: 'border-transparent bg-[var(--flow-bg-surface-raised)] text-[var(--flow-text-secondary)]',
-        outline: 'border-[var(--flow-border-default)] text-[var(--flow-text-primary)]',
-        success: 'border-transparent bg-[var(--flow-status-success)] text-[var(--flow-text-inverse)]',
-        warning: 'border-transparent bg-[var(--flow-status-warning)] text-[var(--flow-text-inverse)]',
-        error: 'border-transparent bg-[var(--flow-status-error)] text-[var(--flow-text-inverse)]',
+        default:
+          'border-transparent bg-[var(--flow-accent-primary)] text-[var(--flow-accent-primary-text)]',
+        secondary:
+          'border-transparent bg-[var(--flow-bg-surface-raised)] text-[var(--flow-text-secondary)]',
+        outline:
+          'border-[var(--flow-border-default)] text-[var(--flow-text-primary)]',
+        success:
+          'border-transparent bg-[var(--flow-status-success)] text-[var(--flow-text-inverse)]',
+        warning:
+          'border-transparent bg-[var(--flow-status-warning)] text-[var(--flow-text-inverse)]',
+        error:
+          'border-transparent bg-[var(--flow-status-error)] text-[var(--flow-text-inverse)]',
       },
       agent: {
         none: '',
-        inbox: 'border-transparent bg-[var(--flow-agent-inbox)]/15 text-[var(--flow-agent-inbox)]',
-        calendar: 'border-transparent bg-[var(--flow-agent-calendar)]/15 text-[var(--flow-agent-calendar)]',
+        inbox:
+          'border-transparent bg-[var(--flow-agent-inbox)]/15 text-[var(--flow-agent-inbox)]',
+        calendar:
+          'border-transparent bg-[var(--flow-agent-calendar)]/15 text-[var(--flow-agent-calendar)]',
         ar: 'border-transparent bg-[var(--flow-agent-ar)]/15 text-[var(--flow-agent-ar)]',
-        report: 'border-transparent bg-[var(--flow-agent-report)]/15 text-[var(--flow-agent-report)]',
-        health: 'border-transparent bg-[var(--flow-agent-health)]/15 text-[var(--flow-agent-health)]',
+        report:
+          'border-transparent bg-[var(--flow-agent-report)]/15 text-[var(--flow-agent-report)]',
+        health:
+          'border-transparent bg-[var(--flow-agent-health)]/15 text-[var(--flow-agent-health)]',
         time: 'border-transparent bg-[var(--flow-agent-time)]/15 text-[var(--flow-agent-time)]',
       },
     },
@@ -36,13 +46,20 @@ const badgeVariants = cva(
 );
 
 export interface BadgeProps
-  extends HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+  extends HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
 
 const Badge = forwardRef<HTMLDivElement, BadgeProps>(
   ({ className, variant, agent, ...props }, ref) => {
     const effectiveVariant = agent && agent !== 'none' ? 'outline' : variant;
-    return <div ref={ref} className={cn(badgeVariants({ variant: effectiveVariant, agent, className }))} {...props} />;
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          badgeVariants({ variant: effectiveVariant, agent, className }),
+        )}
+        {...props}
+      />
+    );
   },
 );
 Badge.displayName = 'Badge';

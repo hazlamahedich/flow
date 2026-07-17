@@ -19,7 +19,10 @@ export interface AgentStatusBarProps {
 
 const TIER_ORDER: Record<CadenceTier, number> = { high: 0, low: 1, ambient: 2 };
 
-export function AgentStatusBar({ agents, collapsed = false }: AgentStatusBarProps) {
+export function AgentStatusBar({
+  agents,
+  collapsed = false,
+}: AgentStatusBarProps) {
   const sorted = [...agents].sort((a, b) => {
     const tierA = AGENT_CADENCE[a.agentId] ?? 'low';
     const tierB = AGENT_CADENCE[b.agentId] ?? 'low';

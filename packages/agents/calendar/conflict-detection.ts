@@ -98,14 +98,13 @@ export async function detectConflictsForEvent(
 
   if (dbError) {
     throw Object.assign(
-      new Error(
-        `Failed to query overlapping events: ${dbError.message}`,
-      ),
+      new Error(`Failed to query overlapping events: ${dbError.message}`),
       { code: 'CALENDAR_CONNECTION_FAILED' as const, statusCode: 500 },
     );
   }
 
-  const overlappingRows: OverlappingEventRow[] = (dbRows ?? []) as OverlappingEventRow[];
+  const overlappingRows: OverlappingEventRow[] = (dbRows ??
+    []) as OverlappingEventRow[];
 
   // Build conflict results from DB rows
   const conflicts: ConflictResult[] = overlappingRows.map((row) => {

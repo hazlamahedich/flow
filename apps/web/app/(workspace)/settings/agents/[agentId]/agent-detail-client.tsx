@@ -2,10 +2,27 @@
 
 import { useState, useTransition } from 'react';
 import { Badge, Button, Card, CardHeader, CardContent } from '@flow/ui';
-import { activateAgent, deactivateAgent, updateAgentSchedule, updateAgentTriggerConfig } from '@/lib/actions/agent-config/actions';
+import {
+  activateAgent,
+  deactivateAgent,
+  updateAgentSchedule,
+  updateAgentTriggerConfig,
+} from '@/lib/actions/agent-config/actions';
 import type { AgentId, AgentBackendStatus } from '@flow/types';
 
-const STATUS_DISPLAY: Record<string, { label: string; variant: 'default' | 'secondary' | 'error' | 'outline' | 'success' | 'warning' }> = {
+const STATUS_DISPLAY: Record<
+  string,
+  {
+    label: string;
+    variant:
+      | 'default'
+      | 'secondary'
+      | 'error'
+      | 'outline'
+      | 'success'
+      | 'warning';
+  }
+> = {
   inactive: { label: 'Inactive', variant: 'secondary' },
   activating: { label: 'Activating', variant: 'outline' },
   active: { label: 'Active', variant: 'success' },
@@ -48,13 +65,19 @@ export function AgentDetailClient({
     startTransition(async () => {
       try {
         if (isActive) {
-          const result = await deactivateAgent({ agentId, expectedVersion: lifecycleVersion });
+          const result = await deactivateAgent({
+            agentId,
+            expectedVersion: lifecycleVersion,
+          });
           if (!result.success) {
             setError(result.error?.message ?? 'Failed to deactivate');
             return;
           }
         } else {
-          const result = await activateAgent({ agentId, expectedVersion: lifecycleVersion });
+          const result = await activateAgent({
+            agentId,
+            expectedVersion: lifecycleVersion,
+          });
           if (!result.success) {
             setError(result.error?.message ?? 'Failed to activate');
             return;
@@ -73,7 +96,9 @@ export function AgentDetailClient({
         <div className="flex items-center gap-3">
           <div
             className="flex h-10 w-10 items-center justify-center rounded-lg"
-            style={{ backgroundColor: `color-mix(in srgb, var(--flow-agent-${icon}) 15%, transparent)` }}
+            style={{
+              backgroundColor: `color-mix(in srgb, var(--flow-agent-${icon}) 15%, transparent)`,
+            }}
           >
             <div
               className="h-3 w-3 rounded-full"
@@ -93,7 +118,9 @@ export function AgentDetailClient({
       </div>
 
       {error && (
-        <p className="text-sm text-[var(--flow-status-error)]" role="alert">{error}</p>
+        <p className="text-sm text-[var(--flow-status-error)]" role="alert">
+          {error}
+        </p>
       )}
 
       {!setupCompleted && !isActive && (
@@ -145,7 +172,9 @@ export function AgentDetailClient({
         <CardContent>
           <div className="space-y-3">
             <div>
-              <span className="text-xs font-medium text-[var(--flow-color-text-secondary)]">Schedule</span>
+              <span className="text-xs font-medium text-[var(--flow-color-text-secondary)]">
+                Schedule
+              </span>
               <p className="text-sm text-[var(--flow-color-text-primary)]">
                 {schedule?.type === 'always'
                   ? 'Always active'
@@ -157,13 +186,22 @@ export function AgentDetailClient({
               </p>
             </div>
             <div className="border-t border-[var(--flow-color-border-default)] pt-3">
-              <span className="text-xs font-medium text-[var(--flow-color-text-secondary)]">Triggers</span>
+              <span className="text-xs font-medium text-[var(--flow-color-text-secondary)]">
+                Triggers
+              </span>
               <div className="mt-1 flex flex-wrap gap-2">
-                {Boolean(triggerConfig?.onNewEmail) && <Badge variant="outline">New Email</Badge>}
-                {Boolean(triggerConfig?.onScheduleConflict) && <Badge variant="outline">Schedule Conflict</Badge>}
-                {!Boolean(triggerConfig?.onNewEmail) && !Boolean(triggerConfig?.onScheduleConflict) && (
-                  <span className="text-xs text-[var(--flow-color-text-muted)]">No triggers configured</span>
+                {Boolean(triggerConfig?.onNewEmail) && (
+                  <Badge variant="outline">New Email</Badge>
                 )}
+                {Boolean(triggerConfig?.onScheduleConflict) && (
+                  <Badge variant="outline">Schedule Conflict</Badge>
+                )}
+                {!Boolean(triggerConfig?.onNewEmail) &&
+                  !Boolean(triggerConfig?.onScheduleConflict) && (
+                    <span className="text-xs text-[var(--flow-color-text-muted)]">
+                      No triggers configured
+                    </span>
+                  )}
               </div>
             </div>
           </div>

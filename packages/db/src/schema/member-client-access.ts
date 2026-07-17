@@ -1,4 +1,10 @@
-import { pgTable, uuid, timestamp, uniqueIndex, index } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  timestamp,
+  uniqueIndex,
+  index,
+} from 'drizzle-orm/pg-core';
 import { workspaces } from './workspaces';
 
 export const memberClientAccess = pgTable(
@@ -15,9 +21,14 @@ export const memberClientAccess = pgTable(
     revokedAt: timestamp('revoked_at', { withTimezone: true }),
   },
   (table) => [
-    uniqueIndex('member_client_access_workspace_user_client_unique')
-      .on(table.workspaceId, table.userId, table.clientId),
-    index('idx_member_client_access_workspace_user')
-      .on(table.workspaceId, table.userId),
+    uniqueIndex('member_client_access_workspace_user_client_unique').on(
+      table.workspaceId,
+      table.userId,
+      table.clientId,
+    ),
+    index('idx_member_client_access_workspace_user').on(
+      table.workspaceId,
+      table.userId,
+    ),
   ],
 );

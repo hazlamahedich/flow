@@ -12,7 +12,13 @@ export async function deleteReportTemplateAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation', { issues: parsed.error.issues }),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+        { issues: parsed.error.issues },
+      ),
     };
   }
 
@@ -23,14 +29,24 @@ export async function deleteReportTemplateAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
   if (!['owner', 'admin'].includes(ctx.role)) {
     return {
       success: false,
-      error: createFlowError(403, 'FORBIDDEN', 'Only workspace owners and admins can manage templates.', 'auth'),
+      error: createFlowError(
+        403,
+        'FORBIDDEN',
+        'Only workspace owners and admins can manage templates.',
+        'auth',
+      ),
     };
   }
 
@@ -47,7 +63,12 @@ export async function deleteReportTemplateAction(
   if (!existing) {
     return {
       success: false,
-      error: createFlowError(404, 'NOT_FOUND', 'Template not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'NOT_FOUND',
+        'Template not found.',
+        'validation',
+      ),
     };
   }
 
@@ -63,7 +84,12 @@ export async function deleteReportTemplateAction(
     if (!count || count < 1) {
       return {
         success: false,
-        error: createFlowError(400, 'DEFAULT_TEMPLATE_REQUIRED', 'Cannot delete workspace default template without a replacement.', 'validation'),
+        error: createFlowError(
+          400,
+          'DEFAULT_TEMPLATE_REQUIRED',
+          'Cannot delete workspace default template without a replacement.',
+          'validation',
+        ),
       };
     }
   }
@@ -77,7 +103,12 @@ export async function deleteReportTemplateAction(
   if (delErr) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', delErr.message ?? 'Failed to delete template.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        delErr.message ?? 'Failed to delete template.',
+        'system',
+      ),
     };
   }
 

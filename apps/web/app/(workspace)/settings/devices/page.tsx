@@ -6,7 +6,9 @@ import { DevicesList } from './components/devices-list';
 
 export default async function DevicesPage() {
   const supabase = await getServerSupabase();
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   if (!session?.user) {
     redirect('/login');
@@ -30,7 +32,8 @@ export default async function DevicesPage() {
           Your Devices
         </h1>
         <p className="mt-1 text-sm text-[var(--flow-color-text-secondary)]">
-          Manage devices trusted to stay signed in. You can have up to 5 trusted devices.
+          Manage devices trusted to stay signed in. You can have up to 5 trusted
+          devices.
         </p>
       </div>
 

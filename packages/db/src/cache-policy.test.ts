@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  getRevalidationTags,
-  invalidateAfterMutation,
-} from './cache-policy';
+import { getRevalidationTags, invalidateAfterMutation } from './cache-policy';
 
 describe('getRevalidationTags', () => {
   it('returns base tags without tenantId', () => {

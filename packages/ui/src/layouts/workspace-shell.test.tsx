@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, fireEvent, act, type RenderResult } from '@testing-library/react';
+import {
+  render,
+  fireEvent,
+  act,
+  type RenderResult,
+} from '@testing-library/react';
 import { Provider } from 'jotai';
 import { WorkspaceShell } from './workspace-shell';
 import { resetShortcutRegistry } from '../components/command-palette/keyboard-listener';
@@ -12,10 +17,18 @@ function mockLocalStorage() {
   const store: Record<string, string> = {};
   return {
     getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { Object.keys(store).forEach((k) => delete store[k]); },
-    get length() { return Object.keys(store).length; },
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      Object.keys(store).forEach((k) => delete store[k]);
+    },
+    get length() {
+      return Object.keys(store).length;
+    },
     key: () => null,
   };
 }
@@ -63,13 +76,17 @@ describe('WorkspaceShell', () => {
 
   it('renders main content', () => {
     const { container } = renderShell(2);
-    expect(container.querySelector('[data-testid="page-content"]')).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="page-content"]'),
+    ).not.toBeNull();
   });
 
   it('renders no sidebar for agentCount < 2', () => {
     const { container } = renderShell(1);
     expect(container.querySelector('[data-testid="sidebar"]')).toBeNull();
-    expect(container.querySelector('[data-testid="page-content"]')).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="page-content"]'),
+    ).not.toBeNull();
   });
 
   it('renders no sidebar for agentCount = 0', () => {

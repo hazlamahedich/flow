@@ -6,9 +6,7 @@ const LLM_TIMEOUT_MS = 8000;
 const MAX_RETRIES = 2;
 
 function stripMarkdownFences(text: string): string {
-  return text
-    .replace(/^```(?:json)?\s*\n?/m, '')
-    .replace(/\n?\s*```\s*$/m, '');
+  return text.replace(/^```(?:json)?\s*\n?/m, '').replace(/\n?\s*```\s*$/m, '');
 }
 
 interface BriefGenerationResult {
@@ -16,7 +14,9 @@ interface BriefGenerationResult {
   isFallback: boolean;
 }
 
-export async function generateBrief(context: MorningBriefContext): Promise<BriefGenerationResult> {
+export async function generateBrief(
+  context: MorningBriefContext,
+): Promise<BriefGenerationResult> {
   const router = createLLMRouter();
 
   if (!context.hasEmails && context.rawGroups.length === 0) {
@@ -53,11 +53,15 @@ Output a JSON object with keys: summaryLine (string), handledItems (array), need
   const userPrompt = `Generate a Morning Brief for the following workspace activity since ${context.since.toISOString()}.
 
 Context:
-${context.rawGroups.map((g) => `
+${context.rawGroups
+  .map(
+    (g) => `
 ### Client: ${g.clientName} (ID: ${g.clientId})
 Emails:
 ${g.emails.map((e) => `- ID: ${e.id}, Subject: ${e.subject}, Sender: ${e.sender}, Category: ${e.category ?? 'uncategorized'}`).join('\n')}
-`).join('\n')}
+`,
+  )
+  .join('\n')}
 
 Threads requiring summary:
 ${context.threadSummaries.map((t) => `- Thread Key: ${t.threadKey}, Email Count: ${t.emailCount}, Client: ${t.clientName}`).join('\n')}
@@ -75,25 +79,36 @@ ${!context.hasInboxes ? 'REASSURANCE: No inboxes connected.' : ''}`;
     const timeoutId = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS);
 
     try {
-      const response = await router.complete(messages, {
-        workspaceId: context.workspaceId,
-        agentId: 'inbox',
-      }, {
-        taskTier: 'fast',
-        maxTokens: 2048,
-        temperature: attempt === 0 ? 0.1 : 0.3,
-        abortSignal: controller.signal,
-      });
+      const response = await router.complete(
+        messages,
+        {
+          workspaceId: context.workspaceId,
+          agentId: 'inbox',
+        },
+        {
+          taskTier: 'fast',
+          maxTokens: 2048,
+          temperature: attempt === 0 ? 0.1 : 0.3,
+          abortSignal: controller.signal,
+        },
+      );
 
       clearTimeout(timeoutId);
 
       const cleanText = stripMarkdownFences(response.text);
       const parsed = morningBriefOutputSchema.safeParse(JSON.parse(cleanText));
       if (parsed.success) {
-        return { brief: parsed.data as MorningBriefProposal, isFallback: false };
+        return {
+          brief: parsed.data as MorningBriefProposal,
+          isFallback: false,
+        };
       }
 
-      console.error('Zod parse failure on attempt %d:', attempt + 1, parsed.error);
+      console.error(
+        'Zod parse failure on attempt %d:',
+        attempt + 1,
+        parsed.error,
+      );
     } catch (error) {
       clearTimeout(timeoutId);
       console.error('LLM generation attempt %d failed:', attempt + 1, error);
@@ -102,11 +117,12 @@ ${!context.hasInboxes ? 'REASSURANCE: No inboxes connected.' : ''}`;
 
   return {
     brief: {
-      summaryLine: 'Technical issue generating today\'s brief.',
+      summaryLine: "Technical issue generating today's brief.",
       handledItems: [],
       needsAttentionItems: [],
       threadSummaries: [],
-      reassuranceMessage: 'Technical issue generating today\'s brief — retrying shortly.',
+      reassuranceMessage:
+        "Technical issue generating today's brief — retrying shortly.",
       clientBreakdown: context.clientBreakdown || [],
     },
     isFallback: true,

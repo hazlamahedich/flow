@@ -42,7 +42,12 @@ export function shouldDequeueForWorkspace(status: SubscriptionStatus): boolean {
  * consume `subscription_status` directly).
  */
 export const PAUSED_STATUSES: ReadonlySet<SubscriptionStatus> = Object.freeze(
-  new Set<SubscriptionStatus>(['past_due', 'suspended', 'cancelled', 'deleted']),
+  new Set<SubscriptionStatus>([
+    'past_due',
+    'suspended',
+    'cancelled',
+    'deleted',
+  ]),
 );
 
 /**

@@ -20,7 +20,9 @@ export async function markTimeEntriesInvoiced(
     .eq('invoice_id', invoiceId)
     .not('time_entry_id', 'is', null);
 
-  const invoicedTimeEntryIds = ((lineItemTimeEntries ?? []) as Array<{ time_entry_id: string | null }>)
+  const invoicedTimeEntryIds = (
+    (lineItemTimeEntries ?? []) as Array<{ time_entry_id: string | null }>
+  )
     .map((te) => te.time_entry_id)
     .filter((id): id is string => id !== null);
 
@@ -35,10 +37,19 @@ export async function markTimeEntriesInvoiced(
     .eq('workspace_id', workspaceId);
 
   if (teMarkError) {
-    console.error('Failed to mark time entries as invoiced:', teMarkError.message, { invoiceId, timeEntryIds: invoicedTimeEntryIds });
+    console.error(
+      'Failed to mark time entries as invoiced:',
+      teMarkError.message,
+      { invoiceId, timeEntryIds: invoicedTimeEntryIds },
+    );
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to mark time entries as invoiced.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to mark time entries as invoiced.',
+        'system',
+      ),
     };
   }
 

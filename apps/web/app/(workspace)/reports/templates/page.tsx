@@ -23,7 +23,11 @@ async function getTemplatesForWorkspace(workspaceId: string) {
     .order('updated_at', { ascending: false });
   return (data ?? []).map((row) => ({
     id: row.id as string,
-    clientId: ((row.client_id as string | null) ?? null) && typeof row.client_id === 'string' ? (row.client_id as string) : null,
+    clientId:
+      ((row.client_id as string | null) ?? null) &&
+      typeof row.client_id === 'string'
+        ? (row.client_id as string)
+        : null,
     name: row.name as string,
     sectionsConfig: (row.sections_config as Record<string, unknown>) ?? {},
     branding: (row.branding as Record<string, unknown>) ?? {},
@@ -39,7 +43,10 @@ export default async function TemplatesPage() {
   } catch {
     return (
       <div className="space-y-6">
-        <Link href="/reports" className="text-sm text-muted-foreground hover:underline">
+        <Link
+          href="/reports"
+          className="text-sm text-muted-foreground hover:underline"
+        >
           ← Back to reports
         </Link>
         <p className="text-sm text-destructive">Authentication required</p>
@@ -54,7 +61,10 @@ export default async function TemplatesPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/reports" className="text-sm text-muted-foreground hover:underline">
+      <Link
+        href="/reports"
+        className="text-sm text-muted-foreground hover:underline"
+      >
         ← Back to reports
       </Link>
       <ClientTemplatePage items={items} clients={clients} />

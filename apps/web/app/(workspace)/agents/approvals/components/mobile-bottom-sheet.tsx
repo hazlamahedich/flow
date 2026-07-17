@@ -11,14 +11,24 @@ interface MobileBottomSheetProps {
   children: React.ReactNode;
 }
 
-export function MobileBottomSheet({ name, title, children }: MobileBottomSheetProps) {
-  const [sheet, setSheet] = useQueryState('sheet', { scroll: false, shallow: true });
+export function MobileBottomSheet({
+  name,
+  title,
+  children,
+}: MobileBottomSheetProps) {
+  const [sheet, setSheet] = useQueryState('sheet', {
+    scroll: false,
+    shallow: true,
+  });
 
   const isOpen = sheet === name;
   const closeSheet = () => setSheet(null);
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={(open: boolean) => !open && closeSheet()}>
+    <Dialog.Root
+      open={isOpen}
+      onOpenChange={(open: boolean) => !open && closeSheet()}
+    >
       <AnimatePresence>
         {isOpen && (
           <Dialog.Portal forceMount>

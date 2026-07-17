@@ -1,7 +1,11 @@
 'use server';
 
 import { batchActionSchema } from './schemas';
-import type { ActionResult, BatchActionResult, AgentRunStatus } from '@flow/types';
+import type {
+  ActionResult,
+  BatchActionResult,
+  AgentRunStatus,
+} from '@flow/types';
 import { parseApprovalOutput } from '@flow/types';
 import { createFlowError, requireTenantContext } from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
@@ -13,7 +17,12 @@ export async function batchApproveRuns(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -54,9 +63,13 @@ export async function batchApproveRuns(
 
     const updatePayload: Record<string, unknown> = {
       status: newStatus,
-      output: { ...(output ?? {}), _approvalType: isTrustBlocked ? 'trust_unblock' : 'clean_approval' },
+      output: {
+        ...(output ?? {}),
+        _approvalType: isTrustBlocked ? 'trust_unblock' : 'clean_approval',
+      },
     };
-    if (newStatus === 'completed') updatePayload.completed_at = new Date().toISOString();
+    if (newStatus === 'completed')
+      updatePayload.completed_at = new Date().toISOString();
 
     const { data: updated, error: updateError } = await supabase
       .from('agent_runs')
@@ -67,7 +80,10 @@ export async function batchApproveRuns(
       .maybeSingle();
 
     if (updateError || !updated) {
-      failed.push({ runId, error: updateError ? 'Database error' : 'Status changed concurrently' });
+      failed.push({
+        runId,
+        error: updateError ? 'Database error' : 'Status changed concurrently',
+      });
     } else {
       succeeded.push({ runId, newStatus });
     }

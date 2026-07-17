@@ -5,8 +5,15 @@ import { useAtom } from 'jotai';
 import { overlayStackAtom, type OverlayEntry } from '@/lib/atoms/overlay';
 import { useFocusTrap } from '@/lib/hooks/use-focus-trap';
 import { useTrustAnnouncer } from '@/lib/hooks/use-trust-announcer';
-import { CEREMONY_COPY, UNDO_COPY, REGRESSION_ACKNOWLEDGED_COPY } from '../constants/trust-copy';
-import { undoRegression, acknowledgeRegression } from '../actions/trust-actions';
+import {
+  CEREMONY_COPY,
+  UNDO_COPY,
+  REGRESSION_ACKNOWLEDGED_COPY,
+} from '../constants/trust-copy';
+import {
+  undoRegression,
+  acknowledgeRegression,
+} from '../actions/trust-actions';
 
 const triggerElMap = new WeakMap<OverlayEntry, HTMLElement>();
 
@@ -35,7 +42,9 @@ export function TrustRecovery({ entry }: TrustRecoveryProps) {
   const [, dispatch] = useAtom(overlayStackAtom);
   const announce = useTrustAnnouncer();
   const ackRef = useRef<HTMLButtonElement>(null);
-  const [undoState, setUndoState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [undoState, setUndoState] = useState<
+    'idle' | 'loading' | 'done' | 'error'
+  >('idle');
 
   const triggerEl = triggerElMap.get(entry) ?? null;
   const { containerRef, activate, deactivate } = useFocusTrap(triggerEl);
@@ -70,11 +79,20 @@ export function TrustRecovery({ entry }: TrustRecoveryProps) {
     } catch {
       setUndoState('error');
     }
-  }, [close, announce, undoState, transitionId, matrixEntryId, expectedVersion]);
+  }, [
+    close,
+    announce,
+    undoState,
+    transitionId,
+    matrixEntryId,
+    expectedVersion,
+  ]);
 
   const handleKeepAuto = useCallback(async () => {
     if (transitionId) {
-      try { await acknowledgeRegression({ transitionId: String(transitionId) }); } catch {}
+      try {
+        await acknowledgeRegression({ transitionId: String(transitionId) });
+      } catch {}
     }
     announce('Regression acknowledged. Agent stays in Auto mode.', 'polite');
     close();
@@ -82,7 +100,9 @@ export function TrustRecovery({ entry }: TrustRecoveryProps) {
 
   const handleMoveToConfirmAll = useCallback(async () => {
     if (transitionId) {
-      try { await acknowledgeRegression({ transitionId: String(transitionId) }); } catch {}
+      try {
+        await acknowledgeRegression({ transitionId: String(transitionId) });
+      } catch {}
     }
     announce(REGRESSION_ACKNOWLEDGED_COPY, 'polite');
     close();
@@ -90,7 +110,9 @@ export function TrustRecovery({ entry }: TrustRecoveryProps) {
 
   const handleAcknowledge = useCallback(async () => {
     if (transitionId) {
-      try { await acknowledgeRegression({ transitionId: String(transitionId) }); } catch {}
+      try {
+        await acknowledgeRegression({ transitionId: String(transitionId) });
+      } catch {}
     }
     announce(REGRESSION_ACKNOWLEDGED_COPY, 'polite');
     close();
@@ -111,7 +133,9 @@ export function TrustRecovery({ entry }: TrustRecoveryProps) {
     [handleAcknowledge, undoState],
   );
 
-  const caps = Array.isArray(capabilities) ? capabilities : [String(capabilities)];
+  const caps = Array.isArray(capabilities)
+    ? capabilities
+    : [String(capabilities)];
   const label = String(agentLabel);
   const showUndo = Boolean(isAutoTriggered) && undoState === 'idle';
 
@@ -136,12 +160,15 @@ export function TrustRecovery({ entry }: TrustRecoveryProps) {
         </p>
         {(Number(cleanApprovals) > 0 || Number(rejectionCount) > 0) && (
           <p className="mt-1 text-xs text-[var(--flow-color-text-tertiary)]">
-            {Number(cleanApprovals)} clean approvals, {Number(rejectionCount)} rejection{Number(rejectionCount) !== 1 ? 's' : ''}
+            {Number(cleanApprovals)} clean approvals, {Number(rejectionCount)}{' '}
+            rejection{Number(rejectionCount) !== 1 ? 's' : ''}
           </p>
         )}
         {Number(affectedTasksCount) > 0 && (
           <p className="mt-1 text-xs text-[var(--flow-color-text-tertiary)]">
-            {Number(affectedTasksCount)} task{Number(affectedTasksCount) !== 1 ? 's' : ''} using these capabilities paused
+            {Number(affectedTasksCount)} task
+            {Number(affectedTasksCount) !== 1 ? 's' : ''} using these
+            capabilities paused
           </p>
         )}
 
@@ -183,13 +210,19 @@ export function TrustRecovery({ entry }: TrustRecoveryProps) {
         </div>
 
         {undoState === 'loading' && (
-          <span className="mt-2 block text-sm text-[var(--flow-color-text-tertiary)]">Undoing…</span>
+          <span className="mt-2 block text-sm text-[var(--flow-color-text-tertiary)]">
+            Undoing…
+          </span>
         )}
         {undoState === 'done' && (
-          <span className="mt-2 block text-sm text-[var(--flow-color-text-secondary)]">{UNDO_COPY.success}</span>
+          <span className="mt-2 block text-sm text-[var(--flow-color-text-secondary)]">
+            {UNDO_COPY.success}
+          </span>
         )}
         {undoState === 'error' && (
-          <span className="mt-2 block text-sm text-red-400">{UNDO_COPY.error}</span>
+          <span className="mt-2 block text-sm text-red-400">
+            {UNDO_COPY.error}
+          </span>
         )}
       </div>
     </div>

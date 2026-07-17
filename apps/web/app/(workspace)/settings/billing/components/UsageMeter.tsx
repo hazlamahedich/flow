@@ -28,7 +28,9 @@ interface UsageMeterProps {
   tier: SubscriptionTier;
   usage: { clients: number; teamMembers: number; agents: number };
   limits: TierLimit;
-  upgradeAction: (input: unknown) => Promise<ActionResult<{ checkoutUrl: string }>>;
+  upgradeAction: (
+    input: unknown,
+  ) => Promise<ActionResult<{ checkoutUrl: string }>>;
 }
 
 interface ItemProps {
@@ -40,34 +42,77 @@ interface ItemProps {
   upgradeTier: 'pro' | 'agency' | null;
 }
 
-export function UsageMeter({ tier, usage, limits, upgradeAction }: UsageMeterProps) {
+export function UsageMeter({
+  tier,
+  usage,
+  limits,
+  upgradeAction,
+}: UsageMeterProps) {
   const isAgency = tier === 'agency';
   const upgradeTier = getNextUpgradeTier(tier);
   return (
     <section className="space-y-3 rounded-[var(--flow-radius-lg)] border border-[var(--flow-color-border-default)] p-5">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-medium text-[var(--flow-color-text-primary)]">Usage</h2>
-        <span className="text-xs text-[var(--flow-color-text-muted)]">Plan: {tier}</span>
+        <h2 className="text-lg font-medium text-[var(--flow-color-text-primary)]">
+          Usage
+        </h2>
+        <span className="text-xs text-[var(--flow-color-text-muted)]">
+          Plan: {tier}
+        </span>
       </div>
-      <UsageMeterItem label="Clients" current={usage.clients} limit={limits.maxClients} isUnlimited={isAgency} upgradeAction={upgradeAction} upgradeTier={upgradeTier} />
-      <UsageMeterItem label="Team members" current={usage.teamMembers} limit={limits.maxTeamMembers} isUnlimited={isAgency} upgradeAction={upgradeAction} upgradeTier={upgradeTier} />
-      <UsageMeterItem label="Agents" current={usage.agents} limit={limits.maxAgents} isUnlimited={isAgency} upgradeAction={upgradeAction} upgradeTier={upgradeTier} />
+      <UsageMeterItem
+        label="Clients"
+        current={usage.clients}
+        limit={limits.maxClients}
+        isUnlimited={isAgency}
+        upgradeAction={upgradeAction}
+        upgradeTier={upgradeTier}
+      />
+      <UsageMeterItem
+        label="Team members"
+        current={usage.teamMembers}
+        limit={limits.maxTeamMembers}
+        isUnlimited={isAgency}
+        upgradeAction={upgradeAction}
+        upgradeTier={upgradeTier}
+      />
+      <UsageMeterItem
+        label="Agents"
+        current={usage.agents}
+        limit={limits.maxAgents}
+        isUnlimited={isAgency}
+        upgradeAction={upgradeAction}
+        upgradeTier={upgradeTier}
+      />
     </section>
   );
 }
 
-function UsageMeterItem({ label, current, limit, isUnlimited, upgradeAction, upgradeTier }: ItemProps) {
-  const [state, formAction, isPending] = useActionState(
-    async () => {
-      if (!upgradeTier) return { success: false, error: { status: 400, code: 'INVALID_STATE', message: 'No upgrade available.', category: 'validation' as const } };
-      const result = await upgradeAction({ targetTier: upgradeTier });
-      if (result.success && typeof window !== 'undefined') {
-        window.location.href = result.data.checkoutUrl;
-      }
-      return result;
-    },
-    null,
-  );
+function UsageMeterItem({
+  label,
+  current,
+  limit,
+  isUnlimited,
+  upgradeAction,
+  upgradeTier,
+}: ItemProps) {
+  const [state, formAction, isPending] = useActionState(async () => {
+    if (!upgradeTier)
+      return {
+        success: false,
+        error: {
+          status: 400,
+          code: 'INVALID_STATE',
+          message: 'No upgrade available.',
+          category: 'validation' as const,
+        },
+      };
+    const result = await upgradeAction({ targetTier: upgradeTier });
+    if (result.success && typeof window !== 'undefined') {
+      window.location.href = result.data.checkoutUrl;
+    }
+    return result;
+  }, null);
 
   const errorMessage = state && !state.success ? state.error.message : null;
 
@@ -75,8 +120,12 @@ function UsageMeterItem({ label, current, limit, isUnlimited, upgradeAction, upg
     return (
       <div className="space-y-1">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-[var(--flow-color-text-secondary)]">{label}</span>
-          <span className="font-medium text-[var(--flow-color-text-primary)]">{current} · Unlimited</span>
+          <span className="text-[var(--flow-color-text-secondary)]">
+            {label}
+          </span>
+          <span className="font-medium text-[var(--flow-color-text-primary)]">
+            {current} · Unlimited
+          </span>
         </div>
       </div>
     );
@@ -84,7 +133,8 @@ function UsageMeterItem({ label, current, limit, isUnlimited, upgradeAction, upg
 
   const pct = Math.min(100, Math.round((current / limit) * 100));
   const atLimit = current >= limit;
-  const approaching = !atLimit && current >= Math.ceil(limit * APPROACH_THRESHOLD_PERCENT);
+  const approaching =
+    !atLimit && current >= Math.ceil(limit * APPROACH_THRESHOLD_PERCENT);
 
   return (
     <div className="space-y-1">
@@ -106,7 +156,13 @@ function UsageMeterItem({ label, current, limit, isUnlimited, upgradeAction, upg
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--flow-color-border-default)]">
         <div
-          className={atLimit ? 'h-full bg-[var(--flow-status-error)]' : approaching ? 'h-full bg-amber-500' : 'h-full bg-[var(--flow-color-primary)]'}
+          className={
+            atLimit
+              ? 'h-full bg-[var(--flow-status-error)]'
+              : approaching
+                ? 'h-full bg-amber-500'
+                : 'h-full bg-[var(--flow-color-primary)]'
+          }
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -117,12 +173,16 @@ function UsageMeterItem({ label, current, limit, isUnlimited, upgradeAction, upg
             disabled={isPending}
             className="text-xs font-medium text-[var(--flow-color-primary)] underline disabled:opacity-50"
           >
-            {isPending ? 'Redirecting…' : `Upgrade to ${upgradeTier === 'pro' ? 'Pro' : 'Agency'}`}
+            {isPending
+              ? 'Redirecting…'
+              : `Upgrade to ${upgradeTier === 'pro' ? 'Pro' : 'Agency'}`}
           </button>
         </form>
       )}
       {errorMessage && (
-        <p className="text-xs text-[var(--flow-status-error)]" role="alert">{errorMessage}</p>
+        <p className="text-xs text-[var(--flow-status-error)]" role="alert">
+          {errorMessage}
+        </p>
       )}
     </div>
   );

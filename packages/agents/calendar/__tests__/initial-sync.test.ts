@@ -38,8 +38,19 @@ function createFullChain(finalResult: { data: unknown; error: unknown }) {
 }
 
 function createMockSupabase(
-  calendarState: { data: Record<string, unknown> | null; error: unknown } = { data: { id: 'cc-1', oauth_state: {}, sync_status: 'connected', updated_at: null }, error: null },
-  upsertResult: { data: Array<{ id: string }> | null; error: unknown } = { data: [{ id: 'evt-1' }], error: null },
+  calendarState: { data: Record<string, unknown> | null; error: unknown } = {
+    data: {
+      id: 'cc-1',
+      oauth_state: {},
+      sync_status: 'connected',
+      updated_at: null,
+    },
+    error: null,
+  },
+  upsertResult: { data: Array<{ id: string }> | null; error: unknown } = {
+    data: [{ id: 'evt-1' }],
+    error: null,
+  },
 ) {
   const chain = {
     ...createFullChain(calendarState),
@@ -71,9 +82,12 @@ describe('performInitialSync', () => {
   };
 
   it('returns early when calendar not found', async () => {
-    vi.mocked(GoogleCalendarProvider).mockImplementation(() => ({
-      listEvents: vi.fn().mockResolvedValue([]),
-    } as unknown as GoogleCalendarProvider));
+    vi.mocked(GoogleCalendarProvider).mockImplementation(
+      () =>
+        ({
+          listEvents: vi.fn().mockResolvedValue([]),
+        }) as unknown as GoogleCalendarProvider,
+    );
     const supabase = createMockSupabase({ data: null, error: null });
 
     await performInitialSync({ ...baseParams, supabase });
@@ -82,11 +96,19 @@ describe('performInitialSync', () => {
   });
 
   it('returns early when calendar is disconnected', async () => {
-    vi.mocked(GoogleCalendarProvider).mockImplementation(() => ({
-      listEvents: vi.fn().mockResolvedValue([]),
-    } as unknown as GoogleCalendarProvider));
+    vi.mocked(GoogleCalendarProvider).mockImplementation(
+      () =>
+        ({
+          listEvents: vi.fn().mockResolvedValue([]),
+        }) as unknown as GoogleCalendarProvider,
+    );
     const supabase = createMockSupabase({
-      data: { id: 'cc-1', oauth_state: {}, sync_status: 'disconnected', updated_at: null },
+      data: {
+        id: 'cc-1',
+        oauth_state: {},
+        sync_status: 'disconnected',
+        updated_at: null,
+      },
       error: null,
     });
 
@@ -96,9 +118,12 @@ describe('performInitialSync', () => {
   });
 
   it('completes sync successfully with empty events', async () => {
-    vi.mocked(GoogleCalendarProvider).mockImplementation(() => ({
-      listEvents: vi.fn().mockResolvedValue([]),
-    } as unknown as GoogleCalendarProvider));
+    vi.mocked(GoogleCalendarProvider).mockImplementation(
+      () =>
+        ({
+          listEvents: vi.fn().mockResolvedValue([]),
+        }) as unknown as GoogleCalendarProvider,
+    );
     const supabase = createMockSupabase(undefined, { data: [], error: null });
 
     await performInitialSync({ ...baseParams, supabase });
@@ -107,9 +132,12 @@ describe('performInitialSync', () => {
   });
 
   it('marks calendar as error on provider failure', async () => {
-    vi.mocked(GoogleCalendarProvider).mockImplementation(() => ({
-      listEvents: vi.fn().mockRejectedValue(new Error('API timeout')),
-    } as unknown as GoogleCalendarProvider));
+    vi.mocked(GoogleCalendarProvider).mockImplementation(
+      () =>
+        ({
+          listEvents: vi.fn().mockRejectedValue(new Error('API timeout')),
+        }) as unknown as GoogleCalendarProvider,
+    );
     const supabase = createMockSupabase();
 
     await expect(
@@ -126,10 +154,16 @@ describe('performInitialSync', () => {
       isAllDay: false,
       attendees: [],
     }));
-    vi.mocked(GoogleCalendarProvider).mockImplementation(() => ({
-      listEvents: vi.fn().mockResolvedValue(events),
-    } as unknown as GoogleCalendarProvider));
-    const supabase = createMockSupabase(undefined, { data: null, error: { message: 'Batch failed' } });
+    vi.mocked(GoogleCalendarProvider).mockImplementation(
+      () =>
+        ({
+          listEvents: vi.fn().mockResolvedValue(events),
+        }) as unknown as GoogleCalendarProvider,
+    );
+    const supabase = createMockSupabase(undefined, {
+      data: null,
+      error: { message: 'Batch failed' },
+    });
 
     await performInitialSync({ ...baseParams, supabase });
 

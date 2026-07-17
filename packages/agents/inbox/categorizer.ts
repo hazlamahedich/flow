@@ -1,11 +1,15 @@
-import { 
-  createLLMRouter, 
-  tokenizePII, 
-  ContextBoundary, 
+import {
+  createLLMRouter,
+  tokenizePII,
+  ContextBoundary,
   LlmRouter,
-  AgentExecutionContext
+  AgentExecutionContext,
 } from '../shared/index.js';
-import { inboxProposalSchema, InboxProposal, EmailCategory } from './schemas.js';
+import {
+  inboxProposalSchema,
+  InboxProposal,
+  EmailCategory,
+} from './schemas.js';
 
 /**
  * System prompt for email categorization with defense-in-depth.
@@ -43,11 +47,28 @@ You must return a JSON object with:
  * Calculates a Trust Score based on instruction density and directive language.
  * Task 11.1, AC5
  */
-function calculateTrustScore(text: string): { score: number; requiresConfirmation: boolean } {
+function calculateTrustScore(text: string): {
+  score: number;
+  requiresConfirmation: boolean;
+} {
   const directives = [
-    /send/i, /pay/i, /transfer/i, /buy/i, /purchase/i, /delete/i, /remove/i,
-    /change password/i, /reset/i, /authorize/i, /approve/i, /urgent/i,
-    /immediately/i, /asap/i, /quick/i, /don't tell/i, /confidential/i
+    /send/i,
+    /pay/i,
+    /transfer/i,
+    /buy/i,
+    /purchase/i,
+    /delete/i,
+    /remove/i,
+    /change password/i,
+    /reset/i,
+    /authorize/i,
+    /approve/i,
+    /urgent/i,
+    /immediately/i,
+    /asap/i,
+    /quick/i,
+    /don't tell/i,
+    /confidential/i,
   ];
 
   let hitCount = 0;
@@ -56,10 +77,10 @@ function calculateTrustScore(text: string): { score: number; requiresConfirmatio
   }
 
   // Instruction density heuristic: more hits = lower trust
-  const score = Math.max(0, 1 - (hitCount * 0.2));
+  const score = Math.max(0, 1 - hitCount * 0.2);
   return {
     score,
-    requiresConfirmation: score < 0.8
+    requiresConfirmation: score < 0.8,
   };
 }
 
@@ -75,20 +96,26 @@ export async function categorizeEmail(
     client_id: string;
     run_id?: string;
   },
-  router?: LlmRouter
+  router?: LlmRouter,
 ): Promise<InboxProposal & { requires_confirmation: boolean }> {
   const llmRouter = router || createLLMRouter();
   const boundary = new ContextBoundary(email.client_id);
-  
+
   // 1. PII Tokenization (Task 3.1, AC3)
   const fullContent = `Subject: ${email.subject || '(No Subject)'}\n\n${email.body_clean || ''}`;
-  const { text: tokenizedContent } = tokenizePII(fullContent, email.workspace_id);
+  const { text: tokenizedContent } = tokenizePII(
+    fullContent,
+    email.workspace_id,
+  );
 
   // 2. Trust Scoring (Task 11.1, 11.2)
   const { requiresConfirmation } = calculateTrustScore(email.body_clean || '');
 
   // 3. Wrap content for defense-in-depth (Task 4.2, AC5)
-  const wrappedContent = boundary.wrapContent(tokenizedContent, 'user_email_content');
+  const wrappedContent = boundary.wrapContent(
+    tokenizedContent,
+    'user_email_content',
+  );
 
   // 4. Model Invocation (Task 4.3)
   const executionContext: AgentExecutionContext = {
@@ -103,14 +130,14 @@ export async function categorizeEmail(
       { role: 'user', content: wrappedContent },
     ],
     executionContext,
-    { taskTier: 'fast', temperature: 0.1 }
+    { taskTier: 'fast', temperature: 0.1 },
   );
 
   // 5. Parse and Validate Output (Task 4.5)
   try {
     const jsonStr = extractJsonObject(response.text);
     const rawResult = JSON.parse(jsonStr);
-    
+
     const result = inboxProposalSchema.parse({
       category: rawResult.category,
       confidence: rawResult.confidence,
@@ -122,7 +149,11 @@ export async function categorizeEmail(
       requires_confirmation: requiresConfirmation,
     };
   } catch (err) {
-    console.error('Categorization output validation failed:', err, response.text);
+    console.error(
+      'Categorization output validation failed:',
+      err,
+      response.text,
+    );
     return {
       category: 'info' as EmailCategory,
       confidence: 0,

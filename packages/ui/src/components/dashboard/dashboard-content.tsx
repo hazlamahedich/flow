@@ -18,7 +18,10 @@ export interface DashboardContentProps {
 
 export function DashboardContent({ summary, profile }: DashboardContentProps) {
   const hasClients = summary.clientCount > 0;
-  const isFirstRun = !hasClients && summary.agentActivityCount === 0 && summary.pendingApprovals === 0;
+  const isFirstRun =
+    !hasClients &&
+    summary.agentActivityCount === 0 &&
+    summary.pendingApprovals === 0;
   const variant = isFirstRun ? 'first-run' : 'all-clear';
 
   const firstName = profile?.name?.split(' ')[0] ?? null;
@@ -41,8 +44,8 @@ export function DashboardContent({ summary, profile }: DashboardContentProps) {
           accent="warning"
           id="needs-attention"
         >
-          {summary.pendingApprovals === 0 && (
-            variant === 'first-run' ? (
+          {summary.pendingApprovals === 0 &&
+            (variant === 'first-run' ? (
               <EmptyStateCard
                 icon={Sprout}
                 title="Nothing here yet"
@@ -56,8 +59,7 @@ export function DashboardContent({ summary, profile }: DashboardContentProps) {
                 description="Nothing needs your eyes right now. Enjoy the breather."
                 variant="all-clear"
               />
-            )
-          )}
+            ))}
         </DashboardSection>
 
         <DashboardSection
@@ -65,8 +67,8 @@ export function DashboardContent({ summary, profile }: DashboardContentProps) {
           count={summary.agentActivityCount}
           accent="success"
         >
-          {summary.agentActivityCount === 0 && (
-            variant === 'first-run' ? (
+          {summary.agentActivityCount === 0 &&
+            (variant === 'first-run' ? (
               <EmptyStateCard
                 icon={TrendingUp}
                 title="Nothing handled yet"
@@ -80,8 +82,7 @@ export function DashboardContent({ summary, profile }: DashboardContentProps) {
                 description="Handled items will appear here once your agents start working."
                 variant="all-clear"
               />
-            )
-          )}
+            ))}
         </DashboardSection>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -90,8 +91,8 @@ export function DashboardContent({ summary, profile }: DashboardContentProps) {
             count={summary.outstandingInvoices}
             accent="info"
           >
-            {summary.outstandingInvoices === 0 && (
-              variant === 'first-run' ? (
+            {summary.outstandingInvoices === 0 &&
+              (variant === 'first-run' ? (
                 <EmptyStateCard
                   icon={FileText}
                   title="No invoices yet"
@@ -107,8 +108,7 @@ export function DashboardContent({ summary, profile }: DashboardContentProps) {
                   description="All invoices are paid up."
                   variant="all-clear"
                 />
-              )
-            )}
+              ))}
           </DashboardSection>
 
           <DashboardSection
@@ -116,8 +116,8 @@ export function DashboardContent({ summary, profile }: DashboardContentProps) {
             count={summary.clientHealthAlerts}
             accent="warning"
           >
-            {summary.clientHealthAlerts === 0 && (
-              variant === 'first-run' ? (
+            {summary.clientHealthAlerts === 0 &&
+              (variant === 'first-run' ? (
                 <EmptyStateCard
                   icon={Users}
                   title="No clients yet"
@@ -133,8 +133,7 @@ export function DashboardContent({ summary, profile }: DashboardContentProps) {
                   description="No alerts right now. Your clients are in good shape."
                   variant="all-clear"
                 />
-              )
-            )}
+              ))}
           </DashboardSection>
         </div>
       </div>

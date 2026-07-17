@@ -85,7 +85,9 @@ describe('handleMorningBriefScheduledJob', () => {
     });
 
     let resolveBrief: () => void;
-    const briefPromise = new Promise<void>((resolve) => { resolveBrief = resolve; });
+    const briefPromise = new Promise<void>((resolve) => {
+      resolveBrief = resolve;
+    });
     (generateMorningBrief as any).mockReturnValue(briefPromise);
 
     const jobPromise = handleMorningBriefScheduledJob();

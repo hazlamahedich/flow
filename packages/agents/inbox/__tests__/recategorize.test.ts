@@ -32,7 +32,7 @@ describe('recategorize', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Define the query chain helper
     const createChain = () => {
       const chain: any = {
@@ -62,7 +62,7 @@ describe('recategorize', () => {
       data: { client_inbox_id: clientInboxId },
       error: null,
     });
-    
+
     // Mock update results
     chain.update.mockReturnThis();
     chain.eq.mockReturnThis();
@@ -71,8 +71,8 @@ describe('recategorize', () => {
       emailId,
       workspaceId,
       'urgent', // Old
-      'info',   // New
-      userId
+      'info', // New
+      userId,
     );
 
     // Verify logging
@@ -82,7 +82,7 @@ describe('recategorize', () => {
         old_category: 'urgent',
         new_category: 'info',
         client_inbox_id: clientInboxId,
-      })
+      }),
     );
 
     // Verify cascade: soft-delete extractions
@@ -95,10 +95,17 @@ describe('recategorize', () => {
     expect(chain.update).toHaveBeenCalledWith({ status: 'superseded' });
 
     // Verify state transition
-    expect(transitionState).toHaveBeenCalledWith(emailId, workspaceId, 'extraction_skipped');
-    
+    expect(transitionState).toHaveBeenCalledWith(
+      emailId,
+      workspaceId,
+      'extraction_skipped',
+    );
+
     // Verify trust metric update
-    expect(recordRecategorizationMetric).toHaveBeenCalledWith(workspaceId, clientInboxId);
+    expect(recordRecategorizationMetric).toHaveBeenCalledWith(
+      workspaceId,
+      clientInboxId,
+    );
   });
 
   it('should handle non-actionable -> actionable transition (AC7)', async () => {
@@ -109,21 +116,25 @@ describe('recategorize', () => {
       data: { client_inbox_id: clientInboxId },
       error: null,
     });
-    
+
     const mockBoss = {};
 
     await handleRecategorization(
       emailId,
       workspaceId,
-      'noise',  // Old
+      'noise', // Old
       'action', // New
       userId,
-      mockBoss as any
+      mockBoss as any,
     );
 
     // Verify extraction job enqueue
     expect(PgBossProducer).toHaveBeenCalled();
-    expect(transitionState).toHaveBeenCalledWith(emailId, workspaceId, 'extraction_pending');
+    expect(transitionState).toHaveBeenCalledWith(
+      emailId,
+      workspaceId,
+      'extraction_pending',
+    );
   });
 
   it('should throw if boss is missing during non-actionable -> actionable transition', async () => {
@@ -136,7 +147,7 @@ describe('recategorize', () => {
     });
 
     await expect(
-      handleRecategorization(emailId, workspaceId, 'info', 'urgent', userId)
+      handleRecategorization(emailId, workspaceId, 'info', 'urgent', userId),
     ).rejects.toThrow('PgBoss unavailable');
   });
 });

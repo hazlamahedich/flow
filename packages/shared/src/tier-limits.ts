@@ -23,6 +23,15 @@ export const APPROACH_THRESHOLD_PERCENT = 0.8 as const;
 
 export const APPROACH_LIMIT_WARNING = 'Approaching limit' as const;
 
+/**
+ * PRD canonical Free tier client limit. Exported here (instead of
+ * hardcoding in multiple archive paths) so the downgrade webhook and the
+ * reconciliation sweep share one source of truth. Callers that can read
+ * `getTierConfig()` should prefer it; this constant is the defensive
+ * fallback when config is unreachable.
+ */
+export const PRD_FREE_MAX_CLIENTS = 2 as const;
+
 export interface CheckTierLimitInput {
   /** Current usage count (e.g., active clients). */
   current: number;
@@ -42,12 +51,16 @@ export interface CheckTierLimitResult {
  * operations, `{ allowed: true, warning }` when usage is at/above the 80%
  * threshold, or `{ allowed: true }` otherwise.
  */
-export function checkTierLimit(input: CheckTierLimitInput): CheckTierLimitResult {
+export function checkTierLimit(
+  input: CheckTierLimitInput,
+): CheckTierLimitResult {
   const { current, adding, limit } = input;
   const projected = current + adding;
   if (projected > limit) {
     return { allowed: false };
   }
   const atThreshold = current >= Math.ceil(limit * APPROACH_THRESHOLD_PERCENT);
-  return atThreshold ? { allowed: true, warning: APPROACH_LIMIT_WARNING } : { allowed: true };
+  return atThreshold
+    ? { allowed: true, warning: APPROACH_LIMIT_WARNING }
+    : { allowed: true };
 }

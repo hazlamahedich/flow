@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { SubscriptionStatus } from '@flow/types';
 
 interface SubscriptionStatusBannerProps {
   /**
@@ -7,7 +8,7 @@ interface SubscriptionStatusBannerProps {
    * statuses (including `active`, `free`, `cancelled`, `deleted`) render
    * nothing.
    */
-  subscriptionStatus: string;
+  subscriptionStatus: SubscriptionStatus;
 }
 
 /**

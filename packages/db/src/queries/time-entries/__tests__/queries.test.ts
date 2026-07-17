@@ -5,28 +5,46 @@ import { listTimeEntries } from '../list';
 import { softDeleteTimeEntry } from '../soft-delete';
 
 describe('createTimeEntry', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('inserts a time entry and returns mapped result', async () => {
     const insertChain = {
       select: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({
         data: {
-          id: 'te1', workspace_id: 'ws1', client_id: 'c1', user_id: 'u1',
-          project_id: null, date: '2026-05-09', duration_minutes: 90,
-          start_minutes: null, end_minutes: null,
-          notes: 'test', deleted_at: null, created_at: '2026-05-09T00:00:00Z', updated_at: '2026-05-09T00:00:00Z',
+          id: 'te1',
+          workspace_id: 'ws1',
+          client_id: 'c1',
+          user_id: 'u1',
+          project_id: null,
+          date: '2026-05-09',
+          duration_minutes: 90,
+          start_minutes: null,
+          end_minutes: null,
+          notes: 'test',
+          deleted_at: null,
+          created_at: '2026-05-09T00:00:00Z',
+          updated_at: '2026-05-09T00:00:00Z',
         },
         error: null,
       }),
     };
     const supabase = {
-      from: vi.fn().mockReturnValue({ insert: vi.fn().mockReturnValue(insertChain) }),
+      from: vi
+        .fn()
+        .mockReturnValue({ insert: vi.fn().mockReturnValue(insertChain) }),
     } as unknown as SupabaseClient;
 
     const result = await createTimeEntry(supabase, {
-      workspaceId: 'ws1', clientId: 'c1', projectId: null, userId: 'u1',
-      date: '2026-05-09', durationMinutes: 90, notes: 'test',
+      workspaceId: 'ws1',
+      clientId: 'c1',
+      projectId: null,
+      userId: 'u1',
+      date: '2026-05-09',
+      durationMinutes: 90,
+      notes: 'test',
     });
 
     expect(result.id).toBe('te1');
@@ -43,18 +61,28 @@ describe('createTimeEntry', () => {
       }),
     };
     const supabase = {
-      from: vi.fn().mockReturnValue({ insert: vi.fn().mockReturnValue(insertChain) }),
+      from: vi
+        .fn()
+        .mockReturnValue({ insert: vi.fn().mockReturnValue(insertChain) }),
     } as unknown as SupabaseClient;
 
-    await expect(createTimeEntry(supabase, {
-      workspaceId: 'ws1', clientId: 'bad', projectId: null, userId: 'u1',
-      date: '2026-05-09', durationMinutes: 90,
-    })).rejects.toEqual({ message: 'FK violation', code: '23503' });
+    await expect(
+      createTimeEntry(supabase, {
+        workspaceId: 'ws1',
+        clientId: 'bad',
+        projectId: null,
+        userId: 'u1',
+        date: '2026-05-09',
+        durationMinutes: 90,
+      }),
+    ).rejects.toEqual({ message: 'FK violation', code: '23503' });
   });
 });
 
 describe('listTimeEntries', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('returns empty result when dateFrom > dateTo', async () => {
     const supabase = {
@@ -62,7 +90,9 @@ describe('listTimeEntries', () => {
     } as unknown as SupabaseClient;
 
     const result = await listTimeEntries(supabase, {
-      workspaceId: 'ws1', userId: 'u1', role: 'owner',
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'owner',
       filters: { dateFrom: '2026-06-01', dateTo: '2026-05-01' },
     });
     expect(result.items).toEqual([]);
@@ -80,7 +110,10 @@ describe('listTimeEntries', () => {
     } as unknown as SupabaseClient;
 
     const result = await listTimeEntries(supabase, {
-      workspaceId: 'ws1', userId: 'u1', role: 'member', filters: {},
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'member',
+      filters: {},
     });
 
     expect(result.items).toEqual([]);
@@ -100,16 +133,24 @@ describe('listTimeEntries', () => {
     const accessChain = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      is: vi.fn().mockResolvedValue({ data: [{ client_id: 'c1' }, { client_id: 'c2' }], error: null }),
+      is: vi.fn().mockResolvedValue({
+        data: [{ client_id: 'c1' }, { client_id: 'c2' }],
+        error: null,
+      }),
     };
     const supabase = {
       from: vi.fn((table: string) =>
-        table === 'member_client_access' ? accessChain : { select: vi.fn().mockReturnValue(teChain) },
+        table === 'member_client_access'
+          ? accessChain
+          : { select: vi.fn().mockReturnValue(teChain) },
       ),
     } as unknown as SupabaseClient;
 
     await listTimeEntries(supabase, {
-      workspaceId: 'ws1', userId: 'u1', role: 'member', filters: {},
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'member',
+      filters: {},
     });
 
     expect(teChain.in).toHaveBeenCalledWith('client_id', ['c1', 'c2']);
@@ -125,21 +166,30 @@ describe('listTimeEntries', () => {
       range: vi.fn().mockResolvedValue({ data: [], error: null, count: 0 }),
     };
     const supabase = {
-      from: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue(teChain) }),
+      from: vi
+        .fn()
+        .mockReturnValue({ select: vi.fn().mockReturnValue(teChain) }),
     } as unknown as SupabaseClient;
 
     await listTimeEntries(supabase, {
-      workspaceId: 'ws1', userId: 'u1', role: 'owner', filters: {},
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'owner',
+      filters: {},
     });
 
-    const tables = (supabase.from as ReturnType<typeof vi.fn>).mock.calls.map((call) => call[0] as string);
+    const tables = (supabase.from as ReturnType<typeof vi.fn>).mock.calls.map(
+      (call) => call[0] as string,
+    );
     expect(tables).not.toContain('member_client_access');
     expect(teChain.in).not.toHaveBeenCalled();
   });
 });
 
 describe('createTimeEntry — constraint violations', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('propagates check constraint error for duration_minutes <= 0', async () => {
     const insertChain = {
@@ -150,13 +200,21 @@ describe('createTimeEntry — constraint violations', () => {
       }),
     };
     const supabase = {
-      from: vi.fn().mockReturnValue({ insert: vi.fn().mockReturnValue(insertChain) }),
+      from: vi
+        .fn()
+        .mockReturnValue({ insert: vi.fn().mockReturnValue(insertChain) }),
     } as unknown as SupabaseClient;
 
-    await expect(createTimeEntry(supabase, {
-      workspaceId: 'ws1', clientId: 'c1', projectId: null, userId: 'u1',
-      date: '2026-05-09', durationMinutes: 0,
-    })).rejects.toMatchObject({ code: '23514' });
+    await expect(
+      createTimeEntry(supabase, {
+        workspaceId: 'ws1',
+        clientId: 'c1',
+        projectId: null,
+        userId: 'u1',
+        date: '2026-05-09',
+        durationMinutes: 0,
+      }),
+    ).rejects.toMatchObject({ code: '23514' });
   });
 
   it('accepts null project_id (optional FK)', async () => {
@@ -164,21 +222,36 @@ describe('createTimeEntry — constraint violations', () => {
       select: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({
         data: {
-          id: 'te2', workspace_id: 'ws1', client_id: 'c1', user_id: 'u1',
-          project_id: null, date: '2026-05-09', duration_minutes: 30,
-          start_minutes: null, end_minutes: null,
-          notes: null, deleted_at: null, created_at: '2026-05-09T00:00:00Z', updated_at: '2026-05-09T00:00:00Z',
+          id: 'te2',
+          workspace_id: 'ws1',
+          client_id: 'c1',
+          user_id: 'u1',
+          project_id: null,
+          date: '2026-05-09',
+          duration_minutes: 30,
+          start_minutes: null,
+          end_minutes: null,
+          notes: null,
+          deleted_at: null,
+          created_at: '2026-05-09T00:00:00Z',
+          updated_at: '2026-05-09T00:00:00Z',
         },
         error: null,
       }),
     };
     const supabase = {
-      from: vi.fn().mockReturnValue({ insert: vi.fn().mockReturnValue(insertChain) }),
+      from: vi
+        .fn()
+        .mockReturnValue({ insert: vi.fn().mockReturnValue(insertChain) }),
     } as unknown as SupabaseClient;
 
     const result = await createTimeEntry(supabase, {
-      workspaceId: 'ws1', clientId: 'c1', projectId: null, userId: 'u1',
-      date: '2026-05-09', durationMinutes: 30,
+      workspaceId: 'ws1',
+      clientId: 'c1',
+      projectId: null,
+      userId: 'u1',
+      date: '2026-05-09',
+      durationMinutes: 30,
     });
 
     expect(result.projectId).toBeNull();
@@ -186,7 +259,9 @@ describe('createTimeEntry — constraint violations', () => {
 });
 
 describe('softDeleteTimeEntry', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('applies user_id filter for member role', async () => {
     const queryPromise = Promise.resolve({ error: null });
@@ -196,11 +271,16 @@ describe('softDeleteTimeEntry', () => {
       then: queryPromise.then.bind(queryPromise),
     };
     const supabase = {
-      from: vi.fn().mockReturnValue({ update: vi.fn().mockReturnValue(eqChain) }),
+      from: vi
+        .fn()
+        .mockReturnValue({ update: vi.fn().mockReturnValue(eqChain) }),
     } as unknown as SupabaseClient;
 
     await softDeleteTimeEntry(supabase, {
-      id: 'te1', workspaceId: 'ws1', userId: 'u1', role: 'member',
+      id: 'te1',
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'member',
     });
 
     const eqCalls = eqChain.eq.mock.calls;
@@ -217,11 +297,16 @@ describe('softDeleteTimeEntry', () => {
       then: queryPromise.then.bind(queryPromise),
     };
     const supabase = {
-      from: vi.fn().mockReturnValue({ update: vi.fn().mockReturnValue(eqChain) }),
+      from: vi
+        .fn()
+        .mockReturnValue({ update: vi.fn().mockReturnValue(eqChain) }),
     } as unknown as SupabaseClient;
 
     await softDeleteTimeEntry(supabase, {
-      id: 'te1', workspaceId: 'ws1', userId: 'u1', role: 'owner',
+      id: 'te1',
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'owner',
     });
 
     const eqCalls = eqChain.eq.mock.calls;
@@ -238,11 +323,16 @@ describe('softDeleteTimeEntry', () => {
       then: queryPromise.then.bind(queryPromise),
     };
     const supabase = {
-      from: vi.fn().mockReturnValue({ update: vi.fn().mockReturnValue(eqChain) }),
+      from: vi
+        .fn()
+        .mockReturnValue({ update: vi.fn().mockReturnValue(eqChain) }),
     } as unknown as SupabaseClient;
 
     const result = await softDeleteTimeEntry(supabase, {
-      id: 'te1', workspaceId: 'ws1', userId: 'u1', role: 'member',
+      id: 'te1',
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'member',
     });
     expect(result).toBe(true);
   });

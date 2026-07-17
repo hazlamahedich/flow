@@ -6,8 +6,16 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({
-    status, code, message, category,
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({
+    status,
+    code,
+    message,
+    category,
   }),
   listTimeEntries: vi.fn(),
 }));
@@ -19,14 +27,20 @@ import { requireTenantContext, listTimeEntries } from '@flow/db';
 const mockSupabase = { from: vi.fn() };
 
 const defaultResult = {
-  items: [], total: 0, page: 1, pageSize: 25, hasNextPage: false,
+  items: [],
+  total: 0,
+  page: 1,
+  pageSize: 25,
+  hasNextPage: false,
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase as never);
   vi.mocked(requireTenantContext).mockResolvedValue({
-    workspaceId: 'ws-1', userId: 'u-1', role: 'owner',
+    workspaceId: 'ws-1',
+    userId: 'u-1',
+    role: 'owner',
   } as never);
   vi.mocked(listTimeEntries).mockResolvedValue(defaultResult as never);
 });
@@ -54,7 +68,11 @@ describe('listTimeEntriesAction', () => {
 
   it('[P0] returns entries with default page 1 when no filters', async () => {
     vi.mocked(listTimeEntries).mockResolvedValue({
-      items: [{ id: 'e1' }], total: 1, page: 1, pageSize: 25, hasNextPage: false,
+      items: [{ id: 'e1' }],
+      total: 1,
+      page: 1,
+      pageSize: 25,
+      hasNextPage: false,
     } as never);
 
     const result = await listTimeEntriesAction({});
@@ -93,10 +111,14 @@ describe('listTimeEntriesAction', () => {
 
   it('[P0] passes userId filter for member-scoped views', async () => {
     vi.mocked(requireTenantContext).mockResolvedValue({
-      workspaceId: 'ws-1', userId: 'u-1', role: 'admin',
+      workspaceId: 'ws-1',
+      userId: 'u-1',
+      role: 'admin',
     } as never);
 
-    await listTimeEntriesAction({ userId: '00000000-0000-0000-0000-000000000003' });
+    await listTimeEntriesAction({
+      userId: '00000000-0000-0000-0000-000000000003',
+    });
 
     expect(listTimeEntries).toHaveBeenCalledWith(
       mockSupabase,
@@ -109,7 +131,9 @@ describe('listTimeEntriesAction', () => {
   });
 
   it('[P0] returns INTERNAL_ERROR when listTimeEntries throws', async () => {
-    vi.mocked(listTimeEntries).mockRejectedValue(new Error('db error') as never);
+    vi.mocked(listTimeEntries).mockRejectedValue(
+      new Error('db error') as never,
+    );
 
     const result = await listTimeEntriesAction({});
     expect(result.success).toBe(false);

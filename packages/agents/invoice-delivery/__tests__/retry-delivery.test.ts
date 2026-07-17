@@ -49,19 +49,27 @@ describe('retry-delivery', () => {
   it('throws if delivery record not found', async () => {
     const boss = { send: vi.fn() } as unknown as import('pg-boss').default;
     await expect(
-      handleRetryDelivery(boss, { deliveryId: 'x', workspaceId: 'y' },
+      handleRetryDelivery(
+        boss,
+        { deliveryId: 'x', workspaceId: 'y' },
         {
           from: () => ({
             select: () => ({
               eq: () => ({
                 eq: () => ({
-                  single: vi.fn().mockResolvedValue({ data: null, error: new Error('nope') }),
+                  single: vi.fn().mockResolvedValue({
+                    data: null,
+                    error: new Error('nope'),
+                  }),
                 }),
               }),
             }),
-            update: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({}) }),
+            update: vi
+              .fn()
+              .mockReturnValue({ eq: vi.fn().mockResolvedValue({}) }),
           }),
-        }),
+        },
+      ),
     ).rejects.toThrow('Delivery record not found');
   });
 });

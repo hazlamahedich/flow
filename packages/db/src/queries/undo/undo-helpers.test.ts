@@ -36,8 +36,14 @@ describe('undo-helpers', () => {
 
     it('supports ceremony severity for deletes', () => {
       const payload = buildUndoPayload(
-        'client', 'c-1', { name: 'Deleted' }, 'op-1', 2,
-        'ceremony', true, 'Deleted client',
+        'client',
+        'c-1',
+        { name: 'Deleted' },
+        'op-1',
+        2,
+        'ceremony',
+        true,
+        'Deleted client',
       );
       expect(payload.severity).toBe('ceremony');
       expect(payload.irreversible).toBe(true);

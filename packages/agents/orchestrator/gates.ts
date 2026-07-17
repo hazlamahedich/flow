@@ -8,7 +8,12 @@ const CAN_ACT_TIMEOUT_MS = 500;
 
 export type PreCheckResult =
   | { proceed: true; decision: TrustDecision }
-  | { proceed: false; reason: 'precondition_failed' | 'trust_level_gate' | 'can_act_error'; decision?: TrustDecision; error?: FlowError };
+  | {
+      proceed: false;
+      reason: 'precondition_failed' | 'trust_level_gate' | 'can_act_error';
+      decision?: TrustDecision;
+      error?: FlowError;
+    };
 
 export async function runPreCheck(
   trustClient: TrustClient,
@@ -22,14 +27,24 @@ export async function runPreCheck(
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   try {
     decision = await Promise.race([
-      trustClient.canAct(agentId, actionType, workspaceId, executionId, context),
+      trustClient.canAct(
+        agentId,
+        actionType,
+        workspaceId,
+        executionId,
+        context,
+      ),
       new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('canAct timeout')), CAN_ACT_TIMEOUT_MS);
+        timeoutId = setTimeout(
+          () => reject(new Error('canAct timeout')),
+          CAN_ACT_TIMEOUT_MS,
+        );
       }),
     ]);
   } catch (err) {
     if (timeoutId !== undefined) clearTimeout(timeoutId);
-    const message = err instanceof Error ? err.message : 'Unknown canAct failure';
+    const message =
+      err instanceof Error ? err.message : 'Unknown canAct failure';
     writeAuditLog({
       workspaceId,
       agentId,
@@ -63,14 +78,21 @@ export async function runPreCheck(
       try {
         await trustClient.recordPrecheckFailure(decision.snapshotId);
       } catch (err) {
-        if (!(err instanceof TrustTransitionError && err.code === 'CONCURRENT_MODIFICATION')) {
+        if (
+          !(
+            err instanceof TrustTransitionError &&
+            err.code === 'CONCURRENT_MODIFICATION'
+          )
+        ) {
           writeAuditLog({
             workspaceId,
             agentId,
             action: 'gate.pre_check.record_failure_error',
             entityType: 'agent_run',
             entityId: executionId,
-            details: { error: err instanceof Error ? err.message : String(err) },
+            details: {
+              error: err instanceof Error ? err.message : String(err),
+            },
           });
         }
       }
@@ -120,7 +142,10 @@ export async function blockForApproval(
 ): Promise<void> {
   const { updateRunStatus } = await import('@flow/db');
   await updateRunStatus(runId, 'waiting_approval', {
-    output: { _gate: { decision, reason } } as unknown as Record<string, unknown>,
+    output: { _gate: { decision, reason } } as unknown as Record<
+      string,
+      unknown
+    >,
   });
 
   writeAuditLog({

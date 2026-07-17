@@ -25,7 +25,12 @@ export async function toggleArchive(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Invalid input.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Invalid input.',
+        'validation',
+      ),
     };
   }
 
@@ -35,7 +40,12 @@ export async function toggleArchive(
   if (ctx.role !== 'owner' && ctx.role !== 'admin') {
     return {
       success: false,
-      error: createFlowError(403, 'INSUFFICIENT_ROLE', 'Only owners and admins can archive/restore.', 'auth'),
+      error: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Only owners and admins can archive/restore.',
+        'auth',
+      ),
     };
   }
 
@@ -45,7 +55,12 @@ export async function toggleArchive(
       if (hasRuns) {
         return {
           success: false,
-          error: createFlowError(409, 'CLIENT_ACTIVE_RUNS', 'Cannot archive: active agent runs.', 'validation'),
+          error: createFlowError(
+            409,
+            'CLIENT_ACTIVE_RUNS',
+            'Cannot archive: active agent runs.',
+            'validation',
+          ),
         };
       }
 
@@ -55,7 +70,15 @@ export async function toggleArchive(
       });
 
       if (!client) {
-        return { success: false, error: createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found or already archived.', 'validation') };
+        return {
+          success: false,
+          error: createFlowError(
+            404,
+            'CLIENT_NOT_FOUND',
+            'Client not found or already archived.',
+            'validation',
+          ),
+        };
       }
 
       revalidateTag(cacheTag('workspace_client', ctx.workspaceId));
@@ -68,7 +91,15 @@ export async function toggleArchive(
     });
 
     if (!client) {
-      return { success: false, error: createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found or already active.', 'validation') };
+      return {
+        success: false,
+        error: createFlowError(
+          404,
+          'CLIENT_NOT_FOUND',
+          'Client not found or already active.',
+          'validation',
+        ),
+      };
     }
 
     revalidateTag(cacheTag('workspace_client', ctx.workspaceId));
@@ -76,7 +107,12 @@ export async function toggleArchive(
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to toggle archive.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to toggle archive.',
+        'system',
+      ),
     };
   }
 }

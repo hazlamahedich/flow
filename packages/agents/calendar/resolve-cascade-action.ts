@@ -53,16 +53,18 @@ export async function executeResolveCascade(
 
   const { data: rawOriginRow } = await supabase
     .from('calendar_events')
-    .select('id, client_calendar_id, provider_event_id, title, start_at, end_at, source, created_via')
+    .select(
+      'id, client_calendar_id, provider_event_id, title, start_at, end_at, source, created_via',
+    )
     .eq('id', originEventId)
     .eq('workspace_id', workspaceId)
     .maybeSingle();
 
   if (!rawOriginRow) {
-    throw Object.assign(
-      new Error(`Origin event not found: ${originEventId}`),
-      { code: 'EVENT_NOT_FOUND' as const, statusCode: 404 },
-    );
+    throw Object.assign(new Error(`Origin event not found: ${originEventId}`), {
+      code: 'EVENT_NOT_FOUND' as const,
+      statusCode: 404,
+    });
   }
 
   const originParsed = CalendarEventRowSchema.safeParse(rawOriginRow);
@@ -74,7 +76,11 @@ export async function executeResolveCascade(
   }
   const origin = originParsed.data;
 
-  const relatedEvents = await findDependentEvents(originEventId, workspaceId, supabase);
+  const relatedEvents = await findDependentEvents(
+    originEventId,
+    workspaceId,
+    supabase,
+  );
   const relatedEventIds = relatedEvents.map((r) =>
     r.parentEventId === originEventId ? r.childEventId : r.parentEventId,
   );
@@ -110,7 +116,9 @@ export async function executeResolveCascade(
 
   const { data: rawEventData } = await supabase
     .from('calendar_events')
-    .select('id, client_calendar_id, provider_event_id, title, start_at, end_at, source, created_via')
+    .select(
+      'id, client_calendar_id, provider_event_id, title, start_at, end_at, source, created_via',
+    )
     .in('id', affectedEventIds)
     .eq('workspace_id', workspaceId);
 
@@ -139,7 +147,10 @@ export async function executeResolveCascade(
   const option2: CascadeOption = {
     id: 'move-to-vacated',
     label: `Move to vacated slot (${vacatedStart.split('T')[1]?.substring(0, 5) ?? '?'} - ${vacatedEnd.split('T')[1]?.substring(0, 5) ?? '?'})`,
-    affectedEvents: affected.map((e) => ({ ...e, action: 'reschedule' as const })),
+    affectedEvents: affected.map((e) => ({
+      ...e,
+      action: 'reschedule' as const,
+    })),
   };
 
   const option3: CascadeOption = {
@@ -163,23 +174,24 @@ async function emitProposalSignal(
 ): Promise<void> {
   const dedupKey = `cal.cascade:${originEventId}:proposed`;
 
-  const { error } = await supabase
-    .from('agent_signals')
-    .insert({
-      correlation_id: crypto.randomUUID(),
-      causation_id: crypto.randomUUID(),
-      agent_id: 'calendar',
-      signal_type: 'calendar.cascade.triggered',
-      payload: {
-        origin_event_id: originEventId,
-        affected_count: affectedEvents.length,
-        events_affected: affectedEvents.map((e) => ({ event_id: e.eventId, action: e.action })),
-        status: 'proposed',
-      },
-      target_agent: 'inbox',
-      workspace_id: workspaceId,
-      dedup_key: dedupKey,
-    });
+  const { error } = await supabase.from('agent_signals').insert({
+    correlation_id: crypto.randomUUID(),
+    causation_id: crypto.randomUUID(),
+    agent_id: 'calendar',
+    signal_type: 'calendar.cascade.triggered',
+    payload: {
+      origin_event_id: originEventId,
+      affected_count: affectedEvents.length,
+      events_affected: affectedEvents.map((e) => ({
+        event_id: e.eventId,
+        action: e.action,
+      })),
+      status: 'proposed',
+    },
+    target_agent: 'inbox',
+    workspace_id: workspaceId,
+    dedup_key: dedupKey,
+  });
 
   if (error) {
     throw Object.assign(

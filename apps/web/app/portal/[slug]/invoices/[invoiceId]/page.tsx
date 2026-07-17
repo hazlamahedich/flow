@@ -1,5 +1,8 @@
 import Link from 'next/link';
-import { validatePortalSlug, getPortalInvoiceDetail } from '@/lib/actions/portal';
+import {
+  validatePortalSlug,
+  getPortalInvoiceDetail,
+} from '@/lib/actions/portal/actions';
 import { PayInvoiceButton } from '@/app/portal/components/PayInvoiceButton';
 import { ValueReceipt } from '@/app/portal/components/ValueReceipt';
 import { formatCents } from '@/lib/money';
@@ -22,7 +25,9 @@ export default async function PortalInvoiceDetailPage({
   if (!result.success) {
     return (
       <div className="px-4 py-6 max-w-4xl mx-auto">
-        <p className="text-sm text-[var(--flow-text-muted)]">Invoice not found.</p>
+        <p className="text-sm text-[var(--flow-text-muted)]">
+          Invoice not found.
+        </p>
       </div>
     );
   }
@@ -51,7 +56,9 @@ export default async function PortalInvoiceDetailPage({
           <p className="text-lg font-medium text-[var(--flow-text-primary)]">
             {formatCents(inv.balanceCents)} {inv.currency.toUpperCase()}
           </p>
-          <p className="text-sm text-[var(--flow-text-muted)]">Balance due {inv.dueDate}</p>
+          <p className="text-sm text-[var(--flow-text-muted)]">
+            Balance due {inv.dueDate}
+          </p>
         </div>
       </div>
 
@@ -65,14 +72,21 @@ export default async function PortalInvoiceDetailPage({
         />
       )}
 
-      <ValueReceipt taskCount={inv.valueReceipt.taskCount} meetingCount={inv.valueReceipt.meetingCount} />
+      <ValueReceipt
+        taskCount={inv.valueReceipt.taskCount}
+        meetingCount={inv.valueReceipt.meetingCount}
+      />
 
       <div>
-        <h2 className="text-lg font-medium text-[var(--flow-text-primary)] mb-2">Line Items</h2>
+        <h2 className="text-lg font-medium text-[var(--flow-text-primary)] mb-2">
+          Line Items
+        </h2>
         <ul className="space-y-1">
           {inv.lineItems.map((li) => (
             <li key={li.id} className="flex justify-between text-sm">
-              <span className="text-[var(--flow-text-secondary)]">{li.description}</span>
+              <span className="text-[var(--flow-text-secondary)]">
+                {li.description}
+              </span>
               <span className="text-[var(--flow-text-primary)]">
                 {formatCents(li.amountCents)} {inv.currency.toUpperCase()}
               </span>
@@ -83,10 +97,15 @@ export default async function PortalInvoiceDetailPage({
 
       {inv.payments.length > 0 && (
         <div>
-          <h2 className="text-lg font-medium text-[var(--flow-text-primary)] mb-2">Payments</h2>
+          <h2 className="text-lg font-medium text-[var(--flow-text-primary)] mb-2">
+            Payments
+          </h2>
           <ul className="space-y-1">
             {inv.payments.map((p) => (
-              <li key={`${p.paymentDate}-${p.amountCents}`} className="flex justify-between text-sm">
+              <li
+                key={`${p.paymentDate}-${p.amountCents}`}
+                className="flex justify-between text-sm"
+              >
                 <span className="text-[var(--flow-text-secondary)]">
                   {p.paymentDate} ({p.paymentMethod})
                 </span>

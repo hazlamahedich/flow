@@ -4,8 +4,12 @@ import { useActionState, useState } from 'react';
 import type { ActionResult } from '@flow/types';
 
 interface SubscriptionActionsProps {
-  cancelAction: (input?: unknown) => Promise<ActionResult<{ cancelAtPeriodEnd: true }>>;
-  reactivateAction: (input?: unknown) => Promise<ActionResult<{ reactivated: true }>>;
+  cancelAction: (
+    input?: unknown,
+  ) => Promise<ActionResult<{ cancelAtPeriodEnd: true }>>;
+  reactivateAction: (
+    input?: unknown,
+  ) => Promise<ActionResult<{ reactivated: true }>>;
   subscriptionStatus: string;
   cancelAtPeriodEnd: boolean;
 }
@@ -23,31 +27,41 @@ export function SubscriptionActions({
 }: SubscriptionActionsProps) {
   const hasActiveSubscription = subscriptionStatus !== 'free';
 
-  const [cancelState, cancelFormAction, isCancelPending] = useActionState(async () => {
-    const result = await cancelAction();
-    return result;
-  }, null);
-  const [reactivateState, reactivateFormAction, isReactivatePending] = useActionState(async () => {
-    const result = await reactivateAction();
-    return result;
-  }, null);
+  const [cancelState, cancelFormAction, isCancelPending] = useActionState(
+    async () => {
+      const result = await cancelAction();
+      return result;
+    },
+    null,
+  );
+  const [reactivateState, reactivateFormAction, isReactivatePending] =
+    useActionState(async () => {
+      const result = await reactivateAction();
+      return result;
+    }, null);
 
   const [confirmingCancel, setConfirmingCancel] = useState(false);
 
-  const cancelError = cancelState && !cancelState.success ? cancelState.error.message : null;
+  const cancelError =
+    cancelState && !cancelState.success ? cancelState.error.message : null;
   const reactivateError =
-    reactivateState && !reactivateState.success ? reactivateState.error.message : null;
+    reactivateState && !reactivateState.success
+      ? reactivateState.error.message
+      : null;
 
   if (!hasActiveSubscription) return null;
 
   return (
     <section className="space-y-2">
-      <h2 className="text-lg font-medium text-[var(--flow-color-text-primary)]">Subscription</h2>
+      <h2 className="text-lg font-medium text-[var(--flow-color-text-primary)]">
+        Subscription
+      </h2>
 
       {cancelAtPeriodEnd ? (
         <div className="space-y-2 rounded-[var(--flow-radius-md)] border border-amber-200 bg-amber-50 p-3">
           <p className="text-sm text-amber-800">
-            Your subscription is scheduled to cancel at the end of the current period.
+            Your subscription is scheduled to cancel at the end of the current
+            period.
           </p>
           <form action={reactivateFormAction}>
             <button
@@ -55,7 +69,9 @@ export function SubscriptionActions({
               disabled={isReactivatePending}
               className="inline-flex h-9 items-center justify-center rounded-[var(--flow-radius-md)] bg-[var(--flow-color-primary)] px-4 text-sm font-medium text-white transition-colors hover:bg-[var(--flow-color-primary-hover)] disabled:opacity-50"
             >
-              {isReactivatePending ? 'Reactivating…' : 'Reactivate subscription'}
+              {isReactivatePending
+                ? 'Reactivating…'
+                : 'Reactivate subscription'}
             </button>
           </form>
           {reactivateError && (
@@ -69,8 +85,8 @@ export function SubscriptionActions({
           {confirmingCancel ? (
             <div className="space-y-2 rounded-[var(--flow-radius-md)] border border-[var(--flow-status-error)] bg-red-50 p-3">
               <p className="text-sm text-red-800">
-                Are you sure? You will keep access until the end of the current period, after which
-                your subscription will end.
+                Are you sure? You will keep access until the end of the current
+                period, after which your subscription will end.
               </p>
               <div className="flex gap-2">
                 <form action={cancelFormAction}>
@@ -79,7 +95,9 @@ export function SubscriptionActions({
                     disabled={isCancelPending}
                     className="inline-flex h-9 items-center justify-center rounded-[var(--flow-radius-md)] bg-[var(--flow-status-error)] px-4 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
                   >
-                    {isCancelPending ? 'Cancelling…' : 'Yes, cancel at period end'}
+                    {isCancelPending
+                      ? 'Cancelling…'
+                      : 'Yes, cancel at period end'}
                   </button>
                 </form>
                 <button

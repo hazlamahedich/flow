@@ -42,14 +42,12 @@ export function ConfirmRevokeDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent aria-label="Confirm revocation">
         <DialogHeader>
-          <DialogTitle className="text-red-700">
-            Revoke Access
-          </DialogTitle>
+          <DialogTitle className="text-red-700">Revoke Access</DialogTitle>
           <DialogDescription asChild>
             <div className="space-y-2">
               <p>
-                <strong>{memberName}</strong> will be immediately signed out
-                and lose access to all workspace data.
+                <strong>{memberName}</strong> will be immediately signed out and
+                lose access to all workspace data.
               </p>
               {isActive && (
                 <span className="inline-block rounded-md bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">

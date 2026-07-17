@@ -52,7 +52,10 @@ export async function getPortalInvoiceDetail(
   portalCtx: PortalContext,
   invoiceId: string,
 ): Promise<ActionResult<PortalInvoiceDetail>> {
-  const client = await createPortalClient(portalCtx, PORTAL_SESSION_MAX_AGE_SECONDS);
+  const client = await createPortalClient(
+    portalCtx,
+    PORTAL_SESSION_MAX_AGE_SECONDS,
+  );
 
   const { data: invoice, error: invError } = await client
     .from('invoices')
@@ -65,7 +68,12 @@ export async function getPortalInvoiceDetail(
   if (invError || !invoice) {
     return {
       success: false,
-      error: createFlowError(404, 'NOT_FOUND', 'Invoice not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'NOT_FOUND',
+        'Invoice not found.',
+        'validation',
+      ),
     };
   }
 
@@ -77,7 +85,9 @@ export async function getPortalInvoiceDetail(
   const [{ data: lineItems }, { data: payments }] = await Promise.all([
     client
       .from('invoice_line_items')
-      .select('id, description, quantity, amount_cents, source_type, time_entry_id, calendar_event_id')
+      .select(
+        'id, description, quantity, amount_cents, source_type, time_entry_id, calendar_event_id',
+      )
       .eq('invoice_id', invoiceId)
       .order('sort_order', { ascending: true }),
     client
@@ -89,7 +99,9 @@ export async function getPortalInvoiceDetail(
 
   const items = (lineItems ?? []) as Array<Record<string, unknown>>;
   const taskCount = items.filter((li) => li.time_entry_id !== null).length;
-  const meetingCount = items.filter((li) => li.calendar_event_id !== null).length;
+  const meetingCount = items.filter(
+    (li) => li.calendar_event_id !== null,
+  ).length;
 
   return {
     success: true,
@@ -107,7 +119,8 @@ export async function getPortalInvoiceDetail(
       notes: (inv.notes as string) ?? null,
       paymentUrl: (inv.payment_url as string) ?? null,
       paymentUrlExpiresAt: (inv.payment_url_expires_at as string) ?? null,
-      stripeCheckoutSessionId: (inv.stripe_checkout_session_id as string) ?? null,
+      stripeCheckoutSessionId:
+        (inv.stripe_checkout_session_id as string) ?? null,
       createdAt: String(inv.created_at),
       lineItems: items.map((li) => ({
         id: li.id as string,

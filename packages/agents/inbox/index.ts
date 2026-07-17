@@ -1,8 +1,26 @@
 export { execute, registerInboxPipelineWorkers } from './executor';
 export { preCheck } from './pre-check';
-export { inboxInputSchema, inboxProposalSchema, EMAIL_CATEGORIES, morningBriefOutputSchema } from './schemas';
-export type { InboxInput, InboxProposal, InboxActionInput, EmailCategory, EmailProcessingInput, EmailCategorizationInput, MorningBriefProposal, HandledItem, NeedsAttentionItem, ThreadSummary, ClientBreakdown } from './schemas';
+export {
+  inboxInputSchema,
+  inboxProposalSchema,
+  EMAIL_CATEGORIES,
+  morningBriefOutputSchema,
+} from './schemas';
+export type {
+  InboxInput,
+  InboxProposal,
+  InboxActionInput,
+  EmailCategory,
+  EmailProcessingInput,
+  EmailCategorizationInput,
+  MorningBriefProposal,
+  HandledItem,
+  NeedsAttentionItem,
+  ThreadSummary,
+  ClientBreakdown,
+} from './schemas';
 export { startHistoryWorker, handleDrainHistory } from './history-worker';
+export { executeInitialSync } from './initial-sync';
 import { getMorningBriefContext } from './brief-context';
 import { generateBrief } from './brief-generator';
 import { saveMorningBrief } from '@flow/db';
@@ -22,18 +40,26 @@ export async function generateMorningBrief(workspaceId: string) {
   const result = await saveMorningBrief({
     workspace_id: workspaceId,
     brief_date: today,
-    content: { ...brief, floodState: flood } as unknown as Record<string, unknown>,
+    content: { ...brief, floodState: flood } as unknown as Record<
+      string,
+      unknown
+    >,
     email_count_handled: brief.handledItems.length,
     email_count_attention: brief.needsAttentionItems.length,
     generation_status: isFallback ? 'failed' : 'completed',
-    error_message: isFallback ? (brief.reassuranceMessage ?? 'LLM generation failed after retries') : null,
+    error_message: isFallback
+      ? (brief.reassuranceMessage ?? 'LLM generation failed after retries')
+      : null,
     flood_state: flood,
   });
 
   // Task: After brief delivery, trigger deferred drafts (AC10)
   const boss = getBossInstance();
-  await scheduleDeferredDrafts(workspaceId, boss).catch(err => {
-    console.error(`[inbox] Failed to schedule deferred drafts for workspace ${workspaceId}:`, err);
+  await scheduleDeferredDrafts(workspaceId, boss).catch((err) => {
+    console.error(
+      `[inbox] Failed to schedule deferred drafts for workspace ${workspaceId}:`,
+      err,
+    );
   });
 
   return result;

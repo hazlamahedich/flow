@@ -7,7 +7,7 @@ import {
   requireTenantContext,
   recategorizeEmail as recategorizeEmailQuery,
   insertSignal,
-  recordTrustViolation
+  recordTrustViolation,
 } from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { revalidatePath } from 'next/cache';
@@ -24,7 +24,12 @@ export async function recategorizeEmail(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -33,7 +38,9 @@ export async function recategorizeEmail(
   const { workspaceId } = await requireTenantContext(supabase);
 
   // Resolve user once up front
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return {
       success: false,
@@ -66,22 +73,32 @@ export async function recategorizeEmail(
   } catch (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to recategorize email', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to recategorize email',
+        'system',
+      ),
     };
   }
 
   // 3. Write audit log
-  const { error: logError } = await supabase.from('recategorization_log').insert({
-    email_id: emailId,
-    workspace_id: workspaceId,
-    client_inbox_id: email.client_inbox_id,
-    old_category: email.category,
-    new_category: newCategory,
-    user_id: user.id,
-  });
+  const { error: logError } = await supabase
+    .from('recategorization_log')
+    .insert({
+      email_id: emailId,
+      workspace_id: workspaceId,
+      client_inbox_id: email.client_inbox_id,
+      old_category: email.category,
+      new_category: newCategory,
+      user_id: user.id,
+    });
 
   if (logError) {
-    console.error('[recategorizeEmail] Failed to write recategorization_log:', logError);
+    console.error(
+      '[recategorizeEmail] Failed to write recategorization_log:',
+      logError,
+    );
   }
 
   // 4. Emit signal
@@ -114,11 +131,14 @@ export async function recategorizeEmail(
         'categorize_email',
         'soft',
         1.0,
-        trustEntry.version
+        trustEntry.version,
       );
     }
   } catch (error) {
-    console.error('Failed to record trust violation during recategorization:', error);
+    console.error(
+      'Failed to record trust violation during recategorization:',
+      error,
+    );
   }
 
   revalidatePath('/agents/approvals');

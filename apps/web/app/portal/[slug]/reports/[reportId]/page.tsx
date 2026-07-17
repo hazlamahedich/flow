@@ -1,4 +1,4 @@
-import { validatePortalSlug } from '@/lib/actions/portal';
+import { validatePortalSlug } from '@/lib/actions/portal/actions';
 import { createPortalClient } from '@flow/auth/server/portal-client';
 import { PORTAL_SESSION_MAX_AGE_SECONDS } from '@/lib/actions/portal/constants';
 import { ApproveReportButton } from '@/app/portal/components/ApproveReportButton';
@@ -26,11 +26,16 @@ export default async function PortalReportDetailPage({
   const session = await validatePortalSlug(slug);
   if (!session) return null;
 
-  const client = await createPortalClient(session, PORTAL_SESSION_MAX_AGE_SECONDS);
+  const client = await createPortalClient(
+    session,
+    PORTAL_SESSION_MAX_AGE_SECONDS,
+  );
 
   const { data: report, error } = await client
     .from('weekly_reports')
-    .select('id, period_start, period_end, status, generated_at, client_feedback, feedback_at')
+    .select(
+      'id, period_start, period_end, status, generated_at, client_feedback, feedback_at',
+    )
     .eq('id', reportId)
     .eq('workspace_id', session.workspaceId)
     .eq('client_id', session.clientId)
@@ -39,7 +44,9 @@ export default async function PortalReportDetailPage({
   if (error || !report) {
     return (
       <div className="px-4 py-6 max-w-4xl mx-auto">
-        <p className="text-sm text-[var(--flow-text-muted)]">Report not found.</p>
+        <p className="text-sm text-[var(--flow-text-muted)]">
+          Report not found.
+        </p>
       </div>
     );
   }
@@ -58,7 +65,9 @@ export default async function PortalReportDetailPage({
   if (sectionsError) {
     return (
       <div className="px-4 py-6 max-w-4xl mx-auto">
-        <p className="text-sm text-[var(--flow-text-muted)]">Unable to load report sections.</p>
+        <p className="text-sm text-[var(--flow-text-muted)]">
+          Unable to load report sections.
+        </p>
       </div>
     );
   }
@@ -77,14 +86,17 @@ export default async function PortalReportDetailPage({
           Weekly Report
         </h1>
         <p className="text-sm text-[var(--flow-text-muted)]">
-          {formatDate(String(r.period_start))} — {formatDate(String(r.period_end))} &middot;{' '}
+          {formatDate(String(r.period_start))} —{' '}
+          {formatDate(String(r.period_end))} &middot;{' '}
           <span className="capitalize">{status.replaceAll('_', ' ')}</span>
         </p>
       </div>
 
       {typedSections.map((s) => (
         <section key={`${s.sectionType}-${s.sortOrder}`} className="space-y-1">
-          <h2 className="text-lg font-medium text-[var(--flow-text-primary)]">{s.title}</h2>
+          <h2 className="text-lg font-medium text-[var(--flow-text-primary)]">
+            {s.title}
+          </h2>
           <div className="text-sm text-[var(--flow-text-secondary)] whitespace-pre-wrap">
             {renderSectionContent(s.content)}
           </div>
@@ -105,12 +117,17 @@ export default async function PortalReportDetailPage({
         </div>
       )}
 
-      {typeof r.client_feedback === 'string' && r.client_feedback.length > 0 && (
-        <div className="p-4 rounded-lg border border-[var(--flow-border-default)] bg-[var(--flow-bg-subtle)]">
-          <h2 className="text-sm font-medium text-[var(--flow-text-muted)]">Your feedback</h2>
-          <p className="mt-1 text-sm text-[var(--flow-text-secondary)]">{String(r.client_feedback)}</p>
-        </div>
-      )}
+      {typeof r.client_feedback === 'string' &&
+        r.client_feedback.length > 0 && (
+          <div className="p-4 rounded-lg border border-[var(--flow-border-default)] bg-[var(--flow-bg-subtle)]">
+            <h2 className="text-sm font-medium text-[var(--flow-text-muted)]">
+              Your feedback
+            </h2>
+            <p className="mt-1 text-sm text-[var(--flow-text-secondary)]">
+              {String(r.client_feedback)}
+            </p>
+          </div>
+        )}
     </div>
   );
 }
@@ -118,7 +135,11 @@ export default async function PortalReportDetailPage({
 function formatDate(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }
 
 function renderSectionContent(content: unknown): string {

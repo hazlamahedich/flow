@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     exclude: ['**/node_modules/**', '**/dist/**', '**/._*'],
+    testTimeout: 60_000,
   },
   resolve: {
     alias: {

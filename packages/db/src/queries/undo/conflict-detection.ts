@@ -1,4 +1,8 @@
-import type { ConflictInfo, DiffField, ConflictResolution } from './conflict-types';
+import type {
+  ConflictInfo,
+  DiffField,
+  ConflictResolution,
+} from './conflict-types';
 
 function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
@@ -10,7 +14,9 @@ function deepEqual(a: unknown, b: unknown): boolean {
   const aKeys = Object.keys(aObj).sort();
   const bKeys = Object.keys(bObj).sort();
   if (aKeys.length !== bKeys.length) return false;
-  return aKeys.every((key, i) => key === bKeys[i] && deepEqual(aObj[key], bObj[key]));
+  return aKeys.every(
+    (key, i) => key === bKeys[i] && deepEqual(aObj[key], bObj[key]),
+  );
 }
 
 export function detectConflict(
@@ -32,7 +38,13 @@ export function buildDiff(
     ...Object.keys(serverState),
   ]);
 
-  const skipKeys = new Set(['id', 'version', 'created_at', 'updated_at', 'workspace_id']);
+  const skipKeys = new Set([
+    'id',
+    'version',
+    'created_at',
+    'updated_at',
+    'workspace_id',
+  ]);
 
   const conflictingFields: DiffField[] = [];
   const autoMergedFields: ConflictInfo['autoMergedFields'] = [];

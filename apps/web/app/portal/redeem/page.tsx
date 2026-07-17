@@ -3,7 +3,7 @@ import { validatePortalTokenAction } from '@/lib/actions/portal/validate-token';
 import {
   getPortalPath,
   getFallbackPortalPath,
-} from '@/lib/actions/portal/portal-session';
+} from '@/lib/actions/portal/portal-paths';
 import { sanitizeSlug } from '@/lib/actions/portal/helpers';
 import { getServerSupabase } from '@/lib/supabase-server';
 
@@ -36,7 +36,9 @@ export default async function RedeemPage({
   const fallbackPath = getFallbackPortalPath();
 
   if (!token || !safeSlug) {
-    redirect(safeSlug ? getPortalPath(safeSlug) ?? fallbackPath : fallbackPath);
+    redirect(
+      safeSlug ? (getPortalPath(safeSlug) ?? fallbackPath) : fallbackPath,
+    );
   }
 
   const context = await validatePortalTokenAction(token);

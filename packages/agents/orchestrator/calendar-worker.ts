@@ -9,7 +9,11 @@ import type { ConflictDetectionInput } from '../calendar/detect-conflict-action.
 import type { ProposeBookingInput } from '../calendar/propose-booking-action.js';
 import type { CreateEventActionInput } from '../calendar/create-event-action.js';
 import { AgentJobPayloadSchema } from './schemas.js';
-import { handleDetectBypass, handleResolveCascade, registerCalendarScheduledJobs } from './calendar-bypass-worker.js';
+import {
+  handleDetectBypass,
+  handleResolveCascade,
+  registerCalendarScheduledJobs,
+} from './calendar-bypass-worker.js';
 
 const QUEUE_NAME = 'agent:calendar';
 
@@ -38,9 +42,14 @@ export async function registerCalendarWorkers(boss: PgBoss): Promise<void> {
     if (!job) return;
     const parsed = AgentJobPayloadSchema.safeParse(job.data);
     if (!parsed.success) {
-      writeAuditLog({ workspaceId: 'unknown', agentId: 'calendar',
-        action: 'worker.invalid_payload', entityType: 'agent_run', entityId: 'unknown',
-        details: { error: parsed.error.message, outcome: 'skipped' } });
+      writeAuditLog({
+        workspaceId: 'unknown',
+        agentId: 'calendar',
+        action: 'worker.invalid_payload',
+        entityType: 'agent_run',
+        entityId: 'unknown',
+        details: { error: parsed.error.message, outcome: 'skipped' },
+      });
       return;
     }
     const { runId, workspaceId, actionType, input } = parsed.data;
@@ -57,64 +66,119 @@ export async function registerCalendarWorkers(boss: PgBoss): Promise<void> {
     } else if (actionType === 'resolveCascade') {
       await handleResolveCascade(runId, workspaceId, input, supabase);
     } else {
-      writeAuditLog({ workspaceId, agentId: 'calendar', action: 'worker.unknown_action',
-        entityType: 'agent_run', entityId: runId,
-        details: { actionType, outcome: 'skipped' } });
+      writeAuditLog({
+        workspaceId,
+        agentId: 'calendar',
+        action: 'worker.unknown_action',
+        entityType: 'agent_run',
+        entityId: runId,
+        details: { actionType, outcome: 'skipped' },
+      });
     }
   });
 }
 
 async function handleDetectConflict(
-  runId: string, workspaceId: string, input: Record<string, unknown>, supabase: ReturnType<typeof createServiceClient>,
+  runId: string,
+  workspaceId: string,
+  input: Record<string, unknown>,
+  supabase: ReturnType<typeof createServiceClient>,
 ): Promise<void> {
   const inputParsed = ConflictJobInputSchema.safeParse(input);
   if (!inputParsed.success) {
-    writeAuditLog({ workspaceId, agentId: 'calendar', action: 'worker.invalid_input',
-      entityType: 'agent_run', entityId: runId,
-      details: { error: inputParsed.error.message, outcome: 'skipped' } });
+    writeAuditLog({
+      workspaceId,
+      agentId: 'calendar',
+      action: 'worker.invalid_input',
+      entityType: 'agent_run',
+      entityId: runId,
+      details: { error: inputParsed.error.message, outcome: 'skipped' },
+    });
     return;
   }
 
   const conflictInput: ConflictDetectionInput = {
-    workspaceId, eventId: inputParsed.data.eventId,
+    workspaceId,
+    eventId: inputParsed.data.eventId,
     clientCalendarId: inputParsed.data.clientCalendarId,
   };
 
-  try { await updateRunStatus(runId, 'running', { startedAt: new Date().toISOString() }); }
-  catch { /* non-fatal */ }
+  try {
+    await updateRunStatus(runId, 'running', {
+      startedAt: new Date().toISOString(),
+    });
+  } catch {
+    /* non-fatal */
+  }
 
   try {
-    const result = await executeConflictDetection(runId, conflictInput, { supabase });
-    try { await updateRunStatus(runId, 'completed', {
-      completedAt: new Date().toISOString(),
-      output: { conflictsFound: result.conflictsFound, conflictEventIds: result.conflictEventIds } as unknown as Record<string, unknown>,
-    }); } catch { /* non-fatal */ }
+    const result = await executeConflictDetection(runId, conflictInput, {
+      supabase,
+    });
+    try {
+      await updateRunStatus(runId, 'completed', {
+        completedAt: new Date().toISOString(),
+        output: {
+          conflictsFound: result.conflictsFound,
+          conflictEventIds: result.conflictEventIds,
+        } as unknown as Record<string, unknown>,
+      });
+    } catch {
+      /* non-fatal */
+    }
 
-    writeAuditLog({ workspaceId, agentId: 'calendar', action: 'detectConflict.complete',
-      entityType: 'agent_run', entityId: runId,
-      details: { conflictsFound: result.conflictsFound, conflictEventIds: result.conflictEventIds, outcome: 'completed' } });
+    writeAuditLog({
+      workspaceId,
+      agentId: 'calendar',
+      action: 'detectConflict.complete',
+      entityType: 'agent_run',
+      entityId: runId,
+      details: {
+        conflictsFound: result.conflictsFound,
+        conflictEventIds: result.conflictEventIds,
+        outcome: 'completed',
+      },
+    });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Conflict detection failed';
-    try { await updateRunStatus(runId, 'failed', {
-      completedAt: new Date().toISOString(),
-      error: { message } as unknown as Record<string, unknown>,
-    }); } catch { /* non-fatal */ }
+    const message =
+      err instanceof Error ? err.message : 'Conflict detection failed';
+    try {
+      await updateRunStatus(runId, 'failed', {
+        completedAt: new Date().toISOString(),
+        error: { message } as unknown as Record<string, unknown>,
+      });
+    } catch {
+      /* non-fatal */
+    }
 
-    writeAuditLog({ workspaceId, agentId: 'calendar', action: 'detectConflict.error',
-      entityType: 'agent_run', entityId: runId,
-      details: { error: message, outcome: 'failed' } });
+    writeAuditLog({
+      workspaceId,
+      agentId: 'calendar',
+      action: 'detectConflict.error',
+      entityType: 'agent_run',
+      entityId: runId,
+      details: { error: message, outcome: 'failed' },
+    });
     throw err;
   }
 }
 
 async function handleProposeBooking(
-  runId: string, workspaceId: string, input: Record<string, unknown>, supabase: ReturnType<typeof createServiceClient>,
+  runId: string,
+  workspaceId: string,
+  input: Record<string, unknown>,
+  supabase: ReturnType<typeof createServiceClient>,
 ): Promise<void> {
   const inputParsed = BookingProposalJobInputSchema.safeParse(input);
   if (!inputParsed.success) {
-    writeAuditLog({ workspaceId, agentId: 'calendar', action: 'worker.invalid_input',
-      entityType: 'agent_run', entityId: runId,
-      details: { error: inputParsed.error.message, outcome: 'skipped' } });
+    writeAuditLog({
+      workspaceId,
+      agentId: 'calendar',
+      action: 'worker.invalid_input',
+      entityType: 'agent_run',
+      entityId: runId,
+      details: { error: inputParsed.error.message, outcome: 'skipped' },
+    });
     return;
   }
 
@@ -123,41 +187,82 @@ async function handleProposeBooking(
     schedulingRequestId: inputParsed.data.schedulingRequestId,
   };
 
-  try { await updateRunStatus(runId, 'running', { startedAt: new Date().toISOString() }); }
-  catch { /* non-fatal */ }
+  try {
+    await updateRunStatus(runId, 'running', {
+      startedAt: new Date().toISOString(),
+    });
+  } catch {
+    /* non-fatal */
+  }
 
   try {
-    const result = await executeProposeBooking(runId, proposeInput, { supabase });
-    try { await updateRunStatus(runId, 'completed', {
-      completedAt: new Date().toISOString(),
-      output: { schedulingRequestId: result.schedulingRequestId, status: result.status } as unknown as Record<string, unknown>,
-    }); } catch { /* non-fatal */ }
+    const result = await executeProposeBooking(runId, proposeInput, {
+      supabase,
+    });
+    try {
+      await updateRunStatus(runId, 'completed', {
+        completedAt: new Date().toISOString(),
+        output: {
+          schedulingRequestId: result.schedulingRequestId,
+          status: result.status,
+        } as unknown as Record<string, unknown>,
+      });
+    } catch {
+      /* non-fatal */
+    }
 
-    writeAuditLog({ workspaceId, agentId: 'calendar', action: 'proposeBooking.complete',
-      entityType: 'agent_run', entityId: runId,
-      details: { schedulingRequestId: result.schedulingRequestId, status: result.status, outcome: 'completed' } });
+    writeAuditLog({
+      workspaceId,
+      agentId: 'calendar',
+      action: 'proposeBooking.complete',
+      entityType: 'agent_run',
+      entityId: runId,
+      details: {
+        schedulingRequestId: result.schedulingRequestId,
+        status: result.status,
+        outcome: 'completed',
+      },
+    });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Propose booking failed';
-    try { await updateRunStatus(runId, 'failed', {
-      completedAt: new Date().toISOString(),
-      error: { message } as unknown as Record<string, unknown>,
-    }); } catch { /* non-fatal */ }
+    const message =
+      err instanceof Error ? err.message : 'Propose booking failed';
+    try {
+      await updateRunStatus(runId, 'failed', {
+        completedAt: new Date().toISOString(),
+        error: { message } as unknown as Record<string, unknown>,
+      });
+    } catch {
+      /* non-fatal */
+    }
 
-    writeAuditLog({ workspaceId, agentId: 'calendar', action: 'proposeBooking.error',
-      entityType: 'agent_run', entityId: runId,
-      details: { error: message, outcome: 'failed' } });
+    writeAuditLog({
+      workspaceId,
+      agentId: 'calendar',
+      action: 'proposeBooking.error',
+      entityType: 'agent_run',
+      entityId: runId,
+      details: { error: message, outcome: 'failed' },
+    });
     throw err;
   }
 }
 
 async function handleCreateEvent(
-  runId: string, workspaceId: string, input: Record<string, unknown>, supabase: ReturnType<typeof createServiceClient>,
+  runId: string,
+  workspaceId: string,
+  input: Record<string, unknown>,
+  supabase: ReturnType<typeof createServiceClient>,
 ): Promise<void> {
   const inputParsed = CreateEventJobInputSchema.safeParse(input);
   if (!inputParsed.success) {
-    writeAuditLog({ workspaceId, agentId: 'calendar', action: 'worker.invalid_input',
-      entityType: 'agent_run', entityId: runId,
-      details: { error: inputParsed.error.message, outcome: 'skipped' } });
+    writeAuditLog({
+      workspaceId,
+      agentId: 'calendar',
+      action: 'worker.invalid_input',
+      entityType: 'agent_run',
+      entityId: runId,
+      details: { error: inputParsed.error.message, outcome: 'skipped' },
+    });
     return;
   }
 
@@ -167,30 +272,66 @@ async function handleCreateEvent(
     selectedOptionIndex: inputParsed.data.selectedOptionIndex,
   };
 
-  try { await updateRunStatus(runId, 'running', { startedAt: new Date().toISOString() }); }
-  catch { /* non-fatal */ }
+  try {
+    await updateRunStatus(runId, 'running', {
+      startedAt: new Date().toISOString(),
+    });
+  } catch {
+    /* non-fatal */
+  }
 
   try {
     const result = await executeCreateEvent(runId, createInput, { supabase });
-    const runStatus = result.status === 'booked' ? 'completed' as const : 'failed' as const;
-    try { await updateRunStatus(runId, runStatus, {
-      completedAt: new Date().toISOString(),
-      output: { schedulingRequestId: result.schedulingRequestId, eventId: result.eventId, status: result.status } as unknown as Record<string, unknown>,
-    }); } catch { /* non-fatal */ }
+    const runStatus =
+      result.status === 'booked' ? ('completed' as const) : ('failed' as const);
+    try {
+      await updateRunStatus(runId, runStatus, {
+        completedAt: new Date().toISOString(),
+        output: {
+          schedulingRequestId: result.schedulingRequestId,
+          eventId: result.eventId,
+          status: result.status,
+        } as unknown as Record<string, unknown>,
+      });
+    } catch {
+      /* non-fatal */
+    }
 
-    writeAuditLog({ workspaceId, agentId: 'calendar', action: runStatus === 'completed' ? 'createEvent.complete' : 'createEvent.failed',
-      entityType: 'agent_run', entityId: runId,
-      details: { schedulingRequestId: result.schedulingRequestId, eventId: result.eventId, status: result.status, outcome: runStatus } });
+    writeAuditLog({
+      workspaceId,
+      agentId: 'calendar',
+      action:
+        runStatus === 'completed'
+          ? 'createEvent.complete'
+          : 'createEvent.failed',
+      entityType: 'agent_run',
+      entityId: runId,
+      details: {
+        schedulingRequestId: result.schedulingRequestId,
+        eventId: result.eventId,
+        status: result.status,
+        outcome: runStatus,
+      },
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Create event failed';
-    try { await updateRunStatus(runId, 'failed', {
-      completedAt: new Date().toISOString(),
-      error: { message } as unknown as Record<string, unknown>,
-    }); } catch { /* non-fatal */ }
+    try {
+      await updateRunStatus(runId, 'failed', {
+        completedAt: new Date().toISOString(),
+        error: { message } as unknown as Record<string, unknown>,
+      });
+    } catch {
+      /* non-fatal */
+    }
 
-    writeAuditLog({ workspaceId, agentId: 'calendar', action: 'createEvent.error',
-      entityType: 'agent_run', entityId: runId,
-      details: { error: message, outcome: 'failed' } });
+    writeAuditLog({
+      workspaceId,
+      agentId: 'calendar',
+      action: 'createEvent.error',
+      entityType: 'agent_run',
+      entityId: runId,
+      details: { error: message, outcome: 'failed' },
+    });
     throw err;
   }
 }

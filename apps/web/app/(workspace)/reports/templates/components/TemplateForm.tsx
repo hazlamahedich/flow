@@ -11,9 +11,18 @@ const SECTION_TYPES = [
 ] as const;
 
 const DESIGN_SYSTEM_PALETTE = [
-  '#6366f1', '#3b82f6', '#8b5cf6', '#ec4899',
-  '#f43f5e', '#f97316', '#eab308', '#22c55e',
-  '#14b8a6', '#06b6d4', '#64748b', '#18181b',
+  '#6366f1',
+  '#3b82f6',
+  '#8b5cf6',
+  '#ec4899',
+  '#f43f5e',
+  '#f97316',
+  '#eab308',
+  '#22c55e',
+  '#14b8a6',
+  '#06b6d4',
+  '#64748b',
+  '#18181b',
 ];
 
 interface SectionConfig {
@@ -34,10 +43,17 @@ interface TemplateFormProps {
   onCancel: () => void;
 }
 
-export function TemplateForm({ initial, clients, onSubmit, onCancel }: TemplateFormProps) {
+export function TemplateForm({
+  initial,
+  clients,
+  onSubmit,
+  onCancel,
+}: TemplateFormProps) {
   const [name, setName] = useState(initial?.name ?? '');
   const [clientId, setClientId] = useState(initial?.clientId ?? '');
-  const [sectionsConfig, setSectionsConfig] = useState<Record<string, SectionConfig>>(
+  const [sectionsConfig, setSectionsConfig] = useState<
+    Record<string, SectionConfig>
+  >(
     initial?.sectionsConfig ?? {
       time_summary: { enabled: true, sort_order: 1 },
       task_log: { enabled: true, sort_order: 2 },
@@ -45,11 +61,15 @@ export function TemplateForm({ initial, clients, onSubmit, onCancel }: TemplateF
       invoice_summary: { enabled: true, sort_order: 4 },
     },
   );
-  const [accentColor, setAccentColor] = useState(initial?.branding?.accentColor ?? '#6366f1');
+  const [accentColor, setAccentColor] = useState(
+    initial?.branding?.accentColor ?? '#6366f1',
+  );
   const [logoUrl, setLogoUrl] = useState(initial?.branding?.logoUrl ?? '');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const enabledCount = Object.values(sectionsConfig).filter((c) => c.enabled).length;
+  const enabledCount = Object.values(sectionsConfig).filter(
+    (c) => c.enabled,
+  ).length;
 
   function handleToggle(key: string) {
     setSectionsConfig((prev) => ({
@@ -70,7 +90,8 @@ export function TemplateForm({ initial, clients, onSubmit, onCancel }: TemplateF
   function validate(): boolean {
     const nextErrors: Record<string, string> = {};
     if (!name.trim()) nextErrors.name = 'Name is required';
-    if (enabledCount < 1) nextErrors.sections = 'At least one section must be enabled';
+    if (enabledCount < 1)
+      nextErrors.sections = 'At least one section must be enabled';
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -101,7 +122,9 @@ export function TemplateForm({ initial, clients, onSubmit, onCancel }: TemplateF
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <label htmlFor="template-name" className="text-sm font-medium">Template Name</label>
+        <label htmlFor="template-name" className="text-sm font-medium">
+          Template Name
+        </label>
         <input
           id="template-name"
           data-testid="template-form-name"
@@ -111,12 +134,16 @@ export function TemplateForm({ initial, clients, onSubmit, onCancel }: TemplateF
           className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="e.g. Standard Weekly Report"
         />
-        {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+        {errors.name && (
+          <p className="text-xs text-destructive">{errors.name}</p>
+        )}
       </div>
 
       {clients.length > 0 && (
         <div className="space-y-2">
-          <label htmlFor="template-client" className="text-sm font-medium">Client Override (optional)</label>
+          <label htmlFor="template-client" className="text-sm font-medium">
+            Client Override (optional)
+          </label>
           <select
             id="template-client"
             data-testid="template-form-client"
@@ -126,7 +153,9 @@ export function TemplateForm({ initial, clients, onSubmit, onCancel }: TemplateF
           >
             <option value="">Workspace default</option>
             {clients.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
         </div>
@@ -136,9 +165,15 @@ export function TemplateForm({ initial, clients, onSubmit, onCancel }: TemplateF
         <p className="text-sm font-medium">Sections</p>
         <div className="space-y-2">
           {SECTION_TYPES.map((sec) => {
-            const cfg = sectionsConfig[sec.key] ?? { enabled: false, sort_order: 1 };
+            const cfg = sectionsConfig[sec.key] ?? {
+              enabled: false,
+              sort_order: 1,
+            };
             return (
-              <div key={sec.key} className="flex items-center gap-3 rounded-md border px-3 py-2">
+              <div
+                key={sec.key}
+                className="flex items-center gap-3 rounded-md border px-3 py-2"
+              >
                 <label className="flex items-center gap-2 flex-1">
                   <input
                     data-testid={`toggle-${sec.key}`}
@@ -150,7 +185,12 @@ export function TemplateForm({ initial, clients, onSubmit, onCancel }: TemplateF
                   <span className="text-sm">{sec.label}</span>
                 </label>
                 <div className="flex items-center gap-2">
-                  <label htmlFor={`sort-${sec.key}`} className="text-xs text-muted-foreground">Order</label>
+                  <label
+                    htmlFor={`sort-${sec.key}`}
+                    className="text-xs text-muted-foreground"
+                  >
+                    Order
+                  </label>
                   <input
                     id={`sort-${sec.key}`}
                     data-testid={`sort-${sec.key}`}
@@ -158,7 +198,9 @@ export function TemplateForm({ initial, clients, onSubmit, onCancel }: TemplateF
                     min={1}
                     max={4}
                     value={cfg.sort_order}
-                    onChange={(e) => handleSortOrderChange(sec.key, e.target.value)}
+                    onChange={(e) =>
+                      handleSortOrderChange(sec.key, e.target.value)
+                    }
                     className="w-16 rounded-md border px-2 py-1 text-sm text-center"
                   />
                 </div>
@@ -166,12 +208,17 @@ export function TemplateForm({ initial, clients, onSubmit, onCancel }: TemplateF
             );
           })}
         </div>
-        {errors.sections && <p className="text-xs text-destructive">{errors.sections}</p>}
+        {errors.sections && (
+          <p className="text-xs text-destructive">{errors.sections}</p>
+        )}
       </div>
 
       <div className="space-y-2">
         <p className="text-sm font-medium">Accent Color</p>
-        <div data-testid="template-form-color-picker" className="flex flex-wrap gap-2">
+        <div
+          data-testid="template-form-color-picker"
+          className="flex flex-wrap gap-2"
+        >
           {DESIGN_SYSTEM_PALETTE.map((color) => (
             <button
               key={color}
@@ -180,7 +227,9 @@ export function TemplateForm({ initial, clients, onSubmit, onCancel }: TemplateF
               data-testid={`color-${color}`}
               onClick={() => setAccentColor(color)}
               className={`h-8 w-8 rounded-full border-2 transition-transform ${
-                accentColor === color ? 'border-foreground scale-110' : 'border-transparent'
+                accentColor === color
+                  ? 'border-foreground scale-110'
+                  : 'border-transparent'
               }`}
               style={{ backgroundColor: color }}
             />
@@ -189,7 +238,9 @@ export function TemplateForm({ initial, clients, onSubmit, onCancel }: TemplateF
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="template-logo" className="text-sm font-medium">Logo URL (optional)</label>
+        <label htmlFor="template-logo" className="text-sm font-medium">
+          Logo URL (optional)
+        </label>
         <input
           id="template-logo"
           data-testid="template-form-logo"

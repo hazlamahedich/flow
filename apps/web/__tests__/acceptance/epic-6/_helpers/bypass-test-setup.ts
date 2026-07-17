@@ -2,7 +2,9 @@ import { vi } from 'vitest';
 
 type MockFn = ReturnType<typeof vi.fn>;
 
-export function createChainableMock(overrides: Record<string, Record<string, unknown>> = {}) {
+export function createChainableMock(
+  overrides: Record<string, Record<string, unknown>> = {},
+) {
   return {
     from: vi.fn((table: string) => {
       const tableMock = overrides[table];
@@ -22,7 +24,9 @@ export function createChainableMock(overrides: Record<string, Record<string, unk
       chain.or = vi.fn().mockReturnValue(chain);
       chain.order = vi.fn().mockReturnValue(chain);
       chain.limit = vi.fn().mockReturnValue(chain);
-      chain.maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+      chain.maybeSingle = vi
+        .fn()
+        .mockResolvedValue({ data: null, error: null });
       chain.single = vi.fn().mockResolvedValue({ data: null, error: null });
       return chain;
     }),
@@ -33,11 +37,27 @@ export function createBypassMetricsMock(
   existingMetrics: Record<string, unknown> | null = null,
   updatedMetrics: Record<string, unknown> | null = null,
 ) {
-  const metricsRow = updatedMetrics ?? (existingMetrics ? {
-    id: existingMetrics.id ?? 'm-1',
-    total_events: (existingMetrics.total_events as number ?? 0) + 1,
-    bypass_count: (existingMetrics.bypass_count as number ?? 0) + 1,
-  } : null);
+  const metricsRow = updatedMetrics
+    ? {
+        ...updatedMetrics,
+        bypass_rate:
+          (updatedMetrics.bypass_rate as string) ??
+          (existingMetrics?.bypass_rate as string) ??
+          '0.0000',
+      }
+    : existingMetrics
+      ? {
+          id: existingMetrics.id ?? 'm-1',
+          total_events: ((existingMetrics.total_events as number) ?? 0) + 1,
+          bypass_count: ((existingMetrics.bypass_count as number) ?? 0) + 1,
+          bypass_rate: (existingMetrics.bypass_rate as string) ?? '0.0000',
+          window_start:
+            (existingMetrics.window_start as string) ??
+            new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          window_end:
+            (existingMetrics.window_end as string) ?? new Date().toISOString(),
+        }
+      : null;
 
   return {
     select: vi.fn().mockReturnValue({
@@ -46,7 +66,19 @@ export function createBypassMetricsMock(
           order: vi.fn().mockReturnValue({
             limit: vi.fn().mockReturnValue({
               maybeSingle: vi.fn().mockResolvedValue({
-                data: existingMetrics,
+                data: existingMetrics
+                  ? {
+                      ...existingMetrics,
+                      window_start:
+                        (existingMetrics.window_start as string) ??
+                        new Date(
+                          Date.now() - 30 * 24 * 60 * 60 * 1000,
+                        ).toISOString(),
+                      window_end:
+                        (existingMetrics.window_end as string) ??
+                        new Date().toISOString(),
+                    }
+                  : null,
                 error: null,
               }),
             }),

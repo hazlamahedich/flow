@@ -10,7 +10,12 @@ vi.mock('@/lib/actions/billing/enforce-tier-limit', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({ status, code, message, category }),
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({ status, code, message, category }),
   cacheTag: vi.fn((entity: string, id: string) => `${entity}:${id}`),
   insertClient: vi.fn(),
   checkDuplicateEmail: vi.fn(),
@@ -22,7 +27,11 @@ vi.mock('next/cache', () => ({
 
 import { createWorkspaceClient } from '../create-client';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, insertClient, checkDuplicateEmail } from '@flow/db';
+import {
+  requireTenantContext,
+  insertClient,
+  checkDuplicateEmail,
+} from '@flow/db';
 import { enforceTierLimit } from '@/lib/actions/billing/enforce-tier-limit';
 
 const mockGetServerSupabase = vi.mocked(getServerSupabase);
@@ -36,7 +45,11 @@ const mockSupabase = {} as never;
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetServerSupabase.mockResolvedValue(mockSupabase);
-  mockRequireTenantContext.mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'owner' });
+  mockRequireTenantContext.mockResolvedValue({
+    workspaceId: 'ws1',
+    userId: 'u1',
+    role: 'owner',
+  });
   mockEnforceTierLimit.mockResolvedValue({ allowed: true });
   mockCheckDuplicateEmail.mockResolvedValue(null);
 });
@@ -58,7 +71,11 @@ describe('createWorkspaceClient', () => {
   });
 
   it('rejects members from creating clients', async () => {
-    mockRequireTenantContext.mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'member' });
+    mockRequireTenantContext.mockResolvedValue({
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'member',
+    });
     const result = await createWorkspaceClient({ name: 'Test' });
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe('INSUFFICIENT_ROLE');
@@ -77,9 +94,17 @@ describe('createWorkspaceClient', () => {
   });
 
   it('blocks duplicate email', async () => {
-    mockCheckDuplicateEmail.mockResolvedValue({ id: 'c0', name: 'Existing', status: 'active' } as never);
-    const result = await createWorkspaceClient({ name: 'Test', email: 'dup@example.com' });
+    mockCheckDuplicateEmail.mockResolvedValue({
+      id: 'c0',
+      name: 'Existing',
+      status: 'active',
+    } as never);
+    const result = await createWorkspaceClient({
+      name: 'Test',
+      email: 'dup@example.com',
+    });
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.code).toBe('CLIENT_DUPLICATE_EMAIL');
+    if (!result.success)
+      expect(result.error.code).toBe('CLIENT_DUPLICATE_EMAIL');
   });
 });

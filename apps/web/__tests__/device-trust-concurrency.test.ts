@@ -27,7 +27,9 @@ function createMockSupabase() {
       }),
       insert: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: { id: 'dev-new' }, error: null }),
+          single: vi
+            .fn()
+            .mockResolvedValue({ data: { id: 'dev-new' }, error: null }),
         }),
       }),
       delete: vi.fn().mockReturnValue({
@@ -40,11 +42,17 @@ function createMockSupabase() {
 describe('device trust concurrency safety', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSupabase = createMockSupabase() as Record<string, ReturnType<typeof vi.fn>>;
+    mockSupabase = createMockSupabase() as Record<
+      string,
+      ReturnType<typeof vi.fn>
+    >;
   });
 
   it('trustDevice rejects when MAX_TRUSTED_DEVICES already active', async () => {
-    const existingDevices = Array.from({ length: MAX_TRUSTED_DEVICES }, (_, i) => ({ id: `dev-${i}` }));
+    const existingDevices = Array.from(
+      { length: MAX_TRUSTED_DEVICES },
+      (_, i) => ({ id: `dev-${i}` }),
+    );
 
     mockSupabase.from!.mockReturnValue({
       select: vi.fn().mockReturnValue({
@@ -54,7 +62,10 @@ describe('device trust concurrency safety', () => {
       }),
     });
 
-    const result = await trustDevice({ userId: crypto.randomUUID(), userAgent: 'Chrome/120' });
+    const result = await trustDevice({
+      userId: crypto.randomUUID(),
+      userAgent: 'Chrome/120',
+    });
 
     expect(result.trusted).toBe(false);
     if (!result.trusted) {
@@ -78,10 +89,16 @@ describe('device trust concurrency safety', () => {
               eq: vi.fn().mockImplementation(() => {
                 callCount++;
                 if (callCount === 1) {
-                  return Promise.resolve({ data: [{ id: 'existing-1' }], error: null });
+                  return Promise.resolve({
+                    data: [{ id: 'existing-1' }],
+                    error: null,
+                  });
                 }
                 return Promise.resolve({
-                  data: Array.from({ length: MAX_TRUSTED_DEVICES + 1 }, (_, i) => ({ id: `dev-${i}` })),
+                  data: Array.from(
+                    { length: MAX_TRUSTED_DEVICES + 1 },
+                    (_, i) => ({ id: `dev-${i}` }),
+                  ),
                   error: null,
                 });
               }),
@@ -89,7 +106,9 @@ describe('device trust concurrency safety', () => {
           }),
           insert: vi.fn().mockReturnValue({
             select: vi.fn().mockReturnValue({
-              single: vi.fn().mockResolvedValue({ data: { id: 'dev-new' }, error: null }),
+              single: vi
+                .fn()
+                .mockResolvedValue({ data: { id: 'dev-new' }, error: null }),
             }),
           }),
           delete: deleteFn,
@@ -98,7 +117,10 @@ describe('device trust concurrency safety', () => {
       return { select: vi.fn() };
     });
 
-    const result = await trustDevice({ userId: crypto.randomUUID(), userAgent: 'Chrome/120' });
+    const result = await trustDevice({
+      userId: crypto.randomUUID(),
+      userAgent: 'Chrome/120',
+    });
 
     expect(result.trusted).toBe(false);
     if (!result.trusted) {
@@ -152,8 +174,12 @@ describe('device trust concurrency safety', () => {
   it('trustDevice retries on unique constraint violation (23505)', async () => {
     const insertFn = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
-        single: vi.fn()
-          .mockResolvedValueOnce({ data: null, error: { code: '23505', message: 'duplicate' } })
+        single: vi
+          .fn()
+          .mockResolvedValueOnce({
+            data: null,
+            error: { code: '23505', message: 'duplicate' },
+          })
           .mockResolvedValueOnce({ data: { id: 'dev-new' }, error: null }),
       }),
     });
@@ -168,7 +194,10 @@ describe('device trust concurrency safety', () => {
       delete: vi.fn().mockResolvedValue({ error: null }),
     }));
 
-    const result = await trustDevice({ userId: crypto.randomUUID(), userAgent: 'Chrome/120' });
+    const result = await trustDevice({
+      userId: crypto.randomUUID(),
+      userAgent: 'Chrome/120',
+    });
 
     expect(result.trusted).toBe(true);
     if (result.trusted) {

@@ -42,11 +42,16 @@ type PackageBasedOverrides = BaseRetainerOverrides & {
   packageName?: string;
 };
 
-type RetainerOverrides = HourlyRateOverrides | FlatMonthlyOverrides | PackageBasedOverrides;
+type RetainerOverrides =
+  | HourlyRateOverrides
+  | FlatMonthlyOverrides
+  | PackageBasedOverrides;
 
 export function buildRetainer(overrides: RetainerOverrides = {}) {
   const id = overrides.id ?? crypto.randomUUID();
-  const type = (overrides as Record<string, unknown>).type as RetainerType | undefined ?? 'hourly_rate';
+  const type =
+    ((overrides as Record<string, unknown>).type as RetainerType | undefined) ??
+    'hourly_rate';
   const workspaceId = overrides.workspaceId ?? crypto.randomUUID();
   const clientId = overrides.clientId ?? crypto.randomUUID();
 
@@ -69,7 +74,8 @@ export function buildRetainer(overrides: RetainerOverrides = {}) {
     return {
       ...base,
       type: 'hourly_rate' as const,
-      hourlyRateCents: (overrides as HourlyRateOverrides).hourlyRateCents ?? 5000,
+      hourlyRateCents:
+        (overrides as HourlyRateOverrides).hourlyRateCents ?? 5000,
       monthlyFeeCents: null,
       monthlyHoursThreshold: null,
       packageHours: null,
@@ -82,8 +88,10 @@ export function buildRetainer(overrides: RetainerOverrides = {}) {
       ...base,
       type: 'flat_monthly' as const,
       hourlyRateCents: null,
-      monthlyFeeCents: (overrides as FlatMonthlyOverrides).monthlyFeeCents ?? 200000,
-      monthlyHoursThreshold: (overrides as FlatMonthlyOverrides).monthlyHoursThreshold ?? '30.00',
+      monthlyFeeCents:
+        (overrides as FlatMonthlyOverrides).monthlyFeeCents ?? 200000,
+      monthlyHoursThreshold:
+        (overrides as FlatMonthlyOverrides).monthlyHoursThreshold ?? '30.00',
       packageHours: null,
       packageName: null,
     };
@@ -92,10 +100,13 @@ export function buildRetainer(overrides: RetainerOverrides = {}) {
   return {
     ...base,
     type: 'package_based' as const,
-    hourlyRateCents: (overrides as PackageBasedOverrides).hourlyRateCents ?? null,
+    hourlyRateCents:
+      (overrides as PackageBasedOverrides).hourlyRateCents ?? null,
     monthlyFeeCents: null,
     monthlyHoursThreshold: null,
     packageHours: (overrides as PackageBasedOverrides).packageHours ?? '40.00',
-    packageName: (overrides as PackageBasedOverrides).packageName ?? 'Social Media Management',
+    packageName:
+      (overrides as PackageBasedOverrides).packageName ??
+      'Social Media Management',
   };
 }

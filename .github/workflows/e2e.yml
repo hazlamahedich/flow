@@ -13,7 +13,16 @@ concurrency:
 jobs:
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+    env:
+      NODE_OPTIONS: --max-old-space-size=8192
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU' }}
+      GOOGLE_CLIENT_ID: dummy
+      GOOGLE_CLIENT_SECRET: dummy
+      GMAIL_ENCRYPTION_KEY: ${{ secrets.GMAIL_ENCRYPTION_KEY || '0000000000000000000000000000000000000000000000000000000000000000' }}
+      IRON_SESSION_PASSWORD: ${{ secrets.IRON_SESSION_PASSWORD || '0000000000000000000000000000000000000000000000000000000000000000' }}
     strategy:
       fail-fast: false
       matrix:
@@ -45,6 +54,34 @@ jobs:
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase
+        run: |
+          supabase start
+          for i in $(seq 1 30); do
+            if supabase db ping 2>/dev/null; then
+              echo "Supabase is ready"
+              break
+            fi
+            echo "Waiting for Supabase... ($i/30)"
+            sleep 2
+          done
+
+      - name: Reset Supabase database
+        run: supabase db reset
+
+      - name: Seed E2E test users
+        run: pnpm seed:e2e
+        env:
+          PGPASSWORD: postgres
+
+      - name: Build packages and app
+        run: pnpm build
 
       - name: Run E2E tests (shard ${{ matrix.shard }}/4)
         run: pnpm test:e2e --project=chromium --shard=${{ matrix.shard }}/4

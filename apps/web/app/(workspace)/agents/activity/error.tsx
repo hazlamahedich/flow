@@ -10,7 +10,8 @@ export default function ActivityError({
   return (
     <div className="flex flex-col items-center justify-center py-16 space-y-4">
       <p className="text-[var(--flow-color-text-secondary)] text-center">
-        We couldn&apos;t load your timeline. Your actions are safe &mdash; we&apos;ll try again.
+        We couldn&apos;t load your timeline. Your actions are safe &mdash;
+        we&apos;ll try again.
       </p>
       <button
         onClick={reset}

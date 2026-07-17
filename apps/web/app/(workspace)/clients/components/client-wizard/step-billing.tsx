@@ -12,8 +12,16 @@ interface StepBillingProps {
   headingRef: React.RefObject<HTMLHeadingElement | null>;
 }
 
-export function StepBilling({ data, onChange, onNext, onBack, headingRef }: StepBillingProps) {
-  const [rateDisplay, setRateDisplay] = useState(formatCentsToDollar(data.hourly_rate_cents ?? null));
+export function StepBilling({
+  data,
+  onChange,
+  onNext,
+  onBack,
+  headingRef,
+}: StepBillingProps) {
+  const [rateDisplay, setRateDisplay] = useState(
+    formatCentsToDollar(data.hourly_rate_cents ?? null),
+  );
   const [charCount, setCharCount] = useState((data.notes ?? '').length);
 
   const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,14 +54,25 @@ export function StepBilling({ data, onChange, onNext, onBack, headingRef }: Step
   return (
     <div className="space-y-4">
       <div>
-        <h2 ref={headingRef} tabIndex={-1} className="text-lg font-semibold text-[var(--flow-color-text-primary)]">
+        <h2
+          ref={headingRef}
+          tabIndex={-1}
+          className="text-lg font-semibold text-[var(--flow-color-text-primary)]"
+        >
           Billing & Notes
         </h2>
-        <p className="mt-1 text-xs text-[var(--flow-color-text-tertiary)]">Optional — you can add these details later.</p>
+        <p className="mt-1 text-xs text-[var(--flow-color-text-tertiary)]">
+          Optional — you can add these details later.
+        </p>
       </div>
 
       <div>
-        <label htmlFor="wiz-billing-email" className="mb-1 block text-sm font-medium">Billing Email</label>
+        <label
+          htmlFor="wiz-billing-email"
+          className="mb-1 block text-sm font-medium"
+        >
+          Billing Email
+        </label>
         <input
           id="wiz-billing-email"
           type="email"
@@ -66,7 +85,9 @@ export function StepBilling({ data, onChange, onNext, onBack, headingRef }: Step
       </div>
 
       <div>
-        <label htmlFor="wiz-rate" className="mb-1 block text-sm font-medium">Hourly Rate ($)</label>
+        <label htmlFor="wiz-rate" className="mb-1 block text-sm font-medium">
+          Hourly Rate ($)
+        </label>
         <input
           id="wiz-rate"
           type="number"
@@ -80,7 +101,9 @@ export function StepBilling({ data, onChange, onNext, onBack, headingRef }: Step
       </div>
 
       <div>
-        <label htmlFor="wiz-address" className="mb-1 block text-sm font-medium">Address</label>
+        <label htmlFor="wiz-address" className="mb-1 block text-sm font-medium">
+          Address
+        </label>
         <input
           id="wiz-address"
           type="text"
@@ -94,7 +117,9 @@ export function StepBilling({ data, onChange, onNext, onBack, headingRef }: Step
       </div>
 
       <div>
-        <label htmlFor="wiz-notes" className="mb-1 block text-sm font-medium">Notes</label>
+        <label htmlFor="wiz-notes" className="mb-1 block text-sm font-medium">
+          Notes
+        </label>
         <textarea
           id="wiz-notes"
           value={data.notes ?? ''}
@@ -104,7 +129,9 @@ export function StepBilling({ data, onChange, onNext, onBack, headingRef }: Step
           rows={3}
           className="w-full rounded-md border border-[var(--flow-color-border-default)] px-3 py-2 text-sm"
         />
-        <span className="text-xs text-[var(--flow-color-text-tertiary)]">{charCount}/5000</span>
+        <span className="text-xs text-[var(--flow-color-text-tertiary)]">
+          {charCount}/5000
+        </span>
       </div>
 
       <div className="flex justify-between pt-4">

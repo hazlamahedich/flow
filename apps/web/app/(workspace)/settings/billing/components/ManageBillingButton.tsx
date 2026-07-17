@@ -13,7 +13,10 @@ interface ManageBillingButtonProps {
  * the workspace has no `stripe_customer_id` yet (the action returns
  * NOT_CONFIGURED on the server; we render a friendlier disabled state here).
  */
-export function ManageBillingButton({ portalAction, hasCustomerId }: ManageBillingButtonProps) {
+export function ManageBillingButton({
+  portalAction,
+  hasCustomerId,
+}: ManageBillingButtonProps) {
   const [state, formAction, isPending] = useActionState(async () => {
     const result = await portalAction();
     if (result.success && typeof window !== 'undefined') {
@@ -26,10 +29,12 @@ export function ManageBillingButton({ portalAction, hasCustomerId }: ManageBilli
 
   return (
     <section className="space-y-2">
-      <h2 className="text-lg font-medium text-[var(--flow-color-text-primary)]">Billing portal</h2>
+      <h2 className="text-lg font-medium text-[var(--flow-color-text-primary)]">
+        Billing portal
+      </h2>
       <p className="text-sm text-[var(--flow-color-text-secondary)]">
-        Update your payment method, view invoice history, or cancel your subscription via Stripe&apos;s
-        secure Customer Portal.
+        Update your payment method, view invoice history, or cancel your
+        subscription via Stripe&apos;s secure Customer Portal.
       </p>
       <form action={formAction}>
         <button

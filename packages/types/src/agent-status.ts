@@ -1,4 +1,9 @@
-export type AgentBackendStatus = 'inactive' | 'activating' | 'active' | 'draining' | 'suspended';
+export type AgentBackendStatus =
+  | 'inactive'
+  | 'activating'
+  | 'active'
+  | 'draining'
+  | 'suspended';
 
 export type IntegrationHealth = 'healthy' | 'degraded' | 'disconnected';
 

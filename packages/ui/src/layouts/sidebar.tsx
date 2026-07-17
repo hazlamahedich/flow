@@ -45,7 +45,18 @@ interface SidebarProps {
   timerProps?: TimerShellProps | undefined;
 }
 
-export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRef, workspaces, activeWorkspaceId, onSwitchWorkspace, agentStatusEntries, scopeAlertCount, timerProps }: SidebarProps) {
+export function Sidebar({
+  collapsed,
+  onToggleCollapse,
+  toggleRef,
+  firstNavItemRef,
+  workspaces,
+  activeWorkspaceId,
+  onSwitchWorkspace,
+  agentStatusEntries,
+  scopeAlertCount,
+  timerProps,
+}: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -59,13 +70,17 @@ export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRe
       data-testid="sidebar"
     >
       <div className="flex shrink-0 items-center justify-between p-2">
-        {!collapsed && workspaces && workspaces.length > 0 && activeWorkspaceId && onSwitchWorkspace && (
-          <WorkspaceSwitcher
-            workspaces={workspaces}
-            activeWorkspaceId={activeWorkspaceId}
-            onSwitch={onSwitchWorkspace}
-          />
-        )}
+        {!collapsed &&
+          workspaces &&
+          workspaces.length > 0 &&
+          activeWorkspaceId &&
+          onSwitchWorkspace && (
+            <WorkspaceSwitcher
+              workspaces={workspaces}
+              activeWorkspaceId={activeWorkspaceId}
+              onSwitch={onSwitchWorkspace}
+            />
+          )}
         <button
           ref={toggleRef}
           type="button"
@@ -82,10 +97,14 @@ export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRe
         </button>
       </div>
 
-      <nav aria-label="Main navigation" className="flex-1 min-h-0 overflow-y-auto px-2">
+      <nav
+        aria-label="Main navigation"
+        className="flex-1 min-h-0 overflow-y-auto px-2"
+      >
         <ul className="space-y-1" role="list">
           {NAV_ITEMS.map(({ href, label, Icon }, index) => {
-            const isActive = pathname === href || pathname.startsWith(href + '/');
+            const isActive =
+              pathname === href || pathname.startsWith(href + '/');
             return (
               <li key={href}>
                 <Link
@@ -102,19 +121,16 @@ export function Sidebar({ collapsed, onToggleCollapse, toggleRef, firstNavItemRe
                   aria-current={isActive ? 'page' : undefined}
                 >
                   <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  <span
-                    className={cn(
-                      'truncate',
-                      collapsed && 'sr-only',
-                    )}
-                  >
+                  <span className={cn('truncate', collapsed && 'sr-only')}>
                     {label}
                   </span>
-                  {href === '/clients' && scopeAlertCount && scopeAlertCount > 0 && (
-                    <span className="ml-auto inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--flow-status-error)] px-1 text-[10px] font-medium text-white">
-                      {scopeAlertCount}
-                    </span>
-                  )}
+                  {href === '/clients' &&
+                    scopeAlertCount &&
+                    scopeAlertCount > 0 && (
+                      <span className="ml-auto inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--flow-status-error)] px-1 text-[10px] font-medium text-white">
+                        {scopeAlertCount}
+                      </span>
+                    )}
                 </Link>
               </li>
             );

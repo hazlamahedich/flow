@@ -12,7 +12,12 @@ export async function resumeRun(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -44,7 +49,12 @@ export async function resumeRun(
   if (run.status !== 'timed_out') {
     return {
       success: false,
-      error: createFlowError(409, 'CONFLICT', `Run is in '${run.status}' status, can only resume timed_out runs`, 'validation'),
+      error: createFlowError(
+        409,
+        'CONFLICT',
+        `Run is in '${run.status}' status, can only resume timed_out runs`,
+        'validation',
+      ),
     };
   }
 
@@ -59,7 +69,12 @@ export async function resumeRun(
   if (updateError) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to resume run', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to resume run',
+        'system',
+      ),
     };
   }
 
@@ -79,7 +94,12 @@ export async function resumeRun(
 
     return {
       success: false,
-      error: createFlowError(409, 'CONFLICT', 'Run status changed concurrently', 'validation'),
+      error: createFlowError(
+        409,
+        'CONFLICT',
+        'Run status changed concurrently',
+        'validation',
+      ),
     };
   }
 

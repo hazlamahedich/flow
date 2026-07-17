@@ -43,7 +43,11 @@ describe('classifyEventSource', () => {
 
   it('classifies third_party for Calendly organizer', () => {
     const result = classifyEventSource(
-      { organizerEmail: 'user@calendly.com', title: 'Meeting', isRecurring: false },
+      {
+        organizerEmail: 'user@calendly.com',
+        title: 'Meeting',
+        isRecurring: false,
+      },
       calendars,
       vaEmail,
     );
@@ -61,7 +65,11 @@ describe('classifyEventSource', () => {
 
   it('classifies client_created when organizer matches client calendar', () => {
     const result = classifyEventSource(
-      { organizerEmail: 'client@example.com', title: 'Meeting', isRecurring: false },
+      {
+        organizerEmail: 'client@example.com',
+        title: 'Meeting',
+        isRecurring: false,
+      },
       calendars,
       vaEmail,
     );
@@ -88,7 +96,11 @@ describe('classifyEventSource', () => {
 
   it('returns client_created for unrecognized organizer', () => {
     const result = classifyEventSource(
-      { organizerEmail: 'someone@random.com', title: 'Meeting', isRecurring: false },
+      {
+        organizerEmail: 'someone@random.com',
+        title: 'Meeting',
+        isRecurring: false,
+      },
       calendars,
       vaEmail,
     );
@@ -133,7 +145,11 @@ describe('classifyEventSource', () => {
 
   it('classifies acuityscheduling.com as third_party', () => {
     const result = classifyEventSource(
-      { organizerEmail: 'test@acuityscheduling.com', title: 'Booking', isRecurring: false },
+      {
+        organizerEmail: 'test@acuityscheduling.com',
+        title: 'Booking',
+        isRecurring: false,
+      },
       calendars,
       vaEmail,
     );

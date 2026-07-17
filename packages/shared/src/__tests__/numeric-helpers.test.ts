@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { numericToMinutes, minutesToNumericStr, calculateThresholdMinutes, isScopeCreep } from '../numeric-helpers';
+import {
+  numericToMinutes,
+  minutesToNumericStr,
+  calculateThresholdMinutes,
+  isScopeCreep,
+} from '../numeric-helpers';
 
 describe('numericToMinutes', () => {
   it('converts "40.50" to 2430 minutes', () => {

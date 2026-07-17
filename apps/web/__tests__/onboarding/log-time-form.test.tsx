@@ -12,12 +12,9 @@ vi.mock('next/navigation', () => ({
 }));
 
 const mockLogTimeEntry = vi.fn();
-vi.mock(
-  '../../app/(onboarding)/onboarding/_actions/log-time-entry',
-  () => ({
-    logTimeEntry: (...args: unknown[]) => mockLogTimeEntry(...args),
-  }),
-);
+vi.mock('../../app/(onboarding)/onboarding/_actions/log-time-entry', () => ({
+  logTimeEntry: (...args: unknown[]) => mockLogTimeEntry(...args),
+}));
 
 import { LogTimeForm } from '../../app/(onboarding)/onboarding/_components/steps/log-time-form';
 describe('LogTimeForm', () => {

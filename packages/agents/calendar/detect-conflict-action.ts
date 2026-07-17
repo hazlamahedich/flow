@@ -70,16 +70,18 @@ export async function executeConflictDetection(
   // Step 1: Fetch the triggering event
   const { data: eventRow, error: eventError } = await supabase
     .from('calendar_events')
-    .select('id, client_calendar_id, provider_event_id, title, start_at, end_at')
+    .select(
+      'id, client_calendar_id, provider_event_id, title, start_at, end_at',
+    )
     .eq('id', eventId)
     .eq('workspace_id', workspaceId)
     .maybeSingle();
 
   if (eventError || !eventRow) {
-    throw Object.assign(
-      new Error(`Event not found: ${eventId}`),
-      { code: 'EVENT_NOT_FOUND' as const, statusCode: 404 },
-    );
+    throw Object.assign(new Error(`Event not found: ${eventId}`), {
+      code: 'EVENT_NOT_FOUND' as const,
+      statusCode: 404,
+    });
   }
 
   const event = eventRow as EventRow;
@@ -94,10 +96,10 @@ export async function executeConflictDetection(
     .maybeSingle();
 
   if (calError || !calRow) {
-    throw Object.assign(
-      new Error(`Calendar not found: ${clientCalendarId}`),
-      { code: 'CALENDAR_NOT_FOUND' as const, statusCode: 404 },
-    );
+    throw Object.assign(new Error(`Calendar not found: ${clientCalendarId}`), {
+      code: 'CALENDAR_NOT_FOUND' as const,
+      statusCode: 404,
+    });
   }
 
   const cal = calRow as CalendarRow;
@@ -139,9 +141,7 @@ export async function executeConflictDetection(
   }
 
   // Step 5: Return summary
-  const conflictEventIds = conflicts.map(
-    (c) => c.event2.eventId,
-  );
+  const conflictEventIds = conflicts.map((c) => c.event2.eventId);
 
   return {
     conflictsFound: conflicts.length,

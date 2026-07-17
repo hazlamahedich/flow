@@ -20,7 +20,10 @@ export function computeEngagementScore(input: HealthInput): number {
   const emailComponent = (input.emailExchangeCount / 5) * 20;
   const meetingComponent = (input.meetingCount / 2) * 20;
   const baseline = 20;
-  return Math.min(100, Math.round(baseline + timeComponent + emailComponent + meetingComponent));
+  return Math.min(
+    100,
+    Math.round(baseline + timeComponent + emailComponent + meetingComponent),
+  );
 }
 
 export function computePaymentScore(input: HealthInput): number {
@@ -47,14 +50,19 @@ export function computeOverallHealth(
 ): OverallHealth {
   const createdDate = new Date(input.clientCreatedAt);
   const now = referenceDate ?? new Date();
-  const daysSinceCreation = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+  const daysSinceCreation =
+    (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
   if (daysSinceCreation < 14) {
     return 'onboarding';
   }
   if (engagement < 30 || communication < 30 || payment < 40) {
     return 'critical';
   }
-  if (engagement < 50 || communication < 50 || (payment < 60 && communication < 60)) {
+  if (
+    engagement < 50 ||
+    communication < 50 ||
+    (payment < 60 && communication < 60)
+  ) {
     return 'at-risk';
   }
   if (engagement >= 60 && payment >= 60 && communication >= 60) {

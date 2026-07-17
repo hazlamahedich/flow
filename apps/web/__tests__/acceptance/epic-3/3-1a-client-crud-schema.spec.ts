@@ -41,44 +41,62 @@ describe('Story 3.1a: Client Data Model — CRUD & Schema', () => {
 
     test('[P0] [3.1-UNIT-003] should validate client name is non-empty and within length limit', () => {
       // Given: valid client data
-      const valid = createClientSchema.safeParse(createTestClient({ name: 'Acme Corp' }));
+      const valid = createClientSchema.safeParse(
+        createTestClient({ name: 'Acme Corp' }),
+      );
       expect(valid.success).toBe(true);
 
       // When: name is empty
-      const empty = createClientSchema.safeParse(createTestClient({ name: '' }));
+      const empty = createClientSchema.safeParse(
+        createTestClient({ name: '' }),
+      );
       // Then: schema rejects it
       expect(empty.success).toBe(false);
 
       // When: name is whitespace only
-      const whitespace = createClientSchema.safeParse(createTestClient({ name: '   ' }));
+      const whitespace = createClientSchema.safeParse(
+        createTestClient({ name: '   ' }),
+      );
       expect(whitespace.success).toBe(false);
 
       // When: name exceeds 200 chars
-      const long = createClientSchema.safeParse(createTestClient({ name: 'x'.repeat(201) }));
+      const long = createClientSchema.safeParse(
+        createTestClient({ name: 'x'.repeat(201) }),
+      );
       expect(long.success).toBe(false);
     });
 
     test('[P1] [3.1-UNIT-004] should validate email format on client contact details', () => {
       // Given: a valid email
-      const valid = createClientSchema.safeParse(createTestClient({ email: 'valid@example.com' }));
+      const valid = createClientSchema.safeParse(
+        createTestClient({ email: 'valid@example.com' }),
+      );
       expect(valid.success).toBe(true);
 
       // When: email is empty string (allowed — optional field)
-      const empty = createClientSchema.safeParse(createTestClient({ email: '' }));
+      const empty = createClientSchema.safeParse(
+        createTestClient({ email: '' }),
+      );
       expect(empty.success).toBe(true);
 
       // When: email is invalid format
-      const invalid = createClientSchema.safeParse(createTestClient({ email: 'not-an-email' }));
+      const invalid = createClientSchema.safeParse(
+        createTestClient({ email: 'not-an-email' }),
+      );
       expect(invalid.success).toBe(false);
     });
 
     test('[P1] [3.1-UNIT-005] should validate phone number format (optional field)', () => {
       // Given: a valid phone number
-      const withPhone = createClientSchema.safeParse(createTestClient({ phone: '+1 (555) 123-4567' }));
+      const withPhone = createClientSchema.safeParse(
+        createTestClient({ phone: '+1 (555) 123-4567' }),
+      );
       expect(withPhone.success).toBe(true);
 
       // When: phone is empty (allowed — optional field)
-      const noPhone = createClientSchema.safeParse(createTestClient({ phone: '' }));
+      const noPhone = createClientSchema.safeParse(
+        createTestClient({ phone: '' }),
+      );
       expect(noPhone.success).toBe(true);
 
       // When: phone is omitted entirely
@@ -88,15 +106,17 @@ describe('Story 3.1a: Client Data Model — CRUD & Schema', () => {
 
     test('[P0] [3.1-UNIT-006] should validate full client creation payload via Zod schema', () => {
       // Given: a complete client payload
-      const result = createClientSchema.safeParse(createTestClient({
-        name: 'E2E Corp',
-        email: 'hello@e2e.com',
-        phone: '+1-555-0100',
-        companyName: 'E2E Inc',
-        billingEmail: 'billing@e2e.com',
-        hourlyRateCents: 7500,
-        notes: 'Important client',
-      }));
+      const result = createClientSchema.safeParse(
+        createTestClient({
+          name: 'E2E Corp',
+          email: 'hello@e2e.com',
+          phone: '+1-555-0100',
+          companyName: 'E2E Inc',
+          billingEmail: 'billing@e2e.com',
+          hourlyRateCents: 7500,
+          notes: 'Important client',
+        }),
+      );
       // Then: schema accepts it
       expect(result.success).toBe(true);
       if (result.success) {
@@ -107,7 +127,9 @@ describe('Story 3.1a: Client Data Model — CRUD & Schema', () => {
 
     test('[P0] [3.1-UNIT-007] should reject client creation with negative hourly rate', () => {
       // Given: a client payload with negative hourly rate
-      const result = createClientSchema.safeParse(createTestClient({ hourlyRateCents: -100 }));
+      const result = createClientSchema.safeParse(
+        createTestClient({ hourlyRateCents: -100 }),
+      );
       // Then: schema rejects it
       expect(result.success).toBe(false);
     });
@@ -202,7 +224,12 @@ describe('Story 3.1a: Client Data Model — CRUD & Schema', () => {
 
     test('[P0] [3.1-UNIT-013] should preserve all historical data on archive', () => {
       // Given: related data tables that must survive archival
-      const preservedRelations = ['invoices', 'time_entries', 'reports', 'retainer_agreements'] as const;
+      const preservedRelations = [
+        'invoices',
+        'time_entries',
+        'reports',
+        'retainer_agreements',
+      ] as const;
       // Then: at least 3 relation types are tracked
       expect(preservedRelations.length).toBeGreaterThanOrEqual(3);
     });

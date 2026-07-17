@@ -12,7 +12,7 @@ export async function MorningBriefQuietSummary() {
   const { count } = result.data;
 
   return (
-    <Link 
+    <Link
       href="/agents/approvals"
       className="group flex items-center justify-between p-4 rounded-xl border border-[var(--flow-color-gold)]/20 bg-[var(--flow-color-gold)]/[0.02] hover:bg-[var(--flow-color-gold)]/[0.05] transition-colors mt-6"
     >
@@ -29,7 +29,7 @@ export async function MorningBriefQuietSummary() {
           </p>
         </div>
       </div>
-      
+
       <div className="flex items-center gap-2">
         <span className="text-[10px] font-black uppercase tracking-widest text-[var(--flow-color-gold)] opacity-0 group-hover:opacity-100 transition-opacity">
           Review Audit

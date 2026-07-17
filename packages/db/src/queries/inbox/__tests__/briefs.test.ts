@@ -55,21 +55,31 @@ describe('brief-queries', () => {
 
     expect(mockSupabase.from).toHaveBeenCalledWith('morning_briefs');
     expect(mockSupabase.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ ...validBrief, generated_at: expect.any(String) }),
+      expect.objectContaining({
+        ...validBrief,
+        generated_at: expect.any(String),
+      }),
       { onConflict: 'workspace_id, brief_date' },
     );
-    expect(insertSignal).toHaveBeenCalledWith(expect.objectContaining({
-      signalType: 'morning_brief.generated',
-    }));
+    expect(insertSignal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signalType: 'morning_brief.generated',
+      }),
+    );
   });
 
   it('emits a failure signal when upsert fails', async () => {
-    mockSupabase.single.mockResolvedValueOnce({ data: null, error: new Error('DB Error') });
+    mockSupabase.single.mockResolvedValueOnce({
+      data: null,
+      error: new Error('DB Error'),
+    });
 
     await expect(saveMorningBrief(validBrief)).rejects.toThrow('DB Error');
 
-    expect(insertSignal).toHaveBeenCalledWith(expect.objectContaining({
-      signalType: 'morning_brief.generation_failed',
-    }));
+    expect(insertSignal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signalType: 'morning_brief.generation_failed',
+      }),
+    );
   });
 });

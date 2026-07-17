@@ -38,7 +38,9 @@ export async function updateRunStatus(
   if (!current) throw new Error(`Run ${runId} not found`);
   const allowed = VALID_RUN_TRANSITIONS[current.status as AgentRunStatus];
   if (!allowed || !(allowed as readonly string[]).includes(newStatus)) {
-    throw new Error(`Invalid state transition: ${current.status} → ${newStatus}`);
+    throw new Error(
+      `Invalid state transition: ${current.status} → ${newStatus}`,
+    );
   }
   const { data, error } = await client
     .from('agent_runs')
@@ -52,7 +54,12 @@ export async function updateRunStatus(
 
 export async function getRunsByWorkspace(
   workspaceId: string,
-  filters?: { agentId?: string; status?: string; limit?: number; offset?: number },
+  filters?: {
+    agentId?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  },
 ) {
   const client = createServiceClient();
   let query = client
@@ -76,10 +83,7 @@ export async function getRunsByWorkspace(
   return data;
 }
 
-export async function getRunByJobId(
-  jobId: string,
-  workspaceId: string,
-) {
+export async function getRunByJobId(jobId: string, workspaceId: string) {
   const client = createServiceClient();
   const { data, error } = await client
     .from('agent_runs')
@@ -142,7 +146,10 @@ export async function findStaleRuns(staleThresholdMinutes: number) {
     .from('agent_runs')
     .select('*')
     .eq('status', 'running')
-    .lt('updated_at', new Date(Date.now() - staleThresholdMinutes * 60_000).toISOString());
+    .lt(
+      'updated_at',
+      new Date(Date.now() - staleThresholdMinutes * 60_000).toISOString(),
+    );
   if (error) throw error;
   return data;
 }

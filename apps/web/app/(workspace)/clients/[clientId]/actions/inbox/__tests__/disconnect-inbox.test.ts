@@ -28,7 +28,12 @@ vi.mock('next/cache', () => ({
 }));
 
 import { disconnectInbox } from '../disconnect-inbox';
-import { requireTenantContext, createFlowError, getClientInboxById, clearClientInboxTokens } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  getClientInboxById,
+  clearClientInboxTokens,
+} from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { decryptInboxTokens } from '@flow/db/vault/inbox-tokens';
 
@@ -42,7 +47,9 @@ describe('disconnectInbox', () => {
       from: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { oauth_state: null }, error: null }),
+      single: vi
+        .fn()
+        .mockResolvedValue({ data: { oauth_state: null }, error: null }),
       update: vi.fn().mockReturnThis(),
     };
     (getServerSupabase as any).mockResolvedValue(mockSupabase);
@@ -54,7 +61,10 @@ describe('disconnectInbox', () => {
   });
 
   it('returns validation error for invalid input', async () => {
-    const result = await disconnectInbox({ inboxId: 'not-uuid', clientId: 'not-uuid' });
+    const result = await disconnectInbox({
+      inboxId: 'not-uuid',
+      clientId: 'not-uuid',
+    });
 
     expect(result.success).toBe(false);
   });
@@ -72,7 +82,12 @@ describe('disconnectInbox', () => {
     });
 
     expect(result.success).toBe(false);
-    expect(createFlowError).toHaveBeenCalledWith(403, expect.any(String), expect.any(String), expect.any(String));
+    expect(createFlowError).toHaveBeenCalledWith(
+      403,
+      expect.any(String),
+      expect.any(String),
+      expect.any(String),
+    );
   });
 
   it('returns 404 when inbox not found', async () => {
@@ -84,7 +99,12 @@ describe('disconnectInbox', () => {
     });
 
     expect(result.success).toBe(false);
-    expect(createFlowError).toHaveBeenCalledWith(404, expect.any(String), expect.any(String), expect.any(String));
+    expect(createFlowError).toHaveBeenCalledWith(
+      404,
+      expect.any(String),
+      expect.any(String),
+      expect.any(String),
+    );
   });
 
   it('returns 403 when inbox belongs to different client', async () => {
@@ -99,7 +119,12 @@ describe('disconnectInbox', () => {
     });
 
     expect(result.success).toBe(false);
-    expect(createFlowError).toHaveBeenCalledWith(403, 'TENANT_MISMATCH', expect.any(String), expect.any(String));
+    expect(createFlowError).toHaveBeenCalledWith(
+      403,
+      'TENANT_MISMATCH',
+      expect.any(String),
+      expect.any(String),
+    );
   });
 
   it('clears tokens when inbox exists and belongs to client', async () => {
@@ -131,6 +156,11 @@ describe('disconnectInbox', () => {
     });
 
     expect(result.success).toBe(false);
-    expect(createFlowError).toHaveBeenCalledWith(500, expect.any(String), expect.any(String), expect.any(String));
+    expect(createFlowError).toHaveBeenCalledWith(
+      500,
+      expect.any(String),
+      expect.any(String),
+      expect.any(String),
+    );
   });
 });

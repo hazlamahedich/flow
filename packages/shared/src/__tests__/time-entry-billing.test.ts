@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { computeTimeEntryAmount, formatTimeEntryDescription, formatTimeEntryAmountDisplay } from '../time-entry-billing';
+import {
+  computeTimeEntryAmount,
+  formatTimeEntryDescription,
+  formatTimeEntryAmountDisplay,
+} from '../time-entry-billing';
 
 describe('computeTimeEntryAmount', () => {
   it('returns 0 for 0 minutes', () => {
@@ -53,7 +57,9 @@ describe('computeTimeEntryAmount', () => {
 
 describe('formatTimeEntryDescription', () => {
   it('includes notes and duration', () => {
-    expect(formatTimeEntryDescription('Research for pitch deck', 45)).toBe('Research for pitch deck (45 min)');
+    expect(formatTimeEntryDescription('Research for pitch deck', 45)).toBe(
+      'Research for pitch deck (45 min)',
+    );
   });
 
   it('only shows duration when no notes', () => {

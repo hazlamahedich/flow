@@ -12,7 +12,12 @@ export async function batchRejectRuns(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -37,7 +42,10 @@ export async function batchRejectRuns(
     }
 
     if (run.status === 'cancelled' || run.status === 'completed') {
-      succeeded.push({ runId, newStatus: run.status as import('@flow/types').AgentRunStatus });
+      succeeded.push({
+        runId,
+        newStatus: run.status as import('@flow/types').AgentRunStatus,
+      });
       continue;
     }
 
@@ -60,7 +68,10 @@ export async function batchRejectRuns(
       .maybeSingle();
 
     if (updateError || !updated) {
-      failed.push({ runId, error: updateError ? 'Database error' : 'Status changed concurrently' });
+      failed.push({
+        runId,
+        error: updateError ? 'Database error' : 'Status changed concurrently',
+      });
     } else {
       succeeded.push({ runId, newStatus: 'cancelled' });
     }

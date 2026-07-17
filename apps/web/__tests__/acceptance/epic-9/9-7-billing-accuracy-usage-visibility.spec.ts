@@ -12,21 +12,32 @@ vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
   return {
     ...actual,
-    requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' }),
+    requireTenantContext: vi.fn().mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    }),
     createFlowError: actual.createFlowError,
   };
 });
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }));
 
 // ── RED-PHASE STUBS ──
-const { mockGetUsageMetrics, mockGetBillingHistory, mockUsageDashboard } = vi.hoisted(() => ({
-  mockGetUsageMetrics: vi.fn(),
-  mockGetBillingHistory: vi.fn(),
-  mockUsageDashboard: vi.fn(() => null),
+const { mockGetUsageMetrics, mockGetBillingHistory, mockUsageDashboard } =
+  vi.hoisted(() => ({
+    mockGetUsageMetrics: vi.fn(),
+    mockGetBillingHistory: vi.fn(),
+    mockUsageDashboard: vi.fn(() => null),
+  }));
+vi.mock('@/lib/actions/billing/get-usage-metrics', () => ({
+  getUsageMetricsAction: mockGetUsageMetrics,
 }));
-vi.mock('@/lib/actions/billing/get-usage-metrics', () => ({ getUsageMetricsAction: mockGetUsageMetrics }));
-vi.mock('@/lib/actions/billing/get-billing-history', () => ({ getBillingHistoryAction: mockGetBillingHistory }));
-vi.mock('@/app/(workspace)/settings/billing/components/UsageDashboard', () => ({ default: mockUsageDashboard }));
+vi.mock('@/lib/actions/billing/get-billing-history', () => ({
+  getBillingHistoryAction: mockGetBillingHistory,
+}));
+vi.mock('@/app/(workspace)/settings/billing/components/UsageDashboard', () => ({
+  default: mockUsageDashboard,
+}));
 
 // Constants the implementation will export.
 const METERING_ACCURACY_TARGET = 0.999;
@@ -59,7 +70,12 @@ describe('[P0] [9.7-ATDD-002] real-time usage visibility for workspace owners (N
   });
   test('returns clients used vs limit', async () => {
     mockGetUsageMetrics.mockResolvedValueOnce({
-      success: true, data: { clients: { used: 2, limit: 3 }, teamMembers: { used: 1, limit: 1 }, agents: { used: 1, limit: 2 } },
+      success: true,
+      data: {
+        clients: { used: 2, limit: 3 },
+        teamMembers: { used: 1, limit: 1 },
+        agents: { used: 1, limit: 2 },
+      },
     });
     const result = await mockGetUsageMetrics();
     expect(result.success).toBe(true);
@@ -70,7 +86,12 @@ describe('[P0] [9.7-ATDD-002] real-time usage visibility for workspace owners (N
   });
   test('returns team members used vs limit', async () => {
     mockGetUsageMetrics.mockResolvedValueOnce({
-      success: true, data: { clients: { used: 0, limit: 3 }, teamMembers: { used: 1, limit: 1 }, agents: { used: 0, limit: 2 } },
+      success: true,
+      data: {
+        clients: { used: 0, limit: 3 },
+        teamMembers: { used: 1, limit: 1 },
+        agents: { used: 0, limit: 2 },
+      },
     });
     const result = await mockGetUsageMetrics();
     expect(result.success).toBe(true);
@@ -78,7 +99,12 @@ describe('[P0] [9.7-ATDD-002] real-time usage visibility for workspace owners (N
   });
   test('returns agents used vs limit', async () => {
     mockGetUsageMetrics.mockResolvedValueOnce({
-      success: true, data: { clients: { used: 0, limit: 3 }, teamMembers: { used: 0, limit: 1 }, agents: { used: 1, limit: 2 } },
+      success: true,
+      data: {
+        clients: { used: 0, limit: 3 },
+        teamMembers: { used: 0, limit: 1 },
+        agents: { used: 1, limit: 2 },
+      },
     });
     const result = await mockGetUsageMetrics();
     expect(result.success).toBe(true);
@@ -99,7 +125,8 @@ describe('[P0] [9.7-ATDD-003] billing history available for workspace owners', (
   });
   test('returns paginated billing history', async () => {
     mockGetBillingHistory.mockResolvedValueOnce({
-      success: true, data: { items: [{ id: 'in_1', amount_cents: 2900 }], total: 1 },
+      success: true,
+      data: { items: [{ id: 'in_1', amount_cents: 2900 }], total: 1 },
     });
     const result = await mockGetBillingHistory(1);
     expect(result.success).toBe(true);

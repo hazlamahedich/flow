@@ -44,8 +44,7 @@ export async function acknowledgeTransition(
   if (error) throw error;
 }
 
-export async function upsertTrustProfile(): Promise<void> {
-}
+export async function upsertTrustProfile(): Promise<void> {}
 
 export async function recordMilestone(
   workspaceId: string,
@@ -66,5 +65,4 @@ export async function recordMilestone(
   return data;
 }
 
-export async function insertTrustHistory(): Promise<void> {
-}
+export async function insertTrustHistory(): Promise<void> {}

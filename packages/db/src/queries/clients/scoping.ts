@@ -1,15 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
-const memberAccessRowSchema = z.object({
-  id: z.string(),
-  workspace_id: z.string(),
-  user_id: z.string(),
-  client_id: z.string(),
-  granted_by: z.string(),
-  granted_at: z.string().nullable(),
-  revoked_at: z.string().nullable(),
-}).passthrough();
+const memberAccessRowSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string(),
+    user_id: z.string(),
+    client_id: z.string(),
+    granted_by: z.string(),
+    granted_at: z.string().nullable(),
+    revoked_at: z.string().nullable(),
+  })
+  .passthrough();
 
 interface AssignMemberInput {
   workspaceId: string;
@@ -22,18 +24,16 @@ export async function assignMemberToClient(
   client: SupabaseClient,
   input: AssignMemberInput,
 ): Promise<void> {
-  const { error } = await client
-    .from('member_client_access')
-    .upsert(
-      {
-        workspace_id: input.workspaceId,
-        user_id: input.userId,
-        client_id: input.clientId,
-        granted_by: input.grantedBy,
-        revoked_at: null,
-      },
-      { onConflict: 'workspace_id,user_id,client_id' },
-    );
+  const { error } = await client.from('member_client_access').upsert(
+    {
+      workspace_id: input.workspaceId,
+      user_id: input.userId,
+      client_id: input.clientId,
+      granted_by: input.grantedBy,
+      revoked_at: null,
+    },
+    { onConflict: 'workspace_id,user_id,client_id' },
+  );
 
   if (error) throw error;
 }

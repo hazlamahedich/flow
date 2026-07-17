@@ -1,16 +1,38 @@
 import { describe, test, expect } from 'vitest';
-import { TrustDecisionSchema, TrustLevelSchema, calculateScoreChange } from '@flow/trust';
+import {
+  TrustDecisionSchema,
+  TrustLevelSchema,
+  calculateScoreChange,
+} from '@flow/trust';
 
 describe('Story 2.4: Pre-Check & Post-Check Gates', () => {
   describe('PreCheckResult Type Contract', () => {
     type PreCheckResult =
-      | { proceed: true; decision: { allowed: boolean; level: string; reason: string; preconditionsPassed: boolean } }
-      | { proceed: false; reason: 'precondition_failed' | 'trust_level_gate' | 'can_act_error'; decision?: unknown; error?: unknown };
+      | {
+          proceed: true;
+          decision: {
+            allowed: boolean;
+            level: string;
+            reason: string;
+            preconditionsPassed: boolean;
+          };
+        }
+      | {
+          proceed: false;
+          reason: 'precondition_failed' | 'trust_level_gate' | 'can_act_error';
+          decision?: unknown;
+          error?: unknown;
+        };
 
     test('[P0] should model proceed=true as { proceed: true; decision: TrustDecision }', () => {
       const result: PreCheckResult = {
         proceed: true,
-        decision: { allowed: true, level: 'auto', reason: 'all checks passed', preconditionsPassed: true },
+        decision: {
+          allowed: true,
+          level: 'auto',
+          reason: 'all checks passed',
+          preconditionsPassed: true,
+        },
       };
       if (result.proceed) {
         expect(result.decision.allowed).toBe(true);
@@ -22,7 +44,10 @@ describe('Story 2.4: Pre-Check & Post-Check Gates', () => {
       const result: PreCheckResult = {
         proceed: false,
         reason: 'precondition_failed',
-        error: { code: 'AGENT_PRECHECK_FAILED', message: 'Precondition failed: business_hours' },
+        error: {
+          code: 'AGENT_PRECHECK_FAILED',
+          message: 'Precondition failed: business_hours',
+        },
       };
       if (!result.proceed) {
         expect(result.reason).toBe('precondition_failed');
@@ -30,11 +55,9 @@ describe('Story 2.4: Pre-Check & Post-Check Gates', () => {
     });
 
     test('[P0] should support all failure reason types', () => {
-      const reasons: Array<'precondition_failed' | 'trust_level_gate' | 'can_act_error'> = [
-        'precondition_failed',
-        'trust_level_gate',
-        'can_act_error',
-      ];
+      const reasons: Array<
+        'precondition_failed' | 'trust_level_gate' | 'can_act_error'
+      > = ['precondition_failed', 'trust_level_gate', 'can_act_error'];
       expect(reasons).toHaveLength(3);
     });
   });
@@ -79,7 +102,9 @@ describe('Story 2.4: Pre-Check & Post-Check Gates', () => {
 
   describe('ActionResult<T> Contract', () => {
     test('[P0] should use "success" as discriminant, not "ok"', () => {
-      type ActionResult<T> = { success: true; data: T } | { success: false; error: unknown };
+      type ActionResult<T> =
+        | { success: true; data: T }
+        | { success: false; error: unknown };
       const ok: ActionResult<string> = { success: true, data: 'done' };
       const err: ActionResult<string> = { success: false, error: 'failed' };
       expect(ok.success).toBe(true);
@@ -87,7 +112,9 @@ describe('Story 2.4: Pre-Check & Post-Check Gates', () => {
     });
 
     test('[P0] should type-narrow ActionResult via discriminated union on "success" field', () => {
-      type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
+      type ActionResult<T> =
+        | { success: true; data: T }
+        | { success: false; error: string };
       function narrow(result: ActionResult<string>): string {
         return result.success ? result.data : result.error;
       }
@@ -138,7 +165,8 @@ describe('Story 2.4: Pre-Check & Post-Check Gates', () => {
 
     test('[P1] should default to supervised when canAct() returns malformed data', () => {
       const malformed = { level: 'auto' } as Record<string, unknown>;
-      const hasAllowed = 'allowed' in malformed && typeof malformed.allowed === 'boolean';
+      const hasAllowed =
+        'allowed' in malformed && typeof malformed.allowed === 'boolean';
       const failSafeLevel = hasAllowed ? malformed.level : 'supervised';
       expect(failSafeLevel).toBe('supervised');
     });
@@ -184,7 +212,11 @@ describe('Story 2.4: Pre-Check & Post-Check Gates', () => {
     });
 
     test('[P0] should validate inputs in every agent execute() method', () => {
-      const agentActions = ['email_processing', 'email_categorization', 'morning_brief_generation'];
+      const agentActions = [
+        'email_processing',
+        'email_categorization',
+        'morning_brief_generation',
+      ];
       const allHaveValidation = agentActions.every(() => true);
       expect(allHaveValidation).toBe(true);
       expect(agentActions.length).toBeGreaterThan(0);

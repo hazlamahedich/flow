@@ -11,12 +11,18 @@ export const emailRowSchema = z.object({
   subject: z.string().nullable(),
   from_address: z.string(),
   from_name: z.string().nullable(),
-  to_addresses: z.array(z.object({ name: z.string().nullable(), address: z.string() })),
-  cc_addresses: z.array(z.object({ name: z.string().nullable(), address: z.string() })),
+  to_addresses: z.array(
+    z.object({ name: z.string().nullable(), address: z.string() }),
+  ),
+  cc_addresses: z.array(
+    z.object({ name: z.string().nullable(), address: z.string() }),
+  ),
   received_at: z.string(),
   body_clean: z.string().nullable(),
   body_raw_safe: z.string().nullable(),
-  headers: z.array(z.object({ name: z.string(), value: z.string() })).nullable(),
+  headers: z
+    .array(z.object({ name: z.string(), value: z.string() }))
+    .nullable(),
   category: z.string().nullable(),
   confidence: z.number().nullable(),
   requires_confirmation: z.boolean().nullable(),
@@ -88,7 +94,7 @@ export async function getHandledEmails(
   // but since trust is per client_inbox, we'll fetch them all and filter or trust the caller.
   // The story says "Render emails categorized as info or noise (at trust >= 3)".
   // This implies they ARE already categorized.
-  
+
   const { data, count, error } = await supabase
     .from('emails')
     .select('*', { count: 'exact' })
@@ -119,7 +125,6 @@ export async function getWeeklyAuditCount(
     .in('category', ['info', 'noise'])
     .gte('received_at', sevenDaysAgo.toISOString());
 
-
   if (error) throw error;
   return count ?? 0;
 }
@@ -138,6 +143,3 @@ export async function recategorizeEmail(
 
   if (error) throw error;
 }
-
-
-

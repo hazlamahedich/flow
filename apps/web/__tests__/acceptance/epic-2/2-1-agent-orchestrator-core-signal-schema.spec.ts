@@ -1,10 +1,18 @@
 import { describe, test, expect } from 'vitest';
 // @ts-expect-error ATDD red-phase stub — module will be created when feature is implemented
-import type { AgentRunProducer, AgentRunWorker } from '../../../../packages/agents/orchestrator/types';
+import type {
+  AgentRunProducer,
+  AgentRunWorker,
+} from '../../../../packages/agents/orchestrator/types';
 
 describe('Story 2.1: Agent Orchestrator Core & Signal Schema', () => {
   describe('AgentRunProducer Interface Contract', () => {
-    const requiredMethods: (keyof AgentRunProducer)[] = ['submit', 'cancel', 'getStatus', 'listRuns'];
+    const requiredMethods: (keyof AgentRunProducer)[] = [
+      'submit',
+      'cancel',
+      'getStatus',
+      'listRuns',
+    ];
 
     test('[P0] should expose submit, cancel, getStatus, and listRuns methods', () => {
       expect(requiredMethods).toHaveLength(4);
@@ -16,7 +24,12 @@ describe('Story 2.1: Agent Orchestrator Core & Signal Schema', () => {
   });
 
   describe('AgentRunWorker Interface Contract', () => {
-    const requiredMethods: (keyof AgentRunWorker)[] = ['claim', 'complete', 'fail', 'propose'];
+    const requiredMethods: (keyof AgentRunWorker)[] = [
+      'claim',
+      'complete',
+      'fail',
+      'propose',
+    ];
 
     test('[P0] should expose claim, complete, fail, and propose methods', () => {
       expect(requiredMethods).toHaveLength(4);
@@ -28,7 +41,14 @@ describe('Story 2.1: Agent Orchestrator Core & Signal Schema', () => {
   });
 
   describe('Agent Module Isolation', () => {
-    const AGENT_MODULES = ['inbox', 'calendar', 'ar-collection', 'weekly-report', 'client-health', 'time-integrity'];
+    const AGENT_MODULES = [
+      'inbox',
+      'calendar',
+      'ar-collection',
+      'weekly-report',
+      'client-health',
+      'time-integrity',
+    ];
 
     test('[P0] should load agent modules from packages/agents/{agent-name}/', () => {
       expect(AGENT_MODULES).toHaveLength(6);
@@ -39,7 +59,9 @@ describe('Story 2.1: Agent Orchestrator Core & Signal Schema', () => {
 
     test('[P0] should have zero cross-agent imports between agent modules', () => {
       const crossImports = AGENT_MODULES.flatMap((mod) =>
-        AGENT_MODULES.filter((other) => other !== mod).map((other) => `${mod} → ${other}`),
+        AGENT_MODULES.filter((other) => other !== mod).map(
+          (other) => `${mod} → ${other}`,
+        ),
       );
       const violations: string[] = [];
       for (const _ of crossImports) {
@@ -51,8 +73,13 @@ describe('Story 2.1: Agent Orchestrator Core & Signal Schema', () => {
 
   describe('Structured Logging & Observability', () => {
     const REQUIRED_LOG_FIELDS = [
-      'timestamp', 'workspaceId', 'agentId', 'actionType',
-      'correlationId', 'outcome', 'details',
+      'timestamp',
+      'workspaceId',
+      'agentId',
+      'actionType',
+      'correlationId',
+      'outcome',
+      'details',
     ] as const;
 
     test('[P0] should emit structured JSON log for every agent action (NFR26)', () => {

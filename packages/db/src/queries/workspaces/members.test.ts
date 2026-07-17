@@ -23,7 +23,9 @@ function mockClient(queryOverrides: Record<string, unknown> = {}) {
 
 describe('getActiveMembership', () => {
   it('[P0] returns null when no membership found', async () => {
-    const client = mockClient({ maybeSingle: vi.fn().mockResolvedValue({ data: null }) });
+    const client = mockClient({
+      maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+    });
     const result = await getActiveMembership(client, 'ws-1', 'user-1');
     expect(result).toBeNull();
   });
@@ -87,7 +89,12 @@ describe('getAccessibleClients', () => {
       from: vi.fn().mockReturnValue(selectChain),
     } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
-    const result = await getAccessibleClients(client, 'ws-1', 'user-1', 'owner');
+    const result = await getAccessibleClients(
+      client,
+      'ws-1',
+      'user-1',
+      'owner',
+    );
     expect(result).toHaveLength(2);
   });
 
@@ -101,7 +108,12 @@ describe('getAccessibleClients', () => {
       from: vi.fn().mockReturnValue(accessChain),
     } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
-    const result = await getAccessibleClients(client, 'ws-1', 'user-1', 'member');
+    const result = await getAccessibleClients(
+      client,
+      'ws-1',
+      'user-1',
+      'member',
+    );
     expect(result).toEqual([]);
   });
 
@@ -118,11 +130,18 @@ describe('getAccessibleClients', () => {
           }
           return Promise.resolve({ data: [{ id: 'c-1', name: 'Client A' }] });
         }),
-        in: vi.fn().mockResolvedValue({ data: [{ id: 'c-1', name: 'Client A' }] }),
+        in: vi
+          .fn()
+          .mockResolvedValue({ data: [{ id: 'c-1', name: 'Client A' }] }),
       }),
     } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
-    const result = await getAccessibleClients(client, 'ws-1', 'user-1', 'member');
+    const result = await getAccessibleClients(
+      client,
+      'ws-1',
+      'user-1',
+      'member',
+    );
     expect(result).toHaveLength(1);
     expect(result[0]!.name).toBe('Client A');
   });

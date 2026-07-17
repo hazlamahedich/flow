@@ -26,5 +26,7 @@ export async function listProjects(
   const { data, error } = await query;
   if (error) throw error;
 
-  return (data ?? []).map((row) => mapProjectRow(row as Record<string, unknown>));
+  return (data ?? []).map((row) =>
+    mapProjectRow(row as Record<string, unknown>),
+  );
 }

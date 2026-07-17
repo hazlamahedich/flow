@@ -49,7 +49,11 @@ type MockTenant = Awaited<ReturnType<typeof requireTenantContext>>;
 
 function setupMocks(overrides: Record<string, unknown> = {}) {
   const supabase = {
-    auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { email: 'admin@test.com' } } }) },
+    auth: {
+      getUser: vi
+        .fn()
+        .mockResolvedValue({ data: { user: { email: 'admin@test.com' } } }),
+    },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
@@ -82,7 +86,9 @@ function setupMocks(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 
-  vi.mocked(getServerSupabase).mockResolvedValue(supabase as unknown as MockSupabase);
+  vi.mocked(getServerSupabase).mockResolvedValue(
+    supabase as unknown as MockSupabase,
+  );
   vi.mocked(requireTenantContext).mockResolvedValue({
     workspaceId: 'ws-1',
     userId: 'user-admin',
@@ -110,7 +116,10 @@ describe('inviteMember', () => {
       role: 'member',
     } as unknown as MockTenant);
 
-    const result = await inviteMember({ email: 'new@test.com', role: 'member' });
+    const result = await inviteMember({
+      email: 'new@test.com',
+      role: 'member',
+    });
     expect(result.success).toBe(false);
   });
 
@@ -135,16 +144,24 @@ describe('inviteMember', () => {
     } as unknown as MockTenant);
 
     const supabase = await getServerSupabase();
-    (supabase.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { user: { email: 'admin@test.com' } } });
+    (supabase.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({
+      data: { user: { email: 'admin@test.com' } },
+    });
 
-    const result = await inviteMember({ email: 'admin@test.com', role: 'member' });
+    const result = await inviteMember({
+      email: 'admin@test.com',
+      role: 'member',
+    });
     expect(result.success).toBe(false);
   });
 
   it('[P0] creates new invitation successfully', async () => {
     setupMocks();
 
-    const result = await inviteMember({ email: 'new@test.com', role: 'member' });
+    const result = await inviteMember({
+      email: 'new@test.com',
+      role: 'member',
+    });
     expect(result.success).toBe(true);
   });
 
@@ -172,7 +189,10 @@ describe('inviteMember', () => {
       }),
     });
 
-    const result = await inviteMember({ email: 'existing@test.com', role: 'member' });
+    const result = await inviteMember({
+      email: 'existing@test.com',
+      role: 'member',
+    });
     expect(result.success).toBe(false);
   });
 });

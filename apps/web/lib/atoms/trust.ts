@@ -44,7 +44,14 @@ trustBadgeMapAtom.onMount = (set) => {
 
 export const dominantTrustTierAtom = atom<TrustBadgeState | null>((get) => {
   const map = get(trustBadgeMapAtom);
-  const priority: TrustBadgeState[] = ['regressing', 'supervised', 'promoting', 'confirm', 'stick_time', 'auto'];
+  const priority: TrustBadgeState[] = [
+    'regressing',
+    'supervised',
+    'promoting',
+    'confirm',
+    'stick_time',
+    'auto',
+  ];
   for (const tier of priority) {
     for (const data of map.values()) {
       if (data.state === tier) return tier;

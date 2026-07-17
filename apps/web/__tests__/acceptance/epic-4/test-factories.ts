@@ -1,7 +1,14 @@
 import { faker } from '@faker-js/faker';
 
 type EmailCategory = 'urgent' | 'action' | 'info' | 'noise';
-type ProcessingState = 'categorized' | 'extraction_pending' | 'extraction_complete' | 'extraction_skipped' | 'draft_pending' | 'draft_complete' | 'draft_deferred';
+type ProcessingState =
+  | 'categorized'
+  | 'extraction_pending'
+  | 'extraction_complete'
+  | 'extraction_skipped'
+  | 'draft_pending'
+  | 'draft_complete'
+  | 'draft_deferred';
 
 interface HandledItem {
   emailId: string;
@@ -120,24 +127,22 @@ export function createTestDraftResponse(overrides?: Record<string, unknown>) {
   };
 }
 
-export function createTestBriefProposal(overrides?: Partial<MorningBriefProposal>): MorningBriefProposal {
+export function createTestBriefProposal(
+  overrides?: Partial<MorningBriefProposal>,
+): MorningBriefProposal {
   return {
     summaryLine: 'You have 2 items needing attention and 15 handled quietly.',
-    handledItems: [
-      createTestHandledItem(),
-    ],
-    needsAttentionItems: [
-      createTestNeedsAttentionItem(),
-    ],
+    handledItems: [createTestHandledItem()],
+    needsAttentionItems: [createTestNeedsAttentionItem()],
     threadSummaries: [],
-    clientBreakdown: [
-      createTestClientBreakdown(),
-    ],
+    clientBreakdown: [createTestClientBreakdown()],
     ...overrides,
   };
 }
 
-export function createTestHandledItem(overrides?: Partial<HandledItem>): HandledItem {
+export function createTestHandledItem(
+  overrides?: Partial<HandledItem>,
+): HandledItem {
   return {
     emailId: faker.string.uuid(),
     subject: faker.lorem.sentence(),
@@ -148,7 +153,9 @@ export function createTestHandledItem(overrides?: Partial<HandledItem>): Handled
   };
 }
 
-export function createTestNeedsAttentionItem(overrides?: Partial<NeedsAttentionItem>): NeedsAttentionItem {
+export function createTestNeedsAttentionItem(
+  overrides?: Partial<NeedsAttentionItem>,
+): NeedsAttentionItem {
   return {
     emailId: faker.string.uuid(),
     subject: faker.lorem.sentence(),
@@ -160,7 +167,9 @@ export function createTestNeedsAttentionItem(overrides?: Partial<NeedsAttentionI
   };
 }
 
-export function createTestClientBreakdown(overrides?: Partial<ClientBreakdown>): ClientBreakdown {
+export function createTestClientBreakdown(
+  overrides?: Partial<ClientBreakdown>,
+): ClientBreakdown {
   return {
     clientId: FAKE_CLIENT_ID,
     clientName: faker.company.name(),
@@ -172,7 +181,9 @@ export function createTestClientBreakdown(overrides?: Partial<ClientBreakdown>):
   };
 }
 
-export function createTestThreadSummary(overrides?: Partial<ThreadSummary>): ThreadSummary {
+export function createTestThreadSummary(
+  overrides?: Partial<ThreadSummary>,
+): ThreadSummary {
   return {
     threadKey: `thread-${faker.string.alphanumeric(8)}`,
     emailCount: 3,

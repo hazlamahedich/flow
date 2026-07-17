@@ -20,9 +20,15 @@ export async function issueCreditNoteAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation', {
-        issues: parsed.error.issues,
-      }),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+        {
+          issues: parsed.error.issues,
+        },
+      ),
     };
   }
 
@@ -31,22 +37,46 @@ export async function issueCreditNoteAction(
 
   const { invoiceId, amountCents, reason } = parsed.data;
 
-  const { data: rpcResult, error: rpcError } = await supabase
-    .rpc('issue_credit_note', {
+  const { data: rpcResult, error: rpcError } = await supabase.rpc(
+    'issue_credit_note',
+    {
       p_invoice_id: invoiceId,
       p_workspace_id: ctx.workspaceId,
       p_amount_cents: amountCents,
       p_reason: reason,
       p_created_by: ctx.userId,
-    });
+    },
+  );
 
   if (rpcError) {
     const msg = rpcError.message ?? '';
-    const codeMap: Record<string, { code: 'CREDIT_EXCEEDS_BALANCE' | 'INVOICE_PAID_CANNOT_CREDIT' | 'INVOICE_VOIDED' | 'INVALID_AMOUNT'; msg: string }> = {
-      CREDIT_EXCEEDS_BALANCE: { code: 'CREDIT_EXCEEDS_BALANCE', msg: 'Credit amount exceeds outstanding balance.' },
-      INVOICE_PAID_CANNOT_CREDIT: { code: 'INVOICE_PAID_CANNOT_CREDIT', msg: 'Credit notes cannot be issued on paid invoices.' },
-      INVOICE_VOIDED: { code: 'INVOICE_VOIDED', msg: 'Credit notes cannot be issued on voided invoices.' },
-      INVALID_AMOUNT: { code: 'INVALID_AMOUNT', msg: 'Credit amount must be greater than zero.' },
+    const codeMap: Record<
+      string,
+      {
+        code:
+          | 'CREDIT_EXCEEDS_BALANCE'
+          | 'INVOICE_PAID_CANNOT_CREDIT'
+          | 'INVOICE_VOIDED'
+          | 'INVALID_AMOUNT';
+        msg: string;
+      }
+    > = {
+      CREDIT_EXCEEDS_BALANCE: {
+        code: 'CREDIT_EXCEEDS_BALANCE',
+        msg: 'Credit amount exceeds outstanding balance.',
+      },
+      INVOICE_PAID_CANNOT_CREDIT: {
+        code: 'INVOICE_PAID_CANNOT_CREDIT',
+        msg: 'Credit notes cannot be issued on paid invoices.',
+      },
+      INVOICE_VOIDED: {
+        code: 'INVOICE_VOIDED',
+        msg: 'Credit notes cannot be issued on voided invoices.',
+      },
+      INVALID_AMOUNT: {
+        code: 'INVALID_AMOUNT',
+        msg: 'Credit amount must be greater than zero.',
+      },
     };
 
     for (const [key, mapped] of Object.entries(codeMap)) {
@@ -60,7 +90,12 @@ export async function issueCreditNoteAction(
 
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to issue credit note.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to issue credit note.',
+        'system',
+      ),
     };
   }
 
@@ -68,11 +103,33 @@ export async function issueCreditNoteAction(
 
   if (!result || result.error) {
     const errCode = result?.error as string | undefined;
-    const codeMap: Record<string, { code: 'CREDIT_EXCEEDS_BALANCE' | 'INVOICE_PAID_CANNOT_CREDIT' | 'INVOICE_VOIDED' | 'INVALID_AMOUNT'; msg: string }> = {
-      CREDIT_EXCEEDS_BALANCE: { code: 'CREDIT_EXCEEDS_BALANCE', msg: 'Credit amount exceeds outstanding balance.' },
-      INVOICE_PAID_CANNOT_CREDIT: { code: 'INVOICE_PAID_CANNOT_CREDIT', msg: 'Credit notes cannot be issued on paid invoices.' },
-      INVOICE_VOIDED: { code: 'INVOICE_VOIDED', msg: 'Credit notes cannot be issued on voided invoices.' },
-      INVALID_AMOUNT: { code: 'INVALID_AMOUNT', msg: 'Credit amount must be greater than zero.' },
+    const codeMap: Record<
+      string,
+      {
+        code:
+          | 'CREDIT_EXCEEDS_BALANCE'
+          | 'INVOICE_PAID_CANNOT_CREDIT'
+          | 'INVOICE_VOIDED'
+          | 'INVALID_AMOUNT';
+        msg: string;
+      }
+    > = {
+      CREDIT_EXCEEDS_BALANCE: {
+        code: 'CREDIT_EXCEEDS_BALANCE',
+        msg: 'Credit amount exceeds outstanding balance.',
+      },
+      INVOICE_PAID_CANNOT_CREDIT: {
+        code: 'INVOICE_PAID_CANNOT_CREDIT',
+        msg: 'Credit notes cannot be issued on paid invoices.',
+      },
+      INVOICE_VOIDED: {
+        code: 'INVOICE_VOIDED',
+        msg: 'Credit notes cannot be issued on voided invoices.',
+      },
+      INVALID_AMOUNT: {
+        code: 'INVALID_AMOUNT',
+        msg: 'Credit amount must be greater than zero.',
+      },
     };
 
     const mapped = errCode ? codeMap[errCode] : undefined;
@@ -85,16 +142,30 @@ export async function issueCreditNoteAction(
 
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to issue credit note.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to issue credit note.',
+        'system',
+      ),
     };
   }
 
-  const detail = await getInvoiceWithBalance(supabase, invoiceId, ctx.workspaceId);
+  const detail = await getInvoiceWithBalance(
+    supabase,
+    invoiceId,
+    ctx.workspaceId,
+  );
 
   if (!detail) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Credit note issued but could not re-fetch invoice detail.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Credit note issued but could not re-fetch invoice detail.',
+        'system',
+      ),
     };
   }
 
@@ -116,12 +187,19 @@ export async function issueCreditNoteAction(
       action: 'credit_balance_change',
       entity_type: 'invoice',
       entity_id: invoiceId,
-      details: { amountCents, newCreditBalance: result.new_credit_balance_cents, reason },
+      details: {
+        amountCents,
+        newCreditBalance: result.new_credit_balance_cents,
+        reason,
+      },
     },
   ]);
 
   if (auditError) {
-    console.error('Audit log write failed for credit note:', auditError.message);
+    console.error(
+      'Audit log write failed for credit note:',
+      auditError.message,
+    );
   }
 
   return { success: true, data: detail };

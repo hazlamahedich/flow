@@ -34,9 +34,12 @@ export function ClientScopingDialog({
     setSearch('');
   }, [onClose]);
 
-  const handleEscape = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') handleClose();
-  }, [handleClose]);
+  const handleEscape = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    },
+    [handleClose],
+  );
 
   useEffect(() => {
     if (open) {
@@ -58,14 +61,16 @@ export function ClientScopingDialog({
 
     try {
       if (currentlyHasAccess) {
-        const { revokeClientAccess } = await import('../actions/scope-client-access');
+        const { revokeClientAccess } =
+          await import('../actions/scope-client-access');
         const result = await revokeClientAccess({ userId, clientId });
         if (!result.success) {
           setError(result.error.message);
           return;
         }
       } else {
-        const { grantClientAccess } = await import('../actions/scope-client-access');
+        const { grantClientAccess } =
+          await import('../actions/scope-client-access');
         const result = await grantClientAccess({ userId, clientId });
         if (!result.success) {
           setError(result.error.message);
@@ -86,8 +91,10 @@ export function ClientScopingDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-         onClick={handleClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={handleClose}
+    >
       <div
         className="w-full max-w-lg rounded-lg bg-[var(--flow-color-bg-primary)] p-6 shadow-lg"
         role="dialog"
@@ -109,7 +116,10 @@ export function ClientScopingDialog({
         </div>
 
         {error && (
-          <div role="alert" className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+          <div
+            role="alert"
+            className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700"
+          >
             {error}
           </div>
         )}

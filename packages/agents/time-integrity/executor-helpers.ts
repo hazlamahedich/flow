@@ -2,15 +2,17 @@ import type { AnomalyType } from './schemas';
 import type { AnomalySignal } from './schemas';
 
 const PROPOSAL_TITLES: Record<AnomalyType, string> = {
-  'gap': 'Intra-day gap detected in time entries',
-  'overlap': 'Overlapping time entries detected',
+  gap: 'Intra-day gap detected in time entries',
+  overlap: 'Overlapping time entries detected',
   'low-hours': 'Low-hours day detected',
 };
 
 export const PROPOSAL_REASONING: Record<AnomalyType, string> = {
-  'gap': 'Two consecutive time entries have a gap exceeding the configured threshold. Review to ensure no billable time was missed.',
-  'overlap': 'Two time entries on the same day have overlapping time ranges. This may indicate duplicate billing.',
-  'low-hours': 'Total logged hours for this day are below the configured daily target. Consider whether any time was missed.',
+  gap: 'Two consecutive time entries have a gap exceeding the configured threshold. Review to ensure no billable time was missed.',
+  overlap:
+    'Two time entries on the same day have overlapping time ranges. This may indicate duplicate billing.',
+  'low-hours':
+    'Total logged hours for this day are below the configured daily target. Consider whether any time was missed.',
 };
 
 export function buildProposalTitle(signal: AnomalySignal): string {

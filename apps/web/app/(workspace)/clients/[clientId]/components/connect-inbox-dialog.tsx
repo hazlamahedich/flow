@@ -17,7 +17,9 @@ export function ConnectInboxDialog({
   onClose,
   onConnected,
 }: ConnectInboxDialogProps) {
-  const [accessType, setAccessType] = useState<'direct' | 'delegated'>('direct');
+  const [accessType, setAccessType] = useState<'direct' | 'delegated'>(
+    'direct',
+  );
   const [showDelegatedGuide, setShowDelegatedGuide] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -101,7 +103,10 @@ export function ConnectInboxDialog({
                 <p className="font-medium">Delegated Access Setup</p>
                 <ol className="mt-1 list-decimal space-y-1 pl-4">
                   <li>Ask the client to grant access to your Google account</li>
-                  <li>The client must add your email as a delegate in their Gmail settings</li>
+                  <li>
+                    The client must add your email as a delegate in their Gmail
+                    settings
+                  </li>
                   <li>Once delegated, click Connect to authorize</li>
                 </ol>
               </div>
@@ -109,9 +114,7 @@ export function ConnectInboxDialog({
           </div>
         )}
 
-        {error && (
-          <p className="mt-3 text-sm text-red-600">{error}</p>
-        )}
+        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
         <div className="mt-6 flex justify-end gap-3">
           <button

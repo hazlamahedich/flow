@@ -37,7 +37,11 @@ const PROVIDER_TIMEOUT_MS = 30_000;
 const MAX_SLOTS = 3;
 const SEARCH_DAYS = 14;
 
-function isWithinWorkingHours(start: Date, end: Date, timezone?: string): boolean {
+function isWithinWorkingHours(
+  start: Date,
+  end: Date,
+  timezone?: string,
+): boolean {
   const day = start.getDay();
   if (day === 0 || day === 6) return false;
   const workingStart = DEFAULT_CALENDAR_CONFIG.workingHours.start;
@@ -45,14 +49,28 @@ function isWithinWorkingHours(start: Date, end: Date, timezone?: string): boolea
   const [wsH, wsM] = workingStart.split(':').map(Number);
   const [weH, weM] = workingEnd.split(':').map(Number);
   if (timezone && timezone !== 'UTC') {
-    const fmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: 'numeric', hour12: false, timeZone: timezone });
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+      timeZone: timezone,
+    });
     const startParts = fmt.formatToParts(start);
     const endParts = fmt.formatToParts(end);
-    const startHour = Number(startParts.find((p) => p.type === 'hour')?.value ?? 0);
-    const startMin = Number(startParts.find((p) => p.type === 'minute')?.value ?? 0);
+    const startHour = Number(
+      startParts.find((p) => p.type === 'hour')?.value ?? 0,
+    );
+    const startMin = Number(
+      startParts.find((p) => p.type === 'minute')?.value ?? 0,
+    );
     const endHour = Number(endParts.find((p) => p.type === 'hour')?.value ?? 0);
-    const endMin = Number(endParts.find((p) => p.type === 'minute')?.value ?? 0);
-    const tzDay = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: timezone }).format(start);
+    const endMin = Number(
+      endParts.find((p) => p.type === 'minute')?.value ?? 0,
+    );
+    const tzDay = new Intl.DateTimeFormat('en-US', {
+      weekday: 'short',
+      timeZone: timezone,
+    }).format(start);
     if (tzDay === 'Sat' || tzDay === 'Sun') return false;
     const startMinutes = startHour * 60 + startMin;
     const endMinutes = endHour * 60 + endMin;
@@ -81,12 +99,19 @@ export async function findAvailableSlots(
   params: SlotFinderParams,
   deps: SlotFinderDeps,
 ): Promise<AvailableSlot[]> {
-  const { workspaceId, durationMinutes, preferredWindow, preferences, calendars } = params;
+  const {
+    workspaceId,
+    durationMinutes,
+    preferredWindow,
+    preferences,
+    calendars,
+  } = params;
   const { supabase } = deps;
 
-  const connectedCalendars = calendars.length > 0
-    ? calendars
-    : await loadCalendarProviders(supabase, workspaceId);
+  const connectedCalendars =
+    calendars.length > 0
+      ? calendars
+      : await loadCalendarProviders(supabase, workspaceId);
 
   if (connectedCalendars.length === 0) return [];
 
@@ -99,15 +124,25 @@ export async function findAvailableSlots(
   const timeMax = preferredWindow?.end ?? searchEnd.toISOString();
 
   const tz = (preferences?.timezone as string | undefined) ?? undefined;
-  const bufferMinutes = (preferences?.bufferMinutes as number | undefined) ?? DEFAULT_CALENDAR_CONFIG.bufferMinutes;
+  const bufferMinutes =
+    (preferences?.bufferMinutes as number | undefined) ??
+    DEFAULT_CALENDAR_CONFIG.bufferMinutes;
 
   const freeBusyResults = await Promise.allSettled(
     connectedCalendars.map(async (cal) => {
       const busySlots = await withTimeout(
-        cal.provider.getFreeBusy(cal.accessToken, [cal.calendarId], timeMin, timeMax),
+        cal.provider.getFreeBusy(
+          cal.accessToken,
+          [cal.calendarId],
+          timeMin,
+          timeMax,
+        ),
         PROVIDER_TIMEOUT_MS,
       );
-      return { calendarId: cal.calendarId, busy: busySlots.flatMap((s) => s.busy ?? []) };
+      return {
+        calendarId: cal.calendarId,
+        busy: busySlots.flatMap((s) => s.busy ?? []),
+      };
     }),
   );
 
@@ -115,7 +150,11 @@ export async function findAvailableSlots(
   for (const result of freeBusyResults) {
     if (result.status === 'fulfilled') {
       for (const slot of result.value.busy) {
-        allBusy.push({ start: slot.start, end: slot.end, calendarId: result.value.calendarId });
+        allBusy.push({
+          start: slot.start,
+          end: slot.end,
+          calendarId: result.value.calendarId,
+        });
       }
     }
   }
@@ -127,7 +166,10 @@ export async function findAvailableSlots(
     .gte('end_at', timeMin)
     .lte('start_at', timeMax);
 
-  const dbEvents = (existingEvents ?? []) as Array<{ start_at: string; end_at: string }>;
+  const dbEvents = (existingEvents ?? []) as Array<{
+    start_at: string;
+    end_at: string;
+  }>;
 
   const candidates: AvailableSlot[] = [];
   const bufferMs = bufferMinutes * 60_000;
@@ -151,20 +193,31 @@ export async function findAvailableSlots(
     const hasProviderConflict = allBusy.some((busy) => {
       const busyStart = new Date(busy.start).getTime();
       const busyEnd = new Date(busy.end).getTime();
-      return bufferedStart.getTime() < busyEnd && bufferedEnd.getTime() > busyStart;
+      return (
+        bufferedStart.getTime() < busyEnd && bufferedEnd.getTime() > busyStart
+      );
     });
 
     if (!hasProviderConflict) {
       const hasDbConflict = dbEvents.some((evt) => {
         const evtStart = new Date(evt.start_at).getTime();
         const evtEnd = new Date(evt.end_at).getTime();
-        return bufferedStart.getTime() < evtEnd && bufferedEnd.getTime() > evtStart;
+        return (
+          bufferedStart.getTime() < evtEnd && bufferedEnd.getTime() > evtStart
+        );
       });
 
       if (!hasDbConflict) {
-        const firstFreeCalendar = connectedCalendars.find((cal) =>
-          !allBusy.some((b) => b.calendarId === cal.calendarId && new Date(b.start).getTime() < bufferedEnd.getTime() && new Date(b.end).getTime() > bufferedStart.getTime()),
-        ) ?? connectedCalendars[0];
+        const firstFreeCalendar =
+          connectedCalendars.find(
+            (cal) =>
+              !allBusy.some(
+                (b) =>
+                  b.calendarId === cal.calendarId &&
+                  new Date(b.start).getTime() < bufferedEnd.getTime() &&
+                  new Date(b.end).getTime() > bufferedStart.getTime(),
+              ),
+          ) ?? connectedCalendars[0];
 
         candidates.push({
           startAt: cursor.toISOString(),
@@ -180,7 +233,8 @@ export async function findAvailableSlots(
   }
 
   candidates.sort((a, b) => {
-    const timeDiff = new Date(a.startAt).getTime() - new Date(b.startAt).getTime();
+    const timeDiff =
+      new Date(a.startAt).getTime() - new Date(b.startAt).getTime();
     if (timeDiff !== 0) return timeDiff;
     return a.conflicts - b.conflicts;
   });
@@ -191,18 +245,39 @@ export async function findAvailableSlots(
 async function loadCalendarProviders(
   supabase: SupabaseClient,
   workspaceId: string,
-): Promise<Array<{ id: string; calendarId: string; provider: CalendarProvider; accessToken: string }>> {
+): Promise<
+  Array<{
+    id: string;
+    calendarId: string;
+    provider: CalendarProvider;
+    accessToken: string;
+  }>
+> {
   const rows = await loadCalendars(supabase, workspaceId);
-  const results: Array<{ id: string; calendarId: string; provider: CalendarProvider; accessToken: string }> = [];
+  const results: Array<{
+    id: string;
+    calendarId: string;
+    provider: CalendarProvider;
+    accessToken: string;
+  }> = [];
 
   for (const row of rows) {
     try {
       const { getCalendarProvider } = await import('../providers/registry.js');
-      const { CalendarTokenManager } = await import('../providers/google-calendar/token-manager.js');
+      const { CalendarTokenManager } =
+        await import('../providers/google-calendar/token-manager.js');
       const provider = getCalendarProvider(row.provider);
       const tokenManager = new CalendarTokenManager(provider);
-      const { tokens } = await tokenManager.getValidTokens(row.id, row.oauth_state as unknown as OAuthStateEncrypted);
-      results.push({ id: row.id, calendarId: row.calendar_id, provider, accessToken: tokens.accessToken });
+      const { tokens } = await tokenManager.getValidTokens(
+        row.id,
+        row.oauth_state as unknown as OAuthStateEncrypted,
+      );
+      results.push({
+        id: row.id,
+        calendarId: row.calendar_id,
+        provider,
+        accessToken: tokens.accessToken,
+      });
     } catch {
       continue;
     }

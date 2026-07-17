@@ -1,4 +1,15 @@
-import { pgTable, uuid, text, timestamp, jsonb, boolean, integer, index, uniqueIndex, check } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  jsonb,
+  boolean,
+  integer,
+  index,
+  uniqueIndex,
+  check,
+} from 'drizzle-orm/pg-core';
 import { workspaces } from './workspaces';
 import { clientCalendars } from './client-calendars';
 import { clients } from './clients';
@@ -14,8 +25,9 @@ export const calendarEvents = pgTable(
     clientCalendarId: uuid('client_calendar_id')
       .notNull()
       .references(() => clientCalendars.id, { onDelete: 'cascade' }),
-    clientId: uuid('client_id')
-      .references(() => clients.id, { onDelete: 'cascade' }),
+    clientId: uuid('client_id').references(() => clients.id, {
+      onDelete: 'cascade',
+    }),
     providerEventId: text('provider_event_id').notNull(),
     title: text('title').notNull(),
     description: text('description'),
@@ -30,15 +42,31 @@ export const calendarEvents = pgTable(
     recurringRule: text('recurring_rule'),
     createdVia: text('created_via'),
     rawData: jsonb('raw_data'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
-    uniqueIndex('uq_calendar_events_calendar_provider').on(table.clientCalendarId, table.providerEventId),
-    index('idx_calendar_events_time_range').on(table.clientCalendarId, table.startAt, table.endAt),
-    index('idx_cal_events_conflicts').on(table.workspaceId, table.startAt, table.endAt).where(sql`end_at > now()`),
+    uniqueIndex('uq_calendar_events_calendar_provider').on(
+      table.clientCalendarId,
+      table.providerEventId,
+    ),
+    index('idx_calendar_events_time_range').on(
+      table.clientCalendarId,
+      table.startAt,
+      table.endAt,
+    ),
+    index('idx_cal_events_conflicts')
+      .on(table.workspaceId, table.startAt, table.endAt)
+      .where(sql`end_at > now()`),
     index('idx_calendar_events_workspace').on(table.workspaceId),
-    index('idx_calendar_events_calendar_provider_id').on(table.clientCalendarId, table.providerEventId),
+    index('idx_calendar_events_calendar_provider_id').on(
+      table.clientCalendarId,
+      table.providerEventId,
+    ),
     check(
       'calendar_events_event_type_check',
       sql`event_type IN ('meeting', 'focus_block', 'travel', 'personal', 'deadline', 'unknown')`,

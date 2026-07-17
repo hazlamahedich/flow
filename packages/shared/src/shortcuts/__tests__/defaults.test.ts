@@ -156,10 +156,38 @@ describe('getDefaultShortcuts', () => {
     const palette = shortcuts.find((s) => s.key === 'k')!;
     const guard = palette.guard!;
 
-    expect(guard({ metaKey: true, ctrlKey: false, altKey: false, shiftKey: false } as KeyboardEvent)).toBe(true);
-    expect(guard({ metaKey: false, ctrlKey: true, altKey: false, shiftKey: false } as KeyboardEvent)).toBe(true);
-    expect(guard({ metaKey: true, ctrlKey: false, altKey: true, shiftKey: false } as KeyboardEvent)).toBe(false);
-    expect(guard({ metaKey: true, ctrlKey: false, altKey: false, shiftKey: true } as KeyboardEvent)).toBe(false);
+    expect(
+      guard({
+        metaKey: true,
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+      } as KeyboardEvent),
+    ).toBe(true);
+    expect(
+      guard({
+        metaKey: false,
+        ctrlKey: true,
+        altKey: false,
+        shiftKey: false,
+      } as KeyboardEvent),
+    ).toBe(true);
+    expect(
+      guard({
+        metaKey: true,
+        ctrlKey: false,
+        altKey: true,
+        shiftKey: false,
+      } as KeyboardEvent),
+    ).toBe(false);
+    expect(
+      guard({
+        metaKey: true,
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: true,
+      } as KeyboardEvent),
+    ).toBe(false);
   });
 
   it('undo guard returns false when input focused', () => {

@@ -4,6 +4,7 @@ import { createServiceClient } from '@flow/db';
 import { cacheTag } from '@flow/db';
 import { encryptCalendarTokens } from '@flow/db/vault/calendar-tokens';
 import { GoogleCalendarProvider } from '@flow/agents/providers';
+import { calendarOAuthStateCookieSchema } from '@flow/types';
 import type { CalendarOAuthStateCookie } from '@flow/types';
 import { revalidateTag } from 'next/cache';
 import { getCookieStore } from '@/lib/cookie-store';
@@ -41,7 +42,9 @@ function htmlInterstitial(state: string, code: string, error?: string): string {
     </form>
   </noscript>
 </div>
-${!error ? `<script>
+${
+  !error
+    ? `<script>
   const params = new URLSearchParams(window.location.search);
   const form = document.createElement('form');
   form.method = 'POST';
@@ -53,17 +56,24 @@ ${!error ? `<script>
   form.appendChild(stateInput);
   document.body.appendChild(form);
   form.submit();
-</script>` : ''}
+</script>`
+    : ''
+}
 </body>
 </html>`;
 }
 
 function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function safeReturnTo(returnTo: string | undefined, fallback: string): string {
-  if (!returnTo || !returnTo.startsWith('/') || returnTo.startsWith('//')) return fallback;
+  if (!returnTo || !returnTo.startsWith('/') || returnTo.startsWith('//'))
+    return fallback;
   return returnTo;
 }
 
@@ -79,19 +89,35 @@ export async function GET(request: Request): Promise<Response> {
     const returnUrl = new URL(`${appUrl}/settings/integrations/calendar`);
     if (errorSubtype === 'not_verified') {
       returnUrl.searchParams.set('toast_code', 'calendar_app_not_verified');
-      returnUrl.searchParams.set('toast_msg', 'This app is in testing mode. Contact your workspace owner for access.');
+      returnUrl.searchParams.set(
+        'toast_msg',
+        'This app is in testing mode. Contact your workspace owner for access.',
+      );
     } else {
       returnUrl.searchParams.set('toast_code', 'calendar_access_denied');
-      returnUrl.searchParams.set('toast_msg', 'Calendar access was not granted.');
+      returnUrl.searchParams.set(
+        'toast_msg',
+        'Calendar access was not granted.',
+      );
     }
     return NextResponse.redirect(returnUrl.toString());
   }
 
   if (error) {
-    console.error(`[calendar-oauth] OAuth config error: ${error}`, url.searchParams.toString());
-    return new Response(htmlInterstitial(state, code, 'Calendar connection is not configured correctly. Please contact support.'), {
-      headers: { 'Content-Type': 'text/html' },
-    });
+    console.error(
+      `[calendar-oauth] OAuth config error: ${error}`,
+      url.searchParams.toString(),
+    );
+    return new Response(
+      htmlInterstitial(
+        state,
+        code,
+        'Calendar connection is not configured correctly. Please contact support.',
+      ),
+      {
+        headers: { 'Content-Type': 'text/html' },
+      },
+    );
   }
 
   return new Response(htmlInterstitial(state, code), {
@@ -107,34 +133,62 @@ export async function POST(request: Request): Promise<Response> {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
   if (!code || !state) {
-    return NextResponse.redirect(`${appUrl}/settings/integrations/calendar?toast_code=oauth_failed`);
+    return NextResponse.redirect(
+      `${appUrl}/settings/integrations/calendar?toast_code=oauth_failed`,
+    );
   }
 
   const ironPassword = process.env.IRON_SESSION_PASSWORD;
   if (!ironPassword || ironPassword.length < 32) {
-    return NextResponse.redirect(`${appUrl}/settings/integrations/calendar?toast_code=calendar_connection_failed`);
+    return NextResponse.redirect(
+      `${appUrl}/settings/integrations/calendar?toast_code=calendar_connection_failed`,
+    );
   }
 
   const cookieStore = await getCookieStore();
-  const session = await getIronSession<CalendarOAuthStateCookie>(cookieStore as any, {
-    password: ironPassword,
-    cookieName: `oauth_pkce_${state}`,
-    cookieOptions: { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' as const, maxAge: 600, path: '/' },
-  });
+  const session = await getIronSession<CalendarOAuthStateCookie>(
+    cookieStore as any,
+    {
+      password: ironPassword,
+      cookieName: `oauth_pkce_${state}`,
+      cookieOptions: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' as const,
+        maxAge: 600,
+        path: '/',
+      },
+    },
+  );
 
   if (!session.state || session.state !== state) {
     session.destroy();
-    return NextResponse.redirect(`${appUrl}/settings/integrations/calendar?toast_code=oauth_invalid_state`);
+    return NextResponse.redirect(
+      `${appUrl}/settings/integrations/calendar?toast_code=oauth_invalid_state`,
+    );
   }
 
-  const { codeVerifier, clientId, accessType, workspaceId, returnTo: rawReturnTo } = session;
-  const returnTo = safeReturnTo(rawReturnTo, clientId ? `/clients/${clientId}` : '/settings/integrations/calendar');
+  const {
+    codeVerifier,
+    clientId,
+    accessType,
+    workspaceId,
+    returnTo: rawReturnTo,
+  } = session;
+  const returnTo = safeReturnTo(
+    rawReturnTo,
+    clientId ? `/clients/${clientId}` : '/settings/integrations/calendar',
+  );
 
   try {
     const redirectUri = `${appUrl}/api/auth/calendar/callback`;
     const provider = new GoogleCalendarProvider();
 
-    const { tokens, connectedEmail } = await provider.exchangeCode(code, redirectUri, codeVerifier);
+    const { tokens, connectedEmail } = await provider.exchangeCode(
+      code,
+      redirectUri,
+      codeVerifier,
+    );
 
     const supabase = createServiceClient();
     const normalizedEmail = connectedEmail.toLowerCase();
@@ -148,12 +202,17 @@ export async function POST(request: Request): Promise<Response> {
       .maybeSingle();
 
     if (existingCalendar) {
-      if (existingCalendar.sync_status === 'error' || existingCalendar.sync_status === 'disconnected') {
+      if (
+        existingCalendar.sync_status === 'error' ||
+        existingCalendar.sync_status === 'disconnected'
+      ) {
         const encryptedState = encryptCalendarTokens(tokens);
 
         const { data: updated } = await supabase
           .from('client_calendars')
-          .update({ oauth_state: encryptedState as unknown as Record<string, unknown> })
+          .update({
+            oauth_state: encryptedState as unknown as Record<string, unknown>,
+          })
           .eq('id', existingCalendar.id)
           .eq('workspace_id', workspaceId)
           .eq('updated_at', existingCalendar.updated_at ?? '')
@@ -202,11 +261,15 @@ export async function POST(request: Request): Promise<Response> {
         calendarId = primaryCal.calendarId;
         calendarName = primaryCal.name;
       } else if (calendars.length > 0) {
-        calendarId = calendars[0].calendarId;
-        calendarName = calendars[0].name;
+        const fallback = calendars[0]!;
+        calendarId = fallback.calendarId;
+        calendarName = fallback.name;
       }
     } catch (listErr) {
-      console.warn('[calendar-oauth] Failed to list calendars, using email as fallback:', listErr);
+      console.warn(
+        '[calendar-oauth] Failed to list calendars, using email as fallback:',
+        listErr,
+      );
     }
 
     // Demote existing primary calendars for this workspace
@@ -238,7 +301,12 @@ export async function POST(request: Request): Promise<Response> {
       if (insertError) throw insertError;
       calendarRow = inserted;
     } catch (err: unknown) {
-      if (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === '23505') {
+      if (
+        err &&
+        typeof err === 'object' &&
+        'code' in err &&
+        (err as { code: string }).code === '23505'
+      ) {
         session.destroy();
         const returnUrl = new URL(`${appUrl}${returnTo}`);
         returnUrl.searchParams.set('toast_code', 'calendar_already_connected');

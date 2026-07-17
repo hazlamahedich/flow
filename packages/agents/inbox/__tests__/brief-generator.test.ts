@@ -22,16 +22,31 @@ describe('brief-generator', () => {
     hasEmails: true,
     hasInboxes: true,
     clientBreakdown: [],
-    handledItems: [] as Array<{ emailId: string; subject: string; sender: string; actionTaken: string; clientName: string }>,
-    needsAttentionItems: [] as Array<{ emailId: string; subject: string; sender: string; category: 'urgent' | 'action'; reason: string; clientName: string }>,
+    handledItems: [] as Array<{
+      emailId: string;
+      subject: string;
+      sender: string;
+      actionTaken: string;
+      clientName: string;
+    }>,
+    needsAttentionItems: [] as Array<{
+      emailId: string;
+      subject: string;
+      sender: string;
+      category: 'urgent' | 'action';
+      reason: string;
+      clientName: string;
+    }>,
     threadSummaries: [],
     rawGroups: [
       {
         clientId: 'c1',
         clientName: 'Client 1',
-        emails: [{ id: 'e1', subject: 'Test', sender: 'A', category: 'urgent' }]
-      }
-    ]
+        emails: [
+          { id: 'e1', subject: 'Test', sender: 'A', category: 'urgent' },
+        ],
+      },
+    ],
   };
 
   it('generates a valid brief when LLM returns valid JSON', async () => {
@@ -45,14 +60,16 @@ describe('brief-generator', () => {
           sender: 'A',
           category: 'urgent',
           reason: 'Prompt check',
-          clientName: 'Client 1'
-        }
+          clientName: 'Client 1',
+        },
       ],
       threadSummaries: [],
-      clientBreakdown: []
+      clientBreakdown: [],
     };
 
-    mockRouter.complete.mockResolvedValueOnce({ text: JSON.stringify(validResponse) });
+    mockRouter.complete.mockResolvedValueOnce({
+      text: JSON.stringify(validResponse),
+    });
 
     const { brief, isFallback } = await generateBrief(validContext);
 
@@ -73,7 +90,10 @@ describe('brief-generator', () => {
   });
 
   it('returns fallback on timeout', async () => {
-    const abortError = new DOMException('The operation was aborted', 'AbortError');
+    const abortError = new DOMException(
+      'The operation was aborted',
+      'AbortError',
+    );
     mockRouter.complete.mockRejectedValue(abortError);
 
     const { brief, isFallback } = await generateBrief(validContext);

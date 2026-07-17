@@ -29,7 +29,9 @@ export default async function InvoicesPage({
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold tracking-tight">Invoices</h1>
         </div>
-        <p className="text-sm text-muted-foreground">Unable to load invoices.</p>
+        <p className="text-sm text-muted-foreground">
+          Unable to load invoices.
+        </p>
       </div>
     );
   }
@@ -49,16 +51,19 @@ export default async function InvoicesPage({
       </div>
 
       {invoices.length === 0 && filter === 'active' ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            No invoices yet. Create your first invoice.
-          </p>
-          <Link
-            href="/invoices/new"
-            className="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            Create Invoice
-          </Link>
+        <div className="space-y-6">
+          <InvoiceFilterPills activeFilter={filter} />
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              No invoices yet. Create your first invoice.
+            </p>
+            <Link
+              href="/invoices/new"
+              className="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Create Invoice
+            </Link>
+          </div>
         </div>
       ) : (
         <>
@@ -72,7 +77,9 @@ export default async function InvoicesPage({
                   <th className="px-4 py-3 text-left font-medium">Status</th>
                   <th className="px-4 py-3 text-right font-medium">Total</th>
                   <th className="px-4 py-3 text-right font-medium">Balance</th>
-                  <th className="px-4 py-3 text-left font-medium">Issue Date</th>
+                  <th className="px-4 py-3 text-left font-medium">
+                    Issue Date
+                  </th>
                   <th className="px-4 py-3 text-left font-medium">Due Date</th>
                 </tr>
               </thead>
@@ -83,14 +90,22 @@ export default async function InvoicesPage({
                     className={`border-b last:border-0 hover:bg-muted/30 ${inv.status === 'voided' ? 'opacity-60' : ''}`}
                   >
                     <td className="px-4 py-3">
-                      <Link href={`/invoices/${inv.id}`} className="font-medium text-primary hover:underline">
+                      <Link
+                        href={`/invoices/${inv.id}`}
+                        className="font-medium text-primary hover:underline"
+                      >
                         {inv.invoiceNumber}
                       </Link>
                     </td>
                     <td className="px-4 py-3">{inv.clientName}</td>
                     <td className="px-4 py-3">
-                      <span className="mr-1">{statusIcons[inv.status] ?? ''}</span>
-                      <ListStatusBadge status={inv.status} creditBalanceCents={inv.creditBalanceCents} />
+                      <span className="mr-1">
+                        {statusIcons[inv.status] ?? ''}
+                      </span>
+                      <ListStatusBadge
+                        status={inv.status}
+                        creditBalanceCents={inv.creditBalanceCents}
+                      />
                     </td>
                     <td className="px-4 py-3 text-right font-mono">
                       {formatCentsToDollar(inv.totalCents)}
@@ -98,21 +113,33 @@ export default async function InvoicesPage({
                     <td className="px-4 py-3 text-right font-mono">
                       {formatCentsToDollar(inv.balanceCents)}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{inv.issueDate}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{inv.dueDate}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {inv.issueDate}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {inv.dueDate}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-muted-foreground">{total} invoice{total !== 1 ? 's' : ''} total</p>
+          <p className="text-xs text-muted-foreground">
+            {total} invoice{total !== 1 ? 's' : ''} total
+          </p>
         </>
       )}
     </div>
   );
 }
 
-function ListStatusBadge({ status, creditBalanceCents }: { status: string; creditBalanceCents: number }) {
+function ListStatusBadge({
+  status,
+  creditBalanceCents,
+}: {
+  status: string;
+  creditBalanceCents: number;
+}) {
   const label = status.replaceAll('_', ' ');
   const styles: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-700',

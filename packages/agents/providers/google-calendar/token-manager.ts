@@ -1,6 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { OAuthTokens, OAuthStateEncrypted } from '@flow/types';
-import { decryptCalendarTokens, rotateCalendarTokens } from '@flow/db/vault/calendar-tokens';
+import {
+  decryptCalendarTokens,
+  rotateCalendarTokens,
+} from '@flow/db/vault/calendar-tokens';
 import type { CalendarProvider } from '../calendar-provider';
 
 const TOKEN_EXPIRY_BUFFER_MS = 60_000; // refresh 1 minute before expiry
@@ -60,7 +63,9 @@ export class CalendarTokenManager {
 
     if (error) {
       throw Object.assign(
-        new Error(`Failed to store refreshed calendar tokens: ${error.message}`),
+        new Error(
+          `Failed to store refreshed calendar tokens: ${error.message}`,
+        ),
         { code: 'CALENDAR_CONNECTION_FAILED' as const, statusCode: 500 },
       );
     }
@@ -78,15 +83,19 @@ export class CalendarTokenManager {
     calendarId: string,
     _currentFailures: number,
   ): Promise<void> {
-    const { data, error: rpcError } = await supabase
-      .rpc('increment_calendar_refresh_failures', {
+    const { data, error: rpcError } = await supabase.rpc(
+      'increment_calendar_refresh_failures',
+      {
         p_calendar_id: calendarId,
         p_max_failures: this.maxFailures,
-      });
+      },
+    );
 
     if (rpcError || data === null) {
       throw Object.assign(
-        new Error(`Failed to increment refresh failure count: ${rpcError?.message ?? 'no row returned'}`),
+        new Error(
+          `Failed to increment refresh failure count: ${rpcError?.message ?? 'no row returned'}`,
+        ),
         { code: 'CALENDAR_CONNECTION_FAILED' as const, statusCode: 500 },
       );
     }

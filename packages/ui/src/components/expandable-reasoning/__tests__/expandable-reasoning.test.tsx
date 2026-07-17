@@ -9,20 +9,26 @@ describe('ExpandableReasoning (UX-DR26)', () => {
   });
 
   it('renders collapsed by default with "Why?" button', () => {
-    render(<ExpandableReasoning reasoning="The email was categorized as urgent because..." />);
+    render(
+      <ExpandableReasoning reasoning="The email was categorized as urgent because..." />,
+    );
 
     expect(screen.getByText('Why?')).toBeDefined();
     expect(screen.queryByText('Agent Reasoning')).toBeNull();
   });
 
   it('expands to show reasoning on click', () => {
-    render(<ExpandableReasoning reasoning="This was marked urgent due to time sensitivity." />);
+    render(
+      <ExpandableReasoning reasoning="This was marked urgent due to time sensitivity." />,
+    );
 
     fireEvent.click(screen.getByText('Why?'));
 
     expect(screen.getByText('Hide reasoning')).toBeDefined();
     expect(screen.getByText('Agent Reasoning')).toBeDefined();
-    expect(screen.getByText('This was marked urgent due to time sensitivity.')).toBeDefined();
+    expect(
+      screen.getByText('This was marked urgent due to time sensitivity.'),
+    ).toBeDefined();
   });
 
   it('collapses on second click', () => {
@@ -41,7 +47,7 @@ describe('ExpandableReasoning (UX-DR26)', () => {
       <div>
         <ExpandableReasoning reasoning="Reason A" />
         <ExpandableReasoning reasoning="Reason B" />
-      </div>
+      </div>,
     );
 
     const buttons = screen.getAllByText('Why?');

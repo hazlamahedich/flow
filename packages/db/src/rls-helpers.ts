@@ -35,7 +35,9 @@ export async function requireTenantContext(
     );
   }
 
-  const workspaceId = data.user.app_metadata?.workspace_id as string | undefined;
+  const workspaceId = data.user.app_metadata?.workspace_id as
+    | string
+    | undefined;
   if (!workspaceId) {
     throw createFlowError(
       403,

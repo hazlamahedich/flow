@@ -74,7 +74,8 @@ export const UNDO_COPY = {
   error: 'Could not undo. Please try again.',
 } as const;
 
-export const REGRESSION_ACKNOWLEDGED_COPY = 'Permission change acknowledged.' as const;
+export const REGRESSION_ACKNOWLEDGED_COPY =
+  'Permission change acknowledged.' as const;
 
 export const AUTO_DISMISS_TOAST_MS = 10_000;
 export const AUTO_DISMISS_MILESTONE_MS = 8_000;
@@ -100,7 +101,8 @@ export const CHECKIN_COPY = {
   },
   history: {
     title: 'Trust History',
-    empty: 'No trust events yet. Events will appear here when agent trust levels change.',
+    empty:
+      'No trust events yet. Events will appear here when agent trust levels change.',
     allCaughtUp: 'All caught up! Your agents are reviewed and current.',
     columns: {
       agent: 'Agent',

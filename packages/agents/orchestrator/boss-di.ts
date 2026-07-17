@@ -8,7 +8,9 @@ export function setBossInstance(boss: PgBoss): void {
 
 export function getBossInstance(): PgBoss {
   if (!bossInstance) {
-    throw new Error('[orchestrator] PgBoss instance not initialized. Call setBossInstance() during startup.');
+    throw new Error(
+      '[orchestrator] PgBoss instance not initialized. Call setBossInstance() during startup.',
+    );
   }
   return bossInstance;
 }

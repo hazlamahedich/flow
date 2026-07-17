@@ -13,7 +13,11 @@ vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
   return {
     ...actual,
-    requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' }),
+    requireTenantContext: vi.fn().mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    }),
     createFlowError: actual.createFlowError,
   };
 });
@@ -22,7 +26,9 @@ function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
   const fromChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: rowData ?? null, error: null }),
+    maybeSingle: vi
+      .fn()
+      .mockResolvedValue({ data: rowData ?? null, error: null }),
     single: vi.fn().mockResolvedValue({ data: rowData ?? null, error: null }),
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
@@ -37,12 +43,18 @@ function mockSupabase(rpcResult: unknown, rpcError?: Error, rowData?: unknown) {
     neq: vi.fn().mockReturnThis(),
   };
   return {
-    rpc: vi.fn().mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
+    rpc: vi
+      .fn()
+      .mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
     from: vi.fn().mockReturnValue(fromChain),
   } as unknown as import('@supabase/supabase-js').SupabaseClient;
 }
 
-function mockInvoiceRow(status: string, totalCents: number, amountPaidCents: number) {
+function mockInvoiceRow(
+  status: string,
+  totalCents: number,
+  amountPaidCents: number,
+) {
   return {
     id: 'inv-1',
     status,
@@ -72,7 +84,8 @@ function mockInvoiceRow(status: string, totalCents: number, amountPaidCents: num
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [7.3-ATDD-001] recordPayment action is defined', () => {
   test('recordPaymentAction exists and has correct signature', async () => {
-    const { recordPaymentAction } = await import('@/lib/actions/invoices/record-payment');
+    const { recordPaymentAction } =
+      await import('@/lib/actions/invoices/record-payment');
     expect(recordPaymentAction).toBeDefined();
     expect(typeof recordPaymentAction).toBe('function');
   });
@@ -94,7 +107,8 @@ describe('[P0] [7.3-ATDD-001] recordPayment action is defined', () => {
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [7.3-ATDD-002] recordPayment updates invoice status to partially_paid', () => {
   test('RPC returns new_status partially_paid when payment < total', async () => {
-    const { callPaymentRpcWithRetry } = await import('@/lib/actions/invoices/record-payment-helpers');
+    const { callPaymentRpcWithRetry } =
+      await import('@/lib/actions/invoices/record-payment-helpers');
 
     const mockClient = mockSupabase({
       payment_id: 'pay-1',
@@ -132,13 +146,16 @@ describe('[P0] [7.3-ATDD-003] recordPayment rejects voided invoice', () => {
 
   test('voided invoice returns INVOICE_VOIDED error', async () => {
     const { getServerSupabase } = await import('@/lib/supabase-server');
-    const { recordPaymentAction } = await import('@/lib/actions/invoices/record-payment');
+    const { recordPaymentAction } =
+      await import('@/lib/actions/invoices/record-payment');
 
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase(
-      null,
-      new Error('INVOICE_VOIDED'),
-      mockInvoiceRow('voided', 10000, 0)
-    ));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase(
+        null,
+        new Error('INVOICE_VOIDED'),
+        mockInvoiceRow('voided', 10000, 0),
+      ),
+    );
 
     const result = await recordPaymentAction({
       invoiceId: '00000000-0000-0000-0000-000000000001',
@@ -164,13 +181,16 @@ describe('[P0] [7.3-ATDD-004] recordPayment rejects already-paid invoice', () =>
 
   test('paid invoice returns INVOICE_ALREADY_PAID error', async () => {
     const { getServerSupabase } = await import('@/lib/supabase-server');
-    const { recordPaymentAction } = await import('@/lib/actions/invoices/record-payment');
+    const { recordPaymentAction } =
+      await import('@/lib/actions/invoices/record-payment');
 
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase(
-      null,
-      new Error('INVOICE_ALREADY_PAID'),
-      mockInvoiceRow('paid', 10000, 10000)
-    ));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase(
+        null,
+        new Error('INVOICE_ALREADY_PAID'),
+        mockInvoiceRow('paid', 10000, 10000),
+      ),
+    );
 
     const result = await recordPaymentAction({
       invoiceId: '00000000-0000-0000-0000-000000000001',
@@ -196,13 +216,12 @@ describe('[P0] [7.3-ATDD-005] overpayment returns warning and transitions to pai
 
   test('overpayment without confirmOverpayment returns warning', async () => {
     const { getServerSupabase } = await import('@/lib/supabase-server');
-    const { recordPaymentAction } = await import('@/lib/actions/invoices/record-payment');
+    const { recordPaymentAction } =
+      await import('@/lib/actions/invoices/record-payment');
 
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase(
-      null,
-      undefined,
-      mockInvoiceRow('sent', 10000, 0)
-    ));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase(null, undefined, mockInvoiceRow('sent', 10000, 0)),
+    );
 
     const result = await recordPaymentAction({
       invoiceId: '00000000-0000-0000-0000-000000000001',
@@ -219,7 +238,8 @@ describe('[P0] [7.3-ATDD-005] overpayment returns warning and transitions to pai
   });
 
   test('overpayment with confirmOverpayment succeeds and marks paid', async () => {
-    const { callPaymentRpcWithRetry } = await import('@/lib/actions/invoices/record-payment-helpers');
+    const { callPaymentRpcWithRetry } =
+      await import('@/lib/actions/invoices/record-payment-helpers');
 
     const mockClient = mockSupabase({
       payment_id: 'pay-2',
@@ -252,29 +272,38 @@ describe('[P0] [7.3-ATDD-005] overpayment returns warning and transitions to pai
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [7.3-ATDD-006] idempotency key prevents double recording', () => {
   test('checkIdempotencyKey returns cached result when key exists', async () => {
-    const { checkIdempotencyKey } = await import('@/lib/actions/invoices/idempotency');
+    const { checkIdempotencyKey } =
+      await import('@/lib/actions/invoices/idempotency');
 
     const cached = { payment: { id: 'pay-1' }, invoice: { id: 'inv-1' } };
-    const mockClient = mockSupabase(
-      null,
-      undefined,
-      { response_json: cached }
-    );
+    const mockClient = mockSupabase(null, undefined, { response_json: cached });
 
-    const result = await checkIdempotencyKey(mockClient, 'ws-1', 'inv-1', 'key-123');
+    const result = await checkIdempotencyKey(
+      mockClient,
+      'ws-1',
+      'inv-1',
+      'key-123',
+    );
     expect(result).toEqual({ success: true, data: cached });
   });
 
   test('checkIdempotencyKey returns null when no key provided', async () => {
-    const { checkIdempotencyKey } = await import('@/lib/actions/invoices/idempotency');
+    const { checkIdempotencyKey } =
+      await import('@/lib/actions/invoices/idempotency');
     const mockClient = mockSupabase(null);
 
-    const result = await checkIdempotencyKey(mockClient, 'ws-1', 'inv-1', undefined);
+    const result = await checkIdempotencyKey(
+      mockClient,
+      'ws-1',
+      'inv-1',
+      undefined,
+    );
     expect(result).toBeNull();
   });
 
   test('hashIdempotencyKey produces deterministic SHA-256', async () => {
-    const { hashIdempotencyKey } = await import('@/lib/actions/invoices/idempotency');
+    const { hashIdempotencyKey } =
+      await import('@/lib/actions/invoices/idempotency');
     const h1 = hashIdempotencyKey('inv-1', 'key-a');
     const h2 = hashIdempotencyKey('inv-1', 'key-a');
     expect(h1).toBe(h2);
@@ -302,7 +331,8 @@ describe('[P0] [7.3-ATDD-007] invoice detail page shows balance summary', () => 
 // ───────────────────────────────────────────────────────────────
 describe('[P0] [7.3-ATDD-008] invoice list shows balance per invoice', () => {
   test('getInvoicesAction exists and computes balance', async () => {
-    const { getInvoicesAction } = await import('@/lib/actions/invoices/get-invoices');
+    const { getInvoicesAction } =
+      await import('@/lib/actions/invoices/get-invoices');
     expect(getInvoicesAction).toBeDefined();
   });
 });

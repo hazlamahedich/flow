@@ -9,16 +9,22 @@ test.describe('Health Check', () => {
 });
 
 test.describe('Smoke — Authentication Page', () => {
-  test('[P0] login page renders email input and submit button', async ({ page }) => {
+  test('[P0] login page renders email input and submit button', async ({
+    page,
+  }) => {
     await page.goto('/login');
 
     await expect(page.locator('#email')).toBeVisible();
-    await expect(page.getByRole('button', { name: /send magic link/i })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /send magic link/i }),
+    ).toBeVisible();
   });
 
   test('[P0] login page shows heading', async ({ page }) => {
     await page.goto('/login');
 
-    await expect(page.getByRole('heading', { name: /sign in to flow/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /sign in to flow/i }),
+    ).toBeVisible();
   });
 });

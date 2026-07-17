@@ -12,7 +12,11 @@ vi.mock('@flow/db', () => ({
 
 import { getRetainerDetail } from '../get-retainer';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, getActiveRetainerForClient, getRetainerUtilization } from '@flow/db';
+import {
+  requireTenantContext,
+  getActiveRetainerForClient,
+  getRetainerUtilization,
+} from '@flow/db';
 
 const mockGetServerSupabase = vi.mocked(getServerSupabase);
 const mockRequireTenantContext = vi.mocked(requireTenantContext);
@@ -22,14 +26,20 @@ const mockGetUtilization = vi.mocked(getRetainerUtilization);
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetServerSupabase.mockResolvedValue({} as never);
-  mockRequireTenantContext.mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'owner' });
+  mockRequireTenantContext.mockResolvedValue({
+    workspaceId: 'ws1',
+    userId: 'u1',
+    role: 'owner',
+  });
 });
 
 describe('getRetainerDetail', () => {
   it('returns null when no retainer exists', async () => {
     mockGetActiveRetainer.mockResolvedValue(null);
 
-    const result = await getRetainerDetail('00000000-0000-0000-0000-000000000001');
+    const result = await getRetainerDetail(
+      '00000000-0000-0000-0000-000000000001',
+    );
     expect(result.retainer).toBeNull();
     expect(result.utilization).toBeNull();
   });
@@ -48,7 +58,9 @@ describe('getRetainerDetail', () => {
       billingPeriodEnd: '2026-01-31',
     });
 
-    const result = await getRetainerDetail('00000000-0000-0000-0000-000000000001');
+    const result = await getRetainerDetail(
+      '00000000-0000-0000-0000-000000000001',
+    );
     expect(result.retainer).not.toBeNull();
     expect(result.utilization).not.toBeNull();
     expect(result.utilization!.totalMinutes).toBe(120);

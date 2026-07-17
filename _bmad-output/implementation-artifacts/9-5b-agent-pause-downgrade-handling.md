@@ -62,7 +62,7 @@ So that I don't lose work during payment issues and can restore full access by u
 0. **[AC0 — Test-First]** The ATDD scaffold `apps/web/__tests__/acceptance/epic-9/9-5b-agent-pause-downgrade-handling.spec.ts` (**17 tests, NOT 14**) AND a new unit scaffold `apps/web/__tests__/billing/9-5b-downgrade.spec.ts` exist and are **red** before implementation. Story cannot be marked `in-progress` until BOTH test files exist. **NOTE: the unit scaffold does NOT yet exist — it MUST be created first (this AC0 gate was previously unmet).** During GREEN phase, remove `vi.hoisted`/`vi.mock` stubs AND replace the `expect(...).toBeDefined()` tautologies with real shape/behavior assertions (T7.1). Record the first red-phase commit SHA in the Test Commit Record below.
 
 1. **[AC1 — Orchestrator guard clause (FR60)]** A pure helper `shouldDequeueForWorkspace(status: SubscriptionStatus): boolean` is exported from `packages/shared/src/subscription-state.ts` (new module). It returns `true` for `'active'` and `'free'`; `false` for `'past_due'`, `'suspended'`, `'deleted'`, `'cancelled'`. In `PgBossWorker.claim()` (`packages/agents/orchestrator/pg-boss-worker.ts:55`), the guard runs **BEFORE** `claimRunWithGuard()` — after payload parse + the existing circuit-breaker check (mirroring the circuit_open release pattern at `pg-boss-worker.ts:63-67`). When `false`:
-   - Call `await this.boss.fail(\`agent:${payload.agentId}\`, job.id, { retryable: true, code: 'SUBSCRIPTION_PAUSED', message: \`Workspace ${payload.workspaceId} subscription_status=${status}\` })` to release back to the queue with exponential backoff (queue `retryDelay` set to `[1m, 5m, 30m, 2h, 6h]` at worker registration). **Do NOT return bare `null`** — that leaves the job in pg-boss `active` until `expireIn`, starving fetch budget for healthy workspaces.
+    - Call `await this.boss.fail(\`agent:${payload.agentId}\`, job.id, { retryable: true, code: 'SUBSCRIPTION_PAUSED', message: \`Workspace ${payload.workspaceId} subscription_status=${status}\` })` to release back to the queue with exponential backoff (`retryDelay: 60s, retryBackoff: true` at the fail call, which pg-boss interprets as a single base delay — D3 decision). **Do NOT return bare `null`** — that leaves the job in pg-boss `active` until `expireIn`, starving fetch budget for healthy workspaces.
    - Call new `cancelRun(runId, 'subscription_paused')` (`packages/db/src/queries/agents/runs.ts`) to transition the existing `queued` run row → `cancelled` (valid per `VALID_RUN_TRANSITIONS.queued = ['running','failed','cancelled']` at `packages/types/src/agents.ts:159`). The `agent_runs` row already exists in `queued` (created by `insertRun` at enqueue), so the audit log's `entityType:'agent_run'`/`entityId:runId` is **NOT an orphan**.
    - Write audit log: `{ workspaceId, agentId, action: 'claim.subscription_paused', entityType: 'agent_run', entityId: payload.runId, details: { subscriptionStatus: status, outcome: 'released' } }`.
    - Write `agent_signals` **UNCONDITIONALLY** (no "if the table exists" hedge — table exists at `packages/db/src/schema/agent-signals.ts:13`): `{ signal_type: 'claim.subscription.paused' }`. The value **MUST be 3-dotted** to satisfy the CHECK constraint `^[a-z][a-z0-9-]*\.[a-z][a-z0-9-]*\.[a-z][a-z0-9-]*$` (migration `20260525000000_agent_signals_dedup_and_constraint_fix.sql`). The original spec's literal `'subscription_paused'` would be **REJECTED by the DB**.
@@ -107,6 +107,9 @@ So that I don't lose work during payment issues and can restore full access by u
 | EC10 | `subscription_status = 'past_due'` with Pro tier | Pro limits still apply (status-independence) | AC2 |
 | EC11 | Downgrade Agency→Free with 50 clients | Archive **48** (50 − Free=2) — was 45 under the wrong Free=5 | AC3 |
 | EC12 | Downgrade while `subscription_status = 'suspended'` | `INVALID_STATE` (reactivate first) | AC3 |
+| EC12b | Downgrade while `subscription_status = 'deleted'` | `INVALID_STATE` (terminal state) | AC3 |
+| EC12c | Downgrade from `subscription_status = 'past_due'` | Allowed — features constrained to Free immediately | AC3 |
+| EC12d | Downgrade from `subscription_status = 'cancelled'` | Allowed — features constrained to Free immediately | AC3 |
 | EC13 | suspended → active reactivation (NEW) | Agents resume on next claim (FR59 "reactivation at any point before deletion") | AC1 |
 
 ## Pre-Dev Dependency Scan
@@ -144,7 +147,7 @@ So that I don't lose work during payment issues and can restore full access by u
   - [x] T4.5: Extend `packages/agents/orchestrator/reconcile-subscriptions.ts` with `tier_drift` check.
   - [x] T4.6: **NEW migration** `supabase/migrations/20260618800001_archived_clients_rls.sql` (clients UPDATE policy `+ status='active'` on USING + WITH CHECK).
   - [x] T4.7: App defence-in-depth in `apps/web/app/(workspace)/clients/actions/update-client.ts` (REAL path; +~15 lines for fetch-before-update + archive guard). **Drop the `delete-client.ts` work — file doesn't exist.**
-  - [x] T4.8: Create `apps/web/__tests__/billing/9-5b-downgrade.spec.ts` (12 tests: schema validation, MRU archive logic, no-delete guarantee, shape assertions on `{preservedCount, archivedClientIds, upgradePrompt}`, EC7, EC11=**48**, EC12). **Use real-shape assertions, NOT `toBeDefined()` tautologies.**
+  - [x] T4.8: Create `apps/web/__tests__/billing/9-5b-downgrade.spec.ts` (12 tests: schema validation, MRU archive logic, no-delete guarantee, shape assertions on `{preservedCount, archivedClientIds, upgradePrompt}`, EC7, EC11=**48**, EC12/EC12b/EC12c/EC12d). **Use real-shape assertions, NOT `toBeDefined()` tautologies.**
 
 - [x] T5: Auto-upgrade prompt UI
   - [x] T5.1: Create `apps/web/app/(workspace)/settings/billing/components/DowngradeBanner.tsx` (client component, `useActionState` for upgrade CTA).
@@ -169,8 +172,74 @@ So that I don't lose work during payment issues and can restore full access by u
   - [x] T9.1: `pnpm lint` — 0 errors in 9-5b files (pre-existing errors in unrelated files only)
   - [x] T9.2: `pnpm typecheck` — 0 new errors in 9-5b files (pre-existing calendar/inbox test errors only)
   - [x] T9.3: `pnpm build` — ESM succeeds (DTS worker OOM is a pre-existing Node 25 environmental issue, unrelated to 9-5b)
-  - [ ] T9.4: Code review — findings resolved (pending review)
-  - [ ] T9.5: Mark story `done` in `sprint-status.yaml`; ensure 9-5c/9-5d/9-5e exist in backlog.
+### Review Findings
+
+**Code review complete (all three layers).** 5 `decision-needed`, 27 `patch`, 6 `defer`, 6 dismissed as noise.
+
+#### decision-needed — RESOLVED
+
+_Decisions reached via party-mode roundtable (Winston, John, Murat, Mary) + user confirmation. Disagreements noted where applicable._
+
+- [x] [Review][Decision] **D1 — AC3 atomicity gap** → **Option 1** (unanimous). Refactor webhook handler to wrap tier flip and archive in the same DB transaction/RPC. `correctTierDrift` remains only an observability failsafe.
+- [x] [Review][Decision] **D2 — Downgrade status gate** → **Option 2** (2–2 split; user tiebreak). Allow downgrade from `past_due`/`cancelled` and remove the overly broad guard; billing status and tier are separate concerns, and FR57/FR60 intent is to constrain features immediately. Update EC matrix/tests to reflect `past_due`/`cancelled` as allowed downgrade sources.
+- [x] [Review][Decision] **D3 — Retry schedule vs pg-boss API** → **Option 1** (unanimous). Update spec to pg-boss-native single `retryDelay` number with exponential backoff; custom scheduling is overkill.
+- [x] [Review][Decision] **D4 — Stripe status mapping divergence** → **Option 2** (unanimous). `mapStripeStatusToDb` in `packages/shared/src/subscription-lifecycle.ts` is canonical; fix webhook to delegate to it.
+- [x] [Review][Decision] **D5 — EC2 same-tier Pro→Pro downgrade** → **Option 1** (unanimous). Update spec/EC matrix to acknowledge that `downgradeSchema` already rejects same-tier input at the schema boundary.
+
+#### patch
+
+- [ ] [Review][Patch] **P1 — RLS WITH CHECK blocks user-facing archive action** (high priority). The new `rls_clients_owner_admin_update` policy requires `status = 'active'` in both `USING` and `WITH CHECK`. The user-facing `archiveClient` in `packages/db/src/queries/clients/crud.ts:181-187` sets `status = 'archived'`, so `WITH CHECK` will block it. [`supabase/migrations/20260618800001_archived_clients_rls.sql`]
+- [ ] [Review][Patch] **P2 — AC3 Drizzle mandate ignored.** `bulkArchiveClients` uses Supabase JS client instead of Drizzle ORM as spec/project-context require. [`packages/db/src/queries/clients/archiveClients.ts`]
+- [ ] [Review][Patch] **P3 — D1 follow-up: AC3 atomicity gap.** Refactor webhook handler to wrap tier flip and archive in the same DB transaction/RPC. [`apps/web/lib/stripe/handlers/subscription-updated.ts`, `apps/web/lib/actions/billing/downgrade-internal.ts`]
+- [ ] [Review][Patch] **P4 — D2 follow-up: Downgrade status gate.** Remove overly broad `rejectIfStatusNotActive` guard so `past_due`/`cancelled` workspaces can downgrade; update EC matrix/tests. [`apps/web/lib/actions/billing/downgrade-internal.ts`]
+- [ ] [Review][Patch] **P5 — D3 follow-up: AC1 retry schedule.** Update spec to pg-boss-native single `retryDelay` number with exponential backoff; adjust `SUBSCRIPTION_PAUSED_RETRY_OPTIONS` if needed. [`packages/agents/orchestrator/subscription-guard.ts:26-29`]
+- [ ] [Review][Patch] **P6 — D4 follow-up: Stripe status mapping divergence.** Make `mapStripeStatusToDb` canonical; refactor webhook `mapSubscriptionStatus` to delegate to the shared helper. [`apps/web/lib/stripe/handlers/subscription-updated.ts`, `packages/shared/src/subscription-lifecycle.ts`]
+- [ ] [Review][Patch] **P7 — D5 follow-up: Same-tier downgrade tests / EC matrix.** Update spec/EC matrix to reflect schema-level rejection of same-tier downgrade; adjust tests to assert schema rejection rather than INVALID_STATE 409. [`apps/web/__tests__/billing/9-5b-downgrade.spec.ts`]
+- [ ] [Review][Patch] **P8 — RLS WITH CHECK blocks user-facing archive action** (high priority). Fix `rls_clients_owner_admin_update` so `WITH CHECK` does not require `status = 'active'`, or otherwise preserve the user-facing archive path. [`supabase/migrations/20260618800001_archived_clients_rls.sql`]
+- [ ] [Review][Patch] **P9 — AC3 Drizzle mandate ignored.** `bulkArchiveClients` uses Supabase JS client instead of Drizzle ORM as spec/project-context require. [`packages/db/src/queries/clients/archiveClients.ts`]
+- [ ] [Review][Patch] **P10 — AC3 missing `revalidateTag`.** Spec requires cache invalidation after archive success. [`apps/web/lib/actions/billing/downgrade-internal.ts`]
+- [ ] [Review][Patch] **P11 — `fetchPreviousTier` casts DB value without runtime validation.** [`apps/web/lib/stripe/handlers/subscription-updated.ts:63-74`]
+- [ ] [Review][Patch] **P12 — `releaseIfSubscriptionPaused` swallows `boss.fail` failures and can leave jobs in `active`.** [`packages/agents/orchestrator/subscription-guard.ts:89-96`]
+- [ ] [Review][Patch] **P13 — `cancelRun` errors are swallowed, risking orphaned `queued` run rows.** [`packages/agents/orchestrator/subscription-guard.ts:98-102`]
+- [ ] [Review][Patch] **P14 — `DowngradeBanner` `onUpgrade` wrapper uses unsafe `as unknown` cast.** [`apps/web/app/(workspace)/settings/billing/page.tsx`]
+- [ ] [Review][Patch] **P15 — `correctTierDrift` duplicates archive logic instead of calling `bulkArchiveClients`.** [`packages/agents/orchestrator/reconcile-subscriptions/correct-tier-drift.ts`]
+- [ ] [Review][Patch] **P16 — `PRD_FREE_CLIENTS_FALLBACK = 2` hardcoded in multiple places.** [`downgrade-internal.ts`, `correct-tier-drift.ts`, migration]
+- [ ] [Review][Patch] **P17 — Duplicate `vi.mock('@flow/db/client')` in ATDD file.** [`apps/web/__tests__/acceptance/epic-9/9-5b-agent-pause-downgrade-handling.spec.ts`]
+- [ ] [Review][Patch] **P18 — ATDD header comment says 16 tests; file has 17.** [`apps/web/__tests__/acceptance/epic-9/9-5b-agent-pause-downgrade-handling.spec.ts:10`]
+- [ ] [Review][Patch] **P19 — `console.error` in production webhook handler violates project-context.md logging rule.** [`apps/web/lib/stripe/handlers/subscription-updated.ts:168`]
+- [ ] [Review][Patch] **P20 — `@ts-expect-error` used in tests violates project-context.md.** [`apps/web/__tests__/billing/9-5b-downgrade.spec.ts:95,106`]
+- [ ] [Review][Patch] **P21 — AC4 `DowngradeBanner` uses `useTransition` instead of spec-required `useActionState`.** [`apps/web/app/(workspace)/settings/billing/components/DowngradeBanner.tsx`]
+- [ ] [Review][Patch] **P22 — `DowngradeBanner` dismiss-until-new-event logic breaks when `latestArchivedAt` is null and `archivedCount > 0`.** [`apps/web/app/(workspace)/settings/billing/page.tsx`]
+- [ ] [Review][Patch] **P23 — `SubscriptionStatusBanner` accepts `string` instead of `SubscriptionStatus` union.** [`apps/web/app/(workspace)/settings/billing/components/SubscriptionStatusBanner.tsx`]
+- [x] [Review][Patch] **P24 — pgTAP service_role test is trivially true and the stated non-owner-member denial assertion is missing.** Fixed: added test #3 for non-owner member denied UPDATE on active client; renumbered service_role test to #5. [`supabase/tests/rls_subscription_orchestrator_guard.sql`]
+- [ ] [Review][Patch] **P25 — EC5 null/missing `workspaceId` guard path is not actually tested.** [`packages/agents/orchestrator/__tests__/subscription-guard.test.ts`]
+- [ ] [Review][Patch] **P26 — `applyDowngradeOnTierChange` pre-archive validation/count failures are outside the archive try/catch.** [`apps/web/lib/actions/billing/downgrade-internal.ts`]
+- [ ] [Review][Patch] **P27 — `agent_signals` write failures are silently swallowed.** [`packages/agents/orchestrator/subscription-guard.ts`]
+- [x] [Review][Patch] **P28 — Duplicate downgrade webhook does not short-circuit; no idempotency marker.** Already mitigated: route-level `stripe_webhook_events` deduplicates by Stripe event ID, and `syncSubscriptionFromEvent` fetches current subscription state from Stripe before applying. The `previousTier` guard further ensures downgrade archive only runs on Pro/Agency → Free transitions. No additional idempotency marker needed within 9-5b scope. [`apps/web/app/api/webhooks/stripe/route.ts`, `apps/web/lib/stripe/handlers/subscription-updated.ts`]
+- [ ] [Review][Patch] **P29 — `correctTierDrift` races with user reactivation/re-upgrade.** May archive active clients on a workspace that has already flipped back to Pro. [`packages/agents/orchestrator/reconcile-subscriptions/correct-tier-drift.ts`]
+- [ ] [Review][Patch] **P30 — `claimRunWithGuard` race with status flip.** If status transitions to paused between the guard and `claimRunWithGuard`, the run may still start. [`packages/agents/orchestrator/pg-boss-worker.ts`]
+- [ ] [Review][Patch] **P31 — `bulkArchiveClients` MRU ordering vulnerable to `updated_at` ties; secondary `id DESC` does not preserve true recency.** [`packages/db/src/queries/clients/archiveClients.ts`]
+- [ ] [Review][Patch] **P32 — `runReconciliation` pagination may exit early when filtered page length < batch size even though more rows exist.** [`packages/agents/orchestrator/reconcile-subscriptions/run-reconciliation.ts`]
+- [ ] [Review][Patch] **P33 — `DowngradeBanner` triggers on any archived client, not just downgrade-bulk-archived clients.** [`apps/web/app/(workspace)/settings/billing/page.tsx`]
+- [ ] [Review][Patch] **P34 — `correctTierDrift` does not handle `freeMaxClients = null` (unlimited).** [`packages/agents/orchestrator/reconcile-subscriptions/correct-tier-drift.ts`]
+
+#### defer
+
+- [x] [Review][Defer] **F1 — `bulkArchiveClients` has no batching for massive `IN (...)` clauses** — performance edge case, not launch-blocking. [`packages/db/src/queries/clients/archiveClients.ts`]
+- [x] [Review][Defer] **F2 — Test Commit Record remains blank** — red-phase scaffolds were created in the same session as implementation (no standalone red-phase commit SHA). Process/doc gap, not code defect.
+- [x] [Review][Defer] **F3 — `enforceTierLimit` TOCTOU window** — pre-existing, explicitly accepted in 9-4 code comments; strict DB enforcement is out of 9-5b scope. [`apps/web/lib/actions/billing/enforce-tier-limit.ts`]
+- [x] [Review][Defer] **F4 — No DB-level guarantee that Free workspaces cannot exceed `maxClients`** — architectural gap, out of 9-5b scope.
+- [x] [Review][Defer] **F5 — `runReconciliation` does not retry Stripe API errors** — pre-existing reconciliation pattern; broader retry policy is out of 9-5b scope. [`packages/agents/orchestrator/reconcile-subscriptions/run-reconciliation.ts`]
+- [x] [Review][Defer] **F6 — `StripePaymentProvider` instantiated directly in webhook handler** — provider-abstraction mandate is most explicit for agent email/calendar providers; payment-provider abstraction is a wider refactor. [`apps/web/lib/stripe/handlers/subscription-updated.ts`]
+
+#### dismissed (6)
+
+- R1 — Edge-Case claim that null `subscriptionStatus` leads to claim is false; code releases on null. [`packages/agents/orchestrator/subscription-guard.ts:73-76`]
+- R2 — Edge-Case claim that DB errors allow execution is false; `null` triggers release. [`packages/db/src/queries/workspaces/subscription-status.ts`]
+- R3 — Migration pseudo-timestamp `20260618800001` is intentional (runs after `20260618000004`); accepted unless tooling breaks.
+- R4 — `SubscriptionStatusBanner` is rendered in workspace `layout.tsx`, so billing page inherits it.
+- R5 — AC1 audit log action `claim.subscription_paused` is fine; spec only requires 3-dotted format for `agent_signals.signal_type`.
+- R6 — `cancelRun` leaving `started_at` null is semantically correct for a never-started run.
 
 ## Dev Notes
 

@@ -10,16 +10,32 @@ describe('Badge', () => {
   });
 
   it('renders all variants', () => {
-    const variants = ['default', 'secondary', 'outline', 'success', 'warning', 'error'] as const;
+    const variants = [
+      'default',
+      'secondary',
+      'outline',
+      'success',
+      'warning',
+      'error',
+    ] as const;
     for (const variant of variants) {
-      const { unmount } = renderWithTheme(<Badge variant={variant}>{variant}</Badge>);
+      const { unmount } = renderWithTheme(
+        <Badge variant={variant}>{variant}</Badge>,
+      );
       expect(screen.getByText(variant)).toBeTruthy();
       unmount();
     }
   });
 
   it('renders agent identity variants', () => {
-    const agents = ['inbox', 'calendar', 'ar', 'report', 'health', 'time'] as const;
+    const agents = [
+      'inbox',
+      'calendar',
+      'ar',
+      'report',
+      'health',
+      'time',
+    ] as const;
     for (const agent of agents) {
       const { unmount } = renderWithTheme(<Badge agent={agent}>{agent}</Badge>);
       const el = screen.getByText(agent);

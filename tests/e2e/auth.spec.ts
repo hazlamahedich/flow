@@ -13,7 +13,9 @@ test.describe('[P0] Login Flow', () => {
 
     await expect(page.locator('#email')).toBeVisible();
     await expect(page.locator('#trustDevice')).toBeVisible();
-    await expect(page.getByRole('button', { name: /send magic link/i })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /send magic link/i }),
+    ).toBeVisible();
   });
 
   test('disables submit button for invalid email', async ({ page }) => {
@@ -32,12 +34,16 @@ test.describe('[P0] Login Flow', () => {
     await expect(button).toBeEnabled();
     await button.click();
 
-    await expect(page.getByText(/check your email/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/check your email/i)).toBeVisible({
+      timeout: 10000,
+    });
   });
 });
 
 test.describe('[P0] Auth Callback Error Handling', () => {
-  test('redirects to login with error for access_denied callback', async ({ page }) => {
+  test('redirects to login with error for access_denied callback', async ({
+    page,
+  }) => {
     await page.goto('/auth/callback?error=access_denied');
 
     await page.waitForURL('**/login**');

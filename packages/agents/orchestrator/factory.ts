@@ -1,5 +1,9 @@
 import { PgBoss } from 'pg-boss';
-import type { AgentRunProducer, AgentRunWorker, TrustGateConfig } from './types';
+import type {
+  AgentRunProducer,
+  AgentRunWorker,
+  TrustGateConfig,
+} from './types';
 import type { AgentId } from '@flow/types';
 import { PgBossProducer } from './pg-boss-producer';
 import { PgBossWorker } from './pg-boss-worker';
@@ -16,7 +20,9 @@ export interface OrchestratorHandle {
 
 // Connection budget: pg-boss pool (PG_BOSS_MAX_CONNECTIONS) + 1 service client = N+1 connections per worker instance
 
-export function createOrchestrator(trustGateConfig?: TrustGateConfig): OrchestratorHandle {
+export function createOrchestrator(
+  trustGateConfig?: TrustGateConfig,
+): OrchestratorHandle {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error('DATABASE_URL is not set');
 
@@ -95,7 +101,8 @@ export function createOrchestrator(trustGateConfig?: TrustGateConfig): Orchestra
 
     // Story 9-5a — register subscription lifecycle sweep workers
     // (grace + suspension + nightly reconciliation)
-    const { registerLifecycleSweepWorkers } = await import('./lifecycle-sweep-worker');
+    const { registerLifecycleSweepWorkers } =
+      await import('./lifecycle-sweep-worker');
     await registerLifecycleSweepWorkers(boss);
 
     // Story 6-2 — register calendar agent workers (conflict detection)
@@ -103,14 +110,18 @@ export function createOrchestrator(trustGateConfig?: TrustGateConfig): Orchestra
     await registerCalendarWorkers(boss);
 
     // Story 8-2 — register weekly report agent workers
-    const { registerWeeklyReportWorkers } = await import('./weekly-report-worker');
+    const { registerWeeklyReportWorkers } =
+      await import('./weekly-report-worker');
     await registerWeeklyReportWorkers(boss);
-
 
     if (trustGateConfig?.outputSchemaRegistry) {
       const mvpIds: AgentId[] = [
-        'inbox', 'calendar', 'ar-collection',
-        'weekly-report', 'client-health', 'time-integrity',
+        'inbox',
+        'calendar',
+        'ar-collection',
+        'weekly-report',
+        'client-health',
+        'time-integrity',
       ];
       trustGateConfig.outputSchemaRegistry.validateActiveAgents(mvpIds);
     }
@@ -173,7 +184,10 @@ async function runRecoveryCycle(boss: PgBoss): Promise<void> {
   for (const run of staleRuns) {
     if (!run.job_id) {
       await updateRunStatus(run.id, 'failed', {
-        error: { code: 'AGENT_TIMEOUT', message: 'Recovery: no job_id, orphaned run' },
+        error: {
+          code: 'AGENT_TIMEOUT',
+          message: 'Recovery: no job_id, orphaned run',
+        },
         completedAt: new Date().toISOString(),
       });
       continue;

@@ -8,7 +8,11 @@ interface RetainerTimelineProps {
 }
 
 function statusLabel(status: string): string {
-  return status === 'cancelled' ? 'Cancelled' : status === 'expired' ? 'Expired' : status;
+  return status === 'cancelled'
+    ? 'Cancelled'
+    : status === 'expired'
+      ? 'Expired'
+      : status;
 }
 
 function statusColor(status: string): string {
@@ -19,9 +23,15 @@ function statusColor(status: string): string {
 
 function formatPeriod(retainer: Retainer): string {
   if (!retainer.startDate) return '';
-  const start = new Date(retainer.startDate + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  const start = new Date(retainer.startDate + 'T00:00:00Z').toLocaleDateString(
+    'en-US',
+    { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' },
+  );
   if (!retainer.endDate) return `From ${start}`;
-  const end = new Date(retainer.endDate + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  const end = new Date(retainer.endDate + 'T00:00:00Z').toLocaleDateString(
+    'en-US',
+    { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' },
+  );
   return `${start} — ${end}`;
 }
 
@@ -29,7 +39,10 @@ function RetainerTimelineItem({ retainer }: { retainer: Retainer }) {
   let detail = '';
   if (retainer.type === 'hourly_rate' && retainer.hourlyRateCents != null) {
     detail = `$${formatCentsToDollar(retainer.hourlyRateCents)}/hr`;
-  } else if (retainer.type === 'flat_monthly' && retainer.monthlyFeeCents != null) {
+  } else if (
+    retainer.type === 'flat_monthly' &&
+    retainer.monthlyFeeCents != null
+  ) {
     detail = `$${formatCentsToDollar(retainer.monthlyFeeCents)}/mo`;
   } else if (retainer.type === 'package_based' && retainer.packageHours) {
     detail = `${retainer.packageHours}h package`;

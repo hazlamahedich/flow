@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { EmailTimelineEntry } from '@flow/types';
 import { Badge, Button } from '@flow/ui';
 import { Mail, Check, X, ArrowRightLeft } from 'lucide-react';
@@ -12,7 +12,10 @@ interface EmailTimelineItemProps {
   clientId: string;
 }
 
-const CATEGORY_CONFIG: Record<string, { label: string; variant: 'error' | 'warning' | 'default' | 'secondary' }> = {
+const CATEGORY_CONFIG: Record<
+  string,
+  { label: string; variant: 'error' | 'warning' | 'default' | 'secondary' }
+> = {
   urgent: { label: 'Urgent', variant: 'error' },
   action: { label: 'Action', variant: 'warning' },
   info: { label: 'Info', variant: 'default' },
@@ -30,12 +33,26 @@ function formatRelativeTime(date: Date) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export function EmailTimelineItem({ email, workspaceId, clientId }: EmailTimelineItemProps) {
-  const [optimisticCategory, setOptimisticCategory] = useState<string | null>(null);
+export function EmailTimelineItem({
+  email,
+  workspaceId,
+  clientId,
+}: EmailTimelineItemProps) {
+  const [optimisticCategory, setOptimisticCategory] = useState<string | null>(
+    null,
+  );
   const [optimisticTriaged, setOptimisticTriaged] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [showRecategorize, setShowRecategorize] = useState(false);
   const pendingRef = useRef(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const currentCategory = optimisticCategory ?? email.category;
   const config = currentCategory ? CATEGORY_CONFIG[currentCategory] : null;
@@ -66,7 +83,9 @@ export function EmailTimelineItem({ email, workspaceId, clientId }: EmailTimelin
       setOptimisticTriaged(false);
     } finally {
       pendingRef.current = false;
-      setIsPending(false);
+      if (mountedRef.current) {
+        setIsPending(false);
+      }
     }
   };
 
@@ -96,7 +115,9 @@ export function EmailTimelineItem({ email, workspaceId, clientId }: EmailTimelin
           <h4 className="font-semibold text-slate-900 mb-1 truncate">
             {email.subject || '(No Subject)'}
           </h4>
-          <p className="text-sm text-slate-600 mb-4 truncate">{email.fromAddress}</p>
+          <p className="text-sm text-slate-600 mb-4 truncate">
+            {email.fromAddress}
+          </p>
 
           {isPendingTriage && (
             <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-100">
@@ -104,16 +125,23 @@ export function EmailTimelineItem({ email, workspaceId, clientId }: EmailTimelin
                 size="sm"
                 variant="default"
                 className="bg-green-600 hover:bg-green-700 h-8 px-3"
-                onClick={(e) => { e.stopPropagation(); handleAction(email.category ?? 'action'); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAction(email.category ?? 'action');
+                }}
                 disabled={isPending}
               >
-                <Check className="h-3.5 w-3.5 mr-1" /> {email.category ? 'Approve' : 'Approve as Action'}
+                <Check className="h-3.5 w-3.5 mr-1" />{' '}
+                {email.category ? 'Approve' : 'Approve as Action'}
               </Button>
               <Button
                 size="sm"
                 variant="outline"
                 className="h-8 px-3 border-slate-200 text-slate-600 hover:bg-slate-50"
-                onClick={(e) => { e.stopPropagation(); handleAction('noise'); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAction('noise');
+                }}
                 disabled={isPending}
               >
                 <X className="h-3.5 w-3.5 mr-1" /> Reject
@@ -122,7 +150,10 @@ export function EmailTimelineItem({ email, workspaceId, clientId }: EmailTimelin
                 size="sm"
                 variant="ghost"
                 className="h-8 px-3 text-slate-400 hover:text-slate-600"
-                onClick={(e) => { e.stopPropagation(); setShowRecategorize((v) => !v); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowRecategorize((v) => !v);
+                }}
                 disabled={isPending}
               >
                 <ArrowRightLeft className="h-3.5 w-3.5 mr-1" /> Recategorize
@@ -135,7 +166,10 @@ export function EmailTimelineItem({ email, workspaceId, clientId }: EmailTimelin
                       key={cat}
                       size="sm"
                       variant="outline"
-                      onClick={(e) => { e.stopPropagation(); if (cat !== currentCategory) handleAction(cat); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (cat !== currentCategory) handleAction(cat);
+                      }}
                       disabled={isPending || cat === currentCategory}
                       className="h-7 px-2 text-xs capitalize"
                     >

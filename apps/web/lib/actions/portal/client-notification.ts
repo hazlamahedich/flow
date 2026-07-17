@@ -22,13 +22,15 @@ import {
   type ClientNotificationPayload,
 } from './client-notification-templates';
 
-const clientNotificationPayloadSchema = z.object({
-  invoiceId: z.string().uuid().optional(),
-  reportId: z.string().uuid().optional(),
-  amountCents: z.number().int().min(0).optional(),
-  currency: z.string().min(3).max(3).optional(),
-  invoiceNumber: z.string().optional(),
-}).strict();
+const clientNotificationPayloadSchema = z
+  .object({
+    invoiceId: z.string().uuid().optional(),
+    reportId: z.string().uuid().optional(),
+    amountCents: z.number().int().min(0).optional(),
+    currency: z.string().min(3).max(3).optional(),
+    invoiceNumber: z.string().optional(),
+  })
+  .strict();
 
 const notificationInputSchema = z.object({
   type: z.enum(['invoice_created', 'payment_confirmed', 'report_shared']),
@@ -44,14 +46,24 @@ export async function sendClientNotificationAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
   if (portalCtx.clientId !== parsed.data.clientId) {
     return {
       success: false,
-      error: createFlowError(403, 'FORBIDDEN', 'Cannot send notifications for another client.', 'auth'),
+      error: createFlowError(
+        403,
+        'FORBIDDEN',
+        'Cannot send notifications for another client.',
+        'auth',
+      ),
     };
   }
 
@@ -83,8 +95,12 @@ export async function sendNotificationInternal(
   const clientName = (clientData.name as string) ?? '';
   const workspaceName = 'Flow OS';
 
-  if ((clientData.workspace_id as string | undefined) !== workspaceId || !clientEmail) {
-    const mismatch = (clientData.workspace_id as string | undefined) !== workspaceId;
+  if (
+    (clientData.workspace_id as string | undefined) !== workspaceId ||
+    !clientEmail
+  ) {
+    const mismatch =
+      (clientData.workspace_id as string | undefined) !== workspaceId;
     await logNotification(
       supabase,
       clientId,
@@ -100,7 +116,9 @@ export async function sendNotificationInternal(
       error: createFlowError(
         mismatch ? 403 : 400,
         mismatch ? 'FORBIDDEN' : 'CLIENT_NO_EMAIL',
-        mismatch ? 'Client does not belong to this workspace.' : 'Client has no email address.',
+        mismatch
+          ? 'Client does not belong to this workspace.'
+          : 'Client has no email address.',
         mismatch ? 'auth' : 'validation',
       ),
     };
@@ -118,14 +136,38 @@ export async function sendNotificationInternal(
   const provider = getTransactionalEmailProvider('resend');
   try {
     const result = await provider.send(emailPayload);
-    await logNotification(supabase, clientId, workspaceId, type, payload, result.messageId, 'sent', null);
+    await logNotification(
+      supabase,
+      clientId,
+      workspaceId,
+      type,
+      payload,
+      result.messageId,
+      'sent',
+      null,
+    );
     return { success: true, data: { messageId: result.messageId } };
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : 'Unknown email error';
-    await logNotification(supabase, clientId, workspaceId, type, payload, null, 'failed', errMsg);
+    await logNotification(
+      supabase,
+      clientId,
+      workspaceId,
+      type,
+      payload,
+      null,
+      'failed',
+      errMsg,
+    );
     return {
       success: false,
-      error: createFlowError(500, 'EMAIL_ERROR', 'Failed to send notification email.', 'system', { error: errMsg }),
+      error: createFlowError(
+        500,
+        'EMAIL_ERROR',
+        'Failed to send notification email.',
+        'system',
+        { error: errMsg },
+      ),
     };
   }
 }

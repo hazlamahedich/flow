@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { draftWorker } from '../drafter';
 import { createServiceClient } from '@flow/db';
-import { createLLMRouter, tokenizePII, ContextBoundary } from '../../shared/index.js';
+import {
+  createLLMRouter,
+  tokenizePII,
+  ContextBoundary,
+} from '../../shared/index.js';
 
 vi.mock('@flow/db', () => ({
   createServiceClient: vi.fn(),
@@ -28,9 +32,11 @@ vi.mock('../voice', () => ({
       formalityScore: 7,
       toneDescriptors: [],
       exemplarBlock: `[VOICE_${id}]`,
-    })
+    }),
   ),
-  buildDraftPrompt: vi.fn().mockImplementation((ctx, text) => `${ctx.exemplarBlock} ${text}`),
+  buildDraftPrompt: vi
+    .fn()
+    .mockImplementation((ctx, text) => `${ctx.exemplarBlock} ${text}`),
 }));
 
 vi.mock('../trust', () => ({
@@ -53,7 +59,10 @@ describe('isolation-drafting', () => {
     };
     (createLLMRouter as any).mockReturnValue(mockLlmRouter);
 
-    (tokenizePII as any).mockImplementation((text: string) => ({ text, tokens: [] }));
+    (tokenizePII as any).mockImplementation((text: string) => ({
+      text,
+      tokens: [],
+    }));
   });
 
   it('should isolate drafting by client context', async () => {
@@ -63,7 +72,11 @@ describe('isolation-drafting', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({
-        data: { client_id: clientA, body_clean: 'Email A', subject: 'Subject A' },
+        data: {
+          client_id: clientA,
+          body_clean: 'Email A',
+          subject: 'Subject A',
+        },
         error: null,
       }),
     };
@@ -71,7 +84,9 @@ describe('isolation-drafting', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
     };
-    actionsChain.eq.mockReturnValueOnce(actionsChain).mockResolvedValue({ data: [], error: null });
+    actionsChain.eq
+      .mockReturnValueOnce(actionsChain)
+      .mockResolvedValue({ data: [], error: null });
 
     const insertChain = {
       insert: vi.fn().mockResolvedValue({ error: null }),
@@ -80,7 +95,9 @@ describe('isolation-drafting', () => {
     const profileChain = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
+      maybeSingle: vi
+        .fn()
+        .mockResolvedValue({ data: { id: 'p1' }, error: null }),
     };
 
     mockSupabase.from.mockImplementation((table: string) => {
@@ -94,8 +111,10 @@ describe('isolation-drafting', () => {
     mockLlmRouter.complete.mockResolvedValue({ text: 'Draft A' });
 
     await draftWorker(
-      { data: { emailId: 'eA', workspaceId: 'w1', clientInboxId: 'iA' } } as any,
-      {} as any
+      {
+        data: { emailId: 'eA', workspaceId: 'w1', clientInboxId: 'iA' },
+      } as any,
+      {} as any,
     );
 
     expect(ContextBoundary).toHaveBeenCalledWith(clientA);

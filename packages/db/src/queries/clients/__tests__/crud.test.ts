@@ -30,31 +30,60 @@ import {
 } from '../crud';
 
 describe('getClientById', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('returns null when client not found', async () => {
     const chain = createChain();
-    chain.maybeSingle = vi.fn(() => Promise.resolve({ data: null, error: null }));
+    chain.maybeSingle = vi.fn(() =>
+      Promise.resolve({ data: null, error: null }),
+    );
     mockClient.from = vi.fn(() => chain);
-    const result = await getClientById(mockClient as never, { clientId: 'c1', workspaceId: 'ws1' });
+    const result = await getClientById(mockClient as never, {
+      clientId: 'c1',
+      workspaceId: 'ws1',
+    });
     expect(result).toBeNull();
   });
 
   it('returns mapped client when found', async () => {
     const chain = createChain();
-    chain.maybeSingle = vi.fn(() => Promise.resolve({
-      data: { id: 'c1', workspace_id: 'ws1', name: 'Test', email: null, phone: null, company_name: null, address: null, notes: null, billing_email: null, hourly_rate_cents: null, status: 'active', archived_at: null, created_at: '2026-01-01', updated_at: '2026-01-01' },
-      error: null,
-    }));
+    chain.maybeSingle = vi.fn(() =>
+      Promise.resolve({
+        data: {
+          id: 'c1',
+          workspace_id: 'ws1',
+          name: 'Test',
+          email: null,
+          phone: null,
+          company_name: null,
+          address: null,
+          notes: null,
+          billing_email: null,
+          hourly_rate_cents: null,
+          status: 'active',
+          archived_at: null,
+          created_at: '2026-01-01',
+          updated_at: '2026-01-01',
+        },
+        error: null,
+      }),
+    );
     mockClient.from = vi.fn(() => chain);
-    const result = await getClientById(mockClient as never, { clientId: 'c1', workspaceId: 'ws1' });
+    const result = await getClientById(mockClient as never, {
+      clientId: 'c1',
+      workspaceId: 'ws1',
+    });
     expect(result).not.toBeNull();
     expect(result?.name).toBe('Test');
   });
 });
 
 describe('listClients', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('returns empty result for member with no access', async () => {
     const accessChain = createChain();
@@ -65,8 +94,15 @@ describe('listClients', () => {
     });
 
     const result = await listClients(mockClient as never, {
-      workspaceId: 'ws1', userId: 'u1', role: 'member',
-      filters: { page: 1, pageSize: 25, sortBy: 'created_at', sortOrder: 'desc' },
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'member',
+      filters: {
+        page: 1,
+        pageSize: 25,
+        sortBy: 'created_at',
+        sortOrder: 'desc',
+      },
     });
     expect(result.items).toEqual([]);
     expect(result.total).toBe(0);
@@ -74,14 +110,33 @@ describe('listClients', () => {
 });
 
 describe('insertClient', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('inserts and returns mapped client', async () => {
     const chain = createChain();
-    chain.single = vi.fn(() => Promise.resolve({
-      data: { id: 'c1', workspace_id: 'ws1', name: 'New Client', email: null, phone: null, company_name: null, address: null, notes: null, billing_email: null, hourly_rate_cents: null, status: 'active', archived_at: null, created_at: '2026-01-01', updated_at: '2026-01-01' },
-      error: null,
-    }));
+    chain.single = vi.fn(() =>
+      Promise.resolve({
+        data: {
+          id: 'c1',
+          workspace_id: 'ws1',
+          name: 'New Client',
+          email: null,
+          phone: null,
+          company_name: null,
+          address: null,
+          notes: null,
+          billing_email: null,
+          hourly_rate_cents: null,
+          status: 'active',
+          archived_at: null,
+          created_at: '2026-01-01',
+          updated_at: '2026-01-01',
+        },
+        error: null,
+      }),
+    );
     mockClient.from = vi.fn(() => chain);
 
     const result = await insertClient(mockClient as never, {
@@ -93,41 +148,87 @@ describe('insertClient', () => {
 });
 
 describe('archiveClient', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('sets status to archived and archived_at', async () => {
     const chain = createChain();
-    chain.maybeSingle = vi.fn(() => Promise.resolve({
-      data: { id: 'c1', workspace_id: 'ws1', name: 'Test', email: null, phone: null, company_name: null, address: null, notes: null, billing_email: null, hourly_rate_cents: null, status: 'archived', archived_at: '2026-01-01', created_at: '2026-01-01', updated_at: '2026-01-01' },
-      error: null,
-    }));
+    chain.maybeSingle = vi.fn(() =>
+      Promise.resolve({
+        data: {
+          id: 'c1',
+          workspace_id: 'ws1',
+          name: 'Test',
+          email: null,
+          phone: null,
+          company_name: null,
+          address: null,
+          notes: null,
+          billing_email: null,
+          hourly_rate_cents: null,
+          status: 'archived',
+          archived_at: '2026-01-01',
+          created_at: '2026-01-01',
+          updated_at: '2026-01-01',
+        },
+        error: null,
+      }),
+    );
     mockClient.from = vi.fn(() => chain);
 
-    const result = await archiveClient(mockClient as never, { clientId: 'c1', workspaceId: 'ws1' });
+    const result = await archiveClient(mockClient as never, {
+      clientId: 'c1',
+      workspaceId: 'ws1',
+    });
     expect(result!.status).toBe('archived');
     expect(result!.archivedAt).not.toBeNull();
   });
 });
 
 describe('restoreClient', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('sets status to active and clears archived_at', async () => {
     const chain = createChain();
-    chain.maybeSingle = vi.fn(() => Promise.resolve({
-      data: { id: 'c1', workspace_id: 'ws1', name: 'Test', email: null, phone: null, company_name: null, address: null, notes: null, billing_email: null, hourly_rate_cents: null, status: 'active', archived_at: null, created_at: '2026-01-01', updated_at: '2026-01-01' },
-      error: null,
-    }));
+    chain.maybeSingle = vi.fn(() =>
+      Promise.resolve({
+        data: {
+          id: 'c1',
+          workspace_id: 'ws1',
+          name: 'Test',
+          email: null,
+          phone: null,
+          company_name: null,
+          address: null,
+          notes: null,
+          billing_email: null,
+          hourly_rate_cents: null,
+          status: 'active',
+          archived_at: null,
+          created_at: '2026-01-01',
+          updated_at: '2026-01-01',
+        },
+        error: null,
+      }),
+    );
     mockClient.from = vi.fn(() => chain);
 
-    const result = await restoreClient(mockClient as never, { clientId: 'c1', workspaceId: 'ws1' });
+    const result = await restoreClient(mockClient as never, {
+      clientId: 'c1',
+      workspaceId: 'ws1',
+    });
     expect(result!.status).toBe('active');
     expect(result!.archivedAt).toBeNull();
   });
 });
 
 describe('countActiveClients', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('returns count', async () => {
     const chain = createChain();

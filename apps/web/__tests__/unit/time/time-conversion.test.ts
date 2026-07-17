@@ -1,5 +1,8 @@
 import { describe, test, expect } from 'vitest';
-import { timeToMinutes, minutesToTime } from '../../../app/(workspace)/time/utils/time-conversion';
+import {
+  timeToMinutes,
+  minutesToTime,
+} from '../../../app/(workspace)/time/utils/time-conversion';
 
 describe('timeToMinutes', () => {
   test('converts midnight', () => {

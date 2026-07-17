@@ -50,7 +50,9 @@ export function TrustCeremony({ entry }: TrustCeremonyProps) {
   const pausedRef = useRef(false);
   const remainingRef = useRef(AUTO_DISMISS_TOAST_MS);
   const startRef = useRef(Date.now());
-  const [state, setState] = useState<'idle' | 'submitting' | 'celebrating' | 'error'>('idle');
+  const [state, setState] = useState<
+    'idle' | 'submitting' | 'celebrating' | 'error'
+  >('idle');
 
   const triggerEl = triggerElMap.get(entry) ?? null;
   const { containerRef, activate, deactivate } = useFocusTrap(triggerEl);
@@ -64,14 +66,21 @@ export function TrustCeremony({ entry }: TrustCeremonyProps) {
   const startTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     startRef.current = Date.now();
-    timerRef.current = setTimeout(() => { close(); }, remainingRef.current);
+    timerRef.current = setTimeout(() => {
+      close();
+    }, remainingRef.current);
   }, [close, remainingRef]);
 
   useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
     if (!reduced) {
       setAnim('pulse-promoting');
-      const pulseTimer = setTimeout(() => setAnim('default'), CEREMONY_BADGE_PULSE_MS);
+      const pulseTimer = setTimeout(
+        () => setAnim('default'),
+        CEREMONY_BADGE_PULSE_MS,
+      );
       return () => clearTimeout(pulseTimer);
     }
   }, [setAnim]);
@@ -88,9 +97,14 @@ export function TrustCeremony({ entry }: TrustCeremonyProps) {
   useEffect(() => {
     activateRef.current();
     announceRef.current(CEREMONY_COPY.upgrade.escapeInstruction, 'polite');
-    announceRef.current(CEREMONY_COPY.upgrade.title(labelRef.current), 'polite');
+    announceRef.current(
+      CEREMONY_COPY.upgrade.title(labelRef.current),
+      'polite',
+    );
     startTimerRef.current();
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -106,7 +120,8 @@ export function TrustCeremony({ entry }: TrustCeremonyProps) {
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+    return () =>
+      document.removeEventListener('visibilitychange', handleVisibility);
   }, []);
 
   const handleAccept = useCallback(async () => {
@@ -136,10 +151,18 @@ export function TrustCeremony({ entry }: TrustCeremonyProps) {
   const handleRemindLater = useCallback(() => {
     if (state === 'submitting') return;
     close();
-    const { triggerElement: _, ...cleanProps } = entry.props as Record<string, unknown>;
+    const { triggerElement: _, ...cleanProps } = entry.props as Record<
+      string,
+      unknown
+    >;
     setTimeout(() => {
       const newId = `remind-${Date.now()}`;
-      const newEntry: OverlayEntry = { ...entry, id: newId, props: cleanProps, createdAt: Date.now() };
+      const newEntry: OverlayEntry = {
+        ...entry,
+        id: newId,
+        props: cleanProps,
+        createdAt: Date.now(),
+      };
       const triggerEl = triggerElMap.get(entry);
       if (triggerEl) triggerElMap.set(newEntry, triggerEl);
       dispatch({ type: 'push', entry: newEntry });

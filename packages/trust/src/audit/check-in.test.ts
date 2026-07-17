@@ -14,7 +14,9 @@ import {
 } from './check-in';
 import type { TrustAuditRecord } from './check-in';
 
-function makeAudit(overrides: Partial<TrustAuditRecord> = {}): TrustAuditRecord {
+function makeAudit(
+  overrides: Partial<TrustAuditRecord> = {},
+): TrustAuditRecord {
   return {
     lastReviewedAt: null,
     createdAt: '2025-01-01T00:00:00Z',

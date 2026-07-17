@@ -21,7 +21,10 @@ export async function enqueueBookingProposal(
   await producer.submit({
     agentId: 'calendar',
     actionType: 'proposeBooking',
-    input: { workspace_id: workspaceId, schedulingRequestId } as Record<string, unknown>,
+    input: { workspace_id: workspaceId, schedulingRequestId } as Record<
+      string,
+      unknown
+    >,
     ...(clientId ? { clientId } : {}),
     idempotencyKey,
   });

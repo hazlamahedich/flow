@@ -29,4 +29,6 @@ export const AcknowledgeRegressionSchema = z.object({
 export type UpgradeTrustInput = z.infer<typeof UpgradeTrustSchema>;
 export type DowngradeTrustInput = z.infer<typeof DowngradeTrustSchema>;
 export type UndoRegressionInput = z.infer<typeof UndoRegressionSchema>;
-export type AcknowledgeRegressionInput = z.infer<typeof AcknowledgeRegressionSchema>;
+export type AcknowledgeRegressionInput = z.infer<
+  typeof AcknowledgeRegressionSchema
+>;

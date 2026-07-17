@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { listProjectsAction } from '../actions/list-projects';
-import type { WorkspaceMemberSummary } from '../actions/list-workspace-members';
+import type { WorkspaceMemberSummary } from '../actions/schemas';
 
 interface ClientOption {
   id: string;
@@ -53,7 +53,12 @@ export function TimeEntryFilters({
   onApply,
   onClear,
 }: TimeEntryFiltersProps) {
-  const hasFilters = filterClient || filterProject || filterDateFrom || filterDateTo || filterMember;
+  const hasFilters =
+    filterClient ||
+    filterProject ||
+    filterDateFrom ||
+    filterDateTo ||
+    filterMember;
 
   return (
     <div className="mb-4 flex flex-wrap gap-2 rounded border p-3">
@@ -64,7 +69,9 @@ export function TimeEntryFilters({
       >
         <option value="">All Clients</option>
         {clients.map((c) => (
-          <option key={c.id} value={c.id}>{c.name}</option>
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
         ))}
       </select>
 
@@ -76,7 +83,9 @@ export function TimeEntryFilters({
       >
         <option value="">All Projects</option>
         {filterProjects.map((p) => (
-          <option key={p.id} value={p.id}>{p.name}</option>
+          <option key={p.id} value={p.id}>
+            {p.name}
+          </option>
         ))}
       </select>
 
@@ -101,7 +110,9 @@ export function TimeEntryFilters({
         >
           <option value="">All Members</option>
           {members.map((m) => (
-            <option key={m.userId} value={m.userId}>{m.displayName}</option>
+            <option key={m.userId} value={m.userId}>
+              {m.displayName}
+            </option>
           ))}
         </select>
       )}

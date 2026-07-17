@@ -14,7 +14,10 @@ interface RequestChangesFormProps {
   reportId: string;
 }
 
-export function RequestChangesForm({ portalCtx, reportId }: RequestChangesFormProps) {
+export function RequestChangesForm({
+  portalCtx,
+  reportId,
+}: RequestChangesFormProps) {
   const [message, setMessage] = useState('');
 
   const [state, formAction, isPending] = useActionState(
@@ -48,9 +51,15 @@ export function RequestChangesForm({ portalCtx, reportId }: RequestChangesFormPr
         {isPending ? 'Sending...' : success ? 'Sent!' : 'Request Changes'}
       </button>
       {success && (
-        <p className="text-sm text-[var(--flow-text-muted)]">Thanks — your feedback has been sent.</p>
+        <p className="text-sm text-[var(--flow-text-muted)]">
+          Thanks — your feedback has been sent.
+        </p>
       )}
-      {errorMsg && <p className="text-sm text-red-600" role="alert">{errorMsg}</p>}
+      {errorMsg && (
+        <p className="text-sm text-red-600" role="alert">
+          {errorMsg}
+        </p>
+      )}
     </form>
   );
 }

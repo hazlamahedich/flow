@@ -2,7 +2,10 @@
 
 import { useState, useTransition } from 'react';
 import { Button } from '@flow/ui';
-import { createPrecondition, deletePreconditionAction } from '@/lib/actions/trust-config/actions';
+import {
+  createPrecondition,
+  deletePreconditionAction,
+} from '@/lib/actions/trust-config/actions';
 
 interface Precondition {
   id: string;
@@ -16,7 +19,11 @@ interface PreconditionListProps {
   conditions: Precondition[];
 }
 
-export function PreconditionList({ agentId, actionType, conditions: initial }: PreconditionListProps) {
+export function PreconditionList({
+  agentId,
+  actionType,
+  conditions: initial,
+}: PreconditionListProps) {
   const [conditions, setConditions] = useState(initial);
   const [newKey, setNewKey] = useState('');
   const [newExpr, setNewExpr] = useState('');
@@ -58,18 +65,31 @@ export function PreconditionList({ agentId, actionType, conditions: initial }: P
 
   return (
     <div className="space-y-2">
-      <span className="text-xs font-medium text-[var(--flow-text-secondary)]">Preconditions</span>
+      <span className="text-xs font-medium text-[var(--flow-text-secondary)]">
+        Preconditions
+      </span>
 
-      {error && <p className="text-xs text-[var(--flow-status-error)]" role="alert">{error}</p>}
+      {error && (
+        <p className="text-xs text-[var(--flow-status-error)]" role="alert">
+          {error}
+        </p>
+      )}
 
       {conditions.length > 0 && (
         <ul className="space-y-1">
           {conditions.map((c) => (
-            <li key={c.id} className="flex items-center justify-between rounded-[var(--flow-radius-sm)] border border-[var(--flow-border-default)] px-2 py-1.5 text-xs">
+            <li
+              key={c.id}
+              className="flex items-center justify-between rounded-[var(--flow-radius-sm)] border border-[var(--flow-border-default)] px-2 py-1.5 text-xs"
+            >
               <div className="flex items-center gap-2">
-                <code className="font-mono text-[var(--flow-text-primary)]">{c.condition_key}</code>
+                <code className="font-mono text-[var(--flow-text-primary)]">
+                  {c.condition_key}
+                </code>
                 <span className="text-[var(--flow-text-muted)]">=</span>
-                <code className="font-mono text-[var(--flow-text-secondary)]">{c.condition_expr}</code>
+                <code className="font-mono text-[var(--flow-text-secondary)]">
+                  {c.condition_expr}
+                </code>
               </div>
               <button
                 type="button"
@@ -104,7 +124,12 @@ export function PreconditionList({ agentId, actionType, conditions: initial }: P
           maxLength={500}
           className="flex-1 rounded-[var(--flow-radius-sm)] border border-[var(--flow-border-default)] bg-transparent px-2 py-1 text-xs text-[var(--flow-text-primary)] placeholder:text-[var(--flow-text-muted)] disabled:opacity-50"
         />
-        <Button size="sm" variant="outline" onClick={handleAdd} disabled={isPending || !newKey.trim() || !newExpr.trim()}>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleAdd}
+          disabled={isPending || !newKey.trim() || !newExpr.trim()}
+        >
           Add
         </Button>
       </div>

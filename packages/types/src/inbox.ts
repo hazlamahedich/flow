@@ -1,9 +1,18 @@
 import { z } from 'zod';
 
-export const inboxAccessTypeEnum = z.enum(['direct', 'delegated', 'service_account']);
+export const inboxAccessTypeEnum = z.enum([
+  'direct',
+  'delegated',
+  'service_account',
+]);
 export type InboxAccessType = z.infer<typeof inboxAccessTypeEnum>;
 
-export const syncStatusEnum = z.enum(['connected', 'syncing', 'error', 'disconnected']);
+export const syncStatusEnum = z.enum([
+  'connected',
+  'syncing',
+  'error',
+  'disconnected',
+]);
 export type SyncStatus = z.infer<typeof syncStatusEnum>;
 
 export const oauthTokensSchema = z.object({

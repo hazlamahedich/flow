@@ -20,23 +20,30 @@ function createChain(resolvedValues: Record<string, any>) {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue(
-          resolvedValues.emailSelect ?? { data: { category: 'info', client_inbox_id: 'inbox-1' }, error: null }
+          resolvedValues.emailSelect ?? {
+            data: { category: 'info', client_inbox_id: 'inbox-1' },
+            error: null,
+          },
         ),
         update: vi.fn().mockReturnThis(),
       };
     }
     if (table === 'recategorization_log') {
       return {
-        insert: vi.fn().mockResolvedValue(resolvedValues.logInsert ?? { error: null }),
+        insert: vi
+          .fn()
+          .mockResolvedValue(resolvedValues.logInsert ?? { error: null }),
       };
     }
     if (table === 'trust_matrix') {
       return {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue(
-          resolvedValues.trustSelect ?? { data: { version: 1 }, error: null }
-        ),
+        single: vi
+          .fn()
+          .mockResolvedValue(
+            resolvedValues.trustSelect ?? { data: { version: 1 }, error: null },
+          ),
       };
     }
     return chain;
@@ -54,7 +61,10 @@ vi.mock('next/cache', () => ({
 
 vi.mock('../schemas', () => ({
   promoteToInboxSchema: {
-    safeParse: vi.fn().mockReturnValue({ success: true, data: { emailId: '00000000-0000-0000-0000-000000000001' } }),
+    safeParse: vi.fn().mockReturnValue({
+      success: true,
+      data: { emailId: '00000000-0000-0000-0000-000000000001' },
+    }),
   },
 }));
 
@@ -69,7 +79,9 @@ describe('handled-quietly-actions', () => {
   });
 
   it('promoteToInbox should update category and record violation', async () => {
-    const result = await actions.promoteToInbox({ emailId: '00000000-0000-0000-0000-000000000001' });
+    const result = await actions.promoteToInbox({
+      emailId: '00000000-0000-0000-0000-000000000001',
+    });
 
     expect(result.success).toBe(true);
     expect(db.recordTrustViolation).toHaveBeenCalled();
@@ -79,10 +91,12 @@ describe('handled-quietly-actions', () => {
     (getServerSupabase as any).mockResolvedValue(
       createChain({
         emailSelect: { data: null, error: { message: 'not found' } },
-      })
+      }),
     );
 
-    const result = await actions.promoteToInbox({ emailId: '00000000-0000-0000-0000-000000000001' });
+    const result = await actions.promoteToInbox({
+      emailId: '00000000-0000-0000-0000-000000000001',
+    });
 
     expect(result.success).toBe(false);
   });
@@ -90,7 +104,9 @@ describe('handled-quietly-actions', () => {
   it('promoteToInbox returns error when user not authenticated', async () => {
     mockAuth.getUser.mockResolvedValueOnce({ data: { user: null } });
 
-    const result = await actions.promoteToInbox({ emailId: '00000000-0000-0000-0000-000000000001' });
+    const result = await actions.promoteToInbox({
+      emailId: '00000000-0000-0000-0000-000000000001',
+    });
 
     expect(result.success).toBe(false);
   });
@@ -99,10 +115,12 @@ describe('handled-quietly-actions', () => {
     (getServerSupabase as any).mockResolvedValue(
       createChain({
         trustSelect: { data: null, error: null },
-      })
+      }),
     );
 
-    const result = await actions.promoteToInbox({ emailId: '00000000-0000-0000-0000-000000000001' });
+    const result = await actions.promoteToInbox({
+      emailId: '00000000-0000-0000-0000-000000000001',
+    });
 
     expect(result.success).toBe(true);
     expect(db.recordTrustViolation).not.toHaveBeenCalled();
@@ -112,18 +130,24 @@ describe('handled-quietly-actions', () => {
     (getServerSupabase as any).mockResolvedValue(
       createChain({
         logInsert: { error: { message: 'insert failed' } },
-      })
+      }),
     );
 
-    const result = await actions.promoteToInbox({ emailId: '00000000-0000-0000-0000-000000000001' });
+    const result = await actions.promoteToInbox({
+      emailId: '00000000-0000-0000-0000-000000000001',
+    });
 
     expect(result.success).toBe(true);
   });
 
   it('promoteToInbox handles trust violation throw gracefully', async () => {
-    (db.recordTrustViolation as any).mockRejectedValueOnce(new Error('db down'));
+    (db.recordTrustViolation as any).mockRejectedValueOnce(
+      new Error('db down'),
+    );
 
-    const result = await actions.promoteToInbox({ emailId: '00000000-0000-0000-0000-000000000001' });
+    const result = await actions.promoteToInbox({
+      emailId: '00000000-0000-0000-0000-000000000001',
+    });
 
     expect(result.success).toBe(true);
   });

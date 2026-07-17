@@ -17,50 +17,106 @@ async function getWorkspaceId(): Promise<string> {
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   const client = createServerClient({
-    getAll: () => cookieStore.getAll().map((c: { name: string; value: string }) => ({ name: c.name, value: c.value })),
+    getAll: () =>
+      cookieStore.getAll().map((c: { name: string; value: string }) => ({
+        name: c.name,
+        value: c.value,
+      })),
     set: () => {},
   });
   const ctx = await requireTenantContext(client);
   return ctx.workspaceId;
 }
 
-export async function activateAgent(input: unknown): Promise<ActionResult<Record<string, unknown>>> {
+export async function activateAgent(
+  input: unknown,
+): Promise<ActionResult<Record<string, unknown>>> {
   const parsed = activateAgentSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: { status: 400, code: 'VALIDATION_ERROR', message: 'Invalid input', category: 'validation' } };
+    return {
+      success: false,
+      error: {
+        status: 400,
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid input',
+        category: 'validation',
+      },
+    };
   }
 
   const workspaceId = await getWorkspaceId();
-  const result = await activateWithChecks(workspaceId, parsed.data.agentId, parsed.data.expectedVersion);
+  const result = await activateWithChecks(
+    workspaceId,
+    parsed.data.agentId,
+    parsed.data.expectedVersion,
+  );
 
   if (result.success) {
     revalidateTag('agents:' + workspaceId);
-    return { success: true, data: result.data as unknown as Record<string, unknown> };
+    return {
+      success: true,
+      data: result.data as unknown as Record<string, unknown>,
+    };
   }
   return result;
 }
 
-export async function deactivateAgent(input: unknown): Promise<ActionResult<Record<string, unknown>>> {
+export async function deactivateAgent(
+  input: unknown,
+): Promise<ActionResult<Record<string, unknown>>> {
   const parsed = deactivateAgentSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: { status: 400, code: 'VALIDATION_ERROR', message: 'Invalid input', category: 'validation' } };
+    return {
+      success: false,
+      error: {
+        status: 400,
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid input',
+        category: 'validation',
+      },
+    };
   }
 
   const workspaceId = await getWorkspaceId();
   try {
-    const result = await beginDrain(workspaceId, parsed.data.agentId, parsed.data.expectedVersion);
+    const result = await beginDrain(
+      workspaceId,
+      parsed.data.agentId,
+      parsed.data.expectedVersion,
+    );
     revalidateTag('agents:' + workspaceId);
-    return { success: true, data: result as unknown as Record<string, unknown> };
+    return {
+      success: true,
+      data: result as unknown as Record<string, unknown>,
+    };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Deactivation failed';
-    return { success: false, error: { status: 500, code: 'INTERNAL_ERROR', message, category: 'system' } };
+    return {
+      success: false,
+      error: {
+        status: 500,
+        code: 'INTERNAL_ERROR',
+        message,
+        category: 'system',
+      },
+    };
   }
 }
 
-export async function updateAgentSchedule(input: unknown): Promise<ActionResult<Record<string, unknown>>> {
+export async function updateAgentSchedule(
+  input: unknown,
+): Promise<ActionResult<Record<string, unknown>>> {
   const parsed = updateAgentScheduleSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: { status: 400, code: 'VALIDATION_ERROR', message: 'Invalid input', category: 'validation' } };
+    return {
+      success: false,
+      error: {
+        status: 400,
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid input',
+        category: 'validation',
+      },
+    };
   }
 
   const workspaceId = await getWorkspaceId();
@@ -74,10 +130,20 @@ export async function updateAgentSchedule(input: unknown): Promise<ActionResult<
   return { success: true, data: result as unknown as Record<string, unknown> };
 }
 
-export async function updateAgentTriggerConfig(input: unknown): Promise<ActionResult<Record<string, unknown>>> {
+export async function updateAgentTriggerConfig(
+  input: unknown,
+): Promise<ActionResult<Record<string, unknown>>> {
   const parsed = updateAgentTriggerConfigSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: { status: 400, code: 'VALIDATION_ERROR', message: 'Invalid input', category: 'validation' } };
+    return {
+      success: false,
+      error: {
+        status: 400,
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid input',
+        category: 'validation',
+      },
+    };
   }
 
   const workspaceId = await getWorkspaceId();
@@ -91,15 +157,26 @@ export async function updateAgentTriggerConfig(input: unknown): Promise<ActionRe
   return { success: true, data: result as unknown as Record<string, unknown> };
 }
 
-export async function getAgentConfigurationsAction(): Promise<ActionResult<Record<string, unknown>[]>> {
+export async function getAgentConfigurationsAction(): Promise<
+  ActionResult<Record<string, unknown>[]>
+> {
   const { createServerClient } = await import('@flow/db');
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   const client = createServerClient({
-    getAll: () => cookieStore.getAll().map((c: { name: string; value: string }) => ({ name: c.name, value: c.value })),
+    getAll: () =>
+      cookieStore.getAll().map((c: { name: string; value: string }) => ({
+        name: c.name,
+        value: c.value,
+      })),
     set: () => {},
   });
-  const { workspaceId } = await (await import('@flow/db')).requireTenantContext(client);
+  const { workspaceId } = await (
+    await import('@flow/db')
+  ).requireTenantContext(client);
   const configs = await listConfigurations(client, workspaceId);
-  return { success: true, data: configs as unknown as Record<string, unknown>[] };
+  return {
+    success: true,
+    data: configs as unknown as Record<string, unknown>[],
+  };
 }

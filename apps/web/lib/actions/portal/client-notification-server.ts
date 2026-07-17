@@ -25,18 +25,30 @@ export async function sendClientNotificationServerAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
-  const supabase = await (await import('@/lib/supabase-server')).getServerSupabase();
+  const supabase = await (
+    await import('@/lib/supabase-server')
+  ).getServerSupabase();
   let ctx;
   try {
     ctx = await requireTenantContext(supabase);
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
@@ -50,7 +62,12 @@ export async function sendClientNotificationServerAction(
   if (!wsId || wsId !== ctx.workspaceId) {
     return {
       success: false,
-      error: createFlowError(403, 'FORBIDDEN', 'Client does not belong to this workspace.', 'auth'),
+      error: createFlowError(
+        403,
+        'FORBIDDEN',
+        'Client does not belong to this workspace.',
+        'auth',
+      ),
     };
   }
 

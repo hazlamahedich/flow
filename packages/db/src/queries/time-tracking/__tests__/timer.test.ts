@@ -26,13 +26,19 @@ function createMockSupabase() {
     rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
     _selectChain: selectChain,
     _insertChain: insertChain,
-  } as unknown as SupabaseClient & { _selectChain: typeof selectChain; _insertChain: typeof insertChain };
+  } as unknown as SupabaseClient & {
+    _selectChain: typeof selectChain;
+    _insertChain: typeof insertChain;
+  };
 }
 
 describe('getTimerState', () => {
   it('returns null when no row exists', async () => {
     const supabase = createMockSupabase();
-    supabase._selectChain.maybeSingle.mockResolvedValue({ data: null, error: null });
+    supabase._selectChain.maybeSingle.mockResolvedValue({
+      data: null,
+      error: null,
+    });
 
     const result = await getTimerState(supabase, {
       workspaceId: 'ws-1',

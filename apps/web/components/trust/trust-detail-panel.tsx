@@ -2,7 +2,10 @@
 
 import { useState, useTransition, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardContent } from '@flow/ui';
-import { setTrustLevel, getTrustMatrixAction } from '@/lib/actions/trust-config/actions';
+import {
+  setTrustLevel,
+  getTrustMatrixAction,
+} from '@/lib/actions/trust-config/actions';
 import { TrustLevelSelect } from './trust-level-select';
 import { TrustMeter } from './trust-meter';
 import { TrustHistory } from './trust-history';
@@ -47,7 +50,8 @@ export function TrustDetailPanel({
   initialPreconditions = [],
 }: TrustDetailPanelProps) {
   const [entry, setEntry] = useState<MatrixEntry | null>(initialEntry ?? null);
-  const [transitions, setTransitions] = useState<Transition[]>(initialTransitions);
+  const [transitions, setTransitions] =
+    useState<Transition[]>(initialTransitions);
   const [preconditions] = useState<Precondition[]>(initialPreconditions);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +61,9 @@ export function TrustDetailPanel({
       const result = await getTrustMatrixAction();
       if (result.success && result.data) {
         const match = (result.data as unknown as MatrixEntry[]).find(
-          (e) => e.agent_id === agentId && e.action_type === (entry?.action_type ?? 'general'),
+          (e) =>
+            e.agent_id === agentId &&
+            e.action_type === (entry?.action_type ?? 'general'),
         );
         if (match) setEntry(match);
       }
@@ -93,12 +99,16 @@ export function TrustDetailPanel({
   return (
     <div className="space-y-4">
       {error && (
-        <p className="text-xs text-[var(--flow-status-error)]" role="alert">{error}</p>
+        <p className="text-xs text-[var(--flow-status-error)]" role="alert">
+          {error}
+        </p>
       )}
 
       <Card>
         <CardHeader>
-          <h2 className="text-sm font-medium text-[var(--flow-text-primary)]">Trust Settings</h2>
+          <h2 className="text-sm font-medium text-[var(--flow-text-primary)]">
+            Trust Settings
+          </h2>
         </CardHeader>
         <CardContent className="space-y-4">
           <TrustLevelSelect

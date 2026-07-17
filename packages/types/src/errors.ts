@@ -91,6 +91,7 @@ export type FlowErrorCode =
   | 'CONCURRENT_MODIFICATION'
   | 'NOT_CONFIGURED'
   | 'NO_ACTIVE_SUBSCRIPTION'
+  | 'INVALID_OPTION';
 
 export type AgentErrorCode =
   | 'AGENT_ERROR'
@@ -98,7 +99,12 @@ export type AgentErrorCode =
   | 'AGENT_PRECHECK_FAILED'
   | 'AGENT_OUTPUT_REJECTED';
 
-export type FlowErrorCategory = 'auth' | 'validation' | 'agent' | 'financial' | 'system';
+export type FlowErrorCategory =
+  | 'auth'
+  | 'validation'
+  | 'agent'
+  | 'financial'
+  | 'system';
 
 export interface FlowErrorBase {
   status: number;
@@ -110,7 +116,36 @@ export interface FlowErrorBase {
 
 export type FlowError =
   | FlowErrorBase
-  | { status: number; code: 'AGENT_ERROR'; message: string; category: 'agent'; agentType: AgentId; retryable: boolean; details?: Record<string, unknown> }
-  | { status: number; code: 'AGENT_TIMEOUT'; message: string; category: 'agent'; agentType: AgentId; details?: Record<string, unknown> }
-  | { status: number; code: 'AGENT_PRECHECK_FAILED'; message: string; category: 'agent'; agentType: AgentId; details?: Record<string, unknown> }
-  | { status: number; code: 'AGENT_OUTPUT_REJECTED'; message: string; category: 'agent'; agentType: AgentId; details?: Record<string, unknown> };
+  | {
+      status: number;
+      code: 'AGENT_ERROR';
+      message: string;
+      category: 'agent';
+      agentType: AgentId;
+      retryable: boolean;
+      details?: Record<string, unknown>;
+    }
+  | {
+      status: number;
+      code: 'AGENT_TIMEOUT';
+      message: string;
+      category: 'agent';
+      agentType: AgentId;
+      details?: Record<string, unknown>;
+    }
+  | {
+      status: number;
+      code: 'AGENT_PRECHECK_FAILED';
+      message: string;
+      category: 'agent';
+      agentType: AgentId;
+      details?: Record<string, unknown>;
+    }
+  | {
+      status: number;
+      code: 'AGENT_OUTPUT_REJECTED';
+      message: string;
+      category: 'agent';
+      agentType: AgentId;
+      details?: Record<string, unknown>;
+    };

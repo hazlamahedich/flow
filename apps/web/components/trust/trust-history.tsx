@@ -37,7 +37,9 @@ export function TrustHistory({ transitions }: TrustHistoryProps) {
 
   return (
     <div className="space-y-2">
-      <span className="text-xs font-medium text-[var(--flow-text-secondary)]">Recent Transitions</span>
+      <span className="text-xs font-medium text-[var(--flow-text-secondary)]">
+        Recent Transitions
+      </span>
       <ul className="space-y-1.5" role="list">
         {transitions.slice(0, 10).map((t) => (
           <li
@@ -45,13 +47,22 @@ export function TrustHistory({ transitions }: TrustHistoryProps) {
             className="flex items-center justify-between rounded-[var(--flow-radius-sm)] px-2 py-1.5 text-xs hover:bg-[var(--flow-bg-surface-raised)]"
           >
             <div className="flex items-center gap-1.5">
-              <span className="text-[var(--flow-text-muted)]">{t.from_level}</span>
+              <span className="text-[var(--flow-text-muted)]">
+                {t.from_level}
+              </span>
               <span className="text-[var(--flow-text-muted)]">→</span>
-              <span className="font-medium text-[var(--flow-text-primary)]">{t.to_level}</span>
+              <span className="font-medium text-[var(--flow-text-primary)]">
+                {t.to_level}
+              </span>
               <span className="text-[var(--flow-text-muted)]">·</span>
-              <span className="text-[var(--flow-text-secondary)]">{t.trigger_type.replace(/_/g, ' ')}</span>
+              <span className="text-[var(--flow-text-secondary)]">
+                {t.trigger_type.replace(/_/g, ' ')}
+              </span>
             </div>
-            <span className="text-[var(--flow-text-muted)]" title={t.created_at}>
+            <span
+              className="text-[var(--flow-text-muted)]"
+              title={t.created_at}
+            >
               {relativeTime(new Date(t.created_at))}
             </span>
           </li>

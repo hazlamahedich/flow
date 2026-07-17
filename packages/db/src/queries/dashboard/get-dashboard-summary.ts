@@ -9,7 +9,11 @@ export interface DashboardSummary {
   clientCount: number;
 }
 
-type CountKey = 'pendingApprovals' | 'agentActivityCount' | 'outstandingInvoices' | 'clientCount';
+type CountKey =
+  | 'pendingApprovals'
+  | 'agentActivityCount'
+  | 'outstandingInvoices'
+  | 'clientCount';
 
 const TABLE_MAP: Record<CountKey, string> = {
   pendingApprovals: 'agent_approvals',
@@ -76,7 +80,9 @@ export async function getDashboardSummary(
   const [tableResults, healthAlertCount] = await Promise.all([
     Promise.allSettled(
       entries.map(([key, table]) =>
-        safeCount(client, workspaceId, table).then((count) => [key, count] as const),
+        safeCount(client, workspaceId, table).then(
+          (count) => [key, count] as const,
+        ),
       ),
     ),
     getClientHealthAlertCount(client, workspaceId),

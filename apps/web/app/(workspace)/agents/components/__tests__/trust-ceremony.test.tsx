@@ -1,9 +1,20 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act, waitFor, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+  cleanup,
+} from '@testing-library/react';
 import { Provider } from 'jotai';
 import { createStore } from 'jotai';
-import { overlayStackAtom, topOverlayAtom, type OverlayEntry } from '../../../../../lib/atoms/overlay';
+import {
+  overlayStackAtom,
+  topOverlayAtom,
+  type OverlayEntry,
+} from '../../../../../lib/atoms/overlay';
 import { trustBadgeAnimationAtom } from '../../../../../lib/atoms/trust';
 import { mockMatchMedia } from './helpers/match-media-mock';
 
@@ -12,7 +23,12 @@ mockMatchMedia();
 vi.mock('../../actions/trust-actions', () => ({
   upgradeTrustLevel: vi.fn().mockResolvedValue({
     success: true,
-    data: { matrixEntryId: 'm1', fromLevel: 'supervised', toLevel: 'confirm', version: 2 },
+    data: {
+      matrixEntryId: 'm1',
+      fromLevel: 'supervised',
+      toLevel: 'confirm',
+      version: 2,
+    },
   }),
 }));
 
@@ -22,7 +38,9 @@ vi.mock('../../../../lib/hooks/use-trust-announcer', () => ({
 
 import { TrustCeremony } from '../trust-ceremony';
 
-function makeCeremonyEntry(overrides: Partial<OverlayEntry> = {}): OverlayEntry {
+function makeCeremonyEntry(
+  overrides: Partial<OverlayEntry> = {},
+): OverlayEntry {
   return {
     id: 'ceremony-1',
     type: 'trust-ceremony',
@@ -44,7 +62,10 @@ function makeCeremonyEntry(overrides: Partial<OverlayEntry> = {}): OverlayEntry 
   };
 }
 
-function renderWithStore(store: ReturnType<typeof createStore>, entry: OverlayEntry) {
+function renderWithStore(
+  store: ReturnType<typeof createStore>,
+  entry: OverlayEntry,
+) {
   return render(
     <Provider store={store}>
       <TrustCeremony entry={entry} />
@@ -74,7 +95,9 @@ describe('TrustCeremony', () => {
   it('displays ceremony stats', () => {
     const entry = makeCeremonyEntry();
     renderWithStore(store, entry);
-    expect(screen.getByText(/7 clean approvals, 10 total runs, 14 days/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/7 clean approvals, 10 total runs, 14 days/),
+    ).toBeInTheDocument();
   });
 
   it('shows Accept, Decline, and Remind me later buttons', () => {
@@ -94,13 +117,18 @@ describe('TrustCeremony', () => {
   it('has aria-modal="true"', () => {
     const entry = makeCeremonyEntry();
     renderWithStore(store, entry);
-    expect(screen.getByRole('alertdialog')).toHaveAttribute('aria-modal', 'true');
+    expect(screen.getByRole('alertdialog')).toHaveAttribute(
+      'aria-modal',
+      'true',
+    );
   });
 
   it('displays escape instruction for screen readers', () => {
     const entry = makeCeremonyEntry();
     renderWithStore(store, entry);
-    expect(screen.getByText(/Press Escape once to focus Decline/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Press Escape once to focus Decline/),
+    ).toBeInTheDocument();
   });
 
   it('calls upgradeTrustLevel on Accept click', async () => {
@@ -226,12 +254,20 @@ describe('TrustCeremony', () => {
     const { upgradeTrustLevel } = await import('../../actions/trust-actions');
     const mockFn = upgradeTrustLevel as ReturnType<typeof vi.fn>;
     let resolvePromise: (v: unknown) => void;
-    mockFn.mockReturnValueOnce(new Promise((r) => { resolvePromise = r; }));
+    mockFn.mockReturnValueOnce(
+      new Promise((r) => {
+        resolvePromise = r;
+      }),
+    );
     const entry = makeCeremonyEntry();
     renderWithStore(store, entry);
-    act(() => { fireEvent.click(screen.getByText('Accept')); });
+    act(() => {
+      fireEvent.click(screen.getByText('Accept'));
+    });
     expect(screen.getByText('Saving…')).toBeInTheDocument();
-    await act(async () => { resolvePromise!({ success: true, data: {} }); });
+    await act(async () => {
+      resolvePromise!({ success: true, data: {} });
+    });
   });
 
   it('does not steal focus on mount (non-blocking)', () => {
@@ -242,7 +278,11 @@ describe('TrustCeremony', () => {
 
   it('handles concurrent overlays (only top rendered)', () => {
     const ceremony = makeCeremonyEntry({ id: 'c1', priority: 50 });
-    const milestone = makeCeremonyEntry({ id: 'm1', priority: 30, type: 'trust-milestone' });
+    const milestone = makeCeremonyEntry({
+      id: 'm1',
+      priority: 30,
+      type: 'trust-milestone',
+    });
     store.set(overlayStackAtom, { type: 'push', entry: milestone });
     store.set(overlayStackAtom, { type: 'push', entry: ceremony });
     renderWithStore(store, ceremony);
@@ -251,7 +291,12 @@ describe('TrustCeremony', () => {
   });
 
   it('displays ceremony body with action label', () => {
-    const entry = makeCeremonyEntry({ props: { ...makeCeremonyEntry().props, actionLabel: 'invoice generation' } });
+    const entry = makeCeremonyEntry({
+      props: {
+        ...makeCeremonyEntry().props,
+        actionLabel: 'invoice generation',
+      },
+    });
     renderWithStore(store, entry);
     expect(screen.getByText(/invoice generation/)).toBeInTheDocument();
   });

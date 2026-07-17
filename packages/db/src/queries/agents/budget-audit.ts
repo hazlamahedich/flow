@@ -9,7 +9,9 @@ export interface BudgetAlertEntry {
   agentId?: string;
 }
 
-export async function writeBudgetAuditAlert(entry: BudgetAlertEntry): Promise<void> {
+export async function writeBudgetAuditAlert(
+  entry: BudgetAlertEntry,
+): Promise<void> {
   const client = createServiceClient();
   const { error } = await client.from('audit_log').insert({
     workspace_id: entry.workspaceId,

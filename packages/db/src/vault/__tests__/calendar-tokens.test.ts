@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { encryptCalendarTokens, decryptCalendarTokens, rotateCalendarTokens } from '../calendar-tokens';
+import {
+  encryptCalendarTokens,
+  decryptCalendarTokens,
+  rotateCalendarTokens,
+} from '../calendar-tokens';
 import type { OAuthTokens } from '@flow/types';
 
 const mockTokens: OAuthTokens = {
@@ -47,7 +51,9 @@ describe('calendar-tokens vault', () => {
         ...encrypted,
         encrypted: 'A'.repeat(encrypted.encrypted.length),
       };
-      expect(() => decryptCalendarTokens(tampered)).toThrow(/decryption failed|tampered/i);
+      expect(() => decryptCalendarTokens(tampered)).toThrow(
+        /decryption failed|tampered/i,
+      );
     });
 
     it('throws on wrong key', () => {
@@ -58,7 +64,11 @@ describe('calendar-tokens vault', () => {
 
     it('throws on truncated ciphertext', () => {
       expect(() =>
-        decryptCalendarTokens({ encrypted: Buffer.from('short').toString('base64'), iv: Buffer.alloc(12).toString('base64'), version: 1 }),
+        decryptCalendarTokens({
+          encrypted: Buffer.from('short').toString('base64'),
+          iv: Buffer.alloc(12).toString('base64'),
+          version: 1,
+        }),
       ).toThrow();
     });
   });
@@ -66,7 +76,10 @@ describe('calendar-tokens vault', () => {
   describe('rotateCalendarTokens', () => {
     it('replaces old tokens with new ones', () => {
       const encrypted = encryptCalendarTokens(mockTokens);
-      const newTokens: OAuthTokens = { ...mockTokens, accessToken: 'ya29.new-calendar-token' };
+      const newTokens: OAuthTokens = {
+        ...mockTokens,
+        accessToken: 'ya29.new-calendar-token',
+      };
       const rotated = rotateCalendarTokens(encrypted, newTokens);
       const decrypted = decryptCalendarTokens(rotated);
       expect(decrypted.accessToken).toBe('ya29.new-calendar-token');
@@ -76,7 +89,9 @@ describe('calendar-tokens vault', () => {
   describe('env validation', () => {
     it('throws if CALENDAR_ENCRYPTION_KEY is missing', () => {
       delete process.env.CALENDAR_ENCRYPTION_KEY;
-      expect(() => encryptCalendarTokens(mockTokens)).toThrow(/CALENDAR_ENCRYPTION_KEY/);
+      expect(() => encryptCalendarTokens(mockTokens)).toThrow(
+        /CALENDAR_ENCRYPTION_KEY/,
+      );
     });
 
     it('throws if key is wrong length', () => {

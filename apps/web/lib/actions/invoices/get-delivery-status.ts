@@ -12,7 +12,12 @@ export async function getDeliveryStatusAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
@@ -33,7 +38,12 @@ export async function getDeliveryStatusAction(
   if (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to fetch delivery status.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to fetch delivery status.',
+        'system',
+      ),
     };
   }
 
@@ -42,12 +52,14 @@ export async function getDeliveryStatusAction(
   }
 
   const row = data as Record<string, unknown>;
-  const rawLog = ((row.attempt_log as unknown[] | null) ?? []);
+  const rawLog = (row.attempt_log as unknown[] | null) ?? [];
   const attemptLog = rawLog.map((entry) => {
     const r = entry as Record<string, unknown>;
     const attemptedAt = (r.attempted_at ?? r.attemptedAt) as string;
     const error = (r.error as string) ?? undefined;
-    const providerResponse = (r.provider_response ?? r.providerResponse) as Record<string, unknown> | undefined;
+    const providerResponse = (r.provider_response ?? r.providerResponse) as
+      | Record<string, unknown>
+      | undefined;
     return {
       attemptedAt,
       ...(error !== undefined && { error }),

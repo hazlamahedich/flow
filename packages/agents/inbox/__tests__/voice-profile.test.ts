@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loadVoiceContext, buildDraftPrompt, EMPTY_VOICE_CONTEXT } from '../voice';
+import {
+  loadVoiceContext,
+  buildDraftPrompt,
+  EMPTY_VOICE_CONTEXT,
+} from '../voice';
 import { createServiceClient } from '@flow/db';
 
 vi.mock('@flow/db', () => ({
@@ -101,7 +105,12 @@ describe('voice-profile', () => {
       exemplarBlock: 'Thanks for reaching out! Let me look into this.',
     };
 
-    const prompt = buildDraftPrompt(context, 'I need help with billing', 'Billing issue', []);
+    const prompt = buildDraftPrompt(
+      context,
+      'I need help with billing',
+      'Billing issue',
+      [],
+    );
 
     expect(prompt).toContain('Tone: casual');
     expect(prompt).toContain('empathetic');
@@ -118,10 +127,19 @@ describe('voice-profile', () => {
     };
 
     const actions = [
-      { actionType: 'reply', description: 'Confirm meeting time', confidence: 0.9 },
+      {
+        actionType: 'reply',
+        description: 'Confirm meeting time',
+        confidence: 0.9,
+      },
     ];
 
-    const prompt = buildDraftPrompt(context, 'When is our meeting?', 'Meeting?', actions);
+    const prompt = buildDraftPrompt(
+      context,
+      'When is our meeting?',
+      'Meeting?',
+      actions,
+    );
 
     expect(prompt).toContain('Confirm meeting time');
   });

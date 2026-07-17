@@ -75,21 +75,39 @@ describe('SchedulingRequestSchema', () => {
   });
 
   it('validates all source types', () => {
-    for (const sourceType of ['email_extraction', 'va_manual', 'client_portal']) {
-      const result = SchedulingRequestSchema.safeParse({ ...validBase, sourceType });
+    for (const sourceType of [
+      'email_extraction',
+      'va_manual',
+      'client_portal',
+    ]) {
+      const result = SchedulingRequestSchema.safeParse({
+        ...validBase,
+        sourceType,
+      });
       expect(result.success).toBe(true);
     }
   });
 
   it('validates all request types', () => {
-    for (const requestType of ['book_new', 'reschedule', 'cancel', 'check_availability']) {
-      const result = SchedulingRequestSchema.safeParse({ ...validBase, requestType });
+    for (const requestType of [
+      'book_new',
+      'reschedule',
+      'cancel',
+      'check_availability',
+    ]) {
+      const result = SchedulingRequestSchema.safeParse({
+        ...validBase,
+        requestType,
+      });
       expect(result.success).toBe(true);
     }
   });
 
   it('rejects invalid sourceType', () => {
-    const result = SchedulingRequestSchema.safeParse({ ...validBase, sourceType: 'invalid' });
+    const result = SchedulingRequestSchema.safeParse({
+      ...validBase,
+      sourceType: 'invalid',
+    });
     expect(result.success).toBe(false);
   });
 
@@ -102,7 +120,10 @@ describe('SchedulingRequestSchema', () => {
   });
 
   it('accepts nullable sourceEmailId', () => {
-    const result = SchedulingRequestSchema.safeParse({ ...validBase, sourceEmailId: null });
+    const result = SchedulingRequestSchema.safeParse({
+      ...validBase,
+      sourceEmailId: null,
+    });
     expect(result.success).toBe(true);
   });
 });
@@ -150,14 +171,20 @@ describe('SlotFindingInputSchema', () => {
   });
 
   it('rejects zero durationMinutes', () => {
-    const result = SlotFindingInputSchema.safeParse({ ...validBase, durationMinutes: 0 });
+    const result = SlotFindingInputSchema.safeParse({
+      ...validBase,
+      durationMinutes: 0,
+    });
     expect(result.success).toBe(false);
   });
 
   it('accepts preferredWindow', () => {
     const result = SlotFindingInputSchema.safeParse({
       ...validBase,
-      preferredWindow: { start: '2026-06-01T09:00:00Z', end: '2026-06-01T17:00:00Z' },
+      preferredWindow: {
+        start: '2026-06-01T09:00:00Z',
+        end: '2026-06-01T17:00:00Z',
+      },
     });
     expect(result.success).toBe(true);
   });

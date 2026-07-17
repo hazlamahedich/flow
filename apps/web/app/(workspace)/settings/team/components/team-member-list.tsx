@@ -58,7 +58,11 @@ export function TeamMemberList({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [handleEscape]);
 
-  async function handleRoleChange(memberId: string, newRole: string, currentRole: string) {
+  async function handleRoleChange(
+    memberId: string,
+    newRole: string,
+    currentRole: string,
+  ) {
     if (newRole === currentRole) return;
     setUpdatingRole(memberId);
     setError(null);
@@ -96,7 +100,9 @@ export function TeamMemberList({
     setError(null);
     try {
       const { initiateTransfer } = await import('../actions/initiate-transfer');
-      const result = await initiateTransfer({ toUserId: transferMember.userId });
+      const result = await initiateTransfer({
+        toUserId: transferMember.userId,
+      });
       if (!result.success) {
         setError(result.error.message);
       }
@@ -117,7 +123,10 @@ export function TeamMemberList({
   return (
     <>
       {error && (
-        <div role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+        <div
+          role="alert"
+          className="rounded-md bg-red-50 p-3 text-sm text-red-700"
+        >
           {error}
         </div>
       )}
@@ -126,33 +135,53 @@ export function TeamMemberList({
         <table className="w-full text-sm" aria-label="Team members table">
           <thead>
             <tr className="border-b border-[var(--flow-color-border-default)]">
-              <th className="pb-2 text-left font-medium text-[var(--flow-color-text-secondary)]">Name</th>
-              <th className="pb-2 text-left font-medium text-[var(--flow-color-text-secondary)]">Role</th>
-              <th className="pb-2 text-right font-medium text-[var(--flow-color-text-secondary)]">Actions</th>
+              <th className="pb-2 text-left font-medium text-[var(--flow-color-text-secondary)]">
+                Name
+              </th>
+              <th className="pb-2 text-left font-medium text-[var(--flow-color-text-secondary)]">
+                Role
+              </th>
+              <th className="pb-2 text-right font-medium text-[var(--flow-color-text-secondary)]">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {members.map((member) => (
-              <tr key={member.id} className="border-b border-[var(--flow-color-border-default)]">
+              <tr
+                key={member.id}
+                className="border-b border-[var(--flow-color-border-default)]"
+              >
                 <td className="py-3">
-                  <div className="font-medium text-[var(--flow-color-text-primary)]">{member.name}</div>
-                  <div className="text-xs text-[var(--flow-color-text-secondary)]">{member.email}</div>
+                  <div className="font-medium text-[var(--flow-color-text-primary)]">
+                    {member.name}
+                  </div>
+                  <div className="text-xs text-[var(--flow-color-text-secondary)]">
+                    {member.email}
+                  </div>
                 </td>
                 <td className="py-3">
                   {canManageRoles && member.role !== 'owner' ? (
                     <select
                       value={member.role}
-                      onChange={(e) => handleRoleChange(member.id, e.target.value, member.role)}
+                      onChange={(e) =>
+                        handleRoleChange(member.id, e.target.value, member.role)
+                      }
                       disabled={updatingRole === member.id}
                       aria-label={`Change role for ${member.name}`}
                       className="rounded-md border border-[var(--flow-color-border-default)] px-2 py-1 text-sm"
                     >
                       {getAvailableRoles(member.role).map((r) => (
-                        <option key={r} value={r}>{r}</option>
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
                       ))}
                     </select>
                   ) : (
-                    <span className="capitalize text-[var(--flow-color-text-secondary)]" aria-label={`Role: ${member.role}`}>
+                    <span
+                      className="capitalize text-[var(--flow-color-text-secondary)]"
+                      aria-label={`Role: ${member.role}`}
+                    >
                       {member.role}
                     </span>
                   )}
@@ -213,7 +242,9 @@ export function TeamMemberList({
           onConfirm={handleRevoke}
           onCancel={() => setRevokingMember(null)}
           open={!!revokingMember}
-          onOpenChange={(open) => { if (!open) setRevokingMember(null); }}
+          onOpenChange={(open) => {
+            if (!open) setRevokingMember(null);
+          }}
         />
       )}
 
@@ -230,7 +261,9 @@ export function TeamMemberList({
               onConfirm={handleTransfer}
               onCancel={() => setTransferMember(null)}
               open={!!transferMember}
-              onOpenChange={(open) => { if (!open) setTransferMember(null); }}
+              onOpenChange={(open) => {
+                if (!open) setTransferMember(null);
+              }}
             />
           </div>
         </div>

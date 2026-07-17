@@ -29,7 +29,11 @@ async function getTenantClient() {
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   const client = createServerClient({
-    getAll: () => cookieStore.getAll().map((c: { name: string; value: string }) => ({ name: c.name, value: c.value })),
+    getAll: () =>
+      cookieStore.getAll().map((c: { name: string; value: string }) => ({
+        name: c.name,
+        value: c.value,
+      })),
     set: () => {},
   });
   const ctx = await requireTenantContext(client);
@@ -39,11 +43,22 @@ async function getTenantClient() {
 const COOLDOWN_MS = COOLDOWN_DAYS * MS_PER_DAY;
 
 function validationError(message: string): ActionResult<TrustTransitionResult> {
-  return { success: false, error: { status: 400, code: 'VALIDATION_ERROR', message, category: 'validation' } };
+  return {
+    success: false,
+    error: {
+      status: 400,
+      code: 'VALIDATION_ERROR',
+      message,
+      category: 'validation',
+    },
+  };
 }
 
 function conflictError(message: string): ActionResult<TrustTransitionResult> {
-  return { success: false, error: { status: 409, code: 'CONFLICT', message, category: 'system' } };
+  return {
+    success: false,
+    error: { status: 409, code: 'CONFLICT', message, category: 'system' },
+  };
 }
 
 export async function upgradeTrustLevel(
@@ -64,10 +79,14 @@ export async function upgradeTrustLevel(
   if (!owned) return validationError('Trust entry not found in this workspace');
 
   try {
-    const updated = await updateTrustMatrixEntry(matrixEntryId, {
-      current_level: toLevel,
-      cooldown_until: null,
-    }, expectedVersion);
+    const updated = await updateTrustMatrixEntry(
+      matrixEntryId,
+      {
+        current_level: toLevel,
+        cooldown_until: null,
+      },
+      expectedVersion,
+    );
 
     await insertTransition({
       matrix_entry_id: matrixEntryId,
@@ -82,7 +101,10 @@ export async function upgradeTrustLevel(
     });
 
     revalidateTag('trust:' + workspaceId);
-    return { success: true, data: { matrixEntryId, fromLevel, toLevel, version: updated.version } };
+    return {
+      success: true,
+      data: { matrixEntryId, fromLevel, toLevel, version: updated.version },
+    };
   } catch {
     return conflictError('This trust change was already processed');
   }
@@ -94,7 +116,14 @@ export async function downgradeTrustLevel(
   const parsed = DowngradeTrustSchema.safeParse(input);
   if (!parsed.success) return validationError('Invalid input');
 
-  const { matrixEntryId, fromLevel, toLevel, expectedVersion, triggerType, triggerReason } = parsed.data;
+  const {
+    matrixEntryId,
+    fromLevel,
+    toLevel,
+    expectedVersion,
+    triggerType,
+    triggerReason,
+  } = parsed.data;
   const { client, workspaceId, userId } = await getTenantClient();
   const cooldownUntil = new Date(Date.now() + COOLDOWN_MS).toISOString();
 
@@ -107,10 +136,14 @@ export async function downgradeTrustLevel(
   if (!owned) return validationError('Trust entry not found in this workspace');
 
   try {
-    const updated = await updateTrustMatrixEntry(matrixEntryId, {
-      current_level: toLevel,
-      cooldown_until: cooldownUntil,
-    }, expectedVersion);
+    const updated = await updateTrustMatrixEntry(
+      matrixEntryId,
+      {
+        current_level: toLevel,
+        cooldown_until: cooldownUntil,
+      },
+      expectedVersion,
+    );
 
     await insertTransition({
       matrix_entry_id: matrixEntryId,
@@ -125,7 +158,10 @@ export async function downgradeTrustLevel(
     });
 
     revalidateTag('trust:' + workspaceId);
-    return { success: true, data: { matrixEntryId, fromLevel, toLevel, version: updated.version } };
+    return {
+      success: true,
+      data: { matrixEntryId, fromLevel, toLevel, version: updated.version },
+    };
   } catch {
     return conflictError('This trust change was already processed');
   }
@@ -151,7 +187,9 @@ export async function undoRegression(
       return validationError('Transition not found');
     }
 
-    if (!['soft_violation', 'hard_violation'].includes(transition.trigger_type)) {
+    if (
+      !['soft_violation', 'hard_violation'].includes(transition.trigger_type)
+    ) {
       return validationError('Only regression transitions can be undone');
     }
 
@@ -165,7 +203,15 @@ export async function undoRegression(
       .eq('workspace_id', workspaceId)
       .single();
     if (fetchErr || !entry) {
-      return { success: false, error: { status: 404, code: 'NOT_FOUND', message: 'Trust entry not found', category: 'system' } };
+      return {
+        success: false,
+        error: {
+          status: 404,
+          code: 'NOT_FOUND',
+          message: 'Trust entry not found',
+          category: 'system',
+        },
+      };
     }
 
     const cooldownStr = entry.cooldown_until as string | null;
@@ -178,10 +224,14 @@ export async function undoRegression(
       return validationError('This regression has already been undone');
     }
 
-    const updated = await updateTrustMatrixEntry(matrixEntryId, {
-      current_level: previousLevel,
-      cooldown_until: null,
-    }, expectedVersion);
+    const updated = await updateTrustMatrixEntry(
+      matrixEntryId,
+      {
+        current_level: previousLevel,
+        cooldown_until: null,
+      },
+      expectedVersion,
+    );
 
     await insertTransition({
       matrix_entry_id: matrixEntryId,
@@ -191,12 +241,24 @@ export async function undoRegression(
       trigger_type: 'manual_override',
       trigger_reason: 'Undo regression — restored previous level',
       is_context_shift: false,
-      snapshot: { score: updated.score, version: updated.version, undone: true },
+      snapshot: {
+        score: updated.score,
+        version: updated.version,
+        undone: true,
+      },
       actor: `va:${userId}`,
     });
 
     revalidateTag('trust:' + workspaceId);
-    return { success: true, data: { matrixEntryId, fromLevel: currentLevel, toLevel: previousLevel, version: updated.version } };
+    return {
+      success: true,
+      data: {
+        matrixEntryId,
+        fromLevel: currentLevel,
+        toLevel: previousLevel,
+        version: updated.version,
+      },
+    };
   } catch {
     return conflictError('This trust change was already processed');
   }
@@ -222,8 +284,24 @@ export async function acknowledgeRegression(
   try {
     await acknowledgeTransition(workspaceId, transitionId);
     revalidateTag('trust:' + workspaceId);
-    return { success: true, data: { matrixEntryId: transitionId, fromLevel: '', toLevel: '', version: 0 } };
+    return {
+      success: true,
+      data: {
+        matrixEntryId: transitionId,
+        fromLevel: '',
+        toLevel: '',
+        version: 0,
+      },
+    };
   } catch {
-    return { success: false, error: { status: 500, code: 'INTERNAL_ERROR', message: 'Failed to acknowledge', category: 'system' } };
+    return {
+      success: false,
+      error: {
+        status: 500,
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to acknowledge',
+        category: 'system',
+      },
+    };
   }
 }

@@ -111,7 +111,8 @@ export async function createRetainer(
       package_hours: input.data.packageHours ?? null,
       package_name: input.data.packageName ?? null,
       billing_period_days: input.data.billingPeriodDays ?? 30,
-      start_date: input.data.startDate ?? new Date().toISOString().split('T')[0],
+      start_date:
+        input.data.startDate ?? new Date().toISOString().split('T')[0],
       end_date: input.data.endDate ?? null,
       notes: input.data.notes || null,
     })

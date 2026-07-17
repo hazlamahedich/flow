@@ -47,7 +47,11 @@ async function searchTable(
     id: row.id,
     type,
     label: String(row[labelColumn]),
-    description: descriptionColumn ? (row[descriptionColumn] != null ? String(row[descriptionColumn]) : undefined) : undefined,
+    description: descriptionColumn
+      ? row[descriptionColumn] != null
+        ? String(row[descriptionColumn])
+        : undefined
+      : undefined,
     href: `${hrefPrefix}/${row.id}`,
   }));
 }
@@ -58,9 +62,39 @@ export async function searchEntities(
   const { client, workspaceId, query, limit = 5 } = options;
 
   const [clients, invoices, timeEntries] = await Promise.allSettled([
-    searchTable(client, 'clients', workspaceId, query, 'client', 'name', '/clients', undefined, limit),
-    searchTable(client, 'invoices', workspaceId, query, 'invoice', 'invoice_number', '/invoices', 'status', limit),
-    searchTable(client, 'time_entries', workspaceId, query, 'time_entry', 'description', '/time', undefined, limit),
+    searchTable(
+      client,
+      'clients',
+      workspaceId,
+      query,
+      'client',
+      'name',
+      '/clients',
+      undefined,
+      limit,
+    ),
+    searchTable(
+      client,
+      'invoices',
+      workspaceId,
+      query,
+      'invoice',
+      'invoice_number',
+      '/invoices',
+      'status',
+      limit,
+    ),
+    searchTable(
+      client,
+      'time_entries',
+      workspaceId,
+      query,
+      'time_entry',
+      'description',
+      '/time',
+      undefined,
+      limit,
+    ),
   ]);
 
   const results: SearchResult[] = [];

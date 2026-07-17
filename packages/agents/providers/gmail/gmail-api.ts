@@ -93,21 +93,27 @@ export async function listMessages(
 function parseEmailMetadata(data: gmail_v1.Schema$Message): EmailMetadata {
   const headers = (data.payload?.headers ?? []) as EmailMessageHeader[];
   const getHeader = (name: string): string | null =>
-    headers.find((h) => h.name?.toLowerCase() === name.toLowerCase())?.value ?? null;
+    headers.find((h) => h.name?.toLowerCase() === name.toLowerCase())?.value ??
+    null;
 
   const fromHeader = getHeader('From') ?? '';
   const fromMatch = fromHeader.match(/^(.+?)\s*<(.+?)>$/);
   const fromAddress = fromMatch?.[2]?.trim() ?? fromHeader.trim();
   const fromName = fromMatch?.[1]?.trim().replace(/^"|"$/g, '') ?? null;
 
-  const parseAddressList = (raw: string | null): Array<{ name: string | null; address: string }> => {
+  const parseAddressList = (
+    raw: string | null,
+  ): Array<{ name: string | null; address: string }> => {
     if (!raw) return [];
     const segments = raw.match(/("[^"]*"\s*<[^>]+>|[^,]+)/g) ?? [raw];
     return segments.map((addr) => {
       const trimmed = addr.trim();
       const m = trimmed.match(/^(.+?)\s*<(.+?)>$/);
       if (m && m[1] && m[2]) {
-        return { name: m[1].trim().replace(/^"|"$/g, ''), address: m[2].trim() };
+        return {
+          name: m[1].trim().replace(/^"|"$/g, ''),
+          address: m[2].trim(),
+        };
       }
       return { name: null, address: trimmed };
     });
@@ -117,7 +123,9 @@ function parseEmailMetadata(data: gmail_v1.Schema$Message): EmailMetadata {
   let receivedAt: string;
   if (dateHeader) {
     const parsed = new Date(dateHeader);
-    receivedAt = isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+    receivedAt = isNaN(parsed.getTime())
+      ? new Date().toISOString()
+      : parsed.toISOString();
   } else {
     receivedAt = new Date().toISOString();
   }

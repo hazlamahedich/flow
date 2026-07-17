@@ -20,11 +20,16 @@ export function ClientEditForm({ client, onCancel }: ClientEditFormProps) {
         name: (formData.get('name') as string | null) ?? '',
         email: ((formData.get('email') as string | null) ?? '') || null,
         phone: ((formData.get('phone') as string | null) ?? '') || null,
-        companyName: ((formData.get('companyName') as string | null) ?? '') || null,
+        companyName:
+          ((formData.get('companyName') as string | null) ?? '') || null,
         address: ((formData.get('address') as string | null) ?? '') || null,
         notes: ((formData.get('notes') as string | null) ?? '') || null,
-        billingEmail: ((formData.get('billingEmail') as string | null) ?? '') || null,
-        hourlyRateCents: hourlyRate && !isNaN(Number(hourlyRate)) ? Math.round(Number(hourlyRate) * 100) : null,
+        billingEmail:
+          ((formData.get('billingEmail') as string | null) ?? '') || null,
+        hourlyRateCents:
+          hourlyRate && !isNaN(Number(hourlyRate))
+            ? Math.round(Number(hourlyRate) * 100)
+            : null,
       });
       if (result.success) {
         router.refresh();
@@ -44,7 +49,12 @@ export function ClientEditForm({ client, onCancel }: ClientEditFormProps) {
       <div className="rounded-lg border border-[var(--flow-color-border-default)] p-6">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="edit-name" className="mb-1 block text-sm font-medium">Name *</label>
+            <label
+              htmlFor="edit-name"
+              className="mb-1 block text-sm font-medium"
+            >
+              Name *
+            </label>
             <input
               id="edit-name"
               name="name"
@@ -56,7 +66,12 @@ export function ClientEditForm({ client, onCancel }: ClientEditFormProps) {
             />
           </div>
           <div>
-            <label htmlFor="edit-company" className="mb-1 block text-sm font-medium">Company</label>
+            <label
+              htmlFor="edit-company"
+              className="mb-1 block text-sm font-medium"
+            >
+              Company
+            </label>
             <input
               id="edit-company"
               name="companyName"
@@ -67,7 +82,12 @@ export function ClientEditForm({ client, onCancel }: ClientEditFormProps) {
             />
           </div>
           <div>
-            <label htmlFor="edit-email" className="mb-1 block text-sm font-medium">Email</label>
+            <label
+              htmlFor="edit-email"
+              className="mb-1 block text-sm font-medium"
+            >
+              Email
+            </label>
             <input
               id="edit-email"
               name="email"
@@ -77,7 +97,12 @@ export function ClientEditForm({ client, onCancel }: ClientEditFormProps) {
             />
           </div>
           <div>
-            <label htmlFor="edit-phone" className="mb-1 block text-sm font-medium">Phone</label>
+            <label
+              htmlFor="edit-phone"
+              className="mb-1 block text-sm font-medium"
+            >
+              Phone
+            </label>
             <input
               id="edit-phone"
               name="phone"
@@ -88,7 +113,12 @@ export function ClientEditForm({ client, onCancel }: ClientEditFormProps) {
             />
           </div>
           <div>
-            <label htmlFor="edit-billing" className="mb-1 block text-sm font-medium">Billing Email</label>
+            <label
+              htmlFor="edit-billing"
+              className="mb-1 block text-sm font-medium"
+            >
+              Billing Email
+            </label>
             <input
               id="edit-billing"
               name="billingEmail"
@@ -98,19 +128,33 @@ export function ClientEditForm({ client, onCancel }: ClientEditFormProps) {
             />
           </div>
           <div>
-            <label htmlFor="edit-rate" className="mb-1 block text-sm font-medium">Hourly Rate ($)</label>
+            <label
+              htmlFor="edit-rate"
+              className="mb-1 block text-sm font-medium"
+            >
+              Hourly Rate ($)
+            </label>
             <input
               id="edit-rate"
               name="hourlyRateCents"
               type="number"
               step="0.01"
               min="0"
-              defaultValue={client.hourlyRateCents != null ? (client.hourlyRateCents / 100).toFixed(2) : ''}
+              defaultValue={
+                client.hourlyRateCents != null
+                  ? (client.hourlyRateCents / 100).toFixed(2)
+                  : ''
+              }
               className="h-10 w-full rounded-md border border-[var(--flow-color-border-default)] px-3 text-sm"
             />
           </div>
           <div className="col-span-2">
-            <label htmlFor="edit-address" className="mb-1 block text-sm font-medium">Address</label>
+            <label
+              htmlFor="edit-address"
+              className="mb-1 block text-sm font-medium"
+            >
+              Address
+            </label>
             <input
               id="edit-address"
               name="address"
@@ -121,7 +165,12 @@ export function ClientEditForm({ client, onCancel }: ClientEditFormProps) {
             />
           </div>
           <div className="col-span-2">
-            <label htmlFor="edit-notes" className="mb-1 block text-sm font-medium">Notes</label>
+            <label
+              htmlFor="edit-notes"
+              className="mb-1 block text-sm font-medium"
+            >
+              Notes
+            </label>
             <textarea
               id="edit-notes"
               name="notes"

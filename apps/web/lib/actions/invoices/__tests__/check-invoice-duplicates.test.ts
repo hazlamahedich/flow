@@ -13,14 +13,22 @@ vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
   return {
     ...actual,
-    requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' }),
+    requireTenantContext: vi.fn().mockResolvedValue({
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    }),
     createFlowError: actual.createFlowError,
   };
 });
 
-const { checkInvoiceDuplicatesAction } = await import('@/lib/actions/invoices/check-invoice-duplicates');
+const { checkInvoiceDuplicatesAction } =
+  await import('@/lib/actions/invoices/check-invoice-duplicates');
 
-function mockSupabase(invoiceRows?: Array<Record<string, unknown>>, lineItemRows?: Array<Record<string, unknown>>) {
+function mockSupabase(
+  invoiceRows?: Array<Record<string, unknown>>,
+  lineItemRows?: Array<Record<string, unknown>>,
+) {
   return {
     from: vi.fn().mockImplementation((table: string) => {
       if (table === 'invoices') {
@@ -29,13 +37,17 @@ function mockSupabase(invoiceRows?: Array<Record<string, unknown>>, lineItemRows
           eq: vi.fn().mockReturnThis(),
           neq: vi.fn().mockReturnThis(),
           gte: vi.fn().mockReturnThis(),
-          lte: vi.fn().mockResolvedValue({ data: invoiceRows ?? [], error: null }),
+          lte: vi
+            .fn()
+            .mockResolvedValue({ data: invoiceRows ?? [], error: null }),
         };
       }
       if (table === 'invoice_line_items') {
         return {
           select: vi.fn().mockReturnThis(),
-          in: vi.fn().mockResolvedValue({ data: lineItemRows ?? [], error: null }),
+          in: vi
+            .fn()
+            .mockResolvedValue({ data: lineItemRows ?? [], error: null }),
         };
       }
       return {
@@ -59,7 +71,12 @@ describe('checkInvoiceDuplicatesAction', () => {
     const result = await checkInvoiceDuplicatesAction({
       clientId: '00000000-0000-0000-0000-000000000001',
       issueDate: '2026-05-26',
-      lineItems: [{ sourceType: 'retainer', retainerId: '00000000-0000-0000-0000-000000000002' }],
+      lineItems: [
+        {
+          sourceType: 'retainer',
+          retainerId: '00000000-0000-0000-0000-000000000002',
+        },
+      ],
     });
 
     expect(result.success).toBe(true);
@@ -70,63 +87,101 @@ describe('checkInvoiceDuplicatesAction', () => {
 
   test('returns duplicate warning when retainer line items match', async () => {
     const { getServerSupabase } = await import('@/lib/supabase-server');
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase(
-      [{ id: 'inv-dup-1', invoice_number: 'INV-2026-DUP' }],
-      [{ invoice_id: 'inv-dup-1', source_type: 'retainer', retainer_id: 'ret-1' }]
-    ));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase(
+        [{ id: 'inv-dup-1', invoice_number: 'INV-2026-DUP' }],
+        [
+          {
+            invoice_id: 'inv-dup-1',
+            source_type: 'retainer',
+            retainer_id: 'ret-1',
+          },
+        ],
+      ),
+    );
 
     const result = await checkInvoiceDuplicatesAction({
       clientId: '00000000-0000-0000-0000-000000000001',
       issueDate: '2026-05-26',
       lineItems: [
-        { sourceType: 'retainer', retainerId: 'ret-1', description: 'Monthly retainer' },
+        {
+          sourceType: 'retainer',
+          retainerId: 'ret-1',
+          description: 'Monthly retainer',
+        },
       ],
     });
 
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toHaveLength(1);
-      expect(result.data[0].invoiceNumber).toBe('INV-2026-DUP');
-      expect(result.data[0].reason).toBe('soft');
-      expect(result.data[0].matchingSourceIds).toContain('ret-1');
+      const first = result.data[0]!;
+      expect(first.invoiceNumber).toBe('INV-2026-DUP');
+      expect(first.reason).toBe('soft');
+      expect(first.matchingSourceIds).toContain('ret-1');
     }
   });
 
   test('returns duplicate warning when time_entry line items match', async () => {
     const { getServerSupabase } = await import('@/lib/supabase-server');
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase(
-      [{ id: 'inv-dup-2', invoice_number: 'INV-2026-TE' }],
-      [{ invoice_id: 'inv-dup-2', source_type: 'time_entry', time_entry_id: 'te-1' }]
-    ));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase(
+        [{ id: 'inv-dup-2', invoice_number: 'INV-2026-TE' }],
+        [
+          {
+            invoice_id: 'inv-dup-2',
+            source_type: 'time_entry',
+            time_entry_id: 'te-1',
+          },
+        ],
+      ),
+    );
 
     const result = await checkInvoiceDuplicatesAction({
       clientId: '00000000-0000-0000-0000-000000000001',
       issueDate: '2026-05-26',
       lineItems: [
-        { sourceType: 'time_entry', timeEntryId: 'te-1', description: 'Dev work' },
+        {
+          sourceType: 'time_entry',
+          timeEntryId: 'te-1',
+          description: 'Dev work',
+        },
       ],
     });
 
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toHaveLength(1);
-      expect(result.data[0].invoiceNumber).toBe('INV-2026-TE');
-      expect(result.data[0].matchingSourceIds).toContain('te-1');
+      const first = result.data[0]!;
+      expect(first.invoiceNumber).toBe('INV-2026-TE');
+      expect(first.matchingSourceIds).toContain('te-1');
     }
   });
 
   test('returns empty array when no line items match', async () => {
     const { getServerSupabase } = await import('@/lib/supabase-server');
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase(
-      [{ id: 'inv-dup-3', invoice_number: 'INV-2026-NOMATCH' }],
-      [{ invoice_id: 'inv-dup-3', source_type: 'retainer', retainer_id: 'ret-a' }]
-    ));
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase(
+        [{ id: 'inv-dup-3', invoice_number: 'INV-2026-NOMATCH' }],
+        [
+          {
+            invoice_id: 'inv-dup-3',
+            source_type: 'retainer',
+            retainer_id: 'ret-a',
+          },
+        ],
+      ),
+    );
 
     const result = await checkInvoiceDuplicatesAction({
       clientId: '00000000-0000-0000-0000-000000000001',
       issueDate: '2026-05-26',
       lineItems: [
-        { sourceType: 'retainer', retainerId: 'ret-b', description: 'Different retainer' },
+        {
+          sourceType: 'retainer',
+          retainerId: 'ret-b',
+          description: 'Different retainer',
+        },
       ],
     });
 

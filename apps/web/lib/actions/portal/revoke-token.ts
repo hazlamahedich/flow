@@ -7,11 +7,7 @@
 
 import { revalidateTag } from 'next/cache';
 import { getServerSupabase } from '@/lib/supabase-server';
-import {
-  requireTenantContext,
-  createFlowError,
-  cacheTag,
-} from '@flow/db';
+import { requireTenantContext, createFlowError, cacheTag } from '@flow/db';
 import type { ActionResult, FlowError } from '@flow/types';
 import { revokePortalTokenSchema } from './schemas';
 import { failure } from './helpers';
@@ -22,9 +18,15 @@ export async function revokePortalTokenAction(
   const parsed = revokePortalTokenSchema.safeParse(input);
   if (!parsed.success) {
     return failure(
-      createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation', {
-        issues: parsed.error.issues,
-      }),
+      createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+        {
+          issues: parsed.error.issues,
+        },
+      ),
     );
   }
 

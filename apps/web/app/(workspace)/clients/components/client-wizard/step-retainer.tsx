@@ -16,9 +16,18 @@ interface StepRetainerProps {
   headingRef: React.RefObject<HTMLHeadingElement | null>;
 }
 
-export function StepRetainer({ data, onChange, onNext, onBack, onSkip, headingRef }: StepRetainerProps) {
+export function StepRetainer({
+  data,
+  onChange,
+  onNext,
+  onBack,
+  onSkip,
+  headingRef,
+}: StepRetainerProps) {
   const [expanded, setExpanded] = useState(data !== null);
-  const [selectedType, setSelectedType] = useState<RetainerType | null>(data?.type ?? null);
+  const [selectedType, setSelectedType] = useState<RetainerType | null>(
+    data?.type ?? null,
+  );
   const [validationError, setValidationError] = useState<string | null>(null);
   const radioGroupRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +55,8 @@ export function StepRetainer({ data, onChange, onNext, onBack, onSkip, headingRe
     }
     if (nextIndex !== null) {
       e.preventDefault();
-      const cards = radioGroupRef.current?.querySelectorAll<HTMLElement>('[role="radio"]');
+      const cards =
+        radioGroupRef.current?.querySelectorAll<HTMLElement>('[role="radio"]');
       cards?.[nextIndex]?.focus?.();
     }
   };
@@ -76,7 +86,9 @@ export function StepRetainer({ data, onChange, onNext, onBack, onSkip, headingRe
 
     const parsed = wizardRetainerSchema.safeParse(values);
     if (!parsed.success) {
-      setValidationError(parsed.error.issues[0]?.message ?? 'Validation failed');
+      setValidationError(
+        parsed.error.issues[0]?.message ?? 'Validation failed',
+      );
       return;
     }
 
@@ -88,7 +100,11 @@ export function StepRetainer({ data, onChange, onNext, onBack, onSkip, headingRe
   if (!expanded) {
     return (
       <div className="space-y-4">
-        <h2 ref={headingRef} tabIndex={-1} className="text-lg font-semibold text-[var(--flow-color-text-primary)]">
+        <h2
+          ref={headingRef}
+          tabIndex={-1}
+          className="text-lg font-semibold text-[var(--flow-color-text-primary)]"
+        >
           Set up a retainer agreement (optional)
         </h2>
         <div className="flex flex-col gap-3">
@@ -113,7 +129,11 @@ export function StepRetainer({ data, onChange, onNext, onBack, onSkip, headingRe
 
   return (
     <div className="space-y-4">
-      <h2 ref={headingRef} tabIndex={-1} className="text-lg font-semibold text-[var(--flow-color-text-primary)]">
+      <h2
+        ref={headingRef}
+        tabIndex={-1}
+        className="text-lg font-semibold text-[var(--flow-color-text-primary)]"
+      >
         Set up a retainer agreement (optional)
       </h2>
 
@@ -138,13 +158,17 @@ export function StepRetainer({ data, onChange, onNext, onBack, onSkip, headingRe
             }`}
           >
             <span className="font-medium">{card.title}</span>
-            <span className="mt-1 block text-xs text-[var(--flow-color-text-secondary)]">{card.description}</span>
+            <span className="mt-1 block text-xs text-[var(--flow-color-text-secondary)]">
+              {card.description}
+            </span>
           </div>
         ))}
       </div>
 
       {validationError && (
-        <p className="text-sm text-[var(--flow-status-error)]">{validationError}</p>
+        <p className="text-sm text-[var(--flow-status-error)]">
+          {validationError}
+        </p>
       )}
 
       <form ref={formRef} data-retainer-form>

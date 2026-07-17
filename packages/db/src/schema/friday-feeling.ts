@@ -16,15 +16,21 @@ export const fridayFeelingSummaries = pgTable(
   'friday_feeling_summaries',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    workspaceId: uuid('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
     weekStart: date('week_start', { mode: 'string' }).notNull(),
     weekEnd: date('week_end', { mode: 'string' }).notNull(),
     headline: text('headline').notNull(),
     tasksHandled: integer('tasks_handled').notNull(),
     timeSavedMinutes: integer('time_saved_minutes').notNull(),
     trustMilestones: jsonb('trust_milestones').notNull().default([]),
-    generatedAt: timestamp('generated_at', { withTimezone: true }).notNull().defaultNow(),
+    generatedAt: timestamp('generated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     dismissedAt: timestamp('dismissed_at', { withTimezone: true }),
   },
   (table) => [
@@ -35,17 +41,24 @@ export const fridayFeelingSummaries = pgTable(
 );
 
 export type FridayFeelingSummary = typeof fridayFeelingSummaries.$inferSelect;
-export type NewFridayFeelingSummary = typeof fridayFeelingSummaries.$inferInsert;
+export type NewFridayFeelingSummary =
+  typeof fridayFeelingSummaries.$inferInsert;
 
 export const wednesdayAffirmations = pgTable(
   'wednesday_affirmations',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    workspaceId: uuid('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-    teamMemberId: uuid('team_member_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    teamMemberId: uuid('team_member_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
     story: text('story').notNull(),
     milestone: jsonb('milestone').notNull(),
-    generatedAt: timestamp('generated_at', { withTimezone: true }).notNull().defaultNow(),
+    generatedAt: timestamp('generated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     dismissedAt: timestamp('dismissed_at', { withTimezone: true }),
   },
   (table) => [

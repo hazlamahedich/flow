@@ -21,7 +21,13 @@ export interface PaymentIntent {
   providerPaymentIntentId: string;
   amount: number;
   currency: string;
-  status: 'requires_payment_method' | 'requires_confirmation' | 'processing' | 'succeeded' | 'failed' | 'cancelled';
+  status:
+    | 'requires_payment_method'
+    | 'requires_confirmation'
+    | 'processing'
+    | 'succeeded'
+    | 'failed'
+    | 'cancelled';
   clientSecret: string | undefined;
   metadata: Record<string, string> | undefined;
 }
@@ -39,7 +45,13 @@ export interface Subscription {
   providerSubscriptionId: string;
   customerId: string;
   priceId: string;
-  status: 'active' | 'past_due' | 'cancelled' | 'incomplete' | 'trialing' | 'paused';
+  status:
+    | 'active'
+    | 'past_due'
+    | 'cancelled'
+    | 'incomplete'
+    | 'trialing'
+    | 'paused';
   currentPeriodStart: string;
   currentPeriodEnd: string;
   cancelAtPeriodEnd: boolean;
@@ -78,7 +90,11 @@ export interface Refund {
   providerRefundId: string;
   paymentIntentId: string;
   amount: number;
-  reason: 'duplicate' | 'fraudulent' | 'requested_by_customer' | 'expired_uncaptured_charge';
+  reason:
+    | 'duplicate'
+    | 'fraudulent'
+    | 'requested_by_customer'
+    | 'expired_uncaptured_charge';
   status: 'pending' | 'succeeded' | 'failed' | 'canceled';
 }
 
@@ -103,12 +119,25 @@ export interface PaymentProvider {
   }): Promise<PaymentCustomer>;
 
   getCustomer(customerId: string): Promise<PaymentCustomer | null>;
-  updateCustomer(customerId: string, params: { email?: string; name?: string; metadata?: Record<string, string> }): Promise<PaymentCustomer>;
+  updateCustomer(
+    customerId: string,
+    params: {
+      email?: string;
+      name?: string;
+      metadata?: Record<string, string>;
+    },
+  ): Promise<PaymentCustomer>;
 
   listPaymentMethods(customerId: string): Promise<PaymentMethod[]>;
-  attachPaymentMethod(customerId: string, paymentMethodId: string): Promise<PaymentMethod>;
+  attachPaymentMethod(
+    customerId: string,
+    paymentMethodId: string,
+  ): Promise<PaymentMethod>;
   detachPaymentMethod(paymentMethodId: string): Promise<void>;
-  setDefaultPaymentMethod(customerId: string, paymentMethodId: string): Promise<void>;
+  setDefaultPaymentMethod(
+    customerId: string,
+    paymentMethodId: string,
+  ): Promise<void>;
 
   createPaymentIntent(params: {
     customerId: string;
@@ -119,7 +148,10 @@ export interface PaymentProvider {
   }): Promise<PaymentIntent>;
 
   getPaymentIntent(paymentIntentId: string): Promise<PaymentIntent>;
-  capturePaymentIntent(paymentIntentId: string, amountToCapture?: number): Promise<PaymentIntent>;
+  capturePaymentIntent(
+    paymentIntentId: string,
+    amountToCapture?: number,
+  ): Promise<PaymentIntent>;
   cancelPaymentIntent(paymentIntentId: string): Promise<PaymentIntent>;
 
   createCheckoutSession(params: {
@@ -175,7 +207,9 @@ export interface PaymentProvider {
    * the success URL, resolves the resulting subscription, verifies the
    * customer matches, and upserts via the idempotent RPC.
    */
-  getCheckoutSession(sessionId: string): Promise<{ subscriptionId: string | null; customerId: string | null }>;
+  getCheckoutSession(
+    sessionId: string,
+  ): Promise<{ subscriptionId: string | null; customerId: string | null }>;
 
   createSubscription(params: {
     customerId: string;
@@ -185,8 +219,17 @@ export interface PaymentProvider {
   }): Promise<Subscription>;
 
   getSubscription(subscriptionId: string): Promise<Subscription>;
-  updateSubscription(subscriptionId: string, params: { priceId?: string; prorationBehavior?: 'create_prorations' | 'none' }): Promise<Subscription>;
-  cancelSubscription(subscriptionId: string, immediately?: boolean): Promise<Subscription>;
+  updateSubscription(
+    subscriptionId: string,
+    params: {
+      priceId?: string;
+      prorationBehavior?: 'create_prorations' | 'none';
+    },
+  ): Promise<Subscription>;
+  cancelSubscription(
+    subscriptionId: string,
+    immediately?: boolean,
+  ): Promise<Subscription>;
   resumeSubscription(subscriptionId: string): Promise<Subscription>;
 
   createInvoice(params: {
@@ -209,8 +252,16 @@ export interface PaymentProvider {
     reason: Refund['reason'];
   }): Promise<Refund>;
 
-  verifyWebhookSignature(payload: string, signature: string, secret: string): Promise<WebhookEvent>;
-  constructWebhookEvent(payload: string, signature: string, secret: string): WebhookEvent;
+  verifyWebhookSignature(
+    payload: string,
+    signature: string,
+    secret: string,
+  ): Promise<WebhookEvent>;
+  constructWebhookEvent(
+    payload: string,
+    signature: string,
+    secret: string,
+  ): WebhookEvent;
 }
 
 export type { OAuthTokens };

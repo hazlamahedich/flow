@@ -10,8 +10,13 @@ interface FeedbackWidgetProps {
   existingFeedback: FeedbackRow | null;
 }
 
-export function FeedbackWidget({ runId, existingFeedback }: FeedbackWidgetProps) {
-  const [sentiment, setSentiment] = useState<'positive' | 'negative' | null>(existingFeedback?.sentiment ?? null);
+export function FeedbackWidget({
+  runId,
+  existingFeedback,
+}: FeedbackWidgetProps) {
+  const [sentiment, setSentiment] = useState<'positive' | 'negative' | null>(
+    existingFeedback?.sentiment ?? null,
+  );
   const [note, setNote] = useState(existingFeedback?.note ?? '');
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -24,11 +29,16 @@ export function FeedbackWidget({ runId, existingFeedback }: FeedbackWidgetProps)
   const handleSubmit = useCallback(async () => {
     if (!sentiment) return;
     setLoading(true);
-    const result = await submitFeedback({ runId, sentiment, note: note || undefined });
+    const result = await submitFeedback({
+      runId,
+      sentiment,
+      note: note || undefined,
+    });
     setLoading(false);
     if (result.success) {
       setConfirmed(true);
-      if (liveRef.current) liveRef.current.textContent = FEEDBACK_PROMPTS.recorded;
+      if (liveRef.current)
+        liveRef.current.textContent = FEEDBACK_PROMPTS.recorded;
       setTimeout(() => setConfirmed(false), 2000);
     }
   }, [sentiment, note, runId]);
@@ -45,7 +55,12 @@ export function FeedbackWidget({ runId, existingFeedback }: FeedbackWidgetProps)
 
   return (
     <div className="border-t border-[var(--flow-color-border)] pt-3 space-y-2">
-      <div role="radiogroup" aria-label="Rate this action" className="flex items-center gap-2" onKeyDown={handleKeyDown}>
+      <div
+        role="radiogroup"
+        aria-label="Rate this action"
+        className="flex items-center gap-2"
+        onKeyDown={handleKeyDown}
+      >
         <button
           role="radio"
           aria-checked={sentiment === 'positive'}
@@ -64,7 +79,11 @@ export function FeedbackWidget({ runId, existingFeedback }: FeedbackWidgetProps)
         >
           👎
         </button>
-        {confirmed && <span className="text-xs text-green-600">{FEEDBACK_PROMPTS.recorded}</span>}
+        {confirmed && (
+          <span className="text-xs text-green-600">
+            {FEEDBACK_PROMPTS.recorded}
+          </span>
+        )}
       </div>
 
       {sentiment && (

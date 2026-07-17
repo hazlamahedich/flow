@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Sparkles, ArrowRight, Pencil, Wand2, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { FlowGraph } from "@/components/flow-graph";
-import { generateFlowFromPrompt, type GeneratedFlow } from "@/lib/automations";
+import { useState } from 'react';
+import { Sparkles, ArrowRight, Pencil, Wand2, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { FlowGraph } from '@/components/flow-graph';
+import { generateFlowFromPrompt, type GeneratedFlow } from '@/lib/automations';
 
 const samplePrompts = [
-  "When a client invoice goes overdue, draft a follow-up and ping me on Slack if no reply in 3 days",
-  "Every Friday at 4pm send a weekly summary to each client through the portal",
-  "When a new client is created, send a welcome email and set up their Notion page and Trello board",
-  "Every Monday flag clients with health scores below 50 and DM me on Slack",
+  'When a client invoice goes overdue, draft a follow-up and ping me on Slack if no reply in 3 days',
+  'Every Friday at 4pm send a weekly summary to each client through the portal',
+  'When a new client is created, send a welcome email and set up their Notion page and Trello board',
+  'Every Monday flag clients with health scores below 50 and DM me on Slack',
 ];
 
 export function AutomationBuilder() {
-  const [prompt, setPrompt] = useState("");
-  const [phase, setPhase] = useState<"idle" | "generating" | "preview">("idle");
+  const [prompt, setPrompt] = useState('');
+  const [phase, setPhase] = useState<'idle' | 'generating' | 'preview'>('idle');
   const [flow, setFlow] = useState<GeneratedFlow | null>(null);
   const [activated, setActivated] = useState(false);
 
@@ -25,19 +25,19 @@ export function AutomationBuilder() {
     const p = (fromPrompt ?? prompt).trim();
     if (!p) return;
     if (fromPrompt) setPrompt(fromPrompt);
-    setPhase("generating");
+    setPhase('generating');
     setActivated(false);
     // Simulate streaming
     setTimeout(() => {
       setFlow(generateFlowFromPrompt(p));
-      setPhase("preview");
+      setPhase('preview');
     }, 900);
   };
 
   const reset = () => {
-    setPhase("idle");
+    setPhase('idle');
     setFlow(null);
-    setPrompt("");
+    setPrompt('');
     setActivated(false);
   };
 
@@ -49,14 +49,17 @@ export function AutomationBuilder() {
             <span className="size-7 rounded-lg bg-gradient-to-br from-flow-500 to-violet-500 grid place-items-center text-white">
               <Wand2 size={14} />
             </span>
-            <h2 className="text-base font-semibold text-ink-900">Automation Builder</h2>
+            <h2 className="text-base font-semibold text-ink-900">
+              Automation Builder
+            </h2>
             <Badge tone="flow">V2</Badge>
             <span className="ml-auto text-[11px] text-ink-500">
               Powered by LLM → Activepieces (MIT)
             </span>
           </div>
           <p className="text-xs text-ink-600 mt-1">
-            Type what you want to happen. Flow OS translates it into a working automation — no drag-and-drop, no code.
+            Type what you want to happen. Flow OS translates it into a working
+            automation — no drag-and-drop, no code.
           </p>
         </div>
 
@@ -73,14 +76,18 @@ export function AutomationBuilder() {
               variant="accent"
               size="lg"
               onClick={() => onGenerate()}
-              disabled={!prompt.trim() || phase === "generating"}
+              disabled={!prompt.trim() || phase === 'generating'}
             >
-              {phase === "generating" ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+              {phase === 'generating' ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Sparkles size={14} />
+              )}
               Generate
             </Button>
           </div>
 
-          {phase === "idle" && (
+          {phase === 'idle' && (
             <div>
               <p className="text-[11px] uppercase tracking-wider text-ink-500 font-semibold mb-2">
                 Try a sample
@@ -99,25 +106,33 @@ export function AutomationBuilder() {
             </div>
           )}
 
-          {phase === "generating" && (
+          {phase === 'generating' && (
             <div className="rounded-xl border border-dashed border-flow-200 bg-flow-50/40 p-6 text-center">
-              <Loader2 size={18} className="mx-auto animate-spin text-flow-600" />
+              <Loader2
+                size={18}
+                className="mx-auto animate-spin text-flow-600"
+              />
               <p className="text-sm text-ink-700 mt-2">
                 Translating your description into an Activepieces flow…
               </p>
               <p className="text-[11px] text-ink-500 mt-1">
-                Validating against allowed pieces · checking workspace permissions
+                Validating against allowed pieces · checking workspace
+                permissions
               </p>
             </div>
           )}
 
-          {phase === "preview" && flow && (
+          {phase === 'preview' && flow && (
             <div className="space-y-4">
               <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3 flex items-center gap-3">
                 <Sparkles size={16} className="text-emerald-700" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-ink-900">{flow.name}</div>
-                  <div className="text-[11px] text-ink-600">{flow.description}</div>
+                  <div className="text-sm font-semibold text-ink-900">
+                    {flow.name}
+                  </div>
+                  <div className="text-[11px] text-ink-600">
+                    {flow.description}
+                  </div>
                 </div>
                 <Badge tone="success">draft</Badge>
               </div>
@@ -129,7 +144,11 @@ export function AutomationBuilder() {
               <div className="flex flex-wrap items-center gap-2">
                 {!activated ? (
                   <>
-                    <Button variant="success" size="md" onClick={() => setActivated(true)}>
+                    <Button
+                      variant="success"
+                      size="md"
+                      onClick={() => setActivated(true)}
+                    >
                       Activate flow
                     </Button>
                     <Button variant="outline" size="md">
@@ -145,7 +164,9 @@ export function AutomationBuilder() {
                   Start over <ArrowRight size={14} />
                 </Button>
                 <span className="ml-auto text-[11px] text-ink-500">
-                  Flow runs scoped to <code className="text-ink-700">workspace_id</code> — Activepieces project isolation
+                  Flow runs scoped to{' '}
+                  <code className="text-ink-700">workspace_id</code> —
+                  Activepieces project isolation
                 </span>
               </div>
             </div>

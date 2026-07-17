@@ -7,11 +7,21 @@ export function mockTrustActions(overrides?: {
   const defaults = {
     upgradeTrustLevel: vi.fn().mockResolvedValue({
       success: true,
-      data: { matrixEntryId: 'm1', fromLevel: 'supervised', toLevel: 'confirm', version: 2 },
+      data: {
+        matrixEntryId: 'm1',
+        fromLevel: 'supervised',
+        toLevel: 'confirm',
+        version: 2,
+      },
     }),
     undoRegression: vi.fn().mockResolvedValue({
       success: true,
-      data: { matrixEntryId: 'm1', fromLevel: 'confirm', toLevel: 'auto', version: 3 },
+      data: {
+        matrixEntryId: 'm1',
+        fromLevel: 'confirm',
+        toLevel: 'auto',
+        version: 3,
+      },
     }),
     ...overrides,
   };

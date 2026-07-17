@@ -44,7 +44,10 @@ You must return a JSON object with:
 }
 `;
 
-export async function extractionWorker(job: { data: ExtractionJobPayload }, boss: PgBoss) {
+export async function extractionWorker(
+  job: { data: ExtractionJobPayload },
+  boss: PgBoss,
+) {
   const { emailId, workspaceId, clientInboxId } = job.data;
   const supabase = createServiceClient();
   const producer = new PgBossProducer(boss);
@@ -74,7 +77,10 @@ export async function extractionWorker(job: { data: ExtractionJobPayload }, boss
     const fullContent = `Subject: ${email.subject || '(No Subject)'}\n\n${sanitizedBody}`;
     const { text: tokenizedContent } = tokenizePII(fullContent, workspaceId);
 
-    const wrappedContent = boundary.wrapContent(tokenizedContent, 'user_email_content');
+    const wrappedContent = boundary.wrapContent(
+      tokenizedContent,
+      'user_email_content',
+    );
 
     const executionContext: AgentExecutionContext = {
       workspaceId,
@@ -88,7 +94,7 @@ export async function extractionWorker(job: { data: ExtractionJobPayload }, boss
         { role: 'user', content: wrappedContent },
       ],
       executionContext,
-      { taskTier: 'fast', temperature: 0.1 }
+      { taskTier: 'fast', temperature: 0.1 },
     );
 
     let result;
@@ -96,26 +102,38 @@ export async function extractionWorker(job: { data: ExtractionJobPayload }, boss
       const jsonStr = extractJsonObject(response.text);
       result = extractionOutputSchema.parse(JSON.parse(jsonStr));
     } catch (err) {
-      console.error('[inbox] Extraction LLM output parse/validation failed. Raw response:', response.text, 'Error:', err);
+      console.error(
+        '[inbox] Extraction LLM output parse/validation failed. Raw response:',
+        response.text,
+        'Error:',
+        err,
+      );
       // Fail explicitly so the state machine doesn't mark it as complete
-      throw new Error(`Extraction LLM output parse failed: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(
+        `Extraction LLM output parse failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
 
-    const filteredActions = filterActionsByConfidence(result.actions).slice(0, 5);
+    const filteredActions = filterActionsByConfidence(result.actions).slice(
+      0,
+      5,
+    );
 
     if (filteredActions.length > 0) {
-      const { error: insertError } = await supabase.from('extracted_actions').insert(
-        filteredActions.map((a) => ({
-          email_id: emailId,
-          workspace_id: workspaceId,
-          client_inbox_id: clientInboxId,
-          action_type: a.actionType,
-          description: a.description,
-          due_date: a.dueDate,
-          contact: a.contact,
-          confidence: a.confidence,
-        }))
-      );
+      const { error: insertError } = await supabase
+        .from('extracted_actions')
+        .insert(
+          filteredActions.map((a) => ({
+            email_id: emailId,
+            workspace_id: workspaceId,
+            client_inbox_id: clientInboxId,
+            action_type: a.actionType,
+            description: a.description,
+            due_date: a.dueDate,
+            contact: a.contact,
+            confidence: a.confidence,
+          })),
+        );
       if (insertError) throw insertError;
     }
 

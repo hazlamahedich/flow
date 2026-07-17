@@ -18,21 +18,31 @@ describe('MorningBriefTracker', () => {
   });
 
   it('calls markBriefViewed once on mount', () => {
-    render(<MorningBriefTracker briefId="00000000-0000-0000-0000-000000000001" />);
+    render(
+      <MorningBriefTracker briefId="00000000-0000-0000-0000-000000000001" />,
+    );
     expect(mockMarkBriefViewed).toHaveBeenCalledTimes(1);
-    expect(mockMarkBriefViewed).toHaveBeenCalledWith('00000000-0000-0000-0000-000000000001');
+    expect(mockMarkBriefViewed).toHaveBeenCalledWith(
+      '00000000-0000-0000-0000-000000000001',
+    );
   });
 
   it('renders nothing', () => {
-    const { container } = render(<MorningBriefTracker briefId="00000000-0000-0000-0000-000000000001" />);
+    const { container } = render(
+      <MorningBriefTracker briefId="00000000-0000-0000-0000-000000000001" />,
+    );
     expect(container.innerHTML).toBe('');
   });
 
   it('does not fire again on re-render', () => {
-    const { rerender } = render(<MorningBriefTracker briefId="00000000-0000-0000-0000-000000000001" />);
+    const { rerender } = render(
+      <MorningBriefTracker briefId="00000000-0000-0000-0000-000000000001" />,
+    );
     expect(mockMarkBriefViewed).toHaveBeenCalledTimes(1);
 
-    rerender(<MorningBriefTracker briefId="00000000-0000-0000-0000-000000000001" />);
+    rerender(
+      <MorningBriefTracker briefId="00000000-0000-0000-0000-000000000001" />,
+    );
     expect(mockMarkBriefViewed).toHaveBeenCalledTimes(1);
   });
 
@@ -40,7 +50,9 @@ describe('MorningBriefTracker', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockMarkBriefViewed.mockRejectedValueOnce(new Error('Network error'));
 
-    render(<MorningBriefTracker briefId="00000000-0000-0000-0000-000000000001" />);
+    render(
+      <MorningBriefTracker briefId="00000000-0000-0000-0000-000000000001" />,
+    );
 
     expect(mockMarkBriefViewed).toHaveBeenCalledTimes(1);
     consoleSpy.mockRestore();

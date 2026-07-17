@@ -15,12 +15,16 @@ export default async function TeamPage() {
   const supabase = await getServerSupabase();
   const ctx = await requireTenantContext(supabase);
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const currentUserEmail = user?.email ?? '';
 
   const { data: members, error: membersError } = await supabase
     .from('workspace_members')
-    .select('id, user_id, role, status, joined_at, expires_at, users(name, email)')
+    .select(
+      'id, user_id, role, status, joined_at, expires_at, users(name, email)',
+    )
     .eq('workspace_id', ctx.workspaceId)
     .eq('status', 'active')
     .order('joined_at', { ascending: true });
@@ -59,7 +63,8 @@ export default async function TeamPage() {
     status: m.status,
     joinedAt: m.joined_at,
     expiresAt: m.expires_at,
-    name: (m.users as unknown as { name: string | null } | null)?.name ?? 'Unknown',
+    name:
+      (m.users as unknown as { name: string | null } | null)?.name ?? 'Unknown',
     email: (m.users as unknown as { email: string | null } | null)?.email ?? '',
   }));
 
@@ -108,7 +113,9 @@ export default async function TeamPage() {
         <h1 className="text-2xl font-semibold text-[var(--flow-color-text-primary)]">
           Team
         </h1>
-        {canInvite && <InviteForm actorRole={ctx.role} currentEmail={currentUserEmail} />}
+        {canInvite && (
+          <InviteForm actorRole={ctx.role} currentEmail={currentUserEmail} />
+        )}
       </div>
 
       {activeMembers.length === 1 && (

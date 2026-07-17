@@ -25,7 +25,10 @@ export async function updateProfile(
 
   const { name, timezone } = parsed.data;
   const supabase = await getServerSupabase();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return {
@@ -37,7 +40,12 @@ export async function updateProfile(
   if (!user.email) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Email is required.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Email is required.',
+        'validation',
+      ),
     };
   }
 
@@ -51,7 +59,12 @@ export async function updateProfile(
     if (!profile) {
       return {
         success: false,
-        error: createFlowError(500, 'INTERNAL_ERROR', "Couldn't save changes. Please try again.", 'system'),
+        error: createFlowError(
+          500,
+          'INTERNAL_ERROR',
+          "Couldn't save changes. Please try again.",
+          'system',
+        ),
       };
     }
 
@@ -59,7 +72,12 @@ export async function updateProfile(
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', "Couldn't save changes. Please try again.", 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        "Couldn't save changes. Please try again.",
+        'system',
+      ),
     };
   }
 }

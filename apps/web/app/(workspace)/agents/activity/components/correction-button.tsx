@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import { issueCorrection } from '../../actions/correction-actions';
-import { CORRECTION_LABELS, TOAST_MESSAGES } from '../../constants/activity-copy';
+import {
+  CORRECTION_LABELS,
+  TOAST_MESSAGES,
+} from '../../constants/activity-copy';
 import type { ActionHistoryRow } from '@flow/db';
 
 interface CorrectionButtonProps {
@@ -11,7 +14,9 @@ interface CorrectionButtonProps {
 
 export function CorrectionButton({ entry }: CorrectionButtonProps) {
   const [showForm, setShowForm] = useState(false);
-  const [output, setOutput] = useState(JSON.stringify(entry.output ?? {}, null, 2));
+  const [output, setOutput] = useState(
+    JSON.stringify(entry.output ?? {}, null, 2),
+  );
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -28,7 +33,11 @@ export function CorrectionButton({ entry }: CorrectionButtonProps) {
       setTimeout(() => setToast(null), 3000);
       return;
     }
-    try {      const result = await issueCorrection({ originalRunId: entry.id, correctedOutput: parsed });
+    try {
+      const result = await issueCorrection({
+        originalRunId: entry.id,
+        correctedOutput: parsed,
+      });
       if (result.success) {
         setToast(TOAST_MESSAGES.correctionSent);
         setShowForm(false);
@@ -56,7 +65,9 @@ export function CorrectionButton({ entry }: CorrectionButtonProps) {
         </button>
       ) : (
         <div className="space-y-2">
-          <h4 className="text-xs font-medium text-[var(--flow-color-text-primary)]">{CORRECTION_LABELS.title}</h4>
+          <h4 className="text-xs font-medium text-[var(--flow-color-text-primary)]">
+            {CORRECTION_LABELS.title}
+          </h4>
           <textarea
             value={output}
             onChange={(e) => setOutput(e.target.value)}
@@ -81,7 +92,10 @@ export function CorrectionButton({ entry }: CorrectionButtonProps) {
         </div>
       )}
       {toast && (
-        <div className="text-xs px-3 py-2 rounded-md bg-blue-50 text-blue-700" role="status">
+        <div
+          className="text-xs px-3 py-2 rounded-md bg-blue-50 text-blue-700"
+          role="status"
+        >
           {toast}
         </div>
       )}

@@ -11,7 +11,8 @@ export default [
           paths: [
             {
               name: '@flow/db',
-              message: 'Do not import createServiceClient from @flow/db barrel. Use: import { createServiceClient } from "@flow/db/client"',
+              message:
+                'Do not import createServiceClient from @flow/db barrel. Use: import { createServiceClient } from "@flow/db/client"',
               allowTypeImports: true,
             },
           ],

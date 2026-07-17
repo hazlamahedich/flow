@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react';
 import type { Retainer } from '@flow/types';
 import { createRetainerAction } from '../actions/retainer/create-retainer';
 import { updateRetainerAction } from '../actions/retainer/update-retainer';
-import { TYPE_CARDS, RetainerTypeFields } from '../../components/retainer-type-fields';
+import {
+  TYPE_CARDS,
+  RetainerTypeFields,
+} from '../../components/retainer-type-fields';
 
 interface RetainerFormProps {
   retainer?: Retainer;
@@ -27,10 +30,17 @@ function useIsMobile(breakpoint = 640): boolean {
   return mobile;
 }
 
-export function RetainerForm({ retainer, clientId, onCancel, onSuccess }: RetainerFormProps) {
+export function RetainerForm({
+  retainer,
+  clientId,
+  onCancel,
+  onSuccess,
+}: RetainerFormProps) {
   const isEdit = !!retainer;
   const isMobile = useIsMobile();
-  const [selectedType, setSelectedType] = useState<RetainerType>(retainer?.type ?? 'hourly_rate');
+  const [selectedType, setSelectedType] = useState<RetainerType>(
+    retainer?.type ?? 'hourly_rate',
+  );
   const [mobileStep, setMobileStep] = useState<1 | 2>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,10 +56,20 @@ export function RetainerForm({ retainer, clientId, onCancel, onSuccess }: Retain
 
     try {
       if (isEdit && retainer) {
-        const rateVal = data.hourlyRateCents ? Math.round(parseFloat(data.hourlyRateCents as string) * 100) : null;
-        const feeVal = data.monthlyFeeCents ? Math.round(parseFloat(data.monthlyFeeCents as string) * 100) : null;
-        if (rateVal !== null && isNaN(rateVal)) { setError('Invalid hourly rate.'); return; }
-        if (feeVal !== null && isNaN(feeVal)) { setError('Invalid monthly fee.'); return; }
+        const rateVal = data.hourlyRateCents
+          ? Math.round(parseFloat(data.hourlyRateCents as string) * 100)
+          : null;
+        const feeVal = data.monthlyFeeCents
+          ? Math.round(parseFloat(data.monthlyFeeCents as string) * 100)
+          : null;
+        if (rateVal !== null && isNaN(rateVal)) {
+          setError('Invalid hourly rate.');
+          return;
+        }
+        if (feeVal !== null && isNaN(feeVal)) {
+          setError('Invalid monthly fee.');
+          return;
+        }
         const result = await updateRetainerAction({
           retainerId: retainer.id,
           hourlyRateCents: rateVal,
@@ -57,7 +77,9 @@ export function RetainerForm({ retainer, clientId, onCancel, onSuccess }: Retain
           monthlyHoursThreshold: (data.monthlyHoursThreshold as string) || null,
           packageHours: (data.packageHours as string) || null,
           packageName: (data.packageName as string) || null,
-          billingPeriodDays: data.billingPeriodDays ? parseInt(data.billingPeriodDays as string) : undefined,
+          billingPeriodDays: data.billingPeriodDays
+            ? parseInt(data.billingPeriodDays as string)
+            : undefined,
           notes: (data.notes as string) || null,
           endDate: (data.endDate as string) || null,
         });
@@ -69,19 +91,29 @@ export function RetainerForm({ retainer, clientId, onCancel, onSuccess }: Retain
         const base: Record<string, unknown> = {
           type: selectedType,
           clientId,
-          billingPeriodDays: data.billingPeriodDays ? parseInt(data.billingPeriodDays as string) : 30,
+          billingPeriodDays: data.billingPeriodDays
+            ? parseInt(data.billingPeriodDays as string)
+            : 30,
           notes: (data.notes as string) || '',
         };
 
         if (selectedType === 'hourly_rate') {
-          base.hourlyRateCents = Math.round(parseFloat(data.hourlyRateCents as string) * 100);
+          base.hourlyRateCents = Math.round(
+            parseFloat(data.hourlyRateCents as string) * 100,
+          );
         } else if (selectedType === 'flat_monthly') {
-          base.monthlyFeeCents = Math.round(parseFloat(data.monthlyFeeCents as string) * 100);
-          base.monthlyHoursThreshold = (data.monthlyHoursThreshold as string) || null;
+          base.monthlyFeeCents = Math.round(
+            parseFloat(data.monthlyFeeCents as string) * 100,
+          );
+          base.monthlyHoursThreshold =
+            (data.monthlyHoursThreshold as string) || null;
         } else if (selectedType === 'package_based') {
           base.packageHours = (data.packageHours as string) || '0';
           base.packageName = (data.packageName as string) || '';
-          if (data.hourlyRateCents) base.hourlyRateCents = Math.round(parseFloat(data.hourlyRateCents as string) * 100);
+          if (data.hourlyRateCents)
+            base.hourlyRateCents = Math.round(
+              parseFloat(data.hourlyRateCents as string) * 100,
+            );
         }
 
         const result = await createRetainerAction(base);
@@ -91,7 +123,11 @@ export function RetainerForm({ retainer, clientId, onCancel, onSuccess }: Retain
         }
       }
       if (onSuccess) {
-        onSuccess(isEdit ? 'Retainer updated successfully.' : 'Retainer created successfully.');
+        onSuccess(
+          isEdit
+            ? 'Retainer updated successfully.'
+            : 'Retainer created successfully.',
+        );
       }
       onCancel();
     } catch {
@@ -104,7 +140,10 @@ export function RetainerForm({ retainer, clientId, onCancel, onSuccess }: Retain
   const register = (name: string) => ({ name });
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-[var(--flow-color-border-default)] p-6">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 rounded-lg border border-[var(--flow-color-border-default)] p-6"
+    >
       <h3 className="text-sm font-semibold text-[var(--flow-color-text-primary)]">
         {isEdit ? 'Edit Retainer' : 'Create Retainer Agreement'}
       </h3>
@@ -116,27 +155,39 @@ export function RetainerForm({ retainer, clientId, onCancel, onSuccess }: Retain
       {!isEdit && (
         <div className="space-y-3">
           {isMobile && mobileStep === 1 && (
-            <p className="text-xs text-[var(--flow-color-text-secondary)]">Step 1 of 2 — Choose type</p>
+            <p className="text-xs text-[var(--flow-color-text-secondary)]">
+              Step 1 of 2 — Choose type
+            </p>
           )}
-          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-3'} gap-3`}>
-            {TYPE_CARDS.map((card: { type: RetainerType; title: string; description: string }) => (
-              <button
-                key={card.type}
-                type="button"
-                onClick={() => {
-                  setSelectedType(card.type);
-                  if (isMobile && mobileStep === 1) setMobileStep(2);
-                }}
-                className={`rounded-lg border p-3 text-left text-sm transition-colors ${
-                  selectedType === card.type
-                    ? 'border-[var(--flow-accent-primary)] bg-[var(--flow-accent-primary)]/10'
-                    : 'border-[var(--flow-color-border-default)]'
-                }`}
-              >
-                <span className="font-medium">{card.title}</span>
-                <span className="mt-1 block text-xs text-[var(--flow-color-text-secondary)]">{card.description}</span>
-              </button>
-            ))}
+          <div
+            className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-3'} gap-3`}
+          >
+            {TYPE_CARDS.map(
+              (card: {
+                type: RetainerType;
+                title: string;
+                description: string;
+              }) => (
+                <button
+                  key={card.type}
+                  type="button"
+                  onClick={() => {
+                    setSelectedType(card.type);
+                    if (isMobile && mobileStep === 1) setMobileStep(2);
+                  }}
+                  className={`rounded-lg border p-3 text-left text-sm transition-colors ${
+                    selectedType === card.type
+                      ? 'border-[var(--flow-accent-primary)] bg-[var(--flow-accent-primary)]/10'
+                      : 'border-[var(--flow-color-border-default)]'
+                  }`}
+                >
+                  <span className="font-medium">{card.title}</span>
+                  <span className="mt-1 block text-xs text-[var(--flow-color-text-secondary)]">
+                    {card.description}
+                  </span>
+                </button>
+              ),
+            )}
           </div>
           {isMobile && mobileStep === 1 && (
             <button
@@ -166,8 +217,12 @@ export function RetainerForm({ retainer, clientId, onCancel, onSuccess }: Retain
             type={isEdit ? retainer.type : selectedType}
             register={register}
             defaultValue={{
-              hourlyRateCents: retainer?.hourlyRateCents ? (retainer.hourlyRateCents / 100).toFixed(2) : null,
-              monthlyFeeCents: retainer?.monthlyFeeCents ? (retainer.monthlyFeeCents / 100).toFixed(2) : null,
+              hourlyRateCents: retainer?.hourlyRateCents
+                ? (retainer.hourlyRateCents / 100).toFixed(2)
+                : null,
+              monthlyFeeCents: retainer?.monthlyFeeCents
+                ? (retainer.monthlyFeeCents / 100).toFixed(2)
+                : null,
               monthlyHoursThreshold: retainer?.monthlyHoursThreshold ?? null,
               packageHours: retainer?.packageHours ?? null,
               packageName: retainer?.packageName ?? null,
@@ -185,7 +240,11 @@ export function RetainerForm({ retainer, clientId, onCancel, onSuccess }: Retain
           disabled={submitting}
           className="rounded-md bg-[var(--flow-accent-primary)] px-4 py-2 text-sm font-medium text-[var(--flow-accent-primary-text)] disabled:opacity-50"
         >
-          {submitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Retainer'}
+          {submitting
+            ? 'Saving...'
+            : isEdit
+              ? 'Save Changes'
+              : 'Create Retainer'}
         </button>
         <button
           type="button"

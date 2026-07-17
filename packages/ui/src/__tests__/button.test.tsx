@@ -28,9 +28,18 @@ describe('Button', () => {
   });
 
   it('renders all variants', () => {
-    const variants = ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'] as const;
+    const variants = [
+      'default',
+      'destructive',
+      'outline',
+      'secondary',
+      'ghost',
+      'link',
+    ] as const;
     for (const variant of variants) {
-      const { unmount, container } = renderWithTheme(<Button variant={variant}>{variant}</Button>);
+      const { unmount, container } = renderWithTheme(
+        <Button variant={variant}>{variant}</Button>,
+      );
       expect(container.querySelector('button')?.textContent).toBe(variant);
       unmount();
     }
@@ -39,7 +48,9 @@ describe('Button', () => {
   it('renders all sizes', () => {
     const sizes = ['default', 'sm', 'lg', 'icon'] as const;
     for (const size of sizes) {
-      const { unmount, container } = renderWithTheme(<Button size={size}>{size}</Button>);
+      const { unmount, container } = renderWithTheme(
+        <Button size={size}>{size}</Button>,
+      );
       expect(container.querySelector('button')?.textContent).toBe(size);
       unmount();
     }
@@ -47,7 +58,9 @@ describe('Button', () => {
 
   it('handles click events', () => {
     const onClick = vi.fn();
-    const { container } = renderWithTheme(<Button onClick={onClick}>Click</Button>);
+    const { container } = renderWithTheme(
+      <Button onClick={onClick}>Click</Button>,
+    );
     fireEvent.click(container.querySelector('button')!);
     expect(onClick).toHaveBeenCalledOnce();
   });

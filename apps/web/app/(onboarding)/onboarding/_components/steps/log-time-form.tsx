@@ -16,7 +16,15 @@ interface FormState {
 }
 
 type FormAction =
-  | { field: 'clientId' | 'clientName' | 'date' | 'durationMinutes' | 'description'; value: string }
+  | {
+      field:
+        | 'clientId'
+        | 'clientName'
+        | 'date'
+        | 'durationMinutes'
+        | 'description';
+      value: string;
+    }
   | { field: 'errors'; value: Record<string, string> }
   | { field: 'isSubmitting'; value: boolean };
 
@@ -77,7 +85,13 @@ function LogTimeFormInner() {
 
       router.push('/onboarding/completion');
     },
-    [state.clientId, state.date, state.durationMinutes, state.description, router],
+    [
+      state.clientId,
+      state.date,
+      state.durationMinutes,
+      state.description,
+      router,
+    ],
   );
 
   useEffect(() => {
@@ -102,7 +116,10 @@ function LogTimeFormInner() {
       </h1>
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
-          <label htmlFor="time-client" className="block text-sm font-medium text-[var(--flow-color-foreground)]">
+          <label
+            htmlFor="time-client"
+            className="block text-sm font-medium text-[var(--flow-color-foreground)]"
+          >
             Client
           </label>
           <input
@@ -115,7 +132,10 @@ function LogTimeFormInner() {
         </div>
 
         <div>
-          <label htmlFor="time-date" className="block text-sm font-medium text-[var(--flow-color-foreground)]">
+          <label
+            htmlFor="time-date"
+            className="block text-sm font-medium text-[var(--flow-color-foreground)]"
+          >
             Date
           </label>
           <input
@@ -129,14 +149,21 @@ function LogTimeFormInner() {
             required
           />
           {state.errors.date && (
-            <p id="time-date-error" className="mt-1 text-sm text-red-600" role="alert">
+            <p
+              id="time-date-error"
+              className="mt-1 text-sm text-red-600"
+              role="alert"
+            >
               {state.errors.date}
             </p>
           )}
         </div>
 
         <div>
-          <label htmlFor="time-duration" className="block text-sm font-medium text-[var(--flow-color-foreground)]">
+          <label
+            htmlFor="time-duration"
+            className="block text-sm font-medium text-[var(--flow-color-foreground)]"
+          >
             Duration (minutes)
           </label>
           <input
@@ -145,28 +172,41 @@ function LogTimeFormInner() {
             min={1}
             max={1440}
             value={state.durationMinutes}
-            onChange={(e) => dispatch({ field: 'durationMinutes', value: e.target.value })}
-            aria-describedby={state.errors.duration_minutes ? 'time-duration-error' : undefined}
+            onChange={(e) =>
+              dispatch({ field: 'durationMinutes', value: e.target.value })
+            }
+            aria-describedby={
+              state.errors.duration_minutes ? 'time-duration-error' : undefined
+            }
             aria-invalid={!!state.errors.duration_minutes}
             className="mt-1 block w-full rounded-[var(--flow-radius-md)] border border-[var(--flow-color-border)] px-3 py-2 text-sm"
             required
             placeholder="60"
           />
           {state.errors.duration_minutes && (
-            <p id="time-duration-error" className="mt-1 text-sm text-red-600" role="alert">
+            <p
+              id="time-duration-error"
+              className="mt-1 text-sm text-red-600"
+              role="alert"
+            >
               {state.errors.duration_minutes}
             </p>
           )}
         </div>
 
         <div>
-          <label htmlFor="time-description" className="block text-sm font-medium text-[var(--flow-color-foreground)]">
+          <label
+            htmlFor="time-description"
+            className="block text-sm font-medium text-[var(--flow-color-foreground)]"
+          >
             Description (optional)
           </label>
           <textarea
             id="time-description"
             value={state.description}
-            onChange={(e) => dispatch({ field: 'description', value: e.target.value })}
+            onChange={(e) =>
+              dispatch({ field: 'description', value: e.target.value })
+            }
             className="mt-1 block w-full rounded-[var(--flow-radius-md)] border border-[var(--flow-color-border)] px-3 py-2 text-sm"
             rows={2}
           />
@@ -192,7 +232,13 @@ function LogTimeFormInner() {
 
 export function LogTimeFormWithSuspense() {
   return (
-    <Suspense fallback={<div className="text-center text-sm text-[var(--flow-color-muted-foreground)]">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="text-center text-sm text-[var(--flow-color-muted-foreground)]">
+          Loading...
+        </div>
+      }
+    >
       <LogTimeFormInner />
     </Suspense>
   );

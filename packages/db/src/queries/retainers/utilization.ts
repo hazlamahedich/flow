@@ -39,54 +39,66 @@ export async function getRetainerUtilization(
   }
 
   if (!allocatedHoursStr || retainer.type === 'hourly_rate') {
-      const startDate = new Date(retainer.start_date + 'T00:00:00Z');
-      const now = new Date();
-      const { periodStart } = getCurrentBillingPeriod(startDate, retainer.billing_period_days, now);
-      const periodStartStr = periodStart.toISOString().slice(0, 10);
+    const startDate = new Date(retainer.start_date + 'T00:00:00Z');
+    const now = new Date();
+    const { periodStart } = getCurrentBillingPeriod(
+      startDate,
+      retainer.billing_period_days,
+      now,
+    );
+    const periodStartStr = periodStart.toISOString().slice(0, 10);
 
-      const { data: entries, error: teError } = await client
-        .from('time_entries')
-        .select('duration_minutes')
-        .eq('client_id', retainer.client_id)
-        .eq('workspace_id', input.workspaceId)
-        .gte('date', periodStartStr);
+    const { data: entries, error: teError } = await client
+      .from('time_entries')
+      .select('duration_minutes')
+      .eq('client_id', retainer.client_id)
+      .eq('workspace_id', input.workspaceId)
+      .gte('date', periodStartStr);
 
-      if (teError) throw teError;
-      const totalMinutes = (entries ?? []).reduce((sum: number, e: { duration_minutes: number }) => sum + e.duration_minutes, 0);
+    if (teError) throw teError;
+    const totalMinutes = (entries ?? []).reduce(
+      (sum: number, e: { duration_minutes: number }) =>
+        sum + e.duration_minutes,
+      0,
+    );
 
-      return {
-        totalMinutes,
-        allocatedMinutes: 0,
-        utilizationPercent: 0,
-        billingPeriodStart: retainer.start_date,
-        billingPeriodEnd: null as string | null,
-      };
-    }
+    return {
+      totalMinutes,
+      allocatedMinutes: 0,
+      utilizationPercent: 0,
+      billingPeriodStart: retainer.start_date,
+      billingPeriodEnd: null as string | null,
+    };
+  }
 
-    const allocatedMinutes = numericToMinutes(allocatedHoursStr);
-    if (allocatedMinutes <= 0) {
-      return {
-        totalMinutes: 0,
-        allocatedMinutes: 0,
-        utilizationPercent: 0,
-        billingPeriodStart: retainer.start_date,
-        billingPeriodEnd: null as string | null,
-      };
-    }
-    const thresholdMinutes = Math.ceil(allocatedMinutes * 90 / 100);
-    if (thresholdMinutes <= 0) {
-      return {
-        totalMinutes: 0,
-        allocatedMinutes: 0,
-        utilizationPercent: 0,
-        billingPeriodStart: retainer.start_date,
-        billingPeriodEnd: null as string | null,
-      };
-    }
+  const allocatedMinutes = numericToMinutes(allocatedHoursStr);
+  if (allocatedMinutes <= 0) {
+    return {
+      totalMinutes: 0,
+      allocatedMinutes: 0,
+      utilizationPercent: 0,
+      billingPeriodStart: retainer.start_date,
+      billingPeriodEnd: null as string | null,
+    };
+  }
+  const thresholdMinutes = Math.ceil((allocatedMinutes * 90) / 100);
+  if (thresholdMinutes <= 0) {
+    return {
+      totalMinutes: 0,
+      allocatedMinutes: 0,
+      utilizationPercent: 0,
+      billingPeriodStart: retainer.start_date,
+      billingPeriodEnd: null as string | null,
+    };
+  }
 
   const startDate = new Date(retainer.start_date + 'T00:00:00Z');
   const now = new Date();
-  const { periodStart, periodEnd } = getCurrentBillingPeriod(startDate, retainer.billing_period_days, now);
+  const { periodStart, periodEnd } = getCurrentBillingPeriod(
+    startDate,
+    retainer.billing_period_days,
+    now,
+  );
   const periodStartStr = periodStart.toISOString().slice(0, 10);
   const periodEndStr = periodEnd.toISOString().slice(0, 10);
 
@@ -99,8 +111,14 @@ export async function getRetainerUtilization(
     .lt('date', periodEndStr);
 
   if (teError) throw teError;
-  const totalMinutes = (entries ?? []).reduce((sum: number, e: { duration_minutes: number }) => sum + e.duration_minutes, 0);
-  const utilizationPercent = allocatedMinutes > 0 ? Math.floor(totalMinutes * 100 / allocatedMinutes) : 0;
+  const totalMinutes = (entries ?? []).reduce(
+    (sum: number, e: { duration_minutes: number }) => sum + e.duration_minutes,
+    0,
+  );
+  const utilizationPercent =
+    allocatedMinutes > 0
+      ? Math.floor((totalMinutes * 100) / allocatedMinutes)
+      : 0;
 
   return {
     totalMinutes,
@@ -120,7 +138,9 @@ export async function getScopeCreepAlerts(
   });
 
   if (error) {
-    throw new Error(`[getScopeCreepAlerts] RPC failed for workspace ${input.workspaceId}: ${error.message}`);
+    throw new Error(
+      `[getScopeCreepAlerts] RPC failed for workspace ${input.workspaceId}: ${error.message}`,
+    );
   }
 
   return (data ?? []) as ScopeCreepAlert[];

@@ -19,20 +19,43 @@
     "plugins": [{ "name": "next" }],
     "paths": {
       "@/*": ["./*"],
-      "@flow/agents/time-integrity/anomaly-detection": ["../../packages/agents/time-integrity/anomaly-detection"],
-      "@flow/agents/time-integrity/schemas": ["../../packages/agents/time-integrity/schemas"],
-      "@flow/agents/orchestrator/boss-di": ["../../packages/agents/orchestrator/boss-di"],
+      "@flow/agents/time-integrity/anomaly-detection": [
+        "../../packages/agents/time-integrity/anomaly-detection"
+      ],
+      "@flow/agents/time-integrity/schemas": [
+        "../../packages/agents/time-integrity/schemas"
+      ],
+      "@flow/agents/orchestrator/boss-di": [
+        "../../packages/agents/orchestrator/boss-di"
+      ],
       "@flow/agents/shared": ["../../packages/agents/shared"],
-      "@flow/agents/shared/audit-writer": ["../../packages/agents/shared/audit-writer"],
+      "@flow/agents/shared/audit-writer": [
+        "../../packages/agents/shared/audit-writer"
+      ],
       "@flow/agents/calendar/config": ["../../packages/agents/calendar/config"],
       "@flow/agents/calendar/types": ["../../packages/agents/calendar/types"],
-      "@flow/agents/calendar/signal-consumer": ["../../packages/agents/calendar/signal-consumer"],
-      "@flow/agents/calendar/propose-booking-action": ["../../packages/agents/calendar/propose-booking-action"],
-      "@flow/agents/calendar/slot-finder": ["../../packages/agents/calendar/slot-finder"],
-      "@flow/agents/calendar/providers/calendar-provider": ["../../packages/agents/calendar/providers/calendar-provider"],
-      "@flow/agents/calendar/create-event-action": ["../../packages/agents/calendar/create-event-action"]
+      "@flow/agents/calendar/signal-consumer": [
+        "../../packages/agents/calendar/signal-consumer"
+      ],
+      "@flow/agents/calendar/propose-booking-action": [
+        "../../packages/agents/calendar/propose-booking-action"
+      ],
+      "@flow/agents/calendar/slot-finder": [
+        "../../packages/agents/calendar/slot-finder"
+      ],
+      "@flow/agents/calendar/providers/calendar-provider": [
+        "../../packages/agents/calendar/providers/calendar-provider"
+      ],
+      "@flow/agents/calendar/create-event-action": [
+        "../../packages/agents/calendar/create-event-action"
+      ]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "dist", ".next", "__tests__/acceptance/**/*.spec.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next",
+    "__tests__/acceptance/**/*.spec.ts"
+  ]
 }

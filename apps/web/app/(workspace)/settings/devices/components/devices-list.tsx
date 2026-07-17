@@ -21,11 +21,18 @@ function formatRelativeTime(dateStr: string): string {
   return date.toLocaleDateString();
 }
 
-export function DevicesList({ devices: initialDevices }: { devices: ClientDeviceRecord[] }) {
+export function DevicesList({
+  devices: initialDevices,
+}: {
+  devices: ClientDeviceRecord[];
+}) {
   const [devices, setDevices] = useState(initialDevices);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [showConfirmSignOut, setShowConfirmSignOut] = useState(false);
-  const [signOutState, signOutAction, signOutPending] = useActionState(revokeAllDevicesAction, null);
+  const [signOutState, signOutAction, signOutPending] = useActionState(
+    revokeAllDevicesAction,
+    null,
+  );
 
   const activeDevices = devices.filter((d) => !d.isRevoked);
   const revokedDevices = devices.filter((d) => d.isRevoked);
@@ -62,7 +69,8 @@ export function DevicesList({ devices: initialDevices }: { devices: ClientDevice
       <div className="space-y-3">
         {activeDevices.length === 0 && (
           <p className="py-8 text-center text-sm text-[var(--flow-color-text-tertiary)]">
-            No trusted devices. Trust a device during sign-in to stay signed in longer.
+            No trusted devices. Trust a device during sign-in to stay signed in
+            longer.
           </p>
         )}
 
@@ -132,7 +140,8 @@ export function DevicesList({ devices: initialDevices }: { devices: ClientDevice
           ) : (
             <div className="space-y-3">
               <p className="text-sm text-[var(--flow-color-text-secondary)]">
-                This will revoke all trusted devices and sign you out of all sessions. You will need to sign in again.
+                This will revoke all trusted devices and sign you out of all
+                sessions. You will need to sign in again.
               </p>
               <div className="flex gap-3">
                 <button
@@ -140,7 +149,9 @@ export function DevicesList({ devices: initialDevices }: { devices: ClientDevice
                   disabled={signOutPending}
                   className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-opacity hover:bg-red-700 disabled:opacity-50"
                 >
-                  {signOutPending ? 'Signing out...' : 'Confirm sign out everywhere'}
+                  {signOutPending
+                    ? 'Signing out...'
+                    : 'Confirm sign out everywhere'}
                 </button>
                 <button
                   onClick={() => setShowConfirmSignOut(false)}

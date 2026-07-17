@@ -12,7 +12,11 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/supabase-server', () => ({ getServerSupabase: vi.fn() }));
 vi.mock('@flow/db', async () => {
   const actual = await vi.importActual<typeof import('@flow/db')>('@flow/db');
-  return { ...actual, requireTenantContext: vi.fn(), createFlowError: actual.createFlowError };
+  return {
+    ...actual,
+    requireTenantContext: vi.fn(),
+    createFlowError: actual.createFlowError,
+  };
 });
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }));
 vi.mock('@flow/auth/server/portal-client', () => ({
@@ -22,7 +26,10 @@ vi.mock('@flow/auth/server/portal-client', () => ({
 }));
 vi.mock('@flow/agents/providers', () => ({
   getPaymentProvider: vi.fn(() => ({
-    createCheckoutSession: vi.fn().mockResolvedValue({ url: 'https://checkout.stripe.com/cs_1', sessionId: 'cs_1' }),
+    createCheckoutSession: vi.fn().mockResolvedValue({
+      url: 'https://checkout.stripe.com/cs_1',
+      sessionId: 'cs_1',
+    }),
   })),
   getTransactionalEmailProvider: vi.fn(() => ({
     send: vi.fn().mockResolvedValue({ messageId: 'msg_1' }),

@@ -11,12 +11,9 @@ vi.mock('next/navigation', () => ({
 }));
 
 const mockCreateClient = vi.fn();
-vi.mock(
-  '../../app/(onboarding)/onboarding/_actions/create-client',
-  () => ({
-    createClient: (...args: unknown[]) => mockCreateClient(...args),
-  }),
-);
+vi.mock('../../app/(onboarding)/onboarding/_actions/create-client', () => ({
+  createClient: (...args: unknown[]) => mockCreateClient(...args),
+}));
 
 import { CreateClientForm } from '../../app/(onboarding)/onboarding/_components/steps/create-client-form';
 
@@ -84,7 +81,9 @@ describe('CreateClientForm', () => {
     await userEvent.click(screen.getByRole('button'));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Failed to create client');
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Failed to create client',
+      );
     });
   });
 

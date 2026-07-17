@@ -18,12 +18,19 @@ interface WizardOverlayProps {
   triggerRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
-export function WizardOverlay({ open, onClose, triggerRef }: WizardOverlayProps) {
+export function WizardOverlay({
+  open,
+  onClose,
+  triggerRef,
+}: WizardOverlayProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [hasData, setHasData] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const pushedRef = useRef(false);
-  const { ref: focusTrapRef } = useFocusTrap({ enabled: open, restoreFocus: false });
+  const { ref: focusTrapRef } = useFocusTrap({
+    enabled: open,
+    restoreFocus: false,
+  });
 
   const handleClose = useCallback(() => {
     if (hasData) {
@@ -60,14 +67,20 @@ export function WizardOverlay({ open, onClose, triggerRef }: WizardOverlayProps)
     if (!open || pushedRef.current) return;
     history.pushState(null, '', '');
     pushedRef.current = true;
-    return () => { pushedRef.current = false; };
+    return () => {
+      pushedRef.current = false;
+    };
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
-    const handlePopState = () => { handleClose(); };
+    const handlePopState = () => {
+      handleClose();
+    };
     window.addEventListener('popstate', handlePopState);
-    return () => { window.removeEventListener('popstate', handlePopState); };
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, [open, handleClose]);
 
   useEffect(() => {
@@ -86,10 +99,13 @@ export function WizardOverlay({ open, onClose, triggerRef }: WizardOverlayProps)
     }
   }, [open, triggerRef]);
 
-  const setBothRefs = useCallback((node: HTMLDivElement | null) => {
-    dialogRef.current = node;
-    focusTrapRef(node);
-  }, [focusTrapRef]);
+  const setBothRefs = useCallback(
+    (node: HTMLDivElement | null) => {
+      dialogRef.current = node;
+      focusTrapRef(node);
+    },
+    [focusTrapRef],
+  );
 
   if (!open) return null;
 
@@ -97,7 +113,9 @@ export function WizardOverlay({ open, onClose, triggerRef }: WizardOverlayProps)
     <>
       <div
         className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 backdrop-blur-sm sm:items-start sm:p-0 [&@media_(max-width:640px)]:flex-col"
-        onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) handleClose();
+        }}
       >
         <div
           ref={setBothRefs}
@@ -115,7 +133,9 @@ export function WizardOverlay({ open, onClose, triggerRef }: WizardOverlayProps)
             ✕
           </button>
 
-          <h1 className="mb-4 text-xl font-semibold text-[var(--flow-color-text-primary)]">New Client</h1>
+          <h1 className="mb-4 text-xl font-semibold text-[var(--flow-color-text-primary)]">
+            New Client
+          </h1>
 
           <WizardContainer onDataChange={setHasData} />
         </div>

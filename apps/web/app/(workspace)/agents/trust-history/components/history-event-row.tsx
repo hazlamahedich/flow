@@ -14,9 +14,16 @@ interface HistoryEventRowProps {
   onFocus?: () => void;
 }
 
-export function HistoryEventRow({ event, tabIndex = -1, rowRef, onFocus }: HistoryEventRowProps) {
-  const isUpgrade = (LEVEL_ORDER[event.toLevel] ?? 0) > (LEVEL_ORDER[event.fromLevel] ?? 0);
-  const agentIdentity = AGENT_IDENTITY[event.agentId as keyof typeof AGENT_IDENTITY];
+export function HistoryEventRow({
+  event,
+  tabIndex = -1,
+  rowRef,
+  onFocus,
+}: HistoryEventRowProps) {
+  const isUpgrade =
+    (LEVEL_ORDER[event.toLevel] ?? 0) > (LEVEL_ORDER[event.fromLevel] ?? 0);
+  const agentIdentity =
+    AGENT_IDENTITY[event.agentId as keyof typeof AGENT_IDENTITY];
   const agentLabel = agentIdentity?.label ?? event.agentId;
 
   const transitionColor = isUpgrade
@@ -38,7 +45,9 @@ export function HistoryEventRow({ event, tabIndex = -1, rowRef, onFocus }: Histo
         {agentLabel}
       </td>
       <td className="py-2">
-        <span className={`inline-flex items-center gap-1 text-xs font-medium ${transitionColor}`}>
+        <span
+          className={`inline-flex items-center gap-1 text-xs font-medium ${transitionColor}`}
+        >
           <span aria-hidden="true">{borderIcon}</span>
           <span>{event.fromLevel}</span>
           <span aria-hidden="true">→</span>

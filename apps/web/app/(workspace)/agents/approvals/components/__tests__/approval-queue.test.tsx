@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
-import { buildApprovalQueueItem, buildBatchApprovalItems, buildTimedOutItem } from '@flow/test-utils';
+import {
+  render,
+  screen,
+  fireEvent,
+  cleanup,
+  waitFor,
+} from '@testing-library/react';
+import {
+  buildApprovalQueueItem,
+  buildBatchApprovalItems,
+  buildTimedOutItem,
+} from '@flow/test-utils';
 import { ApprovalQueue } from '../approval-queue';
 
 vi.mock('@supabase/ssr', () => ({
@@ -18,25 +28,44 @@ vi.mock('../approval-queue', async () => {
 });
 
 vi.mock('../../actions/approve-run', () => ({
-  approveRun: vi.fn().mockResolvedValue({ success: true, data: { runId: 'r1', newStatus: 'completed' } }),
+  approveRun: vi.fn().mockResolvedValue({
+    success: true,
+    data: { runId: 'r1', newStatus: 'completed' },
+  }),
 }));
 vi.mock('../../actions/reject-run', () => ({
-  rejectRun: vi.fn().mockResolvedValue({ success: true, data: { runId: 'r1', newStatus: 'cancelled' } }),
+  rejectRun: vi.fn().mockResolvedValue({
+    success: true,
+    data: { runId: 'r1', newStatus: 'cancelled' },
+  }),
 }));
 vi.mock('../../actions/batch-approve-runs', () => ({
-  batchApproveRuns: vi.fn().mockResolvedValue({ success: true, data: { succeeded: [], failed: [] } }),
+  batchApproveRuns: vi
+    .fn()
+    .mockResolvedValue({ success: true, data: { succeeded: [], failed: [] } }),
 }));
 vi.mock('../../actions/batch-reject-runs', () => ({
-  batchRejectRuns: vi.fn().mockResolvedValue({ success: true, data: { succeeded: [], failed: [] } }),
+  batchRejectRuns: vi
+    .fn()
+    .mockResolvedValue({ success: true, data: { succeeded: [], failed: [] } }),
 }));
 vi.mock('../../actions/update-proposal', () => ({
-  updateProposal: vi.fn().mockResolvedValue({ success: true, data: { runId: 'r1', newStatus: 'waiting_approval' } }),
+  updateProposal: vi.fn().mockResolvedValue({
+    success: true,
+    data: { runId: 'r1', newStatus: 'waiting_approval' },
+  }),
 }));
 vi.mock('../../actions/cancel-run', () => ({
-  cancelRun: vi.fn().mockResolvedValue({ success: true, data: { runId: 'r1', newStatus: 'cancelled' } }),
+  cancelRun: vi.fn().mockResolvedValue({
+    success: true,
+    data: { runId: 'r1', newStatus: 'cancelled' },
+  }),
 }));
 vi.mock('../../actions/resume-run', () => ({
-  resumeRun: vi.fn().mockResolvedValue({ success: true, data: { runId: 'r1', newStatus: 'running' } }),
+  resumeRun: vi.fn().mockResolvedValue({
+    success: true,
+    data: { runId: 'r1', newStatus: 'running' },
+  }),
 }));
 
 const WS = 'ws-test-00000000-0000-0000-0000-000000000000';
@@ -53,11 +82,23 @@ function renderQueue(items = [buildApprovalQueueItem()]) {
 }
 
 describe('ApprovalQueue', () => {
-  beforeEach(() => { cleanup(); vi.clearAllMocks(); });
-  afterEach(() => { cleanup(); });
+  beforeEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+  afterEach(() => {
+    cleanup();
+  });
 
   it('renders empty state', () => {
-    render(<ApprovalQueue initialItems={[]} agentBreakdown={{}} totalCount={0} workspaceId={WS} />);
+    render(
+      <ApprovalQueue
+        initialItems={[]}
+        agentBreakdown={{}}
+        totalCount={0}
+        workspaceId={WS}
+      />,
+    );
     expect(screen.getByText(/All clear/)).toBeDefined();
   });
 
@@ -66,7 +107,14 @@ describe('ApprovalQueue', () => {
       buildApprovalQueueItem({ proposalType: 'agent_proposal' }),
       buildApprovalQueueItem({ proposalType: 'trust_blocked' }),
     ];
-    render(<ApprovalQueue initialItems={items} agentBreakdown={{ inbox: 1, calendar: 1 }} totalCount={2} workspaceId={WS} />);
+    render(
+      <ApprovalQueue
+        initialItems={items}
+        agentBreakdown={{ inbox: 1, calendar: 1 }}
+        totalCount={2}
+        workspaceId={WS}
+      />,
+    );
     expect(screen.getByText('Agent Proposal')).toBeDefined();
     expect(screen.getByText('Trust Gate')).toBeDefined();
   });
@@ -91,7 +139,9 @@ describe('ApprovalQueue', () => {
     const wrapper = container.querySelector('[tabindex="-1"]')!;
     fireEvent.keyDown(wrapper, { key: 'ArrowDown' });
     fireEvent.keyDown(wrapper, { key: 'a' });
-    await waitFor(() => { expect(approveRun).toHaveBeenCalled(); });
+    await waitFor(() => {
+      expect(approveRun).toHaveBeenCalled();
+    });
   });
 
   it('rejects focused item on R key press', async () => {
@@ -100,7 +150,9 @@ describe('ApprovalQueue', () => {
     const wrapper = container.querySelector('[tabindex="-1"]')!;
     fireEvent.keyDown(wrapper, { key: 'ArrowDown' });
     fireEvent.keyDown(wrapper, { key: 'r' });
-    await waitFor(() => { expect(rejectRun).toHaveBeenCalled(); });
+    await waitFor(() => {
+      expect(rejectRun).toHaveBeenCalled();
+    });
   });
 
   it('enters edit mode on E key press', () => {
@@ -143,7 +195,9 @@ describe('ApprovalQueue', () => {
     fireEvent.keyDown(wrapper, { key: 'ArrowDown' });
     fireEvent.keyDown(wrapper, { key: 'ArrowDown' });
     fireEvent.keyDown(wrapper, { key: 'ArrowDown' });
-    expect(container.querySelectorAll('[aria-selected="true"]').length).toBeLessThanOrEqual(1);
+    expect(
+      container.querySelectorAll('[aria-selected="true"]').length,
+    ).toBeLessThanOrEqual(1);
   });
 
   it('renders inline edit form when E activates edit mode', () => {
@@ -168,45 +222,68 @@ describe('ApprovalQueue', () => {
   it('shows error message after optimistic rollback', async () => {
     const { approveRun } = await import('../../actions/approve-run');
     vi.mocked(approveRun).mockResolvedValueOnce({
-      success: false, error: { status: 409, code: 'CONFLICT', message: 'Already processed', category: 'validation' },
+      success: false,
+      error: {
+        status: 409,
+        code: 'CONFLICT',
+        message: 'Already processed',
+        category: 'validation',
+      },
     });
     const { container } = renderQueue(buildBatchApprovalItems(1));
     const wrapper = container.querySelector('[tabindex="-1"]')!;
     fireEvent.keyDown(wrapper, { key: 'ArrowDown' });
     fireEvent.keyDown(wrapper, { key: 'a' });
-    await waitFor(() => { expect(approveRun).toHaveBeenCalled(); });
-    await waitFor(() => { expect(screen.getByText(/Already processed/)).toBeDefined(); });
+    await waitFor(() => {
+      expect(approveRun).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(screen.getByText(/Already processed/)).toBeDefined();
+    });
   });
 
   it('removes item from list after successful approve', async () => {
     const { approveRun } = await import('../../actions/approve-run');
     vi.mocked(approveRun).mockResolvedValueOnce({
-      success: true, data: { runId: expect.any(String), newStatus: 'completed' },
+      success: true,
+      data: { runId: expect.any(String), newStatus: 'completed' },
     });
     const { container } = renderQueue(buildBatchApprovalItems(2));
     const wrapper = container.querySelector('[tabindex="-1"]')!;
     fireEvent.keyDown(wrapper, { key: 'ArrowDown' });
     fireEvent.keyDown(wrapper, { key: 'a' });
-    await waitFor(() => { expect(approveRun).toHaveBeenCalled(); });
+    await waitFor(() => {
+      expect(approveRun).toHaveBeenCalled();
+    });
   });
 
   it('renders timeout UI with resume and cancel buttons for timed_out runs', () => {
     const item = buildTimedOutItem();
-    render(<ApprovalQueue initialItems={[item]} agentBreakdown={{ inbox: 1 }} totalCount={1} workspaceId={WS} />);
+    render(
+      <ApprovalQueue
+        initialItems={[item]}
+        agentBreakdown={{ inbox: 1 }}
+        totalCount={1}
+        workspaceId={WS}
+      />,
+    );
     expect(screen.getByText(/Execution paused/)).toBeDefined();
   });
 
   it('announces actions via aria-live region', async () => {
     const { approveRun } = await import('../../actions/approve-run');
     vi.mocked(approveRun).mockResolvedValueOnce({
-      success: true, data: { runId: expect.any(String), newStatus: 'completed' },
+      success: true,
+      data: { runId: expect.any(String), newStatus: 'completed' },
     });
     const { container } = renderQueue(buildBatchApprovalItems(1));
     const wrapper = container.querySelector('[tabindex="-1"]')!;
     expect(container.querySelector('[aria-live="polite"]')).toBeTruthy();
     fireEvent.keyDown(wrapper, { key: 'ArrowDown' });
     fireEvent.keyDown(wrapper, { key: 'a' });
-    await waitFor(() => { expect(approveRun).toHaveBeenCalled(); });
+    await waitFor(() => {
+      expect(approveRun).toHaveBeenCalled();
+    });
   });
 
   it('shows selected indicator when item is focused', () => {

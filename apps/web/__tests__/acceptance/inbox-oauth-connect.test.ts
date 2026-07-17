@@ -1,5 +1,10 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { createTestInbox, createTestEmail, FAKE_WORKSPACE_ID, FAKE_CLIENT_ID } from './epic-4/test-factories';
+import {
+  createTestInbox,
+  createTestEmail,
+  FAKE_WORKSPACE_ID,
+  FAKE_CLIENT_ID,
+} from './epic-4/test-factories';
 
 const mockGetServerSupabase = vi.fn();
 const mockRequireTenantContext = vi.fn();
@@ -12,9 +17,11 @@ vi.mock('@/lib/supabase-server', () => ({
 }));
 
 vi.mock('@flow/db', () => ({
-  requireTenantContext: (...args: unknown[]) => mockRequireTenantContext(...args),
+  requireTenantContext: (...args: unknown[]) =>
+    mockRequireTenantContext(...args),
   createClientInbox: (...args: unknown[]) => mockCreateClientInbox(...args),
-  getClientInboxByEmail: (...args: unknown[]) => mockGetClientInboxByEmail(...args),
+  getClientInboxByEmail: (...args: unknown[]) =>
+    mockGetClientInboxByEmail(...args),
 }));
 
 describe('[P0] Inbox OAuth Connect Flow (ATDD)', () => {
@@ -31,8 +38,12 @@ describe('[P0] Inbox OAuth Connect Flow (ATDD)', () => {
   });
 
   test('AC1: should initiate OAuth and return authorization URL', async () => {
-    const oauthUrl = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=test';
-    mockInitiateOAuth.mockResolvedValue({ success: true, data: { url: oauthUrl } });
+    const oauthUrl =
+      'https://accounts.google.com/o/oauth2/v2/auth?client_id=test';
+    mockInitiateOAuth.mockResolvedValue({
+      success: true,
+      data: { url: oauthUrl },
+    });
 
     const result = await mockInitiateOAuth({
       clientId: FAKE_CLIENT_ID,
@@ -112,7 +123,9 @@ describe('[P0] Inbox OAuth Connect Flow (ATDD)', () => {
 
   test('AC6: should reject duplicate inbox connection', async () => {
     mockGetClientInboxByEmail.mockResolvedValue(inbox);
-    mockCreateClientInbox.mockRejectedValue(new Error('Email already connected'));
+    mockCreateClientInbox.mockRejectedValue(
+      new Error('Email already connected'),
+    );
 
     await expect(
       mockCreateClientInbox(mockSupabase, {

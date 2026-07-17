@@ -1,22 +1,32 @@
-import Link from "next/link";
-import { ArrowUpRight, Inbox, AlertTriangle, CheckCheck, Wallet, Clock4, CalendarDays } from "lucide-react";
-import { Topbar } from "@/components/topbar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ProposalCard } from "@/components/proposal-card";
-import { AgentIcon } from "@/components/agent-icon";
+import Link from 'next/link';
+import {
+  ArrowUpRight,
+  Inbox,
+  AlertTriangle,
+  CheckCheck,
+  Wallet,
+  Clock4,
+  CalendarDays,
+} from 'lucide-react';
+import { Topbar } from '@/components/topbar';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ProposalCard } from '@/components/proposal-card';
+import { AgentIcon } from '@/components/agent-icon';
 import {
   agentInbox,
   briefStats,
   recentActivity,
   todayCalendar,
   clients,
-} from "@/lib/mock-data";
-import { formatCurrency, relTime } from "@/lib/utils";
+} from '@/lib/mock-data';
+import { formatCurrency, relTime } from '@/lib/utils';
 
 export default function MorningBriefPage() {
-  const topProposals = agentInbox.filter((p) => p.status === "pending").slice(0, 3);
+  const topProposals = agentInbox
+    .filter((p) => p.status === 'pending')
+    .slice(0, 3);
 
   return (
     <>
@@ -86,7 +96,9 @@ export default function MorningBriefPage() {
                 <div className="flex items-center gap-2 mb-3">
                   <CalendarDays size={14} className="text-emerald-600" />
                   <h3 className="text-sm font-semibold text-ink-900">Today</h3>
-                  <span className="ml-auto text-[11px] text-ink-400">4 events</span>
+                  <span className="ml-auto text-[11px] text-ink-400">
+                    4 events
+                  </span>
                 </div>
                 <ul className="space-y-3">
                   {todayCalendar.map((ev) => (
@@ -95,7 +107,9 @@ export default function MorningBriefPage() {
                         {ev.time}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm text-ink-900 truncate">{ev.title}</div>
+                        <div className="text-sm text-ink-900 truncate">
+                          {ev.title}
+                        </div>
                         <div className="text-[11px] text-ink-500 truncate">
                           {ev.client} · {ev.duration}
                         </div>
@@ -111,8 +125,12 @@ export default function MorningBriefPage() {
               <CardContent>
                 <div className="flex items-center gap-2 mb-3">
                   <Clock4 size={14} className="text-flow-600" />
-                  <h3 className="text-sm font-semibold text-ink-900">Agent activity</h3>
-                  <span className="ml-auto text-[11px] text-ink-400">last 24h</span>
+                  <h3 className="text-sm font-semibold text-ink-900">
+                    Agent activity
+                  </h3>
+                  <span className="ml-auto text-[11px] text-ink-400">
+                    last 24h
+                  </span>
                 </div>
                 <ul className="space-y-3">
                   {recentActivity.map((a) => {
@@ -121,14 +139,22 @@ export default function MorningBriefPage() {
                       <li key={a.id} className="flex gap-3">
                         <AgentIcon k={a.agent} size={28} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] text-ink-800 leading-snug">{a.text}</p>
+                          <p className="text-[13px] text-ink-800 leading-snug">
+                            {a.text}
+                          </p>
                           <div className="mt-0.5 flex items-center gap-2 text-[11px] text-ink-500">
                             {c && <span>{c.name}</span>}
                             <span>·</span>
                             <span>{relTime(a.at)}</span>
-                            {a.result === "auto" && <Badge tone="success">auto</Badge>}
-                            {a.result === "approved" && <Badge tone="flow">approved</Badge>}
-                            {a.result === "edited" && <Badge tone="warn">edited</Badge>}
+                            {a.result === 'auto' && (
+                              <Badge tone="success">auto</Badge>
+                            )}
+                            {a.result === 'approved' && (
+                              <Badge tone="flow">approved</Badge>
+                            )}
+                            {a.result === 'edited' && (
+                              <Badge tone="warn">edited</Badge>
+                            )}
                           </div>
                         </div>
                       </li>
@@ -142,15 +168,39 @@ export default function MorningBriefPage() {
             <Card>
               <CardContent>
                 <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-sm font-semibold text-ink-900">Your agent mesh</h3>
+                  <h3 className="text-sm font-semibold text-ink-900">
+                    Your agent mesh
+                  </h3>
                   <Badge tone="success">all healthy</Badge>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  {(["inbox", "calendar", "ar", "report", "health", "time"] as const).map((k) => (
-                    <div key={k} className="rounded-lg border border-ink-100 p-2 flex flex-col items-center gap-1">
+                  {(
+                    [
+                      'inbox',
+                      'calendar',
+                      'ar',
+                      'report',
+                      'health',
+                      'time',
+                    ] as const
+                  ).map((k) => (
+                    <div
+                      key={k}
+                      className="rounded-lg border border-ink-100 p-2 flex flex-col items-center gap-1"
+                    >
                       <AgentIcon k={k} size={28} />
                       <span className="text-[10px] text-ink-500 text-center leading-tight">
-                        {k === "ar" ? "AR" : k === "report" ? "Report" : k === "calendar" ? "Calendar" : k === "inbox" ? "Inbox" : k === "health" ? "Health" : "Time"}
+                        {k === 'ar'
+                          ? 'AR'
+                          : k === 'report'
+                            ? 'Report'
+                            : k === 'calendar'
+                              ? 'Calendar'
+                              : k === 'inbox'
+                                ? 'Inbox'
+                                : k === 'health'
+                                  ? 'Health'
+                                  : 'Time'}
                       </span>
                     </div>
                   ))}
@@ -172,22 +222,26 @@ function StatCard({
   sub,
 }: {
   icon: React.ReactNode;
-  tone: "flow" | "warn" | "success" | "violet";
+  tone: 'flow' | 'warn' | 'success' | 'violet';
   label: string;
   value: string;
   sub: string;
 }) {
   const toneCls: Record<typeof tone, string> = {
-    flow: "bg-flow-50 text-flow-700",
-    warn: "bg-amber-50 text-amber-700",
-    success: "bg-emerald-50 text-emerald-700",
-    violet: "bg-violet-50 text-violet-700",
+    flow: 'bg-flow-50 text-flow-700',
+    warn: 'bg-amber-50 text-amber-700',
+    success: 'bg-emerald-50 text-emerald-700',
+    violet: 'bg-violet-50 text-violet-700',
   };
   return (
     <Card>
       <CardContent className="p-4">
         <div className="flex items-center gap-2 text-xs text-ink-500">
-          <span className={`size-7 rounded-lg grid place-items-center ${toneCls[tone]}`}>{icon}</span>
+          <span
+            className={`size-7 rounded-lg grid place-items-center ${toneCls[tone]}`}
+          >
+            {icon}
+          </span>
           <span>{label}</span>
         </div>
         <div className="mt-2 text-2xl font-semibold text-ink-900">{value}</div>

@@ -25,7 +25,9 @@ import {
 } from '../scoping';
 
 describe('assignMemberToClient', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('calls upsert on member_client_access', async () => {
     const chain = createChain();
@@ -33,7 +35,10 @@ describe('assignMemberToClient', () => {
     mockClient.from = vi.fn(() => chain);
 
     await assignMemberToClient(mockClient as never, {
-      workspaceId: 'ws1', userId: 'u1', clientId: 'c1', grantedBy: 'admin1',
+      workspaceId: 'ws1',
+      userId: 'u1',
+      clientId: 'c1',
+      grantedBy: 'admin1',
     });
 
     expect(mockClient.from).toHaveBeenCalledWith('member_client_access');
@@ -41,19 +46,26 @@ describe('assignMemberToClient', () => {
 
   it('throws on error', async () => {
     const chain = createChain();
-    chain.upsert = vi.fn(() => Promise.resolve({ error: { message: 'db error' } }));
+    chain.upsert = vi.fn(() =>
+      Promise.resolve({ error: { message: 'db error' } }),
+    );
     mockClient.from = vi.fn(() => chain);
 
     await expect(
       assignMemberToClient(mockClient as never, {
-        workspaceId: 'ws1', userId: 'u1', clientId: 'c1', grantedBy: 'admin1',
+        workspaceId: 'ws1',
+        userId: 'u1',
+        clientId: 'c1',
+        grantedBy: 'admin1',
       }),
     ).rejects.toBeDefined();
   });
 });
 
 describe('revokeMemberAccess', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('sets revoked_at', async () => {
     const chain = createChain();
@@ -63,7 +75,9 @@ describe('revokeMemberAccess', () => {
     mockClient.from = vi.fn(() => chain);
 
     await revokeMemberAccess(mockClient as never, {
-      workspaceId: 'ws1', userId: 'u1', clientId: 'c1',
+      workspaceId: 'ws1',
+      userId: 'u1',
+      clientId: 'c1',
     });
 
     expect(mockClient.from).toHaveBeenCalledWith('member_client_access');
@@ -71,7 +85,9 @@ describe('revokeMemberAccess', () => {
 });
 
 describe('getMembersForClient', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('returns empty array when no members', async () => {
     const chain = createChain();
@@ -79,14 +95,17 @@ describe('getMembersForClient', () => {
     mockClient.from = vi.fn(() => chain);
 
     const result = await getMembersForClient(mockClient as never, {
-      clientId: 'c1', workspaceId: 'ws1',
+      clientId: 'c1',
+      workspaceId: 'ws1',
     });
     expect(result).toEqual([]);
   });
 });
 
 describe('getClientsForMember', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('returns empty array when no clients', async () => {
     const chain = createChain();
@@ -94,7 +113,8 @@ describe('getClientsForMember', () => {
     mockClient.from = vi.fn(() => chain);
 
     const result = await getClientsForMember(mockClient as never, {
-      userId: 'u1', workspaceId: 'ws1',
+      userId: 'u1',
+      workspaceId: 'ws1',
     });
     expect(result).toEqual([]);
   });

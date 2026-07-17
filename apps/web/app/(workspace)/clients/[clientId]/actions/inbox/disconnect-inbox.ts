@@ -26,7 +26,12 @@ export async function disconnectInbox(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Invalid input.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Invalid input.',
+        'validation',
+      ),
     };
   }
 
@@ -36,22 +41,41 @@ export async function disconnectInbox(
   if (ctx.role === 'member') {
     return {
       success: false,
-      error: createFlowError(403, 'INSUFFICIENT_ROLE', 'Members cannot disconnect inboxes.', 'auth'),
+      error: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Members cannot disconnect inboxes.',
+        'auth',
+      ),
     };
   }
 
-  const inbox = await getClientInboxById(supabase, parsed.data.inboxId, ctx.workspaceId);
+  const inbox = await getClientInboxById(
+    supabase,
+    parsed.data.inboxId,
+    ctx.workspaceId,
+  );
   if (!inbox) {
     return {
       success: false,
-      error: createFlowError(404, 'INBOX_NOT_FOUND', 'Inbox not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'INBOX_NOT_FOUND',
+        'Inbox not found.',
+        'validation',
+      ),
     };
   }
 
   if (inbox.clientId !== parsed.data.clientId) {
     return {
       success: false,
-      error: createFlowError(403, 'TENANT_MISMATCH', 'Inbox does not belong to this client.', 'auth'),
+      error: createFlowError(
+        403,
+        'TENANT_MISMATCH',
+        'Inbox does not belong to this client.',
+        'auth',
+      ),
     };
   }
 
@@ -64,9 +88,19 @@ export async function disconnectInbox(
       .eq('id', parsed.data.inboxId)
       .single();
 
-    if (rawRow?.oauth_state && typeof rawRow.oauth_state === 'object' && 'encrypted' in rawRow.oauth_state) {
+    if (
+      rawRow?.oauth_state &&
+      typeof rawRow.oauth_state === 'object' &&
+      'encrypted' in rawRow.oauth_state
+    ) {
       try {
-        const tokens = decryptInboxTokens(rawRow.oauth_state as { encrypted: string; iv: string; version: number });
+        const tokens = decryptInboxTokens(
+          rawRow.oauth_state as {
+            encrypted: string;
+            iv: string;
+            version: number;
+          },
+        );
         try {
           await provider.stopWatch(tokens.accessToken);
         } catch {
@@ -78,7 +112,11 @@ export async function disconnectInbox(
       }
     }
 
-    await clearClientInboxTokens(supabase, parsed.data.inboxId, ctx.workspaceId);
+    await clearClientInboxTokens(
+      supabase,
+      parsed.data.inboxId,
+      ctx.workspaceId,
+    );
 
     try {
       const { data: queuedRuns } = await supabase
@@ -105,7 +143,12 @@ export async function disconnectInbox(
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INBOX_CONNECTION_FAILED', 'Failed to disconnect inbox.', 'system'),
+      error: createFlowError(
+        500,
+        'INBOX_CONNECTION_FAILED',
+        'Failed to disconnect inbox.',
+        'system',
+      ),
     };
   }
 }

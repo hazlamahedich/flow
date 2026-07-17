@@ -10,7 +10,7 @@ interface ScheduleEntry {
 const SCHEDULES: ScheduleEntry[] = [
   {
     name: 'weekly-quiet-audit-trigger',
-    cron: '0 9 * * 5',  // 9:00 AM Friday UTC
+    cron: '0 9 * * 5', // 9:00 AM Friday UTC
     data: { type: 'scheduled_trigger', trigger: 'weekly_quiet_audit' },
   },
   {
@@ -81,15 +81,24 @@ export async function registerSchedules(boss: PgBoss): Promise<void> {
         agentId: 'orchestrator',
         action: 'schedule.registered',
         entityType: 'scheduler',
-        details: { scheduleName: schedule.name, cron: schedule.cron, outcome: 'success' },
+        details: {
+          scheduleName: schedule.name,
+          cron: schedule.cron,
+          outcome: 'success',
+        },
       });
     } catch (error) {
-      console.error(`[scheduler] Failed to register schedule ${schedule.name}:`, error);
+      console.error(
+        `[scheduler] Failed to register schedule ${schedule.name}:`,
+        error,
+      );
       failed.push(schedule.name);
     }
   }
 
   if (failed.length > 0) {
-    throw new Error(`[scheduler] Failed to register schedule(s): ${failed.join(', ')}`);
+    throw new Error(
+      `[scheduler] Failed to register schedule(s): ${failed.join(', ')}`,
+    );
   }
 }

@@ -6,7 +6,14 @@ import type { Client } from '@flow/types';
 import { ClientHealthBadge } from './client-health-badge';
 
 interface ClientTableProps {
-  clients: (Client & { health?: string | null; healthScores?: { engagement: number; payment: number; communication: number } | null })[];
+  clients: (Client & {
+    health?: string | null;
+    healthScores?: {
+      engagement: number;
+      payment: number;
+      communication: number;
+    } | null;
+  })[];
   sortBy: string;
   sortOrder: string;
   onSort: (column: string) => void;
@@ -19,8 +26,19 @@ const statusDisplay = {
 
 const defaultDisplay = { label: 'Active', variant: 'success' as const };
 
-export function ClientTable({ clients, sortBy, sortOrder, onSort }: ClientTableProps) {
-  const SortHeader = ({ column, children }: { column: string; children: React.ReactNode }) => (
+export function ClientTable({
+  clients,
+  sortBy,
+  sortOrder,
+  onSort,
+}: ClientTableProps) {
+  const SortHeader = ({
+    column,
+    children,
+  }: {
+    column: string;
+    children: React.ReactNode;
+  }) => (
     <th
       className="cursor-pointer px-4 py-3 text-left text-xs font-medium uppercase text-[var(--flow-color-text-secondary)] hover:text-[var(--flow-color-text-primary)]"
       onClick={() => onSort(column)}
@@ -55,7 +73,10 @@ export function ClientTable({ clients, sortBy, sortOrder, onSort }: ClientTableP
         </thead>
         <tbody>
           {clients.map((client) => {
-            const display = client.status in statusDisplay ? statusDisplay[client.status as keyof typeof statusDisplay] : defaultDisplay;
+            const display =
+              client.status in statusDisplay
+                ? statusDisplay[client.status as keyof typeof statusDisplay]
+                : defaultDisplay;
             return (
               <tr
                 key={client.id}
@@ -71,7 +92,10 @@ export function ClientTable({ clients, sortBy, sortOrder, onSort }: ClientTableP
                   </Link>
                 </td>
                 <td className="px-4 py-3">
-                  <ClientHealthBadge health={client.health ?? null} scores={client.healthScores ?? null} />
+                  <ClientHealthBadge
+                    health={client.health ?? null}
+                    scores={client.healthScores ?? null}
+                  />
                 </td>
                 <td className="px-4 py-3 text-[var(--flow-color-text-secondary)]">
                   {client.companyName ?? '—'}

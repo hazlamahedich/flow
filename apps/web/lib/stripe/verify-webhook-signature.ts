@@ -17,7 +17,9 @@ export function verifyWebhookSignature(
   const verified = provider.constructWebhookEvent(payload, signature, secret);
 
   const payloadData = verified.payload as Record<string, unknown>;
-  const data = payloadData.data as { object: Record<string, unknown> } | undefined;
+  const data = payloadData.data as
+    | { object: Record<string, unknown> }
+    | undefined;
 
   if (!data) {
     throw new Error('Stripe event missing data.object');
@@ -31,7 +33,9 @@ export function verifyWebhookSignature(
   };
 }
 
-export function toProviderWebhookEvent(event: WebhookEvent): ProviderWebhookEvent {
+export function toProviderWebhookEvent(
+  event: WebhookEvent,
+): ProviderWebhookEvent {
   return {
     id: event.id,
     type: event.type,

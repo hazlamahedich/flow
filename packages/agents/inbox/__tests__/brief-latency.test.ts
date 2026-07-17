@@ -42,19 +42,19 @@ describe('brief-latency', () => {
 
   it('completes the full pipeline in under 10 seconds (AC2)', async () => {
     const workspaceId = 'ws-1';
-    
+
     // Mock context assembly (fast)
     (getMorningBriefContext as any).mockResolvedValue({ workspaceId });
-    
+
     // Mock LLM with 3-second delay (realistic)
     (generateBrief as any).mockImplementation(async () => {
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      return { 
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      return {
         brief: {
-          summaryLine: 'Success', 
-          handledItems: [] as unknown[], 
-          needsAttentionItems: [] as unknown[], 
-          threadSummaries: [] as unknown[], 
+          summaryLine: 'Success',
+          handledItems: [] as unknown[],
+          needsAttentionItems: [] as unknown[],
+          threadSummaries: [] as unknown[],
           clientBreakdown: [] as unknown[],
         },
         isFallback: false,

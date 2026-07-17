@@ -11,19 +11,35 @@ export function ReportListSkeleton() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/50">
-              <th className="px-4 py-3 text-left font-medium"><Skeleton className="h-4 w-24" /></th>
-              <th className="px-4 py-3 text-left font-medium"><Skeleton className="h-4 w-24" /></th>
-              <th className="px-4 py-3 text-left font-medium"><Skeleton className="h-4 w-20" /></th>
-              <th className="px-4 py-3 text-left font-medium"><Skeleton className="h-4 w-28" /></th>
+              <th className="px-4 py-3 text-left font-medium">
+                <Skeleton className="h-4 w-24" />
+              </th>
+              <th className="px-4 py-3 text-left font-medium">
+                <Skeleton className="h-4 w-24" />
+              </th>
+              <th className="px-4 py-3 text-left font-medium">
+                <Skeleton className="h-4 w-20" />
+              </th>
+              <th className="px-4 py-3 text-left font-medium">
+                <Skeleton className="h-4 w-28" />
+              </th>
             </tr>
           </thead>
           <tbody>
             {Array.from({ length: 5 }).map((_, i) => (
               <tr key={i} className="border-b last:border-0">
-                <td className="px-4 py-3"><Skeleton className="h-4 w-28" /></td>
-                <td className="px-4 py-3"><Skeleton className="h-4 w-36" /></td>
-                <td className="px-4 py-3"><Skeleton className="h-4 w-16" /></td>
-                <td className="px-4 py-3"><Skeleton className="h-4 w-24" /></td>
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-28" />
+                </td>
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-36" />
+                </td>
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-16" />
+                </td>
+                <td className="px-4 py-3">
+                  <Skeleton className="h-4 w-24" />
+                </td>
               </tr>
             ))}
           </tbody>

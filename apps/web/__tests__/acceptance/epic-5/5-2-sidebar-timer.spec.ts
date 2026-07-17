@@ -1,8 +1,14 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { detectGaps, detectOverlaps, type TimeEntryForDetection } from '@flow/agents/time-integrity/anomaly-detection';
+import {
+  detectGaps,
+  detectOverlaps,
+  type TimeEntryForDetection,
+} from '@flow/agents/time-integrity/anomaly-detection';
 import { GAP_THRESHOLD_MINUTES } from '@flow/agents/time-integrity/schemas';
 
-function buildTimeEntry(overrides: Partial<TimeEntryForDetection> = {}): TimeEntryForDetection {
+function buildTimeEntry(
+  overrides: Partial<TimeEntryForDetection> = {},
+): TimeEntryForDetection {
   return {
     id: crypto.randomUUID(),
     date: '2026-05-09',
@@ -26,7 +32,9 @@ describe('Story 5.2: Persistent Sidebar Timer', () => {
       const startTime = Date.now();
       const optimisticState = { running: true, startedAt: startTime };
       expect(optimisticState.running).toBe(true);
-      expect(optimisticState.startedAt).toBe(new Date('2026-05-09T10:00:00Z').getTime());
+      expect(optimisticState.startedAt).toBe(
+        new Date('2026-05-09T10:00:00Z').getTime(),
+      );
     });
 
     test('[P0] [5.2-AC1-002] should calculate elapsed time from startedAt deterministically', () => {

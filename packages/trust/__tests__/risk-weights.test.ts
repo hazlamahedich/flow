@@ -10,7 +10,9 @@ describe('risk weights', () => {
 
   it('financial/communication actions have weight >= 1.5', () => {
     const financial = RISK_WEIGHT_ENTRIES.filter(
-      (e) => e.actionType === 'draft_followup_email' || e.actionType === 'draft_communication',
+      (e) =>
+        e.actionType === 'draft_followup_email' ||
+        e.actionType === 'draft_communication',
     );
     expect(financial.length).toBeGreaterThan(0);
     for (const entry of financial) {
@@ -72,9 +74,18 @@ describe('risk weights', () => {
   });
 
   it('each agent has at least one entry', () => {
-    const agents: string[] = ['inbox', 'calendar', 'ar-collection', 'weekly-report', 'client-health', 'time-integrity'];
+    const agents: string[] = [
+      'inbox',
+      'calendar',
+      'ar-collection',
+      'weekly-report',
+      'client-health',
+      'time-integrity',
+    ];
     for (const agent of agents) {
-      const agentEntries = RISK_WEIGHT_ENTRIES.filter((e) => e.agentId === agent);
+      const agentEntries = RISK_WEIGHT_ENTRIES.filter(
+        (e) => e.agentId === agent,
+      );
       expect(agentEntries.length).toBeGreaterThanOrEqual(1);
     }
   });
@@ -86,11 +97,18 @@ describe('risk weights', () => {
   });
 
   it('ar-collection has the highest average weight (financial sensitivity)', () => {
-    const arEntries = RISK_WEIGHT_ENTRIES.filter((e) => e.agentId === 'ar-collection');
-    const arAvg = arEntries.reduce((sum, e) => sum + e.weight, 0) / arEntries.length;
+    const arEntries = RISK_WEIGHT_ENTRIES.filter(
+      (e) => e.agentId === 'ar-collection',
+    );
+    const arAvg =
+      arEntries.reduce((sum, e) => sum + e.weight, 0) / arEntries.length;
 
-    const reportEntries = RISK_WEIGHT_ENTRIES.filter((e) => e.agentId === 'weekly-report');
-    const reportAvg = reportEntries.reduce((sum, e) => sum + e.weight, 0) / reportEntries.length;
+    const reportEntries = RISK_WEIGHT_ENTRIES.filter(
+      (e) => e.agentId === 'weekly-report',
+    );
+    const reportAvg =
+      reportEntries.reduce((sum, e) => sum + e.weight, 0) /
+      reportEntries.length;
 
     expect(arAvg).toBeGreaterThan(reportAvg);
   });

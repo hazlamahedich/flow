@@ -7,7 +7,9 @@ interface RecentActivityWidgetProps {
   workspaceId: string;
 }
 
-export async function RecentActivityWidget({ workspaceId }: RecentActivityWidgetProps) {
+export async function RecentActivityWidget({
+  workspaceId,
+}: RecentActivityWidgetProps) {
   const recent = await getRecentActivity(workspaceId, 5);
 
   return <RecentActivityFeed entries={recent} />;

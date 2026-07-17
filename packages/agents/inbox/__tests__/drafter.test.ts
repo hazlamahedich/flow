@@ -1,7 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { draftWorker } from '../drafter';
 import { createServiceClient } from '@flow/db';
-import { createLLMRouter, tokenizePII, detokenizePII, ContextBoundary } from '../../shared/index.js';
+import {
+  createLLMRouter,
+  tokenizePII,
+  detokenizePII,
+  ContextBoundary,
+} from '../../shared/index.js';
 import { SAMPLE_EMAILS } from './fixtures/sample-emails';
 import { LLM_DRAFT_RESPONSES } from './fixtures/llm-draft-responses';
 
@@ -42,11 +47,11 @@ describe('drafter', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockSupabase = {
       from: vi.fn(),
     };
-    
+
     (createServiceClient as any).mockReturnValue(mockSupabase);
 
     mockLlmRouter = {
@@ -54,7 +59,10 @@ describe('drafter', () => {
     };
     (createLLMRouter as any).mockReturnValue(mockLlmRouter);
 
-    (tokenizePII as any).mockImplementation((text: string) => ({ text, tokens: [] }));
+    (tokenizePII as any).mockImplementation((text: string) => ({
+      text,
+      tokens: [],
+    }));
     (detokenizePII as any).mockImplementation((text: string) => text);
     (ContextBoundary as any).mockImplementation(() => ({
       wrapContent: (text: string) => text,
@@ -65,12 +73,12 @@ describe('drafter', () => {
 
   it('should generate draft and persist it', async () => {
     const email = SAMPLE_EMAILS.simple;
-    
+
     // Mock chain for emails
     const emailChain = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: email, error: null })
+      single: vi.fn().mockResolvedValue({ data: email, error: null }),
     };
 
     // Mock chain for actions
@@ -78,18 +86,22 @@ describe('drafter', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
     };
-    actionsChain.eq.mockReturnValueOnce(actionsChain).mockResolvedValue({ data: [], error: null });
+    actionsChain.eq
+      .mockReturnValueOnce(actionsChain)
+      .mockResolvedValue({ data: [], error: null });
 
     // Mock chain for profile
     const profileChain = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'p1' }, error: null }),
+      maybeSingle: vi
+        .fn()
+        .mockResolvedValue({ data: { id: 'p1' }, error: null }),
     };
 
     // Mock for draft_responses
     const insertChain = {
-      insert: vi.fn().mockResolvedValue({ error: null })
+      insert: vi.fn().mockResolvedValue({ error: null }),
     };
 
     mockSupabase.from.mockImplementation((table: string) => {
@@ -100,7 +112,9 @@ describe('drafter', () => {
       return {};
     });
 
-    mockLlmRouter.complete.mockResolvedValue({ text: LLM_DRAFT_RESPONSES.simple.text });
+    mockLlmRouter.complete.mockResolvedValue({
+      text: LLM_DRAFT_RESPONSES.simple.text,
+    });
 
     await draftWorker(
       {
@@ -110,7 +124,7 @@ describe('drafter', () => {
           clientInboxId: 'i1111111-1111-1111-1111-111111111111',
         },
       } as any,
-      mockBoss
+      mockBoss,
     );
 
     expect(insertChain.insert).toHaveBeenCalledWith(
@@ -118,7 +132,7 @@ describe('drafter', () => {
         draft_content: expect.stringContaining("I'd be happy to meet"),
         trust_at_generation: 2,
         voice_profile_id: 'p1',
-      })
+      }),
     );
   });
 });

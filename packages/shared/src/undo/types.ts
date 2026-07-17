@@ -1,8 +1,4 @@
-export type UndoActionType =
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'archive';
+export type UndoActionType = 'create' | 'update' | 'delete' | 'archive';
 
 export type UndoActionSeverity = 'whisper' | 'ceremony';
 

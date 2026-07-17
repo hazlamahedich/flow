@@ -29,23 +29,29 @@ describe('generateDeviceToken', () => {
 
 describe('parseUserAgent', () => {
   it('[P0] identifies Chrome on macOS', () => {
-    expect(parseUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120.0 Safari/537.36'))
-      .toMatch(/Chrome 120 on macOS/);
+    expect(
+      parseUserAgent(
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120.0 Safari/537.36',
+      ),
+    ).toMatch(/Chrome 120 on macOS/);
   });
 
   it('[P0] identifies Firefox on Windows', () => {
-    expect(parseUserAgent('Mozilla/5.0 (Windows NT 10.0; Firefox/119.0'))
-      .toMatch(/Firefox 119 on Windows/);
+    expect(
+      parseUserAgent('Mozilla/5.0 (Windows NT 10.0; Firefox/119.0'),
+    ).toMatch(/Firefox 119 on Windows/);
   });
 
   it('[P0] identifies Safari on iPhone', () => {
-    expect(parseUserAgent('Mozilla/5.0 (iPhone; Safari/604.1 Version/17.0'))
-      .toBe('Safari on iPhone');
+    expect(
+      parseUserAgent('Mozilla/5.0 (iPhone; Safari/604.1 Version/17.0'),
+    ).toBe('Safari on iPhone');
   });
 
   it('[P0] identifies Edge on macOS', () => {
-    expect(parseUserAgent('Mozilla/5.0 (Macintosh; Edg/120.0'))
-      .toMatch(/Edge 120 on macOS/);
+    expect(parseUserAgent('Mozilla/5.0 (Macintosh; Edg/120.0')).toMatch(
+      /Edge 120 on macOS/,
+    );
   });
 
   it('[P0] returns Unknown Device for null', () => {

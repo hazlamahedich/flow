@@ -9,7 +9,7 @@ export function useUndoWorkspaceId(): string {
   if (!workspaceId) {
     throw new Error(
       'useUndoWorkspaceId must be used within an UndoWorkspaceContext.Provider. ' +
-      'Wrap your workspace shell with UndoWorkspaceProvider.',
+        'Wrap your workspace shell with UndoWorkspaceProvider.',
     );
   }
   return workspaceId;

@@ -3,8 +3,6 @@
  *
  * Story 9.1a — FR8, FR51, FR54.
  */
-'use server';
-
 import { createHash } from 'node:crypto';
 import { headers } from 'next/headers';
 import { z } from 'zod';
@@ -21,7 +19,10 @@ export interface PortalContext {
 }
 
 /** Wrap a FlowError into the ActionResult failure shape. */
-export function failure(error: FlowError): { success: false; error: FlowError } {
+export function failure(error: FlowError): {
+  success: false;
+  error: FlowError;
+} {
   return { success: false, error };
 }
 
@@ -39,7 +40,9 @@ export function encodeBase64Url(bytes: Buffer): string {
 export function getAppUrl(): string {
   return (
     process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000')
   );
 }
 

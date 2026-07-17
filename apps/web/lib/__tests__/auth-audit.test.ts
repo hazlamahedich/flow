@@ -13,8 +13,12 @@ describe('auth-audit utilities', () => {
 
   it('produces different hashes for different emails', () => {
     const secret = 'test-secret';
-    const hash1 = createHmac('sha256', secret).update('a@test.com').digest('hex');
-    const hash2 = createHmac('sha256', secret).update('b@test.com').digest('hex');
+    const hash1 = createHmac('sha256', secret)
+      .update('a@test.com')
+      .digest('hex');
+    const hash2 = createHmac('sha256', secret)
+      .update('b@test.com')
+      .digest('hex');
     expect(hash1).not.toBe(hash2);
   });
 

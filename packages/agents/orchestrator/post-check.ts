@@ -61,19 +61,32 @@ export async function runPostCheck(
     const alreadyRecorded = await checkViolationRecorded(runId);
     if (alreadyRecorded) {
       writeAuditLog({
-        workspaceId, agentId, action: 'gate.post_check.violation_idempotent_skip',
-        entityType: 'agent_run', entityId: runId,
+        workspaceId,
+        agentId,
+        action: 'gate.post_check.violation_idempotent_skip',
+        entityType: 'agent_run',
+        entityId: runId,
         details: { outcome: 'skip_duplicate_violation' },
       });
     } else {
       try {
         await trustClient.recordViolation(snapshotId, 'hard');
       } catch (err) {
-        if (!(err instanceof TrustTransitionError && err.code === 'CONCURRENT_MODIFICATION')) {
+        if (
+          !(
+            err instanceof TrustTransitionError &&
+            err.code === 'CONCURRENT_MODIFICATION'
+          )
+        ) {
           writeAuditLog({
-            workspaceId, agentId, action: 'gate.post_check.record_violation_error',
-            entityType: 'agent_run', entityId: runId,
-            details: { error: err instanceof Error ? err.message : String(err) },
+            workspaceId,
+            agentId,
+            action: 'gate.post_check.record_violation_error',
+            entityType: 'agent_run',
+            entityId: runId,
+            details: {
+              error: err instanceof Error ? err.message : String(err),
+            },
           });
         }
       }

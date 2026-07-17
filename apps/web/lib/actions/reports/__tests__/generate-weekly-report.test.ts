@@ -17,7 +17,10 @@ vi.mock('@flow/db', async () => {
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext } from '@flow/db';
 
-function createMockChain(initialData?: { data?: unknown; error?: { message: string } | null }) {
+function createMockChain(initialData?: {
+  data?: unknown;
+  error?: { message: string } | null;
+}) {
   let currentData = initialData?.data;
   let currentError: { message: string } | null = initialData?.error ?? null;
   const chain = {
@@ -29,21 +32,46 @@ function createMockChain(initialData?: { data?: unknown; error?: { message: stri
     is: vi.fn().mockReturnThis(),
     in: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockImplementation(() => Promise.resolve({ data: currentData ?? null, error: currentError })),
-    single: vi.fn().mockImplementation(() => Promise.resolve({ data: currentData ?? null, error: currentError })),
+    maybeSingle: vi
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve({ data: currentData ?? null, error: currentError }),
+      ),
+    single: vi
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve({ data: currentData ?? null, error: currentError }),
+      ),
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
   };
-  return { chain, setData: (d: unknown) => { currentData = d; }, setError: (e: { message: string } | null) => { currentError = e; } };
+  return {
+    chain,
+    setData: (d: unknown) => {
+      currentData = d;
+    },
+    setError: (e: { message: string } | null) => {
+      currentError = e;
+    },
+  };
 }
 
 function mockSupabase(rpcResult?: unknown, rpcError?: { message: string }) {
   const { chain, setData, setError } = createMockChain();
   return {
-    rpc: vi.fn().mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
+    rpc: vi
+      .fn()
+      .mockResolvedValue({ data: rpcResult, error: rpcError ?? null }),
     from: vi.fn().mockReturnValue(chain),
     auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u1', app_metadata: { workspace_id: 'ws1', role: 'owner' } } } }),
+      getUser: vi.fn().mockResolvedValue({
+        data: {
+          user: {
+            id: 'u1',
+            app_metadata: { workspace_id: 'ws1', role: 'owner' },
+          },
+        },
+      }),
     },
     _mock: { setData, setError, chain },
   };
@@ -51,8 +79,16 @@ function mockSupabase(rpcResult?: unknown, rpcError?: { message: string }) {
 
 describe('generateWeeklyReportAction', () => {
   it('rejects invalid date range (start > end)', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase() as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase() as unknown as Awaited<
+        ReturnType<typeof getServerSupabase>
+      >,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'owner',
+    });
 
     const result = await generateWeeklyReportAction({
       clientId: 'c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1',
@@ -67,8 +103,16 @@ describe('generateWeeklyReportAction', () => {
   });
 
   it('rejects date range > 31 days', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase() as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'owner' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase() as unknown as Awaited<
+        ReturnType<typeof getServerSupabase>
+      >,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'owner',
+    });
 
     const result = await generateWeeklyReportAction({
       clientId: 'c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1',
@@ -84,8 +128,16 @@ describe('generateWeeklyReportAction', () => {
   });
 
   it('blocks member from generating reports', async () => {
-    vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase() as unknown as Awaited<ReturnType<typeof getServerSupabase>>);
-    vi.mocked(requireTenantContext).mockResolvedValue({ workspaceId: 'ws1', userId: 'u1', role: 'member' });
+    vi.mocked(getServerSupabase).mockResolvedValue(
+      mockSupabase() as unknown as Awaited<
+        ReturnType<typeof getServerSupabase>
+      >,
+    );
+    vi.mocked(requireTenantContext).mockResolvedValue({
+      workspaceId: 'ws1',
+      userId: 'u1',
+      role: 'member',
+    });
 
     const result = await generateWeeklyReportAction({
       clientId: 'c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1',

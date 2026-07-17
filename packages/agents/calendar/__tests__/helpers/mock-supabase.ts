@@ -32,16 +32,37 @@ interface TableConfig {
 
 interface CapturedOps {
   _capturedInserts: Array<{ table: string; data: unknown }>;
-  _capturedUpdates: Array<{ table: string; data: unknown; filters: Record<string, unknown> }>;
+  _capturedUpdates: Array<{
+    table: string;
+    data: unknown;
+    filters: Record<string, unknown>;
+  }>;
 }
 
 export type MockSupabaseClient = SupabaseClient & CapturedOps;
 
-function buildChain(finalResult: { data: unknown; error: unknown }, terminalMethod = 'maybeSingle') {
+function buildChain(
+  finalResult: { data: unknown; error: unknown },
+  terminalMethod = 'maybeSingle',
+) {
   const chain: Record<string, MockFn> = {};
   const methods = [
-    'select', 'eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'in', 'is', 'ilike',
-    'or', 'order', 'limit', 'then', 'maybeSingle', 'single',
+    'select',
+    'eq',
+    'neq',
+    'gt',
+    'gte',
+    'lt',
+    'lte',
+    'in',
+    'is',
+    'ilike',
+    'or',
+    'order',
+    'limit',
+    'then',
+    'maybeSingle',
+    'single',
   ];
 
   for (const method of methods) {
@@ -55,21 +76,27 @@ function buildChain(finalResult: { data: unknown; error: unknown }, terminalMeth
 export class MockSupabaseBuilder {
   private tables: Map<string, TableConfig> = new Map();
   private capturedInserts: Array<{ table: string; data: unknown }> = [];
-  private capturedUpdates: Array<{ table: string; data: unknown; filters: Record<string, unknown> }> = [];
+  private capturedUpdates: Array<{
+    table: string;
+    data: unknown;
+    filters: Record<string, unknown>;
+  }> = [];
 
   withTable(name: string, config: TableConfig): this {
     this.tables.set(name, config);
     return this;
   }
 
-  withSchedulingRequests(opts: {
-    data?: Record<string, unknown> | null;
-    error?: unknown;
-    insertError?: { code?: string; message: string } | null;
-    existingRequest?: boolean;
-    dedupData?: Record<string, unknown> | null;
-    captureInsert?: (data: unknown) => void;
-  } = {}): this {
+  withSchedulingRequests(
+    opts: {
+      data?: Record<string, unknown> | null;
+      error?: unknown;
+      insertError?: { code?: string; message: string } | null;
+      existingRequest?: boolean;
+      dedupData?: Record<string, unknown> | null;
+      captureInsert?: (data: unknown) => void;
+    } = {},
+  ): this {
     const requestData = opts.data;
     const requestError = opts.error ?? null;
     let capturedData: Record<string, unknown> | null = null;
@@ -101,33 +128,39 @@ export class MockSupabaseBuilder {
     return this;
   }
 
-  withClientCalendars(opts: {
-    data?: Record<string, unknown>[];
-    error?: unknown;
-  } = {}): this {
+  withClientCalendars(
+    opts: {
+      data?: Record<string, unknown>[];
+      error?: unknown;
+    } = {},
+  ): this {
     this.tables.set('client_calendars', {
       select: {
-        data: opts.data ?? [{
-          id: '00000000-0000-4000-8000-000000000003',
-          client_id: '00000000-0000-4000-8000-000000000002',
-          calendar_id: 'cal-1',
-          provider: 'google_calendar',
-          oauth_state: {},
-          sync_status: 'connected',
-        }],
+        data: opts.data ?? [
+          {
+            id: '00000000-0000-4000-8000-000000000003',
+            client_id: '00000000-0000-4000-8000-000000000002',
+            calendar_id: 'cal-1',
+            provider: 'google_calendar',
+            oauth_state: {},
+            sync_status: 'connected',
+          },
+        ],
         error: opts.error,
       },
     });
     return this;
   }
 
-  withCalendarEvents(opts: {
-    data?: Record<string, unknown>[];
-    error?: unknown;
-    insertData?: Record<string, unknown> | null;
-    insertError?: string | null;
-    captureInsert?: (data: unknown) => void;
-  } = {}): this {
+  withCalendarEvents(
+    opts: {
+      data?: Record<string, unknown>[];
+      error?: unknown;
+      insertData?: Record<string, unknown> | null;
+      insertError?: string | null;
+      captureInsert?: (data: unknown) => void;
+    } = {},
+  ): this {
     const insertConfig: TableConfig['insert'] = {
       data: opts.insertData ?? { id: 'event-1' },
     };
@@ -144,11 +177,13 @@ export class MockSupabaseBuilder {
     return this;
   }
 
-  withAgentSignals(opts: {
-    data?: Array<{ id: string }>;
-    error?: unknown;
-    insertError?: string | null;
-  } = {}): this {
+  withAgentSignals(
+    opts: {
+      data?: Array<{ id: string }>;
+      error?: unknown;
+      insertError?: string | null;
+    } = {},
+  ): this {
     this.tables.set('agent_signals', {
       select: {
         data: opts.data ?? [],
@@ -164,10 +199,12 @@ export class MockSupabaseBuilder {
     return this;
   }
 
-  withClients(opts: {
-    data?: Record<string, unknown>[];
-    error?: unknown;
-  } = {}): this {
+  withClients(
+    opts: {
+      data?: Record<string, unknown>[];
+      error?: unknown;
+    } = {},
+  ): this {
     this.tables.set('clients', {
       select: {
         data: opts.data ?? [{ id: '00000000-0000-4000-8000-000000000002' }],
@@ -177,10 +214,12 @@ export class MockSupabaseBuilder {
     return this;
   }
 
-  withWorkspaces(opts: {
-    data?: Record<string, unknown>;
-    error?: unknown;
-  } = {}): this {
+  withWorkspaces(
+    opts: {
+      data?: Record<string, unknown>;
+      error?: unknown;
+    } = {},
+  ): this {
     this.tables.set('workspaces', {
       select: {
         data: opts.data ?? { timezone: 'UTC' },
@@ -191,11 +230,13 @@ export class MockSupabaseBuilder {
     return this;
   }
 
-  withBypassMetrics(opts: {
-    data?: Record<string, unknown> | null;
-    error?: unknown;
-    updatedData?: Record<string, unknown>;
-  } = {}): this {
+  withBypassMetrics(
+    opts: {
+      data?: Record<string, unknown> | null;
+      error?: unknown;
+      updatedData?: Record<string, unknown>;
+    } = {},
+  ): this {
     this.tables.set('calendar_bypass_metrics', {
       select: {
         data: opts.data,
@@ -211,10 +252,12 @@ export class MockSupabaseBuilder {
     return this;
   }
 
-  withEventRelations(opts: {
-    data?: Record<string, unknown>[];
-    error?: unknown;
-  } = {}): this {
+  withEventRelations(
+    opts: {
+      data?: Record<string, unknown>[];
+      error?: unknown;
+    } = {},
+  ): this {
     this.tables.set('calendar_event_relations', {
       select: {
         data: opts.data ?? [],
@@ -248,10 +291,14 @@ export class MockSupabaseBuilder {
 
       if (config.select) {
         const terminalMethod = config.select.terminalMethod ?? 'maybeSingle';
-        handlers.select = vi.fn().mockReturnValue(buildChain(
-          { data: config.select.data, error: config.select.error ?? null },
-          terminalMethod,
-        ));
+        handlers.select = vi
+          .fn()
+          .mockReturnValue(
+            buildChain(
+              { data: config.select.data, error: config.select.error ?? null },
+              terminalMethod,
+            ),
+          );
       }
 
       if (config.insert) {
@@ -317,10 +364,12 @@ export class MockSupabaseBuilder {
       }
 
       if (config.delete) {
-        handlers.delete = vi.fn().mockReturnValue(buildChain({
-          data: config.delete.data,
-          error: config.delete.error ?? null,
-        }));
+        handlers.delete = vi.fn().mockReturnValue(
+          buildChain({
+            data: config.delete.data,
+            error: config.delete.error ?? null,
+          }),
+        );
       }
 
       return handlers;
@@ -333,15 +382,19 @@ export class MockSupabaseBuilder {
     } as unknown as MockSupabaseClient;
   }
 
-  private buildSchedulingRequestsHandler(config: TableConfig): Record<string, unknown> {
-    const opts = (config as Record<string, unknown>)._schedulingOpts as {
-      data?: Record<string, unknown> | null;
-      error?: unknown;
-      insertError?: { code?: string; message: string } | null;
-      existingRequest?: boolean;
-      dedupData?: Record<string, unknown> | null;
-      getCapturedData: () => Record<string, unknown> | null;
-    } | undefined;
+  private buildSchedulingRequestsHandler(
+    config: TableConfig,
+  ): Record<string, unknown> {
+    const opts = (config as Record<string, unknown>)._schedulingOpts as
+      | {
+          data?: Record<string, unknown> | null;
+          error?: unknown;
+          insertError?: { code?: string; message: string } | null;
+          existingRequest?: boolean;
+          dedupData?: Record<string, unknown> | null;
+          getCapturedData: () => Record<string, unknown> | null;
+        }
+      | undefined;
 
     const requestData = config.select?.data ?? opts?.data ?? null;
     const requestError = config.select?.error ?? opts?.error ?? null;
@@ -358,7 +411,9 @@ export class MockSupabaseBuilder {
     dedupChain.eq = vi.fn().mockImplementation(() => dedupChain);
     dedupChain.is = vi.fn().mockImplementation(() => dedupChain);
     dedupChain.maybeSingle = vi.fn().mockResolvedValue({
-      data: opts?.existingRequest ? { id: 'existing' } : (opts?.dedupData ?? null),
+      data: opts?.existingRequest
+        ? { id: 'existing' }
+        : (opts?.dedupData ?? null),
       error: null,
     });
 
@@ -371,7 +426,11 @@ export class MockSupabaseBuilder {
         return selectChain;
       }),
       update: vi.fn().mockImplementation((data: unknown) => {
-        this.capturedUpdates.push({ table: 'scheduling_requests', data, filters: {} });
+        this.capturedUpdates.push({
+          table: 'scheduling_requests',
+          data,
+          filters: {},
+        });
         return updateChain;
       }),
       insert: vi.fn().mockImplementation((data: unknown) => {
@@ -379,12 +438,14 @@ export class MockSupabaseBuilder {
         const insertChain: Record<string, MockFn> = {};
         insertChain.select = vi.fn().mockReturnValue({
           maybeSingle: vi.fn().mockResolvedValue({
-            data: opts?.insertError ? null : {
-              id: 'new-req-id',
-              ...(data as Record<string, unknown>),
-              status: 'pending',
-              created_at: new Date().toISOString(),
-            },
+            data: opts?.insertError
+              ? null
+              : {
+                  id: 'new-req-id',
+                  ...(data as Record<string, unknown>),
+                  status: 'pending',
+                  created_at: new Date().toISOString(),
+                },
             error: opts?.insertError ?? null,
           }),
         });

@@ -25,12 +25,14 @@
  * `service_role` context. It does NOT call `requireTenantContext`.
  */
 import { z } from 'zod';
+import { revalidateTag } from 'next/cache';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   createServiceClient,
   bulkArchiveClients,
   countActiveClients,
   createFlowError,
+  cacheTag,
 } from '@flow/db';
 import { downgradeSchema, type ActionResult } from '@flow/types';
 import { getTierConfig } from '@/lib/config/tier-config';
@@ -49,14 +51,14 @@ export interface DowngradeResult {
  * Free tier's `maxClients` from `getTierConfig()`. Falls back to the PRD
  * canonical value of 2 if config is missing (defensive — config IS seeded).
  */
-const PRD_FREE_CLIENTS_FALLBACK = 2;
+import { PRD_FREE_MAX_CLIENTS } from '@flow/shared';
 
 async function resolveFreeMaxClients(): Promise<number> {
   try {
     const config = await getTierConfig();
-    return config.tierLimits.free.maxClients ?? PRD_FREE_CLIENTS_FALLBACK;
+    return config.tierLimits.free.maxClients ?? PRD_FREE_MAX_CLIENTS;
   } catch {
-    return PRD_FREE_CLIENTS_FALLBACK;
+    return PRD_FREE_MAX_CLIENTS;
   }
 }
 
@@ -68,36 +70,57 @@ async function resolveFreeMaxClients(): Promise<number> {
  */
 function validateDowngradeInput(
   input: unknown,
-): | { ok: true; data: { fromTier: 'pro' | 'agency'; toTier: 'free' } }
-   | { ok: false; error: ReturnType<typeof createFlowError> } {
+):
+  | { ok: true; data: { fromTier: 'pro' | 'agency'; toTier: 'free' } }
+  | { ok: false; error: ReturnType<typeof createFlowError> } {
   const parsed = downgradeSchema.safeParse(input);
   if (!parsed.success) {
     // Distinguish EC2/EC3 (INVALID_STATE) from EC4 (VALIDATION_ERROR):
     //  - EC2/EC3: `fromTier` is 'free' or absent (cannot downgrade FROM Free)
     //  - EC4: `toTier` is 'pro' or 'agency' (upgrade-direction, not a downgrade)
     //  - Other shape errors → generic VALIDATION_ERROR
-    const fromTierErrors = parsed.error.issues.filter((i) => i.path.includes('fromTier'));
+    const fromTierErrors = parsed.error.issues.filter((i) =>
+      i.path.includes('fromTier'),
+    );
     const toTierUpgradeErrors = parsed.error.issues.filter(
-      (i) => i.code === 'invalid_enum_value' && i.path.includes('toTier') && (i.received === 'pro' || i.received === 'agency'),
+      (i) =>
+        i.code === 'invalid_enum_value' &&
+        i.path.includes('toTier') &&
+        (i.received === 'pro' || i.received === 'agency'),
     );
 
     if (fromTierErrors.length > 0 && toTierUpgradeErrors.length === 0) {
       // EC2/EC3 — downgrade-from-Free or same-tier
       return {
         ok: false,
-        error: createFlowError(409, 'INVALID_STATE', 'Cannot downgrade from Free tier.', 'validation'),
+        error: createFlowError(
+          409,
+          'INVALID_STATE',
+          'Cannot downgrade from Free tier.',
+          'validation',
+        ),
       };
     }
     if (toTierUpgradeErrors.length > 0) {
       // EC4 — upgrade-direction
       return {
         ok: false,
-        error: createFlowError(400, 'VALIDATION_ERROR', 'Target tier must be Free for downgrade.', 'validation'),
+        error: createFlowError(
+          400,
+          'VALIDATION_ERROR',
+          'Target tier must be Free for downgrade.',
+          'validation',
+        ),
       };
     }
     return {
       ok: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid downgrade input.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid downgrade input.',
+        'validation',
+      ),
     };
   }
   return { ok: true, data: parsed.data };
@@ -118,11 +141,23 @@ async function rejectIfStatusNotActive(
     .eq('id', workspaceId)
     .maybeSingle();
   if (error || !data) {
-    return createFlowError(404, 'WORKSPACE_NOT_FOUND', 'Workspace not found.', 'validation');
+    return createFlowError(
+      404,
+      'WORKSPACE_NOT_FOUND',
+      'Workspace not found.',
+      'validation',
+    );
   }
   const status = (data as { subscription_status: string }).subscription_status;
-  if (status !== 'active' && status !== 'free') {
-    return createFlowError(409, 'INVALID_STATE', `Cannot downgrade while subscription_status=${status}. Reactivate first.`, 'validation');
+  // D2 decision: downgrade is allowed from active, free, past_due, or cancelled.
+  // Only suspended and deleted workspaces must reactivate first (EC12 / terminal).
+  if (status === 'suspended' || status === 'deleted') {
+    return createFlowError(
+      409,
+      'INVALID_STATE',
+      `Cannot downgrade while subscription_status=${status}. Reactivate first.`,
+      'validation',
+    );
   }
   return null;
 }
@@ -139,14 +174,12 @@ async function rejectIfStatusNotActive(
  *   });
  *   if (result.success) console.log(result.data.archivedClientIds);
  */
-export async function applyDowngradeOnTierChange(
-  input: {
-    workspaceId: string;
-    fromTier: 'pro' | 'agency';
-    toTier: 'free';
-    supabase?: SupabaseClient;
-  },
-): Promise<ActionResult<DowngradeResult>> {
+export async function applyDowngradeOnTierChange(input: {
+  workspaceId: string;
+  fromTier: 'pro' | 'agency';
+  toTier: 'free';
+  supabase?: SupabaseClient;
+}): Promise<ActionResult<DowngradeResult>> {
   const validation = validateDowngradeInput(input);
   if (!validation.ok) {
     return { success: false, error: validation.error };
@@ -154,7 +187,10 @@ export async function applyDowngradeOnTierChange(
 
   const supabase = input.supabase ?? createServiceClient();
 
-  const statusError = await rejectIfStatusNotActive(supabase, input.workspaceId);
+  const statusError = await rejectIfStatusNotActive(
+    supabase,
+    input.workspaceId,
+  );
   if (statusError) {
     return { success: false, error: statusError };
   }
@@ -182,14 +218,17 @@ export async function applyDowngradeOnTierChange(
       freeMaxClients,
     );
 
+    revalidateTag(cacheTag('workspace', input.workspaceId));
+
     return {
       success: true,
       data: {
         preservedCount,
         archivedClientIds,
-        upgradePrompt: archivedClientIds.length > 0
-          ? `You have ${archivedClientIds.length} archived clients from your previous plan. Upgrade to Pro to edit all clients.`
-          : '',
+        upgradePrompt:
+          archivedClientIds.length > 0
+            ? `You have ${archivedClientIds.length} archived clients from your previous plan. Upgrade to Pro to edit all clients.`
+            : '',
       },
     };
   } catch (err) {

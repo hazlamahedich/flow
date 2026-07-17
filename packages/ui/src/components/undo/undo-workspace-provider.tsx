@@ -8,7 +8,10 @@ interface UndoWorkspaceProviderProps {
   children: ReactNode;
 }
 
-export function UndoWorkspaceProvider({ workspaceId, children }: UndoWorkspaceProviderProps) {
+export function UndoWorkspaceProvider({
+  workspaceId,
+  children,
+}: UndoWorkspaceProviderProps) {
   return (
     <UndoWorkspaceContext.Provider value={workspaceId}>
       {children}

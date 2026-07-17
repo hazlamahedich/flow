@@ -10,7 +10,10 @@ export {
 export type { TrustMatrixDbRow } from './matrix';
 
 export { insertTransition, getTransitions } from './transitions';
-export type { TrustTransitionDbRow, TrustTransitionInsert } from './transitions';
+export type {
+  TrustTransitionDbRow,
+  TrustTransitionInsert,
+} from './transitions';
 
 export { insertSnapshot, getSnapshotByExecution } from './snapshots';
 export type { TrustSnapshotDbRow, TrustSnapshotInsert } from './snapshots';
@@ -43,7 +46,4 @@ export type {
   CheckInSettingResult,
 } from './audit-types';
 
-export {
-  getCheckInSetting,
-  setCheckInSetting,
-} from './checkin-settings';
+export { getCheckInSetting, setCheckInSetting } from './checkin-settings';

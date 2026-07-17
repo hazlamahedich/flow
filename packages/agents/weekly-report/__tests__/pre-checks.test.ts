@@ -91,7 +91,7 @@ describe('Weekly Report Agent — preCheck Unit Tests', () => {
 
     const result = await preCheck(input);
     expect(result.passed).toBe(false);
-    expect(result.errors[0]).toContain("subscription is suspended");
+    expect(result.errors[0]).toContain('subscription is suspended');
   });
 
   test('should pass for a valid WeeklyReportProposal', async () => {
@@ -117,7 +117,9 @@ describe('Weekly Report Agent — preCheck Unit Tests', () => {
     const result = await preCheck(proposal);
     expect(result.passed).toBe(false);
     expect(result.errors).toContain('Proposal title is missing');
-    expect(result.errors).toContain('Proposal confidence must be between 0 and 1');
+    expect(result.errors).toContain(
+      'Proposal confidence must be between 0 and 1',
+    );
     expect(result.errors).toContain('Proposal reasoning is missing');
   });
 });

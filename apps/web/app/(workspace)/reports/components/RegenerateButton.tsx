@@ -12,7 +12,12 @@ interface RegenerateButtonProps {
   status: string;
 }
 
-export function RegenerateButton({ reportId, expectedVersion, role, status }: RegenerateButtonProps) {
+export function RegenerateButton({
+  reportId,
+  expectedVersion,
+  role,
+  status,
+}: RegenerateButtonProps) {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
 
@@ -27,13 +32,19 @@ export function RegenerateButton({ reportId, expectedVersion, role, status }: Re
 
     setIsPending(true);
     try {
-      const { regenerateWeeklyReportAction } = await import('@/lib/actions/reports/regenerate-weekly-report');
-      const result = await regenerateWeeklyReportAction({ reportId, expectedVersion });
+      const { regenerateWeeklyReportAction } =
+        await import('@/lib/actions/reports/regenerate-weekly-report');
+      const result = await regenerateWeeklyReportAction({
+        reportId,
+        expectedVersion,
+      });
 
       if (!result.success) {
         const err = result.error;
         if (err.code === 'CONCURRENT_MODIFICATION') {
-          toast.error('This report was modified by another user. Please refresh and try again.');
+          toast.error(
+            'This report was modified by another user. Please refresh and try again.',
+          );
         } else if (err.code === 'NOT_FOUND') {
           toast.error('Report no longer exists.');
           router.push('/reports');

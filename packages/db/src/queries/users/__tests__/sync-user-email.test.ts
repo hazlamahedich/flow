@@ -22,9 +22,9 @@ describe('syncUserEmail', () => {
     const client = createMockClient({ error: { message: 'Row not found' } });
 
     const { syncUserEmail } = await import('../sync-user-email');
-    await expect(syncUserEmail(client, 'user-1', 'new@example.com')).rejects.toThrow(
-      'Failed to sync user email',
-    );
+    await expect(
+      syncUserEmail(client, 'user-1', 'new@example.com'),
+    ).rejects.toThrow('Failed to sync user email');
   });
 
   it('handles split-brain: auth email differs from public.users email', async () => {

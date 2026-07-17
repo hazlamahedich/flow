@@ -24,7 +24,7 @@ export async function saveMorningBrief(brief: SaveBriefInput) {
           generated_at: new Date().toISOString(),
           flood_state: brief.flood_state ?? false,
         },
-        { onConflict: 'workspace_id, brief_date' }
+        { onConflict: 'workspace_id, brief_date' },
       )
       .select()
       .single();
@@ -34,19 +34,25 @@ export async function saveMorningBrief(brief: SaveBriefInput) {
 
     const isFailed = data.generation_status === 'failed';
     const content = (data.content ?? {}) as Record<string, unknown>;
-    const needsAttention = (content.needsAttentionItems ?? []) as Array<{ category: string }>;
+    const needsAttention = (content.needsAttentionItems ?? []) as Array<{
+      category: string;
+    }>;
 
     try {
       await insertSignal({
         workspaceId: data.workspace_id,
         agentId: 'inbox',
-        signalType: isFailed ? 'morning_brief.generation_failed' : 'morning_brief.generated',
+        signalType: isFailed
+          ? 'morning_brief.generation_failed'
+          : 'morning_brief.generated',
         correlationId: data.id,
         payload: {
           brief_id: data.id,
           workspace_id: data.workspace_id,
-          urgent_count: needsAttention.filter(i => i.category === 'urgent').length,
-          action_count: needsAttention.filter(i => i.category === 'action').length,
+          urgent_count: needsAttention.filter((i) => i.category === 'urgent')
+            .length,
+          action_count: needsAttention.filter((i) => i.category === 'action')
+            .length,
           handled_count: data.email_count_handled,
           client_count: ((content.clientBreakdown ?? []) as unknown[]).length,
           ...(isFailed ? { error_message: data.error_message } : {}),
@@ -58,7 +64,10 @@ export async function saveMorningBrief(brief: SaveBriefInput) {
 
     return data;
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error during brief persistence';
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Unknown error during brief persistence';
     const name = error instanceof Error ? error.name : 'PersistenceError';
 
     try {

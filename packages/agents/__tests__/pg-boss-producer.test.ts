@@ -12,32 +12,43 @@ vi.mock('@flow/db', () => {
     }),
     findByIdempotencyKey: vi.fn(async (key: string, _wsId: string) => {
       for (const run of runs.values()) {
-        if (run.idempotencyKey === key && ACTIVE_STATUSES.includes(run.status as string)) {
+        if (
+          run.idempotencyKey === key &&
+          ACTIVE_STATUSES.includes(run.status as string)
+        ) {
           return run;
         }
       }
       return null;
     }),
-    updateRunStatus: vi.fn(async (runId: string, status: string, update: Record<string, unknown>) => {
-      const run = runs.get(runId);
-      if (run) {
-        Object.assign(run, { status, ...update });
-        return run;
-      }
-      return { id: runId, status, ...update };
-    }),
+    updateRunStatus: vi.fn(
+      async (
+        runId: string,
+        status: string,
+        update: Record<string, unknown>,
+      ) => {
+        const run = runs.get(runId);
+        if (run) {
+          Object.assign(run, { status, ...update });
+          return run;
+        }
+        return { id: runId, status, ...update };
+      },
+    ),
     getRunsByWorkspace: vi.fn(async () => Array.from(runs.values())),
     getRunById: vi.fn(async (runId: string) => {
       const run = runs.get(runId);
       if (!run) throw new Error(`Run ${runId} not found`);
       return run;
     }),
-    claimRunWithGuard: vi.fn(async (runId: string, jobId: string, update: Record<string, unknown>) => {
-      const run = runs.get(runId);
-      if (!run || run.status !== 'queued' || run.jobId !== jobId) return null;
-      Object.assign(run, { status: 'running', ...update });
-      return run;
-    }),
+    claimRunWithGuard: vi.fn(
+      async (runId: string, jobId: string, update: Record<string, unknown>) => {
+        const run = runs.get(runId);
+        if (!run || run.status !== 'queued' || run.jobId !== jobId) return null;
+        Object.assign(run, { status: 'running', ...update });
+        return run;
+      },
+    ),
     releaseRun: vi.fn(),
     findStaleRuns: vi.fn(async () => []),
     getWorkspaceSubscriptionStatus: vi.fn().mockResolvedValue('active'),
@@ -90,16 +101,23 @@ describe('PgBossProducer', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     const db = await import('@flow/db');
-    (db as unknown as { __runs: Map<string, Record<string, unknown>> }).__runs.clear();
+    (
+      db as unknown as { __runs: Map<string, Record<string, unknown>> }
+    ).__runs.clear();
     fakeBoss = createFakeBoss();
-    producer = new PgBossProducer(fakeBoss as unknown as import('pg-boss').PgBoss);
+    producer = new PgBossProducer(
+      fakeBoss as unknown as import('pg-boss').PgBoss,
+    );
   });
 
   it('submits a new run and returns handle', async () => {
     const handle = await producer.submit({
       agentId: 'inbox',
       actionType: 'categorize-email',
-      input: { workspace_id: '00000000-0000-0000-0000-000000000001', data: 'test' },
+      input: {
+        workspace_id: '00000000-0000-0000-0000-000000000001',
+        data: 'test',
+      },
       idempotencyKey: 'key-1',
     });
     expect(handle.runId).toBeDefined();
@@ -109,7 +127,9 @@ describe('PgBossProducer', () => {
 
   it('returns existing handle on idempotency fast path', async () => {
     const db = await import('@flow/db');
-    const runs = (db as unknown as { __runs: Map<string, Record<string, unknown>> }).__runs;
+    const runs = (
+      db as unknown as { __runs: Map<string, Record<string, unknown>> }
+    ).__runs;
     runs.set('existing-id', {
       id: 'existing-id',
       workspace_id: '00000000-0000-0000-0000-000000000001',
@@ -117,12 +137,14 @@ describe('PgBossProducer', () => {
       status: 'running',
       idempotencyKey: 'key-dup',
     });
-    (db.findByIdempotencyKey as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      id: 'existing-id',
-      workspace_id: '00000000-0000-0000-0000-000000000001',
-      agent_id: 'inbox',
-      status: 'running',
-    });
+    (db.findByIdempotencyKey as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      {
+        id: 'existing-id',
+        workspace_id: '00000000-0000-0000-0000-000000000001',
+        agent_id: 'inbox',
+        status: 'running',
+      },
+    );
 
     const handle = await producer.submit({
       agentId: 'inbox',
@@ -140,12 +162,14 @@ describe('PgBossProducer', () => {
       code: '23505',
       message: 'duplicate key value violates unique constraint',
     });
-    (db.findByIdempotencyKey as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null).mockResolvedValueOnce({
-      id: 'race-id',
-      workspace_id: '00000000-0000-0000-0000-000000000001',
-      agent_id: 'inbox',
-      status: 'queued',
-    });
+    (db.findByIdempotencyKey as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: 'race-id',
+        workspace_id: '00000000-0000-0000-0000-000000000001',
+        agent_id: 'inbox',
+        status: 'queued',
+      });
 
     const handle = await producer.submit({
       agentId: 'inbox',
@@ -180,9 +204,13 @@ describe('PgBossProducer', () => {
 
     await producer.cancel('run-1', 'user requested');
     expect(fakeBoss.cancel).toHaveBeenCalledWith('agent:inbox', 'job-1');
-    expect(db.updateRunStatus).toHaveBeenCalledWith('run-1', 'cancelled', expect.objectContaining({
-      error: { reason: 'user requested' },
-    }));
+    expect(db.updateRunStatus).toHaveBeenCalledWith(
+      'run-1',
+      'cancelled',
+      expect.objectContaining({
+        error: { reason: 'user requested' },
+      }),
+    );
   });
 
   it('cancel is a no-op for terminal states', async () => {
@@ -214,7 +242,14 @@ describe('PgBossProducer', () => {
   it('listRuns delegates to getRunsByWorkspace', async () => {
     const db = await import('@flow/db');
     (db.getRunsByWorkspace as ReturnType<typeof vi.fn>).mockResolvedValue([
-      { id: 'r1', agent_id: 'inbox', action_type: 'cat', status: 'completed', created_at: '', updated_at: '' },
+      {
+        id: 'r1',
+        agent_id: 'inbox',
+        action_type: 'cat',
+        status: 'completed',
+        created_at: '',
+        updated_at: '',
+      },
     ]);
 
     const runs = await producer.listRuns({

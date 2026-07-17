@@ -6,7 +6,12 @@ export type Role = z.infer<typeof RoleEnum>;
 export const MemberStatusEnum = z.enum(['active', 'expired', 'revoked']);
 export type MemberStatus = z.infer<typeof MemberStatusEnum>;
 
-export const TransferStatusEnum = z.enum(['pending', 'accepted', 'expired', 'cancelled']);
+export const TransferStatusEnum = z.enum([
+  'pending',
+  'accepted',
+  'expired',
+  'cancelled',
+]);
 export type TransferStatus = z.infer<typeof TransferStatusEnum>;
 
 export const InvitationRoleEnum = z.enum(['admin', 'member']);
@@ -17,21 +22,25 @@ export const createWorkspaceSchema = z.object({
 });
 export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;
 
-export const inviteMemberSchema = z.object({
-  email: z.string().email(),
-  role: InvitationRoleEnum,
-  expiresAt: z.string().datetime().optional(),
-}).refine(
-  (data) => {
-    if (data.expiresAt) {
-      const expiry = new Date(data.expiresAt);
-      const maxExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
-      return expiry > new Date() && expiry <= maxExpiry;
-    }
-    return true;
-  },
-  { message: 'Expiry must be in the future and no more than 1 year from now' },
-);
+export const inviteMemberSchema = z
+  .object({
+    email: z.string().email(),
+    role: InvitationRoleEnum,
+    expiresAt: z.string().datetime().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.expiresAt) {
+        const expiry = new Date(data.expiresAt);
+        const maxExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+        return expiry > new Date() && expiry <= maxExpiry;
+      }
+      return true;
+    },
+    {
+      message: 'Expiry must be in the future and no more than 1 year from now',
+    },
+  );
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
 
 export const updateRoleSchema = z.object({

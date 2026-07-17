@@ -26,7 +26,10 @@ export function computeTimeEntryAmount(
  * Format a time entry line item description.
  * Shows notes + duration hint.
  */
-export function formatTimeEntryDescription(notes: string | null | undefined, durationMinutes: number): string {
+export function formatTimeEntryDescription(
+  notes: string | null | undefined,
+  durationMinutes: number,
+): string {
   const parts: string[] = [];
   if (notes) parts.push(notes);
   parts.push(`(${durationMinutes} min)`);
@@ -36,7 +39,10 @@ export function formatTimeEntryDescription(notes: string | null | undefined, dur
 /**
  * Format a time entry line item display amount.
  */
-export function formatTimeEntryAmountDisplay(amountCents: number, durationMinutes: number): string {
+export function formatTimeEntryAmountDisplay(
+  amountCents: number,
+  durationMinutes: number,
+): string {
   const dollars = (amountCents / 100).toFixed(2);
   return `$${dollars} (${durationMinutes} min)`;
 }

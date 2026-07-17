@@ -13,7 +13,12 @@ export async function approveRun(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -38,14 +43,23 @@ export async function approveRun(
   if (run.status === 'completed' || run.status === 'cancelled') {
     return {
       success: true,
-      data: { runId, newStatus: run.status as AgentRunStatus, alreadyProcessed: true },
+      data: {
+        runId,
+        newStatus: run.status as AgentRunStatus,
+        alreadyProcessed: true,
+      },
     };
   }
 
   if (run.status !== 'waiting_approval') {
     return {
       success: false,
-      error: createFlowError(409, 'CONFLICT', `Run is in '${run.status}' status, cannot approve`, 'validation'),
+      error: createFlowError(
+        409,
+        'CONFLICT',
+        `Run is in '${run.status}' status, cannot approve`,
+        'validation',
+      ),
     };
   }
 
@@ -57,7 +71,10 @@ export async function approveRun(
 
   const updatePayload: Record<string, unknown> = {
     status: newStatus,
-    output: { ...(output ?? {}), _approvalType: isTrustBlocked ? 'trust_unblock' : 'clean_approval' },
+    output: {
+      ...(output ?? {}),
+      _approvalType: isTrustBlocked ? 'trust_unblock' : 'clean_approval',
+    },
   };
 
   if (newStatus === 'completed') {
@@ -75,7 +92,12 @@ export async function approveRun(
   if (updateError) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to approve run', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to approve run',
+        'system',
+      ),
     };
   }
 
@@ -86,16 +108,28 @@ export async function approveRun(
       .eq('id', runId)
       .single();
 
-    if (current && (current.status === 'completed' || current.status === 'cancelled')) {
+    if (
+      current &&
+      (current.status === 'completed' || current.status === 'cancelled')
+    ) {
       return {
         success: true,
-        data: { runId, newStatus: current.status as AgentRunStatus, alreadyProcessed: true },
+        data: {
+          runId,
+          newStatus: current.status as AgentRunStatus,
+          alreadyProcessed: true,
+        },
       };
     }
 
     return {
       success: false,
-      error: createFlowError(409, 'CONFLICT', 'Run status changed concurrently', 'validation'),
+      error: createFlowError(
+        409,
+        'CONFLICT',
+        'Run status changed concurrently',
+        'validation',
+      ),
     };
   }
 

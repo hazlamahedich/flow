@@ -5,10 +5,14 @@ test.describe('[P1] Time Entry — Permission & Error States', () => {
     await ownerPage.goto('/time');
   });
 
-  test('member cannot see edit button for other user entries', async ({ memberPage }) => {
+  test('member cannot see edit button for other user entries', async ({
+    memberPage,
+  }) => {
     await memberPage.goto('/time');
 
-    const editButtons = memberPage.getByRole('button', { name: /edit time entry/i });
+    const editButtons = memberPage.getByRole('button', {
+      name: /edit time entry/i,
+    });
     const count = await editButtons.count();
     test.skip(count === 0, 'No time entries visible to member');
 
@@ -17,17 +21,26 @@ test.describe('[P1] Time Entry — Permission & Error States', () => {
     }
   });
 
-  test('time entry list shows error state when server fails', async ({ ownerPage }) => {
+  test('time entry list shows error state when server fails', async ({
+    ownerPage,
+  }) => {
     await ownerPage.route('**/rest/v1/time_entries**', (route) =>
-      route.fulfill({ status: 500, body: JSON.stringify({ message: 'Internal Server Error' }) }),
+      route.fulfill({
+        status: 500,
+        body: JSON.stringify({ message: 'Internal Server Error' }),
+      }),
     );
 
     await ownerPage.goto('/time');
 
-    const errorIndicator = ownerPage.getByText(/error|failed|something went wrong/i);
-    await expect(errorIndicator).toBeVisible({ timeout: 10000 }).catch(() => {
-      // Some implementations may not show an explicit error — the list may just be empty
-    });
+    const errorIndicator = ownerPage.getByText(
+      /error|failed|something went wrong/i,
+    );
+    await expect(errorIndicator)
+      .toBeVisible({ timeout: 10000 })
+      .catch(() => {
+        // Some implementations may not show an explicit error — the list may just be empty
+      });
   });
 
   test('time entry list loading state', async ({ ownerPage }) => {
@@ -40,15 +53,18 @@ test.describe('[P1] Time Entry — Permission & Error States', () => {
 
     const loadingIndicator = ownerPage.getByTestId('time-entries-loading');
     const skeleton = ownerPage.locator('[data-slot="skeleton"]');
-    const hasLoading = (await loadingIndicator.isVisible().catch(() => false)) ||
-      (await skeleton.count() > 0);
+    const hasLoading =
+      (await loadingIndicator.isVisible().catch(() => false)) ||
+      (await skeleton.count()) > 0;
 
     if (hasLoading) {
       expect(hasLoading).toBe(true);
     }
   });
 
-  test('empty state persists when no entries match filter', async ({ ownerPage }) => {
+  test('empty state persists when no entries match filter', async ({
+    ownerPage,
+  }) => {
     const clientSelect = ownerPage.locator('select').first();
     if (await clientSelect.isVisible()) {
       const options = await clientSelect.locator('option').count();
@@ -61,7 +77,9 @@ test.describe('[P1] Time Entry — Permission & Error States', () => {
         await filterBtn.click();
         await ownerPage.waitForTimeout(1000);
 
-        const emptyState = ownerPage.getByText(/no time entries|no time logged/i);
+        const emptyState = ownerPage.getByText(
+          /no time entries|no time logged/i,
+        );
         const noResults = await emptyState.isVisible().catch(() => false);
         if (noResults) {
           await expect(emptyState).toBeVisible();

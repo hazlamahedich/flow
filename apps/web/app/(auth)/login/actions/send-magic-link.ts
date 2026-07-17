@@ -9,7 +9,10 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { logAuthEvent } from '@/lib/auth-audit';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { generateDeviceToken } from '@flow/auth/device-trust';
-import { DEVICE_PENDING_COOKIE_NAME, DEVICE_PENDING_COOKIE_MAX_AGE } from '@flow/auth/device-types';
+import {
+  DEVICE_PENDING_COOKIE_NAME,
+  DEVICE_PENDING_COOKIE_MAX_AGE,
+} from '@flow/auth/device-types';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 
@@ -37,13 +40,19 @@ export async function sendMagicLink(
   const rateResult = await checkRateLimit(email);
   if (!rateResult.allowed) {
     const headerStore = await headers();
-    const ip = headerStore.get('x-forwarded-for') ?? headerStore.get('x-real-ip') ?? 'unknown';
+    const ip =
+      headerStore.get('x-forwarded-for') ??
+      headerStore.get('x-real-ip') ??
+      'unknown';
     await logAuthEvent({
       action: 'rate_limit_triggered',
       email,
       ip,
       outcome: 'failure',
-      details: { limit_type: 'magic_link_request', retry_after_ms: rateResult.retryAfterMs },
+      details: {
+        limit_type: 'magic_link_request',
+        retry_after_ms: rateResult.retryAfterMs,
+      },
     });
 
     return {
@@ -58,14 +67,25 @@ export async function sendMagicLink(
   }
 
   const headerStore = await headers();
-  const ip = headerStore.get('x-forwarded-for') ?? headerStore.get('x-real-ip') ?? 'unknown';
+  const ip =
+    headerStore.get('x-forwarded-for') ??
+    headerStore.get('x-real-ip') ??
+    'unknown';
 
-  await logAuthEvent({ action: 'magic_link_requested', email, ip, outcome: 'success' });
+  await logAuthEvent({
+    action: 'magic_link_requested',
+    email,
+    ip,
+    outcome: 'success',
+  });
 
   try {
     const supabase = await getServerSupabase();
 
-    const origin = headerStore.get('origin') ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+    const origin =
+      headerStore.get('origin') ??
+      process.env.NEXT_PUBLIC_APP_URL ??
+      'http://localhost:3000';
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -99,7 +119,12 @@ export async function sendMagicLink(
       });
     }
 
-    await logAuthEvent({ action: 'magic_link_sent', email, ip, outcome: 'success' });
+    await logAuthEvent({
+      action: 'magic_link_sent',
+      email,
+      ip,
+      outcome: 'success',
+    });
 
     return { success: true, data: { sent: true } };
   } catch {

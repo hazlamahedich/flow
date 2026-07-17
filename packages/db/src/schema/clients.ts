@@ -1,4 +1,12 @@
-import { pgTable, uuid, text, bigint, timestamp, index, check } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  text,
+  bigint,
+  timestamp,
+  index,
+  check,
+} from 'drizzle-orm/pg-core';
 import { workspaces } from './workspaces';
 import { sql } from 'drizzle-orm';
 
@@ -19,8 +27,12 @@ export const clients = pgTable(
     hourlyRateCents: bigint('hourly_rate_cents', { mode: 'number' }),
     status: text('status').notNull().default('active'),
     archivedAt: timestamp('archived_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('idx_clients_workspace_status').on(table.workspaceId, table.status),

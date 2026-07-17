@@ -1,7 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { saveReportTemplateAction, deleteReportTemplateAction } from '../../actions';
+import {
+  saveReportTemplateAction,
+  deleteReportTemplateAction,
+} from '../../actions';
 import { TemplateCard } from './TemplateCard';
 import { TemplateForm } from './TemplateForm';
 import type { SaveReportTemplateInput, TemplateListItem } from '@flow/types';
@@ -11,12 +14,17 @@ interface ClientTemplatePageProps {
   clients: Array<{ id: string; name: string }>;
 }
 
-export function ClientTemplatePage({ items, clients }: ClientTemplatePageProps) {
+export function ClientTemplatePage({
+  items,
+  clients,
+}: ClientTemplatePageProps) {
   const [templates, setTemplates] = useState(items);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const editingTemplate = editingId ? templates.find((t) => t.id === editingId) : undefined;
+  const editingTemplate = editingId
+    ? templates.find((t) => t.id === editingId)
+    : undefined;
 
   async function handleSave(data: SaveReportTemplateInput) {
     setActionError(null);
@@ -67,12 +75,17 @@ export function ClientTemplatePage({ items, clients }: ClientTemplatePageProps) 
   return (
     <div className="space-y-6">
       {actionError && (
-        <div data-testid="template-action-error" className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div
+          data-testid="template-action-error"
+          className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
           {actionError}
         </div>
       )}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Report Templates</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Report Templates
+        </h1>
         <button
           type="button"
           data-testid="new-template-btn"
@@ -106,16 +119,22 @@ export function ClientTemplatePage({ items, clients }: ClientTemplatePageProps) 
                 initial: {
                   id: editingTemplate.id,
                   name: editingTemplate.name,
-                  sectionsConfig: (editingTemplate.sectionsConfig ?? {}) as Record<
+                  sectionsConfig: (editingTemplate.sectionsConfig ??
+                    {}) as Record<
                     string,
                     { enabled: boolean; sort_order: number }
                   >,
                   branding: {
                     accentColor:
-                      ((editingTemplate.branding as Record<string, unknown> | undefined)?.accentColor as string | undefined) ??
-                      '#6366f1',
+                      ((
+                        editingTemplate.branding as
+                          | Record<string, unknown>
+                          | undefined
+                      )?.accentColor as string | undefined) ?? '#6366f1',
                   },
-                  ...(editingTemplate.clientId != null ? { clientId: editingTemplate.clientId } : {}),
+                  ...(editingTemplate.clientId != null
+                    ? { clientId: editingTemplate.clientId }
+                    : {}),
                 },
               }
             : {})}

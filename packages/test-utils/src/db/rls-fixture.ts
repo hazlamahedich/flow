@@ -15,11 +15,9 @@ export async function setupRLSFixture(
 ): Promise<RLSFixtureResult> {
   const url = requireEnv('NEXT_PUBLIC_SUPABASE_URL');
   const anonKey = requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
-  const admin = createClient(
-    url,
-    requireEnv('SUPABASE_SERVICE_ROLE_KEY'),
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  const admin = createClient(url, requireEnv('SUPABASE_SERVICE_ROLE_KEY'), {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 
   const otherTenantId = crypto.randomUUID();
   const testEmail = `rls-${role}-${tenantId.slice(0, 8)}@test.flow.local`;

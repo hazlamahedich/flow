@@ -10,7 +10,11 @@ interface WizardToastProps {
   linkHref?: string | undefined;
 }
 
-export function WizardToast({ message, linkLabel, linkHref }: WizardToastProps) {
+export function WizardToast({
+  message,
+  linkLabel,
+  linkHref,
+}: WizardToastProps) {
   const [visible, setVisible] = useState(true);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -24,7 +28,9 @@ export function WizardToast({ message, linkLabel, linkHref }: WizardToastProps) 
       next.delete('toast_link_label');
       next.delete('toast_link_href');
       const suffix = next.toString();
-      router.replace(window.location.pathname + (suffix ? `?${suffix}` : ''), { scroll: false });
+      router.replace(window.location.pathname + (suffix ? `?${suffix}` : ''), {
+        scroll: false,
+      });
     }, 6000);
     return () => clearTimeout(timer);
   }, [searchParams, router]);
@@ -39,7 +45,9 @@ export function WizardToast({ message, linkLabel, linkHref }: WizardToastProps) 
     >
       <span>{message}</span>
       {linkLabel && linkHref && (
-        <a href={linkHref} className="font-medium underline">{linkLabel}</a>
+        <a href={linkHref} className="font-medium underline">
+          {linkLabel}
+        </a>
       )}
       <button
         type="button"

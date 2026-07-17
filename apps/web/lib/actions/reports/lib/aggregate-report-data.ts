@@ -29,7 +29,9 @@ export async function aggregateReportData(
   const [timeResult, invResult, agentResult] = await Promise.all([
     supabase
       .from('time_entries')
-      .select('duration_minutes, notes, date, client_id, project_id, projects(name)')
+      .select(
+        'duration_minutes, notes, date, client_id, project_id, projects(name)',
+      )
       .eq('client_id', clientId)
       .eq('workspace_id', workspaceId)
       .gte('date', periodStart)
@@ -63,8 +65,14 @@ export async function aggregateReportData(
   const invRows = invResult.data;
   const agentRows = agentResult.data;
 
-  const totalMinutes = timeRows.reduce((sum, r) => sum + safeNum(r.duration_minutes), 0);
-  const totalInvoiceCents = invRows.reduce((sum, r) => sum + safeNum(r.total_cents), 0);
+  const totalMinutes = timeRows.reduce(
+    (sum, r) => sum + safeNum(r.duration_minutes),
+    0,
+  );
+  const totalInvoiceCents = invRows.reduce(
+    (sum, r) => sum + safeNum(r.total_cents),
+    0,
+  );
 
   const invoiceIds = invRows.map((r) => r.id as string);
   let totalPaidCents = 0;
@@ -80,7 +88,10 @@ export async function aggregateReportData(
     if (payResult.error) {
       return { error: 'Failed to aggregate payment data.', data: null };
     }
-    totalPaidCents = (payResult.data ?? []).reduce((sum, r) => sum + safeNum(r.amount_cents), 0);
+    totalPaidCents = (payResult.data ?? []).reduce(
+      (sum, r) => sum + safeNum(r.amount_cents),
+      0,
+    );
   }
 
   return {

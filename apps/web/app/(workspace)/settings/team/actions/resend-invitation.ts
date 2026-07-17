@@ -64,7 +64,9 @@ export async function resendInvitation(
 
   const { error: updateError } = await supabase
     .from('workspace_invitations')
-    .update({ expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() })
+    .update({
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    })
     .eq('id', invitationId);
 
   if (updateError) {

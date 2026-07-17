@@ -2,11 +2,7 @@
 
 import { revalidateTag } from 'next/cache';
 import { getServerSupabase } from '@/lib/supabase-server';
-import {
-  requireTenantContext,
-  createFlowError,
-  cacheTag,
-} from '@flow/db';
+import { requireTenantContext, createFlowError, cacheTag } from '@flow/db';
 import { createInvoiceSchema } from '@flow/types';
 import type { ActionResult, Invoice } from '@flow/types';
 import { computeInvoiceDedupHash } from '@flow/shared';
@@ -31,9 +27,15 @@ export async function createInvoiceAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation', {
-        issues: parsed.error.issues,
-      }),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+        {
+          issues: parsed.error.issues,
+        },
+      ),
     };
   }
 
@@ -53,21 +55,33 @@ export async function createInvoiceAction(
   if (clientError || !client) {
     return {
       success: false,
-      error: createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'CLIENT_NOT_FOUND',
+        'Client not found.',
+        'validation',
+      ),
     };
   }
 
   if ((client as Record<string, unknown>).status === 'archived') {
     return {
       success: false,
-      error: createFlowError(400, 'CLIENT_ARCHIVED', 'Cannot create invoice for archived client.', 'validation'),
+      error: createFlowError(
+        400,
+        'CLIENT_ARCHIVED',
+        'Cannot create invoice for archived client.',
+        'validation',
+      ),
     };
   }
 
   // -- Retainer duplicate check (±1 day window)
   const dayMs = 1000 * 60 * 60 * 24;
   const issueDateMs = new Date(`${issueDate}T00:00:00Z`).getTime();
-  const oneDayBefore = new Date(issueDateMs - dayMs).toISOString().split('T')[0];
+  const oneDayBefore = new Date(issueDateMs - dayMs)
+    .toISOString()
+    .split('T')[0];
   const oneDayAfter = new Date(issueDateMs + dayMs).toISOString().split('T')[0];
 
   const { data: duplicates } = await supabase
@@ -87,7 +101,9 @@ export async function createInvoiceAction(
       .sort();
 
     if (retSources.length > 0) {
-      const dupIds = duplicates.map((d: Record<string, unknown>) => d.id as string);
+      const dupIds = duplicates.map(
+        (d: Record<string, unknown>) => d.id as string,
+      );
       const { data: allDupItems } = await supabase
         .from('invoice_line_items')
         .select('invoice_id, source_type, retainer_id')
@@ -107,7 +123,12 @@ export async function createInvoiceAction(
           if (retSources.join(',') === dupRetIds.join(',')) {
             return {
               success: false,
-              error: createFlowError(409, 'DUPLICATE_INVOICE', 'A duplicate invoice exists with the same line items for this client.', 'financial'),
+              error: createFlowError(
+                409,
+                'DUPLICATE_INVOICE',
+                'A duplicate invoice exists with the same line items for this client.',
+                'financial',
+              ),
             };
           }
         }
@@ -116,13 +137,20 @@ export async function createInvoiceAction(
   }
 
   // -- Generate invoice number
-  const { data: invNumResult, error: invNumError } = await supabase
-    .rpc('generate_invoice_number', { p_workspace_id: ctx.workspaceId });
+  const { data: invNumResult, error: invNumError } = await supabase.rpc(
+    'generate_invoice_number',
+    { p_workspace_id: ctx.workspaceId },
+  );
 
   if (invNumError || !invNumResult) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to generate invoice number.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to generate invoice number.',
+        'system',
+      ),
     };
   }
 
@@ -135,22 +163,38 @@ export async function createInvoiceAction(
 
   let timeEntriesMap = new Map<string, { durationMinutes: number }>();
   if (timeEntryIds.length > 0) {
-    const resolved = await resolveTimeEntryDurations(supabase, ctx.workspaceId, clientId, timeEntryIds);
+    const resolved = await resolveTimeEntryDurations(
+      supabase,
+      ctx.workspaceId,
+      clientId,
+      timeEntryIds,
+    );
     if (!resolved.success) return resolved;
     timeEntriesMap = resolved.data;
   }
 
   // -- Check for duplicate time entries on other invoices
-  const dupCheck = await checkDuplicateTimeEntries(supabase, ctx.workspaceId, clientId, timeEntryIds);
+  const dupCheck = await checkDuplicateTimeEntries(
+    supabase,
+    ctx.workspaceId,
+    clientId,
+    timeEntryIds,
+  );
   if (dupCheck) return dupCheck;
 
   // -- Resolve hourly rate
-  const { data: rateResult } = await supabase
-    .rpc('resolve_hourly_rate', { p_client_id: clientId, p_workspace_id: ctx.workspaceId });
+  const { data: rateResult } = await supabase.rpc('resolve_hourly_rate', {
+    p_client_id: clientId,
+    p_workspace_id: ctx.workspaceId,
+  });
   const hourlyRateCents = rateResult ? Number(rateResult) : null;
 
   // -- Build line items
-  const built = buildLineItemsAndTotal(lineItems, timeEntriesMap, hourlyRateCents);
+  const built = buildLineItemsAndTotal(
+    lineItems,
+    timeEntriesMap,
+    hourlyRateCents,
+  );
   if (!built.success) return built;
   const { dbLineItems, totalCents } = built.data;
 
@@ -178,14 +222,20 @@ export async function createInvoiceAction(
   if (duplicate) {
     return {
       success: false,
-      error: createFlowError(409, 'DUPLICATE_INVOICE', 'A duplicate invoice exists with the same line items for this client.', 'financial'),
+      error: createFlowError(
+        409,
+        'DUPLICATE_INVOICE',
+        'A duplicate invoice exists with the same line items for this client.',
+        'financial',
+      ),
     };
   }
 
   // -- Persist invoice via atomic RPC
   try {
-    const { data: invoiceId, error: rpcError } = await supabase
-      .rpc('create_invoice_with_items', {
+    const { data: invoiceId, error: rpcError } = await supabase.rpc(
+      'create_invoice_with_items',
+      {
         p_workspace_id: ctx.workspaceId,
         p_client_id: clientId,
         p_invoice_number: invoiceNumber,
@@ -195,7 +245,8 @@ export async function createInvoiceAction(
         p_notes: notes ?? null,
         p_created_by: ctx.userId,
         p_items: dbLineItems,
-      });
+      },
+    );
 
     if (rpcError || !invoiceId) {
       // Postgres unique_violation on dedup_hash (rare — the SELECT-then-INSERT
@@ -203,12 +254,22 @@ export async function createInvoiceAction(
       if (rpcError && (rpcError as { code?: string }).code === '23505') {
         return {
           success: false,
-          error: createFlowError(409, 'DUPLICATE_INVOICE', 'A duplicate invoice exists with the same line items for this client.', 'financial'),
+          error: createFlowError(
+            409,
+            'DUPLICATE_INVOICE',
+            'A duplicate invoice exists with the same line items for this client.',
+            'financial',
+          ),
         };
       }
       return {
         success: false,
-        error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to create invoice.', 'system'),
+        error: createFlowError(
+          500,
+          'INTERNAL_ERROR',
+          'Failed to create invoice.',
+          'system',
+        ),
       };
     }
 
@@ -223,7 +284,12 @@ export async function createInvoiceAction(
       await supabase.from('invoices').delete().eq('id', invoiceId);
       return {
         success: false,
-        error: createFlowError(409, 'DUPLICATE_INVOICE', 'A duplicate invoice exists with the same line items for this client.', 'financial'),
+        error: createFlowError(
+          409,
+          'DUPLICATE_INVOICE',
+          'A duplicate invoice exists with the same line items for this client.',
+          'financial',
+        ),
       };
     }
 
@@ -237,11 +303,26 @@ export async function createInvoiceAction(
       action: 'create',
       entity_type: 'invoice',
       entity_id: invoiceId,
-      details: { invoiceNumber, clientId, totalCents, lineItemCount: dbLineItems.length },
+      details: {
+        invoiceNumber,
+        clientId,
+        totalCents,
+        lineItemCount: dbLineItems.length,
+      },
     });
 
     // -- Map response
-    const mapped = await mapCreatedInvoice(supabase, invoiceId, clientId, invoiceNumber, issueDate, dueDate, totalCents, notes, ctx.workspaceId);
+    const mapped = await mapCreatedInvoice(
+      supabase,
+      invoiceId,
+      clientId,
+      invoiceNumber,
+      issueDate,
+      dueDate,
+      totalCents,
+      notes,
+      ctx.workspaceId,
+    );
     if (!mapped.success) return mapped;
 
     // ── Free-tier 5% transaction-fee notice (Story 9.4 AC5 — FR61).
@@ -249,7 +330,10 @@ export async function createInvoiceAction(
     // (spike §6.4; line-item/surcharge + Stripe Connect deferred to Agency+
     // Phase 2). The notice surfaces for the UI to display next to the
     // newly-created invoice on Free-tier workspaces.
-    const notices = await buildFreeTierNoticeIfNeeded(supabase, ctx.workspaceId);
+    const notices = await buildFreeTierNoticeIfNeeded(
+      supabase,
+      ctx.workspaceId,
+    );
     return notices
       ? { success: true, data: { ...mapped.data, notices: [notices] } }
       : mapped;
@@ -260,12 +344,22 @@ export async function createInvoiceAction(
     if (code === '23505') {
       return {
         success: false,
-        error: createFlowError(409, 'DUPLICATE_INVOICE', 'A duplicate invoice exists with the same line items for this client.', 'financial'),
+        error: createFlowError(
+          409,
+          'DUPLICATE_INVOICE',
+          'A duplicate invoice exists with the same line items for this client.',
+          'financial',
+        ),
       };
     }
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to create invoice.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to create invoice.',
+        'system',
+      ),
     };
   }
 }

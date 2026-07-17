@@ -7,11 +7,19 @@ import { cn } from '../../lib/utils';
 import { useFocusTrap } from '../../hooks/use-focus-trap';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 
-const SHORTCUT_GROUPS: Record<string, Array<{ keys: string[]; description: string; mac?: boolean; note?: string }>> = {
+const SHORTCUT_GROUPS: Record<
+  string,
+  Array<{ keys: string[]; description: string; mac?: boolean; note?: string }>
+> = {
   Navigation: [
     { keys: ['⌘', 'K'], description: 'Open command palette', mac: true },
     { keys: ['Ctrl', 'K'], description: 'Open command palette', mac: false },
-    { keys: ['/'], description: 'Open command palette', mac: true, note: 'Not available on Windows (JAWS conflict)' },
+    {
+      keys: ['/'],
+      description: 'Open command palette',
+      mac: true,
+      note: 'Not available on Windows (JAWS conflict)',
+    },
   ],
   Actions: [
     { keys: [']'], description: 'Expand sidebar', mac: true },
@@ -46,7 +54,8 @@ export function ShortcutOverlay() {
 
   if (!open) return null;
 
-  const isMacPlatform = typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform ?? '');
+  const isMacPlatform =
+    typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform ?? '');
 
   return (
     <div
@@ -114,7 +123,11 @@ export function ShortcutOverlay() {
             </div>
           ))}
           <div className="mt-4 border-t border-[var(--flow-color-border-primary)] pt-3 text-xs text-[var(--flow-color-text-tertiary)]">
-            Press <kbd className="rounded border border-[var(--flow-color-border-primary)] px-1 font-mono">Esc</kbd> to close
+            Press{' '}
+            <kbd className="rounded border border-[var(--flow-color-border-primary)] px-1 font-mono">
+              Esc
+            </kbd>{' '}
+            to close
           </div>
         </div>
       </div>

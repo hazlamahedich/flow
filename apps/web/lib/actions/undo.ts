@@ -2,10 +2,16 @@
 
 import { revalidateTag } from 'next/cache';
 import { getServerSupabase } from '../supabase-server';
-import { performUndo, checkOptimisticLock } from '@flow/db/queries/undo/undo-helpers';
+import {
+  performUndo,
+  checkOptimisticLock,
+} from '@flow/db/queries/undo/undo-helpers';
 import type { ActionResult } from '@flow/types';
 
-const processedOperationIds = new Map<string, { data: Record<string, unknown>; timestamp: number }>();
+const processedOperationIds = new Map<
+  string,
+  { data: Record<string, unknown>; timestamp: number }
+>();
 
 const CLEANUP_THRESHOLD = 1000;
 const ENTRY_TTL_MS = 60_000;
@@ -35,7 +41,9 @@ export async function undoAction(
 
   const supabase = await getServerSupabase();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return {
       success: false,
@@ -87,7 +95,8 @@ export async function undoAction(
         error: {
           status: 409,
           code: 'CONFLICT',
-          message: 'Entity was modified by another user. Conflict resolution required.',
+          message:
+            'Entity was modified by another user. Conflict resolution required.',
           category: 'system',
           details: {
             expectedVersion: lockResult.conflict.expectedVersion,
@@ -124,7 +133,8 @@ export async function undoAction(
         error: {
           status: 409,
           code: 'CONFLICT',
-          message: 'Entity was modified during undo. Please resolve the conflict.',
+          message:
+            'Entity was modified during undo. Please resolve the conflict.',
           category: 'system',
           details: {
             expectedVersion: undoResult.conflict.expectedVersion,

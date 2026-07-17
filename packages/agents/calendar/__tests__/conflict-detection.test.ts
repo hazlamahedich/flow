@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { detectConflictsForEvent } from '../conflict-detection';
 import type { ConflictDetectionParams } from '../conflict-detection';
-import type { CalendarProvider, ConflictDetectionResult } from '../../providers/calendar-provider';
+import type {
+  CalendarProvider,
+  ConflictDetectionResult,
+} from '../../providers/calendar-provider';
 
 // --- Mocks ---
 
@@ -35,7 +38,9 @@ const mockProvider = {
 
 // --- Helpers ---
 
-function makeParams(overrides?: Partial<ConflictDetectionParams['event']>): ConflictDetectionParams {
+function makeParams(
+  overrides?: Partial<ConflictDetectionParams['event']>,
+): ConflictDetectionParams {
   const baseEvent = {
     id: 'evt-1',
     clientCalendarId: 'cal-1',
@@ -71,8 +76,13 @@ describe('detectConflictsForEvent', () => {
       },
     ];
     const chain = createQueryBuilder({ data: rows, error: null });
-    const supabase = { from: vi.fn().mockReturnValue(chain) } as unknown as import('@supabase/supabase-js').SupabaseClient;
-    mockDetectConflicts.mockResolvedValue({ hasConflicts: false, conflicts: [] });
+    const supabase = {
+      from: vi.fn().mockReturnValue(chain),
+    } as unknown as import('@supabase/supabase-js').SupabaseClient;
+    mockDetectConflicts.mockResolvedValue({
+      hasConflicts: false,
+      conflicts: [],
+    });
 
     const result = await detectConflictsForEvent({ ...makeParams(), supabase });
 
@@ -83,8 +93,13 @@ describe('detectConflictsForEvent', () => {
 
   it('does not flag non-overlapping events', async () => {
     const chain = createQueryBuilder({ data: [], error: null });
-    const supabase = { from: vi.fn().mockReturnValue(chain) } as unknown as import('@supabase/supabase-js').SupabaseClient;
-    mockDetectConflicts.mockResolvedValue({ hasConflicts: false, conflicts: [] });
+    const supabase = {
+      from: vi.fn().mockReturnValue(chain),
+    } as unknown as import('@supabase/supabase-js').SupabaseClient;
+    mockDetectConflicts.mockResolvedValue({
+      hasConflicts: false,
+      conflicts: [],
+    });
 
     const result = await detectConflictsForEvent({ ...makeParams(), supabase });
 
@@ -93,8 +108,13 @@ describe('detectConflictsForEvent', () => {
 
   it('does not flag events at exact boundary (start=end)', async () => {
     const chain = createQueryBuilder({ data: [], error: null });
-    const supabase = { from: vi.fn().mockReturnValue(chain) } as unknown as import('@supabase/supabase-js').SupabaseClient;
-    mockDetectConflicts.mockResolvedValue({ hasConflicts: false, conflicts: [] });
+    const supabase = {
+      from: vi.fn().mockReturnValue(chain),
+    } as unknown as import('@supabase/supabase-js').SupabaseClient;
+    mockDetectConflicts.mockResolvedValue({
+      hasConflicts: false,
+      conflicts: [],
+    });
 
     const result = await detectConflictsForEvent({
       ...makeParams({ endAt: '2026-06-01T10:00:00Z' }),
@@ -116,13 +136,25 @@ describe('detectConflictsForEvent', () => {
       },
     ];
     const chain = createQueryBuilder({ data: rows, error: null });
-    const supabase = { from: vi.fn().mockReturnValue(chain) } as unknown as import('@supabase/supabase-js').SupabaseClient;
+    const supabase = {
+      from: vi.fn().mockReturnValue(chain),
+    } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
     mockDetectConflicts.mockResolvedValue({
       hasConflicts: true,
       conflicts: [
-        { eventId: 'prov-evt-2', title: 'DB Conflict', startTime: '2026-06-01T10:30:00Z', endTime: '2026-06-01T11:30:00Z' },
-        { eventId: 'prov-evt-3', title: 'Provider-Only Conflict', startTime: '2026-06-01T10:45:00Z', endTime: '2026-06-01T11:15:00Z' },
+        {
+          eventId: 'prov-evt-2',
+          title: 'DB Conflict',
+          startTime: '2026-06-01T10:30:00Z',
+          endTime: '2026-06-01T11:30:00Z',
+        },
+        {
+          eventId: 'prov-evt-3',
+          title: 'Provider-Only Conflict',
+          startTime: '2026-06-01T10:45:00Z',
+          endTime: '2026-06-01T11:15:00Z',
+        },
       ],
     });
 
@@ -146,7 +178,9 @@ describe('detectConflictsForEvent', () => {
       },
     ];
     const chain = createQueryBuilder({ data: rows, error: null });
-    const supabase = { from: vi.fn().mockReturnValue(chain) } as unknown as import('@supabase/supabase-js').SupabaseClient;
+    const supabase = {
+      from: vi.fn().mockReturnValue(chain),
+    } as unknown as import('@supabase/supabase-js').SupabaseClient;
     mockDetectConflicts.mockRejectedValue(new Error('Timeout'));
 
     const result = await detectConflictsForEvent({ ...makeParams(), supabase });
@@ -156,11 +190,16 @@ describe('detectConflictsForEvent', () => {
   });
 
   it('throws on DB query failure', async () => {
-    const chain = createQueryBuilder({ data: null, error: { message: 'Connection refused' } });
-    const supabase = { from: vi.fn().mockReturnValue(chain) } as unknown as import('@supabase/supabase-js').SupabaseClient;
+    const chain = createQueryBuilder({
+      data: null,
+      error: { message: 'Connection refused' },
+    });
+    const supabase = {
+      from: vi.fn().mockReturnValue(chain),
+    } as unknown as import('@supabase/supabase-js').SupabaseClient;
 
-    await expect(detectConflictsForEvent({ ...makeParams(), supabase })).rejects.toThrow(
-      'Failed to query overlapping events',
-    );
+    await expect(
+      detectConflictsForEvent({ ...makeParams(), supabase }),
+    ).rejects.toThrow('Failed to query overlapping events');
   });
 });

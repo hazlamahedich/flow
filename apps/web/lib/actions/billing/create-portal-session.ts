@@ -31,7 +31,12 @@ export async function createPortalSessionAction(
   const parsed = createPortalSessionSchema.safeParse(input);
   if (!parsed.success) {
     return toFailure(
-      createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     );
   }
 
@@ -40,13 +45,22 @@ export async function createPortalSessionAction(
     const forbidden = requireOwner(ctx);
     if (forbidden) return toFailure(forbidden);
 
-    const limited = await checkBillingRateLimit(supabase, ctx.workspaceId, 'portal');
+    const limited = await checkBillingRateLimit(
+      supabase,
+      ctx.workspaceId,
+      'portal',
+    );
     if (limited) return toFailure(limited);
 
     const workspace = await fetchWorkspaceForBilling(supabase, ctx.workspaceId);
     if (!workspace) {
       return toFailure(
-        createFlowError(404, 'WORKSPACE_NOT_FOUND', 'Workspace not found.', 'validation'),
+        createFlowError(
+          404,
+          'WORKSPACE_NOT_FOUND',
+          'Workspace not found.',
+          'validation',
+        ),
       );
     }
 
@@ -70,7 +84,12 @@ export async function createPortalSessionAction(
       return { success: true, data: { url: session.url } };
     } catch {
       return toFailure(
-        createFlowError(502, 'STRIPE_ERROR', 'Unable to open billing portal.', 'financial'),
+        createFlowError(
+          502,
+          'STRIPE_ERROR',
+          'Unable to open billing portal.',
+          'financial',
+        ),
       );
     }
   });

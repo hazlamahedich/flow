@@ -9,7 +9,10 @@
 import { formatCentsToDollar } from '@flow/shared';
 import type { TransactionalEmailPayload } from '@flow/agents/providers';
 
-export type ClientNotificationType = 'invoice_created' | 'payment_confirmed' | 'report_shared';
+export type ClientNotificationType =
+  | 'invoice_created'
+  | 'payment_confirmed'
+  | 'report_shared';
 
 export interface ClientNotificationPayload {
   invoiceId?: string | undefined;
@@ -20,7 +23,11 @@ export interface ClientNotificationPayload {
 }
 
 function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 export function buildClientNotificationEmail(args: {
@@ -42,7 +49,9 @@ export function buildClientNotificationEmail(args: {
 
   switch (type) {
     case 'invoice_created': {
-      const amount = payload.amountCents ? formatCentsToDollar(payload.amountCents) : '';
+      const amount = payload.amountCents
+        ? formatCentsToDollar(payload.amountCents)
+        : '';
       const invNum = payload.invoiceNumber ?? '';
       subject = `New invoice ${invNum} from ${workspaceName}`;
       const payLink = args.portalUrl ?? '';
@@ -55,7 +64,9 @@ ${payLink ? `<p><a href="${encodeURI(payLink)}" style="display:inline-block;padd
       break;
     }
     case 'payment_confirmed': {
-      const amount = payload.amountCents ? formatCentsToDollar(payload.amountCents) : '';
+      const amount = payload.amountCents
+        ? formatCentsToDollar(payload.amountCents)
+        : '';
       const invNum = payload.invoiceNumber ?? '';
       subject = `Payment confirmed for ${invNum}`;
       htmlBody = `<!DOCTYPE html><html><body>

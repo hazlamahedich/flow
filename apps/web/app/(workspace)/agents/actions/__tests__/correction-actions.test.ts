@@ -22,11 +22,16 @@ vi.mock('@flow/db', () => ({
       })),
     })),
   })),
-  requireTenantContext: vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'u-1' }),
+  requireTenantContext: vi
+    .fn()
+    .mockResolvedValue({ workspaceId: 'ws-1', userId: 'u-1' }),
   mapRun: vi.fn((r: Record<string, unknown>) => r),
 }));
 
-import { issueCorrection, getOriginalRunForCorrection } from '../correction-actions';
+import {
+  issueCorrection,
+  getOriginalRunForCorrection,
+} from '../correction-actions';
 
 describe('issueCorrection', () => {
   beforeEach(() => {
@@ -42,12 +47,18 @@ describe('issueCorrection', () => {
   });
 
   it('rejects non-UUID originalRunId', async () => {
-    const result = await issueCorrection({ originalRunId: 'not-a-uuid', correctedOutput: { foo: 'bar' } });
+    const result = await issueCorrection({
+      originalRunId: 'not-a-uuid',
+      correctedOutput: { foo: 'bar' },
+    });
     expect(result.success).toBe(false);
   });
 
   it('rejects non-object correctedOutput', async () => {
-    const result = await issueCorrection({ originalRunId: '00000000-0000-0000-0000-000000000001', correctedOutput: 'string' });
+    const result = await issueCorrection({
+      originalRunId: '00000000-0000-0000-0000-000000000001',
+      correctedOutput: 'string',
+    });
     expect(result.success).toBe(false);
   });
 

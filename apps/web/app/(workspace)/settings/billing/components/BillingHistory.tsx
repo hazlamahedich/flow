@@ -28,7 +28,8 @@ export function BillingHistory({ invoices }: BillingHistoryProps) {
       </h2>
       {invoices.length === 0 ? (
         <p className="text-sm text-[var(--flow-color-text-muted)]">
-          No invoices yet. Invoices you create for your clients will appear here.
+          No invoices yet. Invoices you create for your clients will appear
+          here.
         </p>
       ) : (
         <ul className="divide-y divide-[var(--flow-color-border-default)] rounded-[var(--flow-radius-md)] border border-[var(--flow-color-border-default)]">
@@ -42,14 +43,17 @@ export function BillingHistory({ invoices }: BillingHistoryProps) {
                   {invoice.invoiceNumber}
                 </p>
                 <p className="text-xs text-[var(--flow-color-text-muted)]">
-                  {new Date(invoice.issueDate).toLocaleDateString()} · {invoice.currency.toUpperCase()}
+                  {new Date(invoice.issueDate).toLocaleDateString()} ·{' '}
+                  {invoice.currency.toUpperCase()}
                 </p>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-[var(--flow-color-text-secondary)]">
                   {formatMoney(invoice.totalCents, invoice.currency)}
                 </span>
-                <span className={`text-xs font-medium ${statusColor(invoice.status)}`}>
+                <span
+                  className={`text-xs font-medium ${statusColor(invoice.status)}`}
+                >
                   {invoice.status}
                 </span>
               </div>

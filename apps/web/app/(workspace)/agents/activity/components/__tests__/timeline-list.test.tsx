@@ -10,15 +10,18 @@ vi.mock('next/navigation', () => ({
 
 function buildEntry(overrides: Record<string, unknown> = {}): ActionHistoryRow {
   return {
-    id: overrides.id as string ?? 'entry-1',
+    id: (overrides.id as string) ?? 'entry-1',
     workspaceId: 'ws-1',
     agentId: (overrides.agentId as import('@flow/types').AgentId) ?? 'inbox',
     actionType: (overrides.actionType as string) ?? 'categorize-email',
-    status: (overrides.status as import('@flow/types').AgentRunStatus) ?? 'completed',
+    status:
+      (overrides.status as import('@flow/types').AgentRunStatus) ?? 'completed',
     input: {},
     output: {},
-    correlationId: overrides.correlationId as string ?? 'corr-1',
-    createdAt: overrides.createdAt as string ?? new Date('2026-01-15T12:00:00Z').toISOString(),
+    correlationId: (overrides.correlationId as string) ?? 'corr-1',
+    createdAt:
+      (overrides.createdAt as string) ??
+      new Date('2026-01-15T12:00:00Z').toISOString(),
     updatedAt: new Date('2026-01-15T12:00:00Z').toISOString(),
     jobId: 'job-1',
     signalId: null,
@@ -41,42 +44,123 @@ describe('TimelineList', () => {
   afterEach(() => cleanup());
 
   it('renders empty state when no entries and no filters', () => {
-    render(<TimelineList entries={[]} totalCount={0} filters={{}} grouped={false} onToggleGrouped={vi.fn()} workspaceId="ws-1" userId="u-1" searchParamsStr="" />);
+    render(
+      <TimelineList
+        entries={[]}
+        totalCount={0}
+        filters={{}}
+        grouped={false}
+        onToggleGrouped={vi.fn()}
+        workspaceId="ws-1"
+        userId="u-1"
+        searchParamsStr=""
+      />,
+    );
     expect(screen.getByText(/haven't taken any actions yet/i)).toBeDefined();
   });
 
   it('renders filtered empty state when filters active', () => {
-    render(<TimelineList entries={[]} totalCount={50} filters={{ agentId: 'inbox' }} grouped={false} onToggleGrouped={vi.fn()} workspaceId="ws-1" userId="u-1" searchParamsStr="" />);
+    render(
+      <TimelineList
+        entries={[]}
+        totalCount={50}
+        filters={{ agentId: 'inbox' }}
+        grouped={false}
+        onToggleGrouped={vi.fn()}
+        workspaceId="ws-1"
+        userId="u-1"
+        searchParamsStr=""
+      />,
+    );
     expect(screen.getByText(/No actions match your filters/i)).toBeDefined();
   });
 
   it('renders group toggle button', () => {
     const entries = [buildEntry()];
-    render(<TimelineList entries={entries} totalCount={1} filters={{}} grouped={false} onToggleGrouped={vi.fn()} workspaceId="ws-1" userId="u-1" searchParamsStr="" />);
+    render(
+      <TimelineList
+        entries={entries}
+        totalCount={1}
+        filters={{}}
+        grouped={false}
+        onToggleGrouped={vi.fn()}
+        workspaceId="ws-1"
+        userId="u-1"
+        searchParamsStr=""
+      />,
+    );
     expect(screen.getByText('Grouped')).toBeDefined();
   });
 
   it('shows Ungrouped when grouped is true', () => {
     const entries = [buildEntry()];
-    render(<TimelineList entries={entries} totalCount={1} filters={{}} grouped={true} onToggleGrouped={vi.fn()} workspaceId="ws-1" userId="u-1" searchParamsStr="" />);
+    render(
+      <TimelineList
+        entries={entries}
+        totalCount={1}
+        filters={{}}
+        grouped={true}
+        onToggleGrouped={vi.fn()}
+        workspaceId="ws-1"
+        userId="u-1"
+        searchParamsStr=""
+      />,
+    );
     expect(screen.getByText('Ungrouped')).toBeDefined();
   });
 
   it('renders pagination when totalPages > 1', () => {
-    const entries = Array.from({ length: 25 }, (_, i) => buildEntry({ id: `e-${i}` }));
-    render(<TimelineList entries={entries} totalCount={50} filters={{}} grouped={false} onToggleGrouped={vi.fn()} workspaceId="ws-1" userId="u-1" searchParamsStr="" />);
+    const entries = Array.from({ length: 25 }, (_, i) =>
+      buildEntry({ id: `e-${i}` }),
+    );
+    render(
+      <TimelineList
+        entries={entries}
+        totalCount={50}
+        filters={{}}
+        grouped={false}
+        onToggleGrouped={vi.fn()}
+        workspaceId="ws-1"
+        userId="u-1"
+        searchParamsStr=""
+      />,
+    );
     expect(screen.getByText(/Page 1 of 2/)).toBeDefined();
   });
 
   it('does not render pagination when only one page', () => {
     const entries = [buildEntry()];
-    render(<TimelineList entries={entries} totalCount={1} filters={{}} grouped={false} onToggleGrouped={vi.fn()} workspaceId="ws-1" userId="u-1" searchParamsStr="" />);
+    render(
+      <TimelineList
+        entries={entries}
+        totalCount={1}
+        filters={{}}
+        grouped={false}
+        onToggleGrouped={vi.fn()}
+        workspaceId="ws-1"
+        userId="u-1"
+        searchParamsStr=""
+      />,
+    );
     expect(screen.queryByText(/Page/)).toBeNull();
   });
 
   it('has list role with aria-label', () => {
     const entries = [buildEntry()];
-    render(<TimelineList entries={entries} totalCount={1} filters={{}} grouped={false} onToggleGrouped={vi.fn()} workspaceId="ws-1" userId="u-1" searchParamsStr="" />);
-    expect(screen.getByRole('list', { name: /agent activity timeline/i })).toBeDefined();
+    render(
+      <TimelineList
+        entries={entries}
+        totalCount={1}
+        filters={{}}
+        grouped={false}
+        onToggleGrouped={vi.fn()}
+        workspaceId="ws-1"
+        userId="u-1"
+        searchParamsStr=""
+      />,
+    );
+    expect(
+      screen.getByRole('list', { name: /agent activity timeline/i }),
+    ).toBeDefined();
   });
 });

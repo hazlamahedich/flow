@@ -22,11 +22,15 @@ export function validateGmailEnv(): GmailEnv {
   if (!ironSessionPassword) missing.push('IRON_SESSION_PASSWORD');
 
   if (missing.length > 0) {
-    throw new Error(`Missing required Gmail environment variables: ${missing.join(', ')}`);
+    throw new Error(
+      `Missing required Gmail environment variables: ${missing.join(', ')}`,
+    );
   }
 
   if (!/^[0-9a-f]{64}$/i.test(gmailEncryptionKey!)) {
-    throw new Error('GMAIL_ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes)');
+    throw new Error(
+      'GMAIL_ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes)',
+    );
   }
 
   if (ironSessionPassword!.length < 32) {

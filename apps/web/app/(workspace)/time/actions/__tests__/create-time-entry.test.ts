@@ -6,8 +6,16 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({
-    status, code, message, category,
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({
+    status,
+    code,
+    message,
+    category,
   }),
   createTimeEntry: vi.fn(),
 }));
@@ -20,7 +28,11 @@ const mockFrom = vi.fn();
 const mockSelect = vi.fn().mockReturnThis();
 const mockEq = vi.fn().mockReturnThis();
 const mockSingle = vi.fn().mockResolvedValue({ data: null, error: null });
-mockFrom.mockReturnValue({ select: mockSelect, eq: mockEq, single: mockSingle });
+mockFrom.mockReturnValue({
+  select: mockSelect,
+  eq: mockEq,
+  single: mockSingle,
+});
 const mockSupabase = { from: mockFrom };
 
 const validInput = {
@@ -35,43 +47,66 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase as never);
   vi.mocked(requireTenantContext).mockResolvedValue({
-    workspaceId: 'ws-1', userId: 'u-1', role: 'owner',
+    workspaceId: 'ws-1',
+    userId: 'u-1',
+    role: 'owner',
   } as never);
 });
 
 describe('createTimeEntryAction', () => {
   it('[P0] returns validation error for missing clientId', async () => {
-    const result = await createTimeEntryAction({ ...validInput, clientId: undefined });
+    const result = await createTimeEntryAction({
+      ...validInput,
+      clientId: undefined,
+    });
     expect(result.success).toBe(false);
   });
 
   it('[P0] returns validation error for durationMinutes < 1', async () => {
-    const result = await createTimeEntryAction({ ...validInput, durationMinutes: 0 });
+    const result = await createTimeEntryAction({
+      ...validInput,
+      durationMinutes: 0,
+    });
     expect(result.success).toBe(false);
   });
 
   it('[P0] returns validation error for durationMinutes > 1440', async () => {
-    const result = await createTimeEntryAction({ ...validInput, durationMinutes: 1441 });
+    const result = await createTimeEntryAction({
+      ...validInput,
+      durationMinutes: 1441,
+    });
     expect(result.success).toBe(false);
   });
 
   it('[P0] returns validation error for future date', async () => {
-    const result = await createTimeEntryAction({ ...validInput, date: '2099-01-01' });
+    const result = await createTimeEntryAction({
+      ...validInput,
+      date: '2099-01-01',
+    });
     expect(result.success).toBe(false);
   });
 
   it('[P0] returns validation error for invalid date format', async () => {
-    const result = await createTimeEntryAction({ ...validInput, date: 'not-a-date' });
+    const result = await createTimeEntryAction({
+      ...validInput,
+      date: 'not-a-date',
+    });
     expect(result.success).toBe(false);
   });
 
   it('[P0] returns validation error for notes > 500 chars', async () => {
-    const result = await createTimeEntryAction({ ...validInput, notes: 'x'.repeat(501) });
+    const result = await createTimeEntryAction({
+      ...validInput,
+      notes: 'x'.repeat(501),
+    });
     expect(result.success).toBe(false);
   });
 
   it('[P0] returns validation error for non-UUID clientId', async () => {
-    const result = await createTimeEntryAction({ ...validInput, clientId: 'abc' });
+    const result = await createTimeEntryAction({
+      ...validInput,
+      clientId: 'abc',
+    });
     expect(result.success).toBe(false);
   });
 
@@ -113,10 +148,18 @@ describe('createTimeEntryAction', () => {
 
   it('[P0] passes correct params to createTimeEntry', async () => {
     vi.mocked(createTimeEntry).mockResolvedValue({
-      id: 'entry-1', workspaceId: 'ws-1', clientId: validInput.clientId,
-      userId: 'u-1', projectId: null, projectName: null, date: validInput.date,
-      durationMinutes: validInput.durationMinutes, notes: validInput.notes ?? null,
-      deletedAt: null, createdAt: '2026-05-10T00:00:00Z', updatedAt: '2026-05-10T00:00:00Z',
+      id: 'entry-1',
+      workspaceId: 'ws-1',
+      clientId: validInput.clientId,
+      userId: 'u-1',
+      projectId: null,
+      projectName: null,
+      date: validInput.date,
+      durationMinutes: validInput.durationMinutes,
+      notes: validInput.notes ?? null,
+      deletedAt: null,
+      createdAt: '2026-05-10T00:00:00Z',
+      updatedAt: '2026-05-10T00:00:00Z',
     } as never);
 
     await createTimeEntryAction(validInput);
@@ -134,7 +177,9 @@ describe('createTimeEntryAction', () => {
   });
 
   it('[P0] returns INTERNAL_ERROR when createTimeEntry throws', async () => {
-    vi.mocked(createTimeEntry).mockRejectedValue(new Error('db error') as never);
+    vi.mocked(createTimeEntry).mockRejectedValue(
+      new Error('db error') as never,
+    );
 
     const result = await createTimeEntryAction(validInput);
     expect(result.success).toBe(false);
@@ -143,13 +188,24 @@ describe('createTimeEntryAction', () => {
 
   it('[P1] accepts input without notes', async () => {
     vi.mocked(createTimeEntry).mockResolvedValue({
-      id: 'entry-1', workspaceId: 'ws-1', clientId: validInput.clientId,
-      userId: 'u-1', projectId: null, projectName: null, date: validInput.date,
-      durationMinutes: validInput.durationMinutes, notes: null,
-      deletedAt: null, createdAt: '2026-05-10T00:00:00Z', updatedAt: '2026-05-10T00:00:00Z',
+      id: 'entry-1',
+      workspaceId: 'ws-1',
+      clientId: validInput.clientId,
+      userId: 'u-1',
+      projectId: null,
+      projectName: null,
+      date: validInput.date,
+      durationMinutes: validInput.durationMinutes,
+      notes: null,
+      deletedAt: null,
+      createdAt: '2026-05-10T00:00:00Z',
+      updatedAt: '2026-05-10T00:00:00Z',
     } as never);
 
-    const result = await createTimeEntryAction({ ...validInput, notes: undefined });
+    const result = await createTimeEntryAction({
+      ...validInput,
+      notes: undefined,
+    });
     expect(result.success).toBe(true);
   });
 
@@ -159,14 +215,23 @@ describe('createTimeEntryAction', () => {
       error: null,
     });
     vi.mocked(createTimeEntry).mockResolvedValue({
-      id: 'entry-1', workspaceId: 'ws-1', clientId: validInput.clientId,
-      userId: 'u-1', projectId: 'proj-1', projectName: null, date: validInput.date,
-      durationMinutes: validInput.durationMinutes, notes: null,
-      deletedAt: null, createdAt: '2026-05-10T00:00:00Z', updatedAt: '2026-05-10T00:00:00Z',
+      id: 'entry-1',
+      workspaceId: 'ws-1',
+      clientId: validInput.clientId,
+      userId: 'u-1',
+      projectId: 'proj-1',
+      projectName: null,
+      date: validInput.date,
+      durationMinutes: validInput.durationMinutes,
+      notes: null,
+      deletedAt: null,
+      createdAt: '2026-05-10T00:00:00Z',
+      updatedAt: '2026-05-10T00:00:00Z',
     } as never);
 
     const result = await createTimeEntryAction({
-      ...validInput, projectId: '00000000-0000-0000-0000-000000000002',
+      ...validInput,
+      projectId: '00000000-0000-0000-0000-000000000002',
     });
     expect(result.success).toBe(true);
   });

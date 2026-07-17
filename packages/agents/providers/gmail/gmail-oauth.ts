@@ -20,10 +20,13 @@ function createOAuth2Client(redirectUri: string): OAuth2Client {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
-    throw Object.assign(new Error('GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are required'), {
-      code: 'OAUTH_CONFIG_ERROR' as const,
-      statusCode: 500,
-    });
+    throw Object.assign(
+      new Error('GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are required'),
+      {
+        code: 'OAUTH_CONFIG_ERROR' as const,
+        statusCode: 500,
+      },
+    );
   }
   return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
 }
@@ -48,10 +51,13 @@ export async function exchangeCode(
   const client = createOAuth2Client(redirectUri);
   const { tokens } = await client.getToken({ code, codeVerifier });
   if (!tokens.access_token || !tokens.refresh_token) {
-    throw Object.assign(new Error('Token exchange did not return required tokens'), {
-      code: 'OAUTH_TOKEN_EXCHANGE_FAILED' as const,
-      statusCode: 502,
-    });
+    throw Object.assign(
+      new Error('Token exchange did not return required tokens'),
+      {
+        code: 'OAUTH_TOKEN_EXCHANGE_FAILED' as const,
+        statusCode: 502,
+      },
+    );
   }
 
   const oauthTokens: OAuthTokens = {
@@ -72,10 +78,13 @@ export async function refreshToken(refreshToken: string): Promise<OAuthTokens> {
   client.setCredentials({ refresh_token: refreshToken });
   const { credentials } = await client.refreshAccessToken();
   if (!credentials.access_token) {
-    throw Object.assign(new Error('Token refresh did not return access token'), {
-      code: 'OAUTH_TOKEN_EXCHANGE_FAILED' as const,
-      statusCode: 502,
-    });
+    throw Object.assign(
+      new Error('Token refresh did not return access token'),
+      {
+        code: 'OAUTH_TOKEN_EXCHANGE_FAILED' as const,
+        statusCode: 502,
+      },
+    );
   }
   return {
     accessToken: credentials.access_token,

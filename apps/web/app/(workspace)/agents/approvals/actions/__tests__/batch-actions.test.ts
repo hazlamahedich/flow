@@ -4,7 +4,9 @@ const mockGetServerSupabase = vi.fn().mockResolvedValue({
   from: vi.fn(),
   auth: { getUser: vi.fn() },
 });
-const mockRequireTenantContext = vi.fn().mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
+const mockRequireTenantContext = vi
+  .fn()
+  .mockResolvedValue({ workspaceId: 'ws-1', userId: 'user-1', role: 'owner' });
 
 vi.mock('@/lib/supabase-server', () => ({
   getServerSupabase: () => mockGetServerSupabase(),
@@ -12,8 +14,16 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: () => mockRequireTenantContext(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({
-    status, code, message, category,
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({
+    status,
+    code,
+    message,
+    category,
   }),
 }));
 
@@ -21,7 +31,9 @@ import { batchApproveRuns } from '../batch-approve-runs';
 import { batchRejectRuns } from '../batch-reject-runs';
 
 describe('batchActions', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('rejects batch >25 items via Zod', async () => {
     const ids = Array.from({ length: 26 }, (_, i) => crypto.randomUUID());

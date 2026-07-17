@@ -106,7 +106,9 @@ export function SendInvoiceButtons({
               <strong>{clientName}</strong> at{' '}
               <strong>{clientEmail ?? 'no email'}</strong>?
             </p>
-            <p className="text-xs text-muted-foreground">Payment link will be generated and emailed.</p>
+            <p className="text-xs text-muted-foreground">
+              Payment link will be generated and emailed.
+            </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowConfirm(false)}

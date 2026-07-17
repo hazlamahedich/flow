@@ -21,9 +21,7 @@ import { invoices } from '@flow/db/schema/invoices';
 
 // ── Real code under test ──
 import { POST } from '@/app/api/webhooks/stripe/route';
-import {
-  processStripeEvent,
-} from '@/lib/stripe/handlers';
+import { processStripeEvent } from '@/lib/stripe/handlers';
 import { verifyWebhookSignature } from '@/lib/stripe/verify-webhook-signature';
 import {
   STRIPE_WEBHOOK_MAX_RETRIES,
@@ -58,7 +56,10 @@ vi.mock('@/lib/config/tier-config', () => ({
       pro: { maxClients: 15, maxTeamMembers: 1, maxAgents: 6 },
       agency: { maxClients: null, maxTeamMembers: null, maxAgents: null },
     },
-    stripePrices: { pro_monthly: 'price_test_pro', agency_monthly: 'price_test_agency' },
+    stripePrices: {
+      pro_monthly: 'price_test_pro',
+      agency_monthly: 'price_test_agency',
+    },
     windows: { grace_period_days: 7, suspension_period_days: 30 },
     freeTransactionFeePercent: 5,
   }),
@@ -68,8 +69,18 @@ function stripeEvent(
   id: string,
   type: string,
   data: Record<string, unknown> = {},
-): { id: string; type: string; created: number; data: { object: Record<string, unknown> } } {
-  return { id, type, created: Math.floor(Date.now() / 1000), data: { object: data } };
+): {
+  id: string;
+  type: string;
+  created: number;
+  data: { object: Record<string, unknown> };
+} {
+  return {
+    id,
+    type,
+    created: Math.floor(Date.now() / 1000),
+    data: { object: data },
+  };
 }
 
 function createMockSupabase(): SupabaseClient {
@@ -93,7 +104,9 @@ beforeEach(async () => {
   // it with a narrower mock that lacks getSubscription; this restore keeps
   // downstream ATDD-007 tests working without per-test boilerplate).
   const { StripePaymentProvider } = await import('@flow/agents/providers');
-  (StripePaymentProvider as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+  (
+    StripePaymentProvider as unknown as ReturnType<typeof vi.fn>
+  ).mockImplementation(() => ({
     constructWebhookEvent: vi.fn().mockReturnValue({
       id: 'evt_default',
       type: 'invoice.paid',
@@ -133,7 +146,9 @@ describe('[P0] [9.3a-ATDD-002] verifyWebhookSignature validates raw body against
 
   test('valid signature resolves to parsed event with data.object', async () => {
     const { StripePaymentProvider } = await import('@flow/agents/providers');
-    (StripePaymentProvider as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+    (
+      StripePaymentProvider as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => ({
       constructWebhookEvent: vi.fn().mockReturnValue({
         id: 'evt_ok',
         type: 'invoice.paid',
@@ -150,7 +165,9 @@ describe('[P0] [9.3a-ATDD-002] verifyWebhookSignature validates raw body against
 
   test('tampered payload is rejected (provider throws)', async () => {
     const { StripePaymentProvider } = await import('@flow/agents/providers');
-    (StripePaymentProvider as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+    (
+      StripePaymentProvider as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => ({
       constructWebhookEvent: vi.fn().mockImplementation(() => {
         throw new Error('Signature verification failed');
       }),
@@ -162,11 +179,15 @@ describe('[P0] [9.3a-ATDD-002] verifyWebhookSignature validates raw body against
 
   test('event missing data.object is rejected', async () => {
     const { StripePaymentProvider } = await import('@flow/agents/providers');
-    (StripePaymentProvider as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+    (
+      StripePaymentProvider as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => ({
       constructWebhookEvent: vi.fn().mockReturnValue({
         id: 'evt_bad',
         type: 'invoice.paid',
-        payload: { /* no data key */ },
+        payload: {
+          /* no data key */
+        },
         createdAt: '2026-06-17T00:00:00Z',
       }),
     }));
@@ -190,12 +211,15 @@ describe('[P0] [9.3a-ATDD-003] duplicate events processed exactly once (FR42)', 
 
   test('processStripeEvent is callable and returns a WebhookProcessingResult', async () => {
     const supabase = createMockSupabase();
-    const result = await processStripeEvent(supabase, stripeEvent('evt_unique_1', 'invoice.paid', {
-      id: 'in_1',
-      customer: 'cus_1',
-      subscription: 'sub_1',
-      metadata: { workspace_id: 'ws_1' },
-    }));
+    const result = await processStripeEvent(
+      supabase,
+      stripeEvent('evt_unique_1', 'invoice.paid', {
+        id: 'in_1',
+        customer: 'cus_1',
+        subscription: 'sub_1',
+        metadata: { workspace_id: 'ws_1' },
+      }),
+    );
     expect(result).toHaveProperty('processed');
     expect(typeof result.processed).toBe('boolean');
   });
@@ -204,12 +228,24 @@ describe('[P0] [9.3a-ATDD-003] duplicate events processed exactly once (FR42)', 
     const supabase = createMockSupabase();
     // Two calls with same event id should both execute (dedup is at route layer via
     // stripe_webhook_events unique constraint — handler does NOT pre-check).
-    const r1 = await processStripeEvent(supabase, stripeEvent('evt_same', 'invoice.paid', {
-      id: 'in_1', customer: 'cus_1', subscription: 'sub_1', metadata: { workspace_id: 'ws_1' },
-    }));
-    const r2 = await processStripeEvent(supabase, stripeEvent('evt_same', 'invoice.paid', {
-      id: 'in_1', customer: 'cus_1', subscription: 'sub_1', metadata: { workspace_id: 'ws_1' },
-    }));
+    const r1 = await processStripeEvent(
+      supabase,
+      stripeEvent('evt_same', 'invoice.paid', {
+        id: 'in_1',
+        customer: 'cus_1',
+        subscription: 'sub_1',
+        metadata: { workspace_id: 'ws_1' },
+      }),
+    );
+    const r2 = await processStripeEvent(
+      supabase,
+      stripeEvent('evt_same', 'invoice.paid', {
+        id: 'in_1',
+        customer: 'cus_1',
+        subscription: 'sub_1',
+        metadata: { workspace_id: 'ws_1' },
+      }),
+    );
     expect(r1.processed).toBe(true);
     expect(r2.processed).toBe(true);
   });
@@ -272,22 +308,28 @@ describe('[P0] [9.3a-ATDD-007] webhook dispatcher handles subscription + invoice
   test('checkout.session.completed with invoice_id metadata → one-time payment path (AC4)', async () => {
     const supabase = createMockSupabase();
     // Stub invoices lookup to return a non-paid invoice so payment records
-    (supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
-      if (table === 'invoices') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
+    (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(
+      (table: string) => {
+        if (table === 'invoices') {
+          return {
+            select: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
-                maybeSingle: vi.fn().mockResolvedValue({
-                  data: { id: 'inv_123', status: 'sent', client_id: 'cli_123' },
+                eq: vi.fn().mockReturnValue({
+                  maybeSingle: vi.fn().mockResolvedValue({
+                    data: {
+                      id: 'inv_123',
+                      status: 'sent',
+                      client_id: 'cli_123',
+                    },
+                  }),
                 }),
               }),
             }),
-          }),
-        };
-      }
-      return { insert: vi.fn().mockResolvedValue({ error: null }) };
-    });
+          };
+        }
+        return { insert: vi.fn().mockResolvedValue({ error: null }) };
+      },
+    );
     const result = await processStripeEvent(
       supabase,
       stripeEvent('evt_inv_pay', 'checkout.session.completed', {
@@ -376,13 +418,31 @@ describe('[P0] [9.3a-ATDD-007] webhook dispatcher handles subscription + invoice
     const h1 = computeInvoiceDedupHash({
       workspaceId: 'ws_1',
       clientId: 'cli_1',
-      lineItems: [{ sourceType: 'time_entry', timeEntryId: 'te_1', retainerId: null, description: 'x', amountCents: 100, quantity: '1' }],
+      lineItems: [
+        {
+          sourceType: 'time_entry',
+          timeEntryId: 'te_1',
+          retainerId: null,
+          description: 'x',
+          amountCents: 100,
+          quantity: '1',
+        },
+      ],
       issueDate: '2026-06-17',
     });
     const h2 = computeInvoiceDedupHash({
       workspaceId: 'ws_1',
       clientId: 'cli_1',
-      lineItems: [{ sourceType: 'time_entry', timeEntryId: 'te_1', retainerId: null, description: 'x', amountCents: 100, quantity: '1' }],
+      lineItems: [
+        {
+          sourceType: 'time_entry',
+          timeEntryId: 'te_1',
+          retainerId: null,
+          description: 'x',
+          amountCents: 100,
+          quantity: '1',
+        },
+      ],
       issueDate: '2026-06-17',
     });
     expect(h1).toBe(h2);

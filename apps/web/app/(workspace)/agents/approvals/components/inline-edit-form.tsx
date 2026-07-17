@@ -6,7 +6,9 @@ import type { AgentProposal } from '@flow/types';
 interface InlineEditFormProps {
   proposal: AgentProposal;
   reasoning: string;
-  onSave: (changes: Partial<Pick<AgentProposal, 'title' | 'confidence' | 'riskLevel'>>) => Promise<{ success: boolean; error?: string }>;
+  onSave: (
+    changes: Partial<Pick<AgentProposal, 'title' | 'confidence' | 'riskLevel'>>,
+  ) => Promise<{ success: boolean; error?: string }>;
   onCancel: () => void;
   onEscape: () => void;
 }
@@ -40,7 +42,9 @@ export function InlineEditForm({
     setSaving(true);
     setError(null);
 
-    const changes: Partial<Pick<AgentProposal, 'title' | 'confidence' | 'riskLevel'>> = {};
+    const changes: Partial<
+      Pick<AgentProposal, 'title' | 'confidence' | 'riskLevel'>
+    > = {};
     if (trimmed !== proposal.title) changes.title = trimmed;
     if (clamped !== proposal.confidence) changes.confidence = clamped;
     if (riskLevel !== proposal.riskLevel) changes.riskLevel = riskLevel;
@@ -55,7 +59,9 @@ export function InlineEditForm({
     setSaving(false);
 
     if (!result.success) {
-      setError(result.error ?? 'This proposal changed since you started editing.');
+      setError(
+        result.error ?? 'This proposal changed since you started editing.',
+      );
     }
   };
 
@@ -71,15 +77,23 @@ export function InlineEditForm({
   };
 
   return (
-    <div className="mt-3 border-t border-[var(--flow-border-default)] pt-3" onKeyDown={handleKeyDown}>
+    <div
+      className="mt-3 border-t border-[var(--flow-border-default)] pt-3"
+      onKeyDown={handleKeyDown}
+    >
       <div className="rounded-[var(--flow-radius-md)] bg-[var(--flow-bg-surface-raised)] p-3 text-sm text-[var(--flow-text-secondary)] mb-3">
-        <p className="font-medium text-[var(--flow-text-primary)] text-xs mb-1">Agent Reasoning</p>
+        <p className="font-medium text-[var(--flow-text-primary)] text-xs mb-1">
+          Agent Reasoning
+        </p>
         <p>{reasoning}</p>
       </div>
 
       <div className="space-y-3">
         <div>
-          <label className="text-xs font-medium text-[var(--flow-text-secondary)]" htmlFor="edit-title">
+          <label
+            className="text-xs font-medium text-[var(--flow-text-secondary)]"
+            htmlFor="edit-title"
+          >
             Title
           </label>
           <input
@@ -95,7 +109,10 @@ export function InlineEditForm({
 
         <div className="flex gap-3">
           <div className="flex-1">
-            <label className="text-xs font-medium text-[var(--flow-text-secondary)]" htmlFor="edit-confidence">
+            <label
+              className="text-xs font-medium text-[var(--flow-text-secondary)]"
+              htmlFor="edit-confidence"
+            >
               Confidence (0-1)
             </label>
             <input
@@ -112,13 +129,18 @@ export function InlineEditForm({
           </div>
 
           <div className="w-32">
-            <label className="text-xs font-medium text-[var(--flow-text-secondary)]" htmlFor="edit-risk">
+            <label
+              className="text-xs font-medium text-[var(--flow-text-secondary)]"
+              htmlFor="edit-risk"
+            >
               Risk Level
             </label>
             <select
               id="edit-risk"
               value={riskLevel}
-              onChange={(e) => setRiskLevel(e.target.value as 'low' | 'medium' | 'high')}
+              onChange={(e) =>
+                setRiskLevel(e.target.value as 'low' | 'medium' | 'high')
+              }
               className="mt-1 w-full rounded-[var(--flow-radius-md)] border border-[var(--flow-border-default)] bg-[var(--flow-bg-surface)] px-3 py-2 text-sm text-[var(--flow-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--flow-accent-primary)]"
               disabled={saving}
             >

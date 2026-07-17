@@ -30,15 +30,23 @@ export function buildReportSections(
   aggregated: AggregatedData,
   templateSnapshot: Record<string, unknown>,
 ): Array<Record<string, unknown>> {
-  const sectionsConfig = (templateSnapshot.sections_config as Record<string, { enabled?: boolean; sort_order?: number }> | undefined) ?? {};
-  const fallbackOrder = ['time_summary', 'task_log', 'agent_activity', 'invoice_summary'] as const;
+  const sectionsConfig =
+    (templateSnapshot.sections_config as
+      | Record<string, { enabled?: boolean; sort_order?: number }>
+      | undefined) ?? {};
+  const fallbackOrder = [
+    'time_summary',
+    'task_log',
+    'agent_activity',
+    'invoice_summary',
+  ] as const;
   const hasEnabledConfig = Object.keys(sectionsConfig).length > 0;
 
   const orderedSections = hasEnabledConfig
-    ? (Object.entries(sectionsConfig)
+    ? Object.entries(sectionsConfig)
         .filter(([, cfg]) => cfg?.enabled)
         .sort(([, a], [, b]) => (a?.sort_order ?? 0) - (b?.sort_order ?? 0))
-        .map(([type]) => type))
+        .map(([type]) => type)
     : fallbackOrder.map((t) => t);
 
   const sectionOrderMap = new Map<string, number>();
@@ -46,7 +54,14 @@ export function buildReportSections(
     sectionOrderMap.set(type, cfg?.sort_order ?? 0);
   }
 
-  const { timeRows, agentRows, totalMinutes, totalInvoiceCents, totalPaidCents, invoiceIds } = aggregated;
+  const {
+    timeRows,
+    agentRows,
+    totalMinutes,
+    totalInvoiceCents,
+    totalPaidCents,
+    invoiceIds,
+  } = aggregated;
   const sectionsPayload: Array<Record<string, unknown>> = [];
 
   for (const secType of orderedSections) {
@@ -56,10 +71,21 @@ export function buildReportSections(
     if (secType === 'time_summary') {
       content = { totalMinutes };
     } else if (secType === 'task_log') {
-      const projectMap = new Map<string, { projectName: string; entries: Array<{ date: string; durationMinutes: number; notes: string }> }>();
+      const projectMap = new Map<
+        string,
+        {
+          projectName: string;
+          entries: Array<{
+            date: string;
+            durationMinutes: number;
+            notes: string;
+          }>;
+        }
+      >();
       for (const r of timeRows) {
         const pid = safeStr(r.project_id);
-        const pname = ((r.projects as { name?: string } | null | undefined)?.name) ?? '';
+        const pname =
+          (r.projects as { name?: string } | null | undefined)?.name ?? '';
         if (!projectMap.has(pid)) {
           projectMap.set(pid, { projectName: pname, entries: [] });
         }
@@ -71,7 +97,10 @@ export function buildReportSections(
       }
       content = { projects: Array.from(projectMap.values()) };
     } else if (secType === 'agent_activity') {
-      const counts = new Map<string, { actionType: string; status: string; count: number }>();
+      const counts = new Map<
+        string,
+        { actionType: string; status: string; count: number }
+      >();
       for (const r of agentRows) {
         const actionType = (r.action_type as string) ?? '';
         const status = (r.status as string) ?? '';

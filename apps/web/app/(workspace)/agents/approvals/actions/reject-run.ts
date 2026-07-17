@@ -12,7 +12,12 @@ export async function rejectRun(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -37,14 +42,23 @@ export async function rejectRun(
   if (run.status === 'cancelled' || run.status === 'completed') {
     return {
       success: true,
-      data: { runId, newStatus: run.status as AgentRunStatus, alreadyProcessed: true },
+      data: {
+        runId,
+        newStatus: run.status as AgentRunStatus,
+        alreadyProcessed: true,
+      },
     };
   }
 
   if (run.status !== 'waiting_approval') {
     return {
       success: false,
-      error: createFlowError(409, 'CONFLICT', `Run is in '${run.status}' status, cannot reject`, 'validation'),
+      error: createFlowError(
+        409,
+        'CONFLICT',
+        `Run is in '${run.status}' status, cannot reject`,
+        'validation',
+      ),
     };
   }
 
@@ -70,7 +84,12 @@ export async function rejectRun(
   if (updateError) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to reject run', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to reject run',
+        'system',
+      ),
     };
   }
 
@@ -81,16 +100,28 @@ export async function rejectRun(
       .eq('id', runId)
       .single();
 
-    if (current && (current.status === 'cancelled' || current.status === 'completed')) {
+    if (
+      current &&
+      (current.status === 'cancelled' || current.status === 'completed')
+    ) {
       return {
         success: true,
-        data: { runId, newStatus: current.status as AgentRunStatus, alreadyProcessed: true },
+        data: {
+          runId,
+          newStatus: current.status as AgentRunStatus,
+          alreadyProcessed: true,
+        },
       };
     }
 
     return {
       success: false,
-      error: createFlowError(409, 'CONFLICT', 'Run status changed concurrently', 'validation'),
+      error: createFlowError(
+        409,
+        'CONFLICT',
+        'Run status changed concurrently',
+        'validation',
+      ),
     };
   }
 

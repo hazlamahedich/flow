@@ -17,7 +17,11 @@ export async function getCookieStore(): Promise<IronSessionCookieStore> {
       const c = store.get(name);
       return c ? { name: c.name, value: c.value } : undefined;
     },
-    set: (nameOrOptions: string | ResponseCookie, value?: string, options?: Partial<ResponseCookie>) => {
+    set: (
+      nameOrOptions: string | ResponseCookie,
+      value?: string,
+      options?: Partial<ResponseCookie>,
+    ) => {
       try {
         if (typeof nameOrOptions === 'string') {
           store.set(nameOrOptions, value ?? '', { ...options, path: '/' });

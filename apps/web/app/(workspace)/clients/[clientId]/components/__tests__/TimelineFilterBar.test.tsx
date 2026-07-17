@@ -13,11 +13,13 @@ describe('TimelineFilterBar', () => {
   });
 
   it('renders with default "All" type and "Last 90 Days" range', () => {
-    (useQueryState as ReturnType<typeof vi.fn>).mockImplementation((key: string) => {
-      if (key === 'type') return ['all', vi.fn()];
-      if (key === 'range') return ['90d', vi.fn()];
-      return [null, vi.fn()];
-    });
+    (useQueryState as ReturnType<typeof vi.fn>).mockImplementation(
+      (key: string) => {
+        if (key === 'type') return ['all', vi.fn()];
+        if (key === 'range') return ['90d', vi.fn()];
+        return [null, vi.fn()];
+      },
+    );
 
     render(<TimelineFilterBar />);
 
@@ -28,11 +30,13 @@ describe('TimelineFilterBar', () => {
 
   it('pushes type=emails to URL when Emails button clicked', () => {
     const setType = vi.fn();
-    (useQueryState as ReturnType<typeof vi.fn>).mockImplementation((key: string) => {
-      if (key === 'type') return ['all', setType];
-      if (key === 'range') return ['90d', vi.fn()];
-      return [null, vi.fn()];
-    });
+    (useQueryState as ReturnType<typeof vi.fn>).mockImplementation(
+      (key: string) => {
+        if (key === 'type') return ['all', setType];
+        if (key === 'range') return ['90d', vi.fn()];
+        return [null, vi.fn()];
+      },
+    );
 
     render(<TimelineFilterBar />);
     fireEvent.click(screen.getByText('Emails'));
@@ -42,11 +46,13 @@ describe('TimelineFilterBar', () => {
 
   it('pushes range=7d to URL when 7d option selected', () => {
     const setRange = vi.fn();
-    (useQueryState as ReturnType<typeof vi.fn>).mockImplementation((key: string) => {
-      if (key === 'type') return ['all', vi.fn()];
-      if (key === 'range') return ['90d', setRange];
-      return [null, vi.fn()];
-    });
+    (useQueryState as ReturnType<typeof vi.fn>).mockImplementation(
+      (key: string) => {
+        if (key === 'type') return ['all', vi.fn()];
+        if (key === 'range') return ['90d', setRange];
+        return [null, vi.fn()];
+      },
+    );
 
     render(<TimelineFilterBar />);
     fireEvent.change(screen.getByRole('combobox'), { target: { value: '7d' } });
@@ -55,11 +61,13 @@ describe('TimelineFilterBar', () => {
   });
 
   it('renders deep-linked agent_runs and 7d without empty flash', () => {
-    (useQueryState as ReturnType<typeof vi.fn>).mockImplementation((key: string) => {
-      if (key === 'type') return ['agent_runs', vi.fn()];
-      if (key === 'range') return ['7d', vi.fn()];
-      return [null, vi.fn()];
-    });
+    (useQueryState as ReturnType<typeof vi.fn>).mockImplementation(
+      (key: string) => {
+        if (key === 'type') return ['agent_runs', vi.fn()];
+        if (key === 'range') return ['7d', vi.fn()];
+        return [null, vi.fn()];
+      },
+    );
 
     render(<TimelineFilterBar />);
 
@@ -68,15 +76,19 @@ describe('TimelineFilterBar', () => {
   });
 
   it('includes all date range options', () => {
-    (useQueryState as ReturnType<typeof vi.fn>).mockImplementation((key: string) => {
-      if (key === 'type') return ['all', vi.fn()];
-      if (key === 'range') return ['90d', vi.fn()];
-      return [null, vi.fn()];
-    });
+    (useQueryState as ReturnType<typeof vi.fn>).mockImplementation(
+      (key: string) => {
+        if (key === 'type') return ['all', vi.fn()];
+        if (key === 'range') return ['90d', vi.fn()];
+        return [null, vi.fn()];
+      },
+    );
 
     render(<TimelineFilterBar />);
     const select = screen.getByRole('combobox');
-    const options = Array.from(select.querySelectorAll('option')).map((o) => o.value);
+    const options = Array.from(select.querySelectorAll('option')).map(
+      (o) => o.value,
+    );
 
     expect(options).toContain('7d');
     expect(options).toContain('30d');

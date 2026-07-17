@@ -17,7 +17,8 @@ const mockRequireTenantContext = vi.fn().mockResolvedValue({
 });
 
 vi.mock('@flow/db', () => ({
-  requireTenantContext: (...args: unknown[]) => mockRequireTenantContext(...args),
+  requireTenantContext: (...args: unknown[]) =>
+    mockRequireTenantContext(...args),
   createServerClient: vi.fn().mockReturnValue({
     auth: { getUser: vi.fn() },
     from: vi.fn(),
@@ -34,7 +35,9 @@ import { beginDrain } from '@flow/agents';
 import { revalidateTag } from 'next/cache';
 
 describe('deactivateAgent', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('calls beginDrain and revalidates on success', async () => {
     vi.mocked(beginDrain).mockResolvedValueOnce({
@@ -54,7 +57,9 @@ describe('deactivateAgent', () => {
   });
 
   it('returns error when beginDrain throws', async () => {
-    vi.mocked(beginDrain).mockRejectedValueOnce(new Error('Agent has active runs'));
+    vi.mocked(beginDrain).mockRejectedValueOnce(
+      new Error('Agent has active runs'),
+    );
 
     const result = await deactivateAgent({
       agentId: 'calendar',
@@ -69,7 +74,10 @@ describe('deactivateAgent', () => {
   });
 
   it('returns validation error for invalid input', async () => {
-    const result = await deactivateAgent({ agentId: 123, expectedVersion: 'bad' });
+    const result = await deactivateAgent({
+      agentId: 123,
+      expectedVersion: 'bad',
+    });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.code).toBe('VALIDATION_ERROR');

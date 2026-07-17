@@ -15,9 +15,8 @@ const acceptSchema = z.object({
 export async function acceptInvitation(
   input: FormData | unknown,
 ): Promise<ActionResult<{ workspaceId: string }>> {
-  const rawInput = input instanceof FormData
-    ? { token: input.get('token') as string }
-    : input;
+  const rawInput =
+    input instanceof FormData ? { token: input.get('token') as string } : input;
   const parsed = acceptSchema.safeParse(rawInput);
   if (!parsed.success) {
     return {
@@ -34,7 +33,9 @@ export async function acceptInvitation(
   const { token } = parsed.data;
   const supabase = await getServerSupabase();
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session?.user) {
     return {
       success: false,

@@ -7,7 +7,9 @@ interface SyncBannerProps {
   isSyncRequested: boolean;
   isCancelReturn: boolean;
   sessionId: string | undefined;
-  onSync: (input: { sessionId?: string }) => Promise<ActionResult<{ synced: true }>>;
+  onSync: (input: {
+    sessionId?: string;
+  }) => Promise<ActionResult<{ synced: true }>>;
 }
 
 /**
@@ -19,7 +21,12 @@ interface SyncBannerProps {
  * "synced" message. When the user bails out via the cancel URL
  * (`?status=cancel`), an informational banner is shown instead.
  */
-export function SyncBanner({ isSyncRequested, isCancelReturn, sessionId, onSync }: SyncBannerProps) {
+export function SyncBanner({
+  isSyncRequested,
+  isCancelReturn,
+  sessionId,
+  onSync,
+}: SyncBannerProps) {
   const [synced, setSynced] = useState(false);
   const [syncError, setSyncError] = useState(false);
 
@@ -60,7 +67,8 @@ export function SyncBanner({ isSyncRequested, isCancelReturn, sessionId, onSync 
           className="rounded-[var(--flow-radius-md)] border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800"
           role="status"
         >
-          We could not sync your billing status right now. Your subscription will update shortly.
+          We could not sync your billing status right now. Your subscription
+          will update shortly.
         </div>
       );
     }

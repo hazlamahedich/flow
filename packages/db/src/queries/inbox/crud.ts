@@ -123,12 +123,18 @@ export async function updateClientInboxSyncStatus(
   inboxId: string,
   workspaceId: string,
   syncStatus: string,
-  extras?: { syncCursor?: string; errorMessage?: string | null; lastSyncAt?: string },
+  extras?: {
+    syncCursor?: string;
+    errorMessage?: string | null;
+    lastSyncAt?: string;
+  },
 ): Promise<ClientInbox | null> {
   const updates: Record<string, unknown> = { sync_status: syncStatus };
   if (extras?.syncCursor !== undefined) updates.sync_cursor = extras.syncCursor;
-  if (extras?.errorMessage !== undefined) updates.error_message = extras.errorMessage;
-  if (extras?.lastSyncAt !== undefined) updates.last_sync_at = extras.lastSyncAt;
+  if (extras?.errorMessage !== undefined)
+    updates.error_message = extras.errorMessage;
+  if (extras?.lastSyncAt !== undefined)
+    updates.last_sync_at = extras.lastSyncAt;
 
   const { data, error } = await supabase
     .from('client_inboxes')

@@ -3,7 +3,14 @@ import { createServerClient } from './client';
 export async function getConfig<T>(
   key: string,
   parser: (value: unknown) => T,
-  cookieStore: { getAll: () => Array<{ name: string; value: string }>; set: (name: string, value: string, options?: Record<string, unknown>) => void },
+  cookieStore: {
+    getAll: () => Array<{ name: string; value: string }>;
+    set: (
+      name: string,
+      value: string,
+      options?: Record<string, unknown>,
+    ) => void;
+  },
 ): Promise<T> {
   const client = createServerClient(cookieStore);
 

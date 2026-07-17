@@ -8,7 +8,10 @@ import { cookies } from 'next/headers';
 export async function switchWorkspace(workspaceId: string): Promise<void> {
   const supabase = await getServerSupabase();
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) {
     throw new Error('Authentication required');
   }
@@ -26,17 +29,21 @@ export async function switchWorkspace(workspaceId: string): Promise<void> {
   }
 
   const adminClient = createAdminSupabase();
-  const { data: existingUser, error: fetchErr } = await adminClient.auth.admin.getUserById(user.id);
+  const { data: existingUser, error: fetchErr } =
+    await adminClient.auth.admin.getUserById(user.id);
   if (fetchErr || !existingUser?.user) {
     throw new Error('Failed to verify user for workspace switch');
   }
 
-  const { error: updateErr } = await adminClient.auth.admin.updateUserById(user.id, {
-    app_metadata: {
-      ...existingUser.user.app_metadata,
-      workspace_id: workspaceId,
+  const { error: updateErr } = await adminClient.auth.admin.updateUserById(
+    user.id,
+    {
+      app_metadata: {
+        ...existingUser.user.app_metadata,
+        workspace_id: workspaceId,
+      },
     },
-  });
+  );
 
   if (updateErr) {
     throw new Error(`Failed to update workspace: ${updateErr.message}`);

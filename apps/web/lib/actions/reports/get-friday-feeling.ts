@@ -1,7 +1,11 @@
 'use server';
 
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, getActiveFridayFeeling } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  getActiveFridayFeeling,
+} from '@flow/db';
 import type { ActionResult } from '@flow/types';
 
 export interface FridayFeelingData {
@@ -16,7 +20,9 @@ export interface FridayFeelingData {
   dismissedAt: string | null;
 }
 
-export async function getFridayFeelingAction(): Promise<ActionResult<FridayFeelingData | null>> {
+export async function getFridayFeelingAction(): Promise<
+  ActionResult<FridayFeelingData | null>
+> {
   const supabase = await getServerSupabase();
   let ctx;
   try {
@@ -24,7 +30,12 @@ export async function getFridayFeelingAction(): Promise<ActionResult<FridayFeeli
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 

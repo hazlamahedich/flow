@@ -67,14 +67,12 @@ export async function createTestTenant(
   if (config.clients) {
     for (const c of config.clients) {
       const clientId = crypto.randomUUID();
-      const { error: clientErr } = await admin
-        .from('clients')
-        .insert({
-          id: clientId,
-          workspace_id: tenantId,
-          name: c.name,
-          email: c.email,
-        });
+      const { error: clientErr } = await admin.from('clients').insert({
+        id: clientId,
+        workspace_id: tenantId,
+        name: c.name,
+        email: c.email,
+      });
       if (clientErr) throw clientErr;
       clients.push({ id: clientId, name: c.name });
     }

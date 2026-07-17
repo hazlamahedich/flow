@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { isValidTransition, VALID_RUN_TRANSITIONS } from '../orchestrator/transition-map';
+import {
+  isValidTransition,
+  VALID_RUN_TRANSITIONS,
+} from '../orchestrator/transition-map';
 import type { AgentRunStatus } from '@flow/types';
 
 describe('TC-01: Valid forward transitions accepted', () => {
@@ -59,15 +62,24 @@ describe('TC-04: Timeout transitions', () => {
 });
 
 describe('TC-05: Invalid backward transitions rejected', () => {
-  const terminalStates: AgentRunStatus[] = ['completed', 'failed', 'timed_out', 'cancelled'];
+  const terminalStates: AgentRunStatus[] = [
+    'completed',
+    'failed',
+    'timed_out',
+    'cancelled',
+  ];
   const allStatuses: AgentRunStatus[] = [
-    'queued', 'running', 'waiting_approval', 'completed', 'failed', 'timed_out', 'cancelled',
+    'queued',
+    'running',
+    'waiting_approval',
+    'completed',
+    'failed',
+    'timed_out',
+    'cancelled',
   ];
 
   it.each(
-    terminalStates.flatMap((from) =>
-      allStatuses.map((to) => ({ from, to })),
-    ),
+    terminalStates.flatMap((from) => allStatuses.map((to) => ({ from, to }))),
   )('rejects terminal state transition $from → $to', ({ from, to }) => {
     expect(isValidTransition(from, to)).toBe(false);
   });

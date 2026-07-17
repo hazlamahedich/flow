@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { execute } from '../executor';
-import { insertSignal, updateEmailCategorization, createServiceClient } from '@flow/db';
+import {
+  insertSignal,
+  updateEmailCategorization,
+  createServiceClient,
+} from '@flow/db';
 import { createLLMRouter } from '../../shared/index.js';
 
 vi.mock('@flow/db', () => ({
@@ -80,13 +84,17 @@ describe('inbox processing pipeline', () => {
 
     // Verify signal emission (Task 5, AC7)
     // We expect email.received and email.client_urgent according to AC7
-    expect(insertSignal).toHaveBeenCalledWith(expect.objectContaining({
-      signalType: 'email.received',
-    }));
+    expect(insertSignal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signalType: 'email.received',
+      }),
+    );
 
-    expect(insertSignal).toHaveBeenCalledWith(expect.objectContaining({
-      signalType: 'email.client_urgent',
-    }));
+    expect(insertSignal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signalType: 'email.client_urgent',
+      }),
+    );
   });
 
   it('emits low trust signal for emails with directive language (Task 11)', async () => {
@@ -119,11 +127,13 @@ describe('inbox processing pipeline', () => {
     } as any);
 
     // Verify signal has requires_confirmation: true in payload
-    expect(insertSignal).toHaveBeenCalledWith(expect.objectContaining({
-      signalType: 'email.received',
-      payload: expect.objectContaining({
-        requires_confirmation: true,
+    expect(insertSignal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signalType: 'email.received',
+        payload: expect.objectContaining({
+          requires_confirmation: true,
+        }),
       }),
-    }));
+    );
   });
 });

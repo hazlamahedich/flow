@@ -14,7 +14,9 @@ export function ClientDetails({ client, role }: ClientDetailsProps) {
   const isOwnerOrAdmin = role === 'owner' || role === 'admin';
 
   if (editing) {
-    return <ClientEditForm client={client} onCancel={() => setEditing(false)} />;
+    return (
+      <ClientEditForm client={client} onCancel={() => setEditing(false)} />
+    );
   }
 
   return (
@@ -35,11 +37,14 @@ export function ClientDetails({ client, role }: ClientDetailsProps) {
         <DetailField label="Email" value={client.email} />
         <DetailField label="Phone" value={client.phone} />
         <DetailField label="Billing Email" value={client.billingEmail} />
-        <DetailField label="Hourly Rate" value={
-          client.hourlyRateCents != null
-            ? `$${(client.hourlyRateCents / 100).toFixed(2)}`
-            : null
-        } />
+        <DetailField
+          label="Hourly Rate"
+          value={
+            client.hourlyRateCents != null
+              ? `$${(client.hourlyRateCents / 100).toFixed(2)}`
+              : null
+          }
+        />
         <div className="col-span-2">
           <DetailField label="Address" value={client.address} />
         </div>
@@ -51,11 +56,21 @@ export function ClientDetails({ client, role }: ClientDetailsProps) {
   );
 }
 
-function DetailField({ label, value }: { label: string; value: string | null | undefined }) {
+function DetailField({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | null | undefined;
+}) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase text-[var(--flow-color-text-secondary)]">{label}</dt>
-      <dd className="mt-1 text-sm text-[var(--flow-color-text-primary)]">{value ?? '—'}</dd>
+      <dt className="text-xs font-medium uppercase text-[var(--flow-color-text-secondary)]">
+        {label}
+      </dt>
+      <dd className="mt-1 text-sm text-[var(--flow-color-text-primary)]">
+        {value ?? '—'}
+      </dd>
     </div>
   );
 }

@@ -3,15 +3,18 @@ import { describe, test, expect } from 'vitest';
 import { clients } from '@flow/db/schema/clients';
 // @ts-expect-error ATDD red-phase stub — module will be created when feature is implemented
 import { memberClientAccess } from '@flow/db/schema/member-client-access';
-import {
-  clientListFiltersSchema,
-} from '@flow/types';
+import { clientListFiltersSchema } from '@flow/types';
 
 describe('Story 3.1b: Client Data Model — List, Access & Empty States', () => {
   describe('Client List with Health Indicators (FR12)', () => {
     test('[P0] [3.1-UNIT-019] should define health indicator enum values', () => {
       // Given: the expected health status values
-      const healthStatuses = ['healthy', 'at-risk', 'critical', 'inactive'] as const;
+      const healthStatuses = [
+        'healthy',
+        'at-risk',
+        'critical',
+        'inactive',
+      ] as const;
       // Then: all four health states are defined
       expect(healthStatuses).toContain('healthy');
       expect(healthStatuses).toContain('at-risk');
@@ -52,7 +55,9 @@ describe('Story 3.1b: Client Data Model — List, Access & Empty States', () => 
 
     test('[P1] [3.1-UNIT-022] should reject invalid sort columns', () => {
       // Given: an invalid sort column name
-      const result = clientListFiltersSchema.safeParse({ sortBy: 'invalid_col' });
+      const result = clientListFiltersSchema.safeParse({
+        sortBy: 'invalid_col',
+      });
       // Then: schema rejects it
       expect(result.success).toBe(false);
     });
@@ -69,7 +74,9 @@ describe('Story 3.1b: Client Data Model — List, Access & Empty States', () => 
       const byName = clientListFiltersSchema.safeParse({ sortBy: 'name' });
       expect(byName.success).toBe(true);
 
-      const byDate = clientListFiltersSchema.safeParse({ sortBy: 'created_at' });
+      const byDate = clientListFiltersSchema.safeParse({
+        sortBy: 'created_at',
+      });
       expect(byDate.success).toBe(true);
     });
 

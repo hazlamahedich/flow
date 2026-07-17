@@ -9,7 +9,12 @@
  * Uses `service_role` (the orchestrator context) so it bypasses RLS. Writes
  * a `subscription.tier_drift_corrected` audit log when it actually archives.
  */
-import { createServiceClient } from '@flow/db';
+import {
+  createServiceClient,
+  bulkArchiveClients,
+  countActiveClients,
+} from '@flow/db';
+import { PRD_FREE_MAX_CLIENTS } from '@flow/shared';
 import { writeAuditLog } from '../../shared/audit-writer';
 import type { SubscriptionStatus } from '@flow/shared';
 
@@ -20,79 +25,73 @@ export interface TierDriftRow {
   subscription_tier: 'free' | 'pro' | 'agency';
 }
 
-interface TierConfigValue {
-  tierLimits: { free: { maxClients: number | null } };
+/**
+ * Resolve the Free tier `maxClients` limit from `app_config`. The orchestrator
+ * cannot depend on the Next.js app helper `getTierConfig()` (packages cannot
+ * import apps/web), so it mirrors the pattern in `lifecycle-sweep.ts`.
+ * Falls back to the PRD canonical value of 2 if config is unavailable.
+ */
+async function resolveFreeMaxClients(): Promise<number> {
+  try {
+    const client = createServiceClient();
+    const result = await client
+      .from('app_config')
+      .select('key, value')
+      .eq('key', 'tier_limits')
+      .maybeSingle();
+    if (result.error || !result.data) return PRD_FREE_MAX_CLIENTS;
+    const raw = (result.data as { value?: unknown }).value;
+    const parsed =
+      typeof raw === 'string'
+        ? (JSON.parse(raw) as Record<string, unknown>)
+        : raw;
+    const freeLimit = (parsed as Record<string, Record<string, number>>)?.free
+      ?.maxClients;
+    return typeof freeLimit === 'number' ? freeLimit : PRD_FREE_MAX_CLIENTS;
+  } catch {
+    return PRD_FREE_MAX_CLIENTS;
+  }
 }
-
-export const PRD_FREE_CLIENTS_FALLBACK = 2;
 
 /**
  * If the workspace is now `free` but still has more active clients than the
  * Free limit (webhook missed the downgrade archive), re-run the archive
  * here. Idempotent — if the archive already happened, this is a no-op.
+ *
+ * P15: reuses `bulkArchiveClients` and `countActiveClients` from `@flow/db`
+ * so the archive ordering and logic stay in one place.
  */
 export async function correctTierDrift(row: TierDriftRow): Promise<void> {
   if (row.subscription_tier !== 'free') return;
 
   const client = createServiceClient();
+  const freeMaxClients = await resolveFreeMaxClients();
 
-  let freeMaxClients = PRD_FREE_CLIENTS_FALLBACK;
-  try {
-    const { data: cfg } = await client
-      .from('app_config')
-      .select('value')
-      .eq('key', 'tier_limits')
-      .single();
-    if (cfg) {
-      const parsed = cfg.value as TierConfigValue;
-      const limit = parsed?.tierLimits?.free?.maxClients;
-      if (typeof limit === 'number') freeMaxClients = limit;
-    }
-  } catch {
-    // fall through with PRD fallback (config IS seeded)
-  }
-
-  const { count, error: countError } = await client
-    .from('clients')
-    .select('*', { count: 'exact', head: true })
-    .eq('workspace_id', row.id)
-    .eq('status', 'active');
-  if (countError || !count) return;
-
-  if (count <= freeMaxClients) return;
-
-  // MRU-LAST archive — mirror bulkArchiveClients ordering.
-  const { data: activeIds, error: listError } = await client
-    .from('clients')
-    .select('id')
-    .eq('workspace_id', row.id)
-    .eq('status', 'active')
-    .order('updated_at', { ascending: false })
-    .order('id', { ascending: false });
-  if (listError || !activeIds || activeIds.length === 0) return;
-
-  const allIds = activeIds.map((r) => (r as { id: string }).id);
-  const archiveIds = allIds.slice(freeMaxClients);
-  if (archiveIds.length === 0) return;
-
-  const { error: archiveError } = await client
-    .from('clients')
-    .update({ status: 'archived', archived_at: new Date().toISOString() })
-    .in('id', archiveIds)
-    .eq('workspace_id', row.id)
-    .eq('status', 'active');
-
-  if (archiveError) {
-    writeAuditLog({
-      workspaceId: row.id,
-      agentId: 'orchestrator',
-      action: 'subscription.tier_drift_correction_failed',
-      entityType: 'workspace',
-      entityId: row.id,
-      details: { reason: 'archive_update_failed', error: archiveError.message, excess: archiveIds.length },
-    });
+  // Race-with-reactivation safety: re-read the workspace tier inside the same
+  // service-role client context before archiving. If the tier flipped back to
+  // Pro/Agency between the sweep listing and this call, bail out.
+  const { data: currentRow, error: currentError } = await client
+    .from('workspaces')
+    .select('subscription_tier')
+    .eq('id', row.id)
+    .maybeSingle();
+  if (
+    currentError ||
+    !currentRow ||
+    (currentRow as { subscription_tier: string }).subscription_tier !== 'free'
+  ) {
     return;
   }
+
+  const count = await countActiveClients(client, row.id);
+  if (count <= freeMaxClients) return;
+
+  const { archivedClientIds } = await bulkArchiveClients(
+    client,
+    row.id,
+    freeMaxClients,
+  );
+  if (archivedClientIds.length === 0) return;
 
   writeAuditLog({
     workspaceId: row.id,
@@ -100,6 +99,6 @@ export async function correctTierDrift(row: TierDriftRow): Promise<void> {
     action: 'subscription.tier_drift_corrected',
     entityType: 'workspace',
     entityId: row.id,
-    details: { archivedClientIds: archiveIds, freeMaxClients, previousActiveCount: count },
+    details: { archivedClientIds, freeMaxClients, previousActiveCount: count },
   });
 }

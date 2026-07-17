@@ -18,21 +18,31 @@ const WeeklyReportJobInputSchema = z.object({
   trigger: z.enum(['cron', 'manual']).default('cron'),
 });
 
-function withTimeout<T>(promise: Promise<T>, ms: number, runId: string): Promise<T> {
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  runId: string,
+): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;
   return Promise.race([
     promise,
     new Promise<never>((_, reject) => {
-      timer = setTimeout(() => reject(new Error(`EXECUTION_TIMEOUT:${runId}`)), ms);
+      timer = setTimeout(
+        () => reject(new Error(`EXECUTION_TIMEOUT:${runId}`)),
+        ms,
+      );
     }),
   ]).finally(() => clearTimeout(timer));
 }
 
-export async function registerWeeklyReportWorkers(boss: PgBoss, trustClient?: TrustClient): Promise<void> {
+export async function registerWeeklyReportWorkers(
+  boss: PgBoss,
+  trustClient?: TrustClient,
+): Promise<void> {
   await boss.work(QUEUE_NAME, async (jobs) => {
     const job = Array.isArray(jobs) ? jobs[0] : jobs;
     if (!job) return;
-    
+
     const parsed = AgentJobPayloadSchema.safeParse(job.data);
     if (!parsed.success) {
       writeAuditLog({
@@ -41,7 +51,7 @@ export async function registerWeeklyReportWorkers(boss: PgBoss, trustClient?: Tr
         action: 'worker.invalid_payload',
         entityType: 'agent_run',
         entityId: 'unknown',
-        details: { error: parsed.error.message, outcome: 'skipped' }
+        details: { error: parsed.error.message, outcome: 'skipped' },
       });
       return;
     }
@@ -57,14 +67,18 @@ export async function registerWeeklyReportWorkers(boss: PgBoss, trustClient?: Tr
           action: 'worker.invalid_input',
           entityType: 'agent_run',
           entityId: runId,
-          details: { error: inputParsed.error.message, outcome: 'skipped' }
+          details: { error: inputParsed.error.message, outcome: 'skipped' },
         });
         return;
       }
 
       try {
-        await updateRunStatus(runId, 'running', { startedAt: new Date().toISOString() });
-      } catch { /* non-fatal */ }
+        await updateRunStatus(runId, 'running', {
+          startedAt: new Date().toISOString(),
+        });
+      } catch {
+        /* non-fatal */
+      }
 
       try {
         const supabase = createServiceClient();
@@ -79,7 +93,10 @@ export async function registerWeeklyReportWorkers(boss: PgBoss, trustClient?: Tr
         if (agentConfig?.status === 'paused') {
           await updateRunStatus(runId, 'cancelled', {
             completedAt: new Date().toISOString(),
-            error: { code: 'AGENT_PAUSED', message: 'Weekly report agent is paused' },
+            error: {
+              code: 'AGENT_PAUSED',
+              message: 'Weekly report agent is paused',
+            },
           });
           writeAuditLog({
             workspaceId,
@@ -87,19 +104,32 @@ export async function registerWeeklyReportWorkers(boss: PgBoss, trustClient?: Tr
             action: 'weekly_report_draft.paused',
             entityType: 'agent_run',
             entityId: runId,
-            details: { outcome: 'cancelled' }
+            details: { outcome: 'cancelled' },
           });
           return;
         }
 
         const evalResult = trustClient
-          ? await trustClient.canAct('weekly-report', 'weekly_report_draft', workspaceId, runId, {})
-          : { allowed: false, level: 'supervised' as const, reason: 'no trust client' };
+          ? await trustClient.canAct(
+              'weekly-report',
+              'weekly_report_draft',
+              workspaceId,
+              runId,
+              {},
+            )
+          : {
+              allowed: false,
+              level: 'supervised' as const,
+              reason: 'no trust client',
+            };
 
         if (!evalResult.allowed) {
           await updateRunStatus(runId, 'failed', {
             completedAt: new Date().toISOString(),
-            error: { code: 'TRUST_REJECTED', message: evalResult.reason || 'Trust gate blocked execution' },
+            error: {
+              code: 'TRUST_REJECTED',
+              message: evalResult.reason || 'Trust gate blocked execution',
+            },
           });
           writeAuditLog({
             workspaceId,
@@ -107,7 +137,7 @@ export async function registerWeeklyReportWorkers(boss: PgBoss, trustClient?: Tr
             action: 'weekly_report_draft.trust_rejected',
             entityType: 'agent_run',
             entityId: runId,
-            details: { outcome: 'trust_rejected', reason: evalResult.reason }
+            details: { outcome: 'trust_rejected', reason: evalResult.reason },
           });
           return;
         }
@@ -142,7 +172,7 @@ export async function registerWeeklyReportWorkers(boss: PgBoss, trustClient?: Tr
             action: 'weekly_report_draft.complete',
             entityType: 'agent_run',
             entityId: runId,
-            details: { outcome: 'completed', trustLevel }
+            details: { outcome: 'completed', trustLevel },
           });
         } else {
           const proposalId = crypto.randomUUID();
@@ -160,7 +190,10 @@ export async function registerWeeklyReportWorkers(boss: PgBoss, trustClient?: Tr
           });
 
           await updateRunStatus(runId, 'waiting_approval', {
-            output: { proposalId, ...(proposal as unknown as Record<string, unknown>) },
+            output: {
+              proposalId,
+              ...(proposal as unknown as Record<string, unknown>),
+            },
           });
           writeAuditLog({
             workspaceId,
@@ -168,11 +201,12 @@ export async function registerWeeklyReportWorkers(boss: PgBoss, trustClient?: Tr
             action: 'weekly_report_draft.propose',
             entityType: 'agent_run',
             entityId: runId,
-            details: { outcome: 'waiting_approval', trustLevel }
+            details: { outcome: 'waiting_approval', trustLevel },
           });
         }
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Draft compilation failed';
+        const message =
+          err instanceof Error ? err.message : 'Draft compilation failed';
         const isTimeout = message.includes('EXECUTION_TIMEOUT');
         const isPostCheckViolation = message.includes('POST_CHECK_VIOLATION');
         const isHallucination = message.includes('HALLUCINATION_DETECTED');
@@ -191,7 +225,9 @@ export async function registerWeeklyReportWorkers(boss: PgBoss, trustClient?: Tr
             completedAt: new Date().toISOString(),
             error: { code, message },
           });
-        } catch { /* log and ignore db error to prevent crash */ }
+        } catch {
+          /* log and ignore db error to prevent crash */
+        }
 
         writeAuditLog({
           workspaceId,
@@ -199,7 +235,7 @@ export async function registerWeeklyReportWorkers(boss: PgBoss, trustClient?: Tr
           action: 'weekly_report_draft.error',
           entityType: 'agent_run',
           entityId: runId,
-          details: { error: message, code, outcome: status }
+          details: { error: message, code, outcome: status },
         });
       }
     }

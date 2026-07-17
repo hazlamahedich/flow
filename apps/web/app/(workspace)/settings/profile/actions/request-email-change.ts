@@ -17,7 +17,8 @@ export async function requestEmailChange(
       error: createFlowError(
         400,
         'VALIDATION_ERROR',
-        parsed.error.issues[0]?.message ?? 'Please enter a valid email address.',
+        parsed.error.issues[0]?.message ??
+          'Please enter a valid email address.',
         'validation',
       ),
     };
@@ -25,33 +26,56 @@ export async function requestEmailChange(
 
   const { newEmail } = parsed.data;
   const supabase = await getServerSupabase();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return {
       success: false,
-      error: createFlowError(401, 'UNAUTHORIZED', 'Your session has expired. Please sign in again.', 'auth'),
+      error: createFlowError(
+        401,
+        'UNAUTHORIZED',
+        'Your session has expired. Please sign in again.',
+        'auth',
+      ),
     };
   }
 
   if (!user.email) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Email is required.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Email is required.',
+        'validation',
+      ),
     };
   }
 
   if (newEmail.toLowerCase() === user.email.toLowerCase()) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'This is already your email address.', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'This is already your email address.',
+        'validation',
+      ),
     };
   }
 
   const token = randomUUID();
 
   try {
-    const result = await requestEmailChangeAtomic(supabase, user.id, newEmail, token);
+    const result = await requestEmailChangeAtomic(
+      supabase,
+      user.id,
+      newEmail,
+      token,
+    );
 
     if (!result.allowed) {
       return {
@@ -81,17 +105,29 @@ export async function requestEmailChange(
     if (!result.wasInserted) {
       return {
         success: false,
-        error: createFlowError(500, 'INTERNAL_ERROR', "Couldn't process your request. Please try again.", 'system'),
+        error: createFlowError(
+          500,
+          'INTERNAL_ERROR',
+          "Couldn't process your request. Please try again.",
+          'system',
+        ),
       };
     }
   } catch {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', "Couldn't process your request. Please try again.", 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        "Couldn't process your request. Please try again.",
+        'system',
+      ),
     };
   }
 
-  const { error: updateError } = await supabase.auth.updateUser({ email: newEmail });
+  const { error: updateError } = await supabase.auth.updateUser({
+    email: newEmail,
+  });
 
   if (updateError) {
     await supabase
@@ -121,7 +157,12 @@ export async function requestEmailChange(
 
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', "Couldn't process your request. Please try again.", 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        "Couldn't process your request. Please try again.",
+        'system',
+      ),
     };
   }
 

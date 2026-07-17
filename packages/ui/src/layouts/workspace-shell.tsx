@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAtom, useSetAtom } from 'jotai';
-import { sidebarCollapsedAtom, sidebarHoverExpandedAtom, commandPaletteOpenAtom } from '@flow/shared';
+import {
+  sidebarCollapsedAtom,
+  sidebarHoverExpandedAtom,
+  commandPaletteOpenAtom,
+} from '@flow/shared';
 import { cn } from '../lib/utils';
 import type { SearchResult } from '@flow/types';
 import { SidebarErrorBoundary } from './sidebar-error-boundary';
@@ -22,7 +26,11 @@ export interface WorkspaceShellProps {
   workspaces?: Array<{ id: string; name: string; role: string }> | undefined;
   activeWorkspaceId?: string | undefined;
   onSwitchWorkspace?: ((workspaceId: string) => Promise<void>) | undefined;
-  searchAction?: (query: string) => Promise<{ success: boolean; data?: SearchResult[]; error?: { message: string } }>;
+  searchAction?: (query: string) => Promise<{
+    success: boolean;
+    data?: SearchResult[];
+    error?: { message: string };
+  }>;
   onNavigate?: (href: string) => void;
   agentStatusEntries?: AgentStatusBarEntry[] | undefined;
   scopeAlertCount?: number | undefined;
@@ -55,14 +63,20 @@ export function WorkspaceShell({
   const hoverExpandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoverCollapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const announceAndSet = useCallback((v: boolean) => {
-    setCollapsed(v);
-    setAriaMessage(v ? 'Sidebar collapsed' : 'Sidebar expanded');
-  }, [setCollapsed]);
+  const announceAndSet = useCallback(
+    (v: boolean) => {
+      setCollapsed(v);
+      setAriaMessage(v ? 'Sidebar collapsed' : 'Sidebar expanded');
+    },
+    [setCollapsed],
+  );
 
-  const handleToggleSidebar = useCallback((v: boolean) => {
-    announceAndSet(v);
-  }, [announceAndSet]);
+  const handleToggleSidebar = useCallback(
+    (v: boolean) => {
+      announceAndSet(v);
+    },
+    [announceAndSet],
+  );
 
   const handleToggle = useCallback(() => {
     announceAndSet(!collapsed);
@@ -100,16 +114,22 @@ export function WorkspaceShell({
     };
   }, []);
 
-  const handleNavigate = useCallback((href: string) => {
-    if (onNavigate) {
-      onNavigate(href);
-    } else if (typeof window !== 'undefined') {
-      window.location.href = href;
-    }
-  }, [onNavigate]);
+  const handleNavigate = useCallback(
+    (href: string) => {
+      if (onNavigate) {
+        onNavigate(href);
+      } else if (typeof window !== 'undefined') {
+        window.location.href = href;
+      }
+    },
+    [onNavigate],
+  );
 
   const defaultSearchAction = useCallback(async () => {
-    return { success: false, error: { message: 'Search not configured' } } as const;
+    return {
+      success: false,
+      error: { message: 'Search not configured' },
+    } as const;
   }, []);
 
   return (
@@ -132,7 +152,9 @@ export function WorkspaceShell({
               <div
                 className={cn(
                   'relative h-full',
-                  collapsed && hoverActive && 'w-[var(--flow-sidebar-expanded)] shadow-lg',
+                  collapsed &&
+                    hoverActive &&
+                    'w-[var(--flow-sidebar-expanded)] shadow-lg',
                 )}
                 style={
                   collapsed && hoverActive
@@ -184,8 +206,17 @@ export function WorkspaceShell({
         onClick={() => setPaletteOpen(true)}
         className="fixed right-4 top-3 z-[var(--flow-z-sticky)] flex h-8 w-8 items-center justify-center rounded-md border border-[var(--flow-color-border-primary)] bg-[var(--flow-color-bg-surface-raised)] text-[var(--flow-color-text-tertiary)] hover:bg-[var(--flow-color-bg-surface-hover)] hover:text-[var(--flow-color-text-primary)] focus:outline focus:outline-[var(--flow-focus-ring-width)_solid_var(--flow-focus-ring-color)] md:hidden"
       >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path d="M6.5 11a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM11 6.5a4.48 4.48 0 0 1-.94 2.77l3.34 3.33-.71.71-3.33-3.34A4.48 4.48 0 0 1 6.5 11 5.5 5.5 0 1 1 11 6.5Z" fill="currentColor" />
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M6.5 11a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM11 6.5a4.48 4.48 0 0 1-.94 2.77l3.34 3.33-.71.71-3.33-3.34A4.48 4.48 0 0 1 6.5 11 5.5 5.5 0 1 1 11 6.5Z"
+            fill="currentColor"
+          />
         </svg>
       </button>
 

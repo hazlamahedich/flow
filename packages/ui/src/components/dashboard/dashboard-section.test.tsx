@@ -53,7 +53,9 @@ describe('DashboardSection', () => {
     );
     const section = container.querySelector('section');
     expect(section).toBeTruthy();
-    expect(section?.getAttribute('aria-labelledby')).toBe('test-section-heading');
+    expect(section?.getAttribute('aria-labelledby')).toBe(
+      'test-section-heading',
+    );
 
     const heading = container.querySelector('h2');
     expect(heading?.getAttribute('id')).toBe('test-section-heading');

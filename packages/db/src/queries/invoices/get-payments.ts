@@ -31,7 +31,9 @@ export async function getInvoicePayments(
 ): Promise<PaymentHistoryRecord[]> {
   const { data: rows, error } = await client
     .from('invoice_payments')
-    .select('id, amount_cents, payment_method, payment_date, notes, created_at, users(name)')
+    .select(
+      'id, amount_cents, payment_method, payment_date, notes, created_at, users(name)',
+    )
     .eq('invoice_id', invoiceId)
     .eq('workspace_id', workspaceId)
     .order('payment_date', { ascending: false })
@@ -46,6 +48,7 @@ export async function getInvoicePayments(
     paymentDate: String(r.payment_date),
     notes: r.notes as string | null,
     createdAt: String(r.created_at),
-    recordedByName: ((r.users as Record<string, unknown> | null)?.name ?? null) as string | null,
+    recordedByName: ((r.users as Record<string, unknown> | null)?.name ??
+      null) as string | null,
   }));
 }

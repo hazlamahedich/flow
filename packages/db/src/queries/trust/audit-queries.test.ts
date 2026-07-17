@@ -7,9 +7,22 @@ vi.mock('../../client', () => ({
 import { createServiceClient } from '../../client';
 import { getCheckInDue, getRecentAutoActions } from './audit-queries';
 
-function mockSingleResult(table: string, result: { data: unknown; error: unknown }) {
+function mockSingleResult(
+  table: string,
+  result: { data: unknown; error: unknown },
+) {
   const builder: Record<string, ReturnType<typeof vi.fn>> = {};
-  const chainMethods = ['select', 'eq', 'in', 'gte', 'lte', 'order', 'range', 'limit', 'gt'];
+  const chainMethods = [
+    'select',
+    'eq',
+    'in',
+    'gte',
+    'lte',
+    'order',
+    'range',
+    'limit',
+    'gt',
+  ];
   for (const m of chainMethods) {
     builder[m] = vi.fn(() => builder);
   }
@@ -26,7 +39,10 @@ function mockSingleResult(table: string, result: { data: unknown; error: unknown
     return emptyBuilder;
   });
 
-  vi.mocked(createServiceClient).mockReturnValue({ from: fromFn, rpc: vi.fn() } as never);
+  vi.mocked(createServiceClient).mockReturnValue({
+    from: fromFn,
+    rpc: vi.fn(),
+  } as never);
   return { builder, fromFn };
 }
 
@@ -92,9 +108,19 @@ describe('getRecentAutoActions', () => {
     });
 
     const mockData = [
-      { id: 'r1', agent_id: 'inbox', action_type: 'general', status: 'completed', created_at: '2025-02-25T00:00:00Z', summary: 'test' },
+      {
+        id: 'r1',
+        agent_id: 'inbox',
+        action_type: 'general',
+        status: 'completed',
+        created_at: '2025-02-25T00:00:00Z',
+        summary: 'test',
+      },
     ];
-    builder.limit = vi.fn(async () => ({ data: mockData, error: null })) as never;
+    builder.limit = vi.fn(async () => ({
+      data: mockData,
+      error: null,
+    })) as never;
 
     const result = await getRecentAutoActions('ws-1', 'inbox');
     expect(result).toHaveLength(1);
@@ -108,7 +134,10 @@ describe('getRecentAutoActions', () => {
       error: null,
     });
     let capturedLimit = 0;
-    builder.limit = vi.fn((n: number) => { capturedLimit = n; return builder; }) as never;
+    builder.limit = vi.fn((n: number) => {
+      capturedLimit = n;
+      return builder;
+    }) as never;
     builder.gt = vi.fn(() => builder) as never;
     builder.order = vi.fn(() => builder) as never;
     builder.eq = vi.fn(() => builder) as never;
@@ -124,7 +153,10 @@ describe('getRecentAutoActions', () => {
       error: null,
     });
     let capturedLimit = 0;
-    builder.limit = vi.fn((n: number) => { capturedLimit = n; return builder; }) as never;
+    builder.limit = vi.fn((n: number) => {
+      capturedLimit = n;
+      return builder;
+    }) as never;
     builder.gt = vi.fn(() => builder) as never;
     builder.order = vi.fn(() => builder) as never;
     builder.eq = vi.fn(() => builder) as never;
@@ -139,7 +171,10 @@ describe('getRecentAutoActions', () => {
       data: null,
       error: { message: 'db error' },
     });
-    builder.limit = vi.fn(async () => ({ data: null, error: { message: 'db error' } })) as never;
+    builder.limit = vi.fn(async () => ({
+      data: null,
+      error: { message: 'db error' },
+    })) as never;
 
     await expect(getRecentAutoActions('ws-1', 'inbox')).rejects.toThrow();
   });

@@ -1,6 +1,12 @@
 'use client';
 
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useTransform,
+  animate,
+} from 'framer-motion';
 import { Check, X } from 'lucide-react';
 import { cn } from '@flow/ui';
 import { useRef, useState } from 'react';
@@ -12,7 +18,12 @@ interface SwipeableCardProps {
   disabled?: boolean;
 }
 
-export function SwipeableCard({ children, onApprove, onReject, disabled }: SwipeableCardProps) {
+export function SwipeableCard({
+  children,
+  onApprove,
+  onReject,
+  disabled,
+}: SwipeableCardProps) {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-100, 100], [-5, 5]);
   const opacity = useTransform(x, [-150, -100, 0, 100, 150], [0, 1, 1, 1, 0]);
@@ -111,7 +122,9 @@ export function SwipeableCard({ children, onApprove, onReject, disabled }: Swipe
             exit={{ opacity: 0 }}
             className={cn(
               'absolute inset-0 rounded-xl z-0',
-              isSwiping === 'approve' ? 'bg-[var(--flow-status-success)]' : 'bg-[var(--flow-status-error)]',
+              isSwiping === 'approve'
+                ? 'bg-[var(--flow-status-success)]'
+                : 'bg-[var(--flow-status-error)]',
             )}
           />
         )}

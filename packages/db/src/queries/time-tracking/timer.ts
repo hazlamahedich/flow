@@ -1,24 +1,20 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 
-const timerStateRowSchema = z.object({
-  id: z.string(),
-  workspace_id: z.string(),
-  user_id: z.string(),
-  client_id: z.string(),
-  project_id: z.string().nullable(),
-  notes: z.string().nullable(),
-  started_at: z.string(),
-  updated_at: z.string(),
-  clients: z.union([
-    z.object({ name: z.string() }),
-    z.null(),
-  ]).nullable(),
-  projects: z.union([
-    z.object({ name: z.string() }),
-    z.null(),
-  ]).nullable(),
-}).passthrough();
+const timerStateRowSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string(),
+    user_id: z.string(),
+    client_id: z.string(),
+    project_id: z.string().nullable(),
+    notes: z.string().nullable(),
+    started_at: z.string(),
+    updated_at: z.string(),
+    clients: z.union([z.object({ name: z.string() }), z.null()]).nullable(),
+    projects: z.union([z.object({ name: z.string() }), z.null()]).nullable(),
+  })
+  .passthrough();
 
 export interface TimerStateWithNames {
   id: string;
@@ -131,12 +127,16 @@ export async function stopTimerRpc(
 
   const errorParse = stopTimerErrorSchema.safeParse(data);
   if (errorParse.success && errorParse.data.error === 'TIMER_NOT_FOUND') {
-    throw Object.assign(new Error('TIMER_NOT_FOUND'), { code: 'TIMER_NOT_FOUND' });
+    throw Object.assign(new Error('TIMER_NOT_FOUND'), {
+      code: 'TIMER_NOT_FOUND',
+    });
   }
 
   const successParse = stopTimerSuccessSchema.safeParse(data);
   if (!successParse.success) {
-    throw new Error(`Unexpected stop_timer RPC response: ${JSON.stringify(data)}`);
+    throw new Error(
+      `Unexpected stop_timer RPC response: ${JSON.stringify(data)}`,
+    );
   }
 
   return successParse.data;

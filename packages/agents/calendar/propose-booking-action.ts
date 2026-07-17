@@ -50,7 +50,9 @@ export async function executeProposeBooking(
 
   const { data: reqRow, error: reqError } = await supabase
     .from('scheduling_requests')
-    .select('id, workspace_id, client_id, status, duration_minutes, preferences, source_email_id')
+    .select(
+      'id, workspace_id, client_id, status, duration_minutes, preferences, source_email_id',
+    )
     .eq('id', schedulingRequestId)
     .eq('workspace_id', workspaceId)
     .maybeSingle();
@@ -90,9 +92,19 @@ export async function executeProposeBooking(
       try {
         const provider = getCalendarProvider(cal.provider);
         const tokenManager = new CalendarTokenManager(provider);
-        const { tokens } = await tokenManager.getValidTokens(cal.id, cal.oauth_state as unknown as OAuthStateEncrypted);
-        calendars.push({ id: cal.id, calendarId: cal.calendar_id, provider, accessToken: tokens.accessToken });
-      } catch { continue; }
+        const { tokens } = await tokenManager.getValidTokens(
+          cal.id,
+          cal.oauth_state as unknown as OAuthStateEncrypted,
+        );
+        calendars.push({
+          id: cal.id,
+          calendarId: cal.calendar_id,
+          provider,
+          accessToken: tokens.accessToken,
+        });
+      } catch {
+        continue;
+      }
     }
 
     const durationMinutes = req.duration_minutes ?? 30;
@@ -138,7 +150,10 @@ export async function executeProposeBooking(
       await supabase
         .from('scheduling_requests')
         .update({
-          proposed_options: proposedOptions as unknown as Record<string, unknown>[],
+          proposed_options: proposedOptions as unknown as Record<
+            string,
+            unknown
+          >[],
           status: 'options_proposed',
         })
         .eq('id', schedulingRequestId)
@@ -154,7 +169,11 @@ export async function executeProposeBooking(
         workspace_id: workspaceId,
       });
 
-      result = { schedulingRequestId, proposedOptions, status: 'options_proposed' };
+      result = {
+        schedulingRequestId,
+        proposedOptions,
+        status: 'options_proposed',
+      };
     }
   } catch (err: unknown) {
     await supabase

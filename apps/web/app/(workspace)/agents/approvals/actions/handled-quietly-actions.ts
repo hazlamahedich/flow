@@ -3,7 +3,7 @@
 import {
   getHandledEmailsSchema,
   promoteToInboxSchema,
-  reviewAllSchema
+  reviewAllSchema,
 } from './schemas';
 import type { ActionResult } from '@flow/types';
 import {
@@ -11,7 +11,7 @@ import {
   requireTenantContext,
   getHandledEmails as getHandledEmailsQuery,
   getWeeklyAuditCount as getWeeklyAuditCountQuery,
-  recordTrustViolation
+  recordTrustViolation,
 } from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { revalidatePath } from 'next/cache';
@@ -23,7 +23,12 @@ export async function getHandledEmails(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -31,7 +36,11 @@ export async function getHandledEmails(
   const { workspaceId } = await requireTenantContext(supabase);
 
   try {
-    const result = await getHandledEmailsQuery(supabase, workspaceId, parsed.data);
+    const result = await getHandledEmailsQuery(
+      supabase,
+      workspaceId,
+      parsed.data,
+    );
     return {
       success: true,
       data: result,
@@ -39,7 +48,12 @@ export async function getHandledEmails(
   } catch (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to fetch handled emails', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to fetch handled emails',
+        'system',
+      ),
     };
   }
 }
@@ -51,7 +65,12 @@ export async function promoteToInbox(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -60,7 +79,9 @@ export async function promoteToInbox(
   const { workspaceId } = await requireTenantContext(supabase);
 
   // Resolve user once up front to avoid a second round-trip and null race
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     return {
       success: false,
@@ -89,7 +110,7 @@ export async function promoteToInbox(
     .update({
       category: 'action',
       requires_confirmation: true,
-      processed_at: new Date().toISOString()
+      processed_at: new Date().toISOString(),
     })
     .eq('id', emailId)
     .eq('workspace_id', workspaceId);
@@ -97,22 +118,32 @@ export async function promoteToInbox(
   if (updateError) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to promote email', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to promote email',
+        'system',
+      ),
     };
   }
 
   // 3. Log recategorization — errors here must not silently crash the action
-  const { error: logError } = await supabase.from('recategorization_log').insert({
-    email_id: emailId,
-    workspace_id: workspaceId,
-    client_inbox_id: email.client_inbox_id,
-    old_category: email.category,
-    new_category: 'action',
-    user_id: user.id,
-  });
+  const { error: logError } = await supabase
+    .from('recategorization_log')
+    .insert({
+      email_id: emailId,
+      workspace_id: workspaceId,
+      client_inbox_id: email.client_inbox_id,
+      old_category: email.category,
+      new_category: 'action',
+      user_id: user.id,
+    });
 
   if (logError) {
-    console.error('[promoteToInbox] Failed to write recategorization_log:', logError);
+    console.error(
+      '[promoteToInbox] Failed to write recategorization_log:',
+      logError,
+    );
     // Non-fatal: audit log failure does not roll back the promotion
   }
 
@@ -133,7 +164,7 @@ export async function promoteToInbox(
         'categorize_email',
         'soft',
         0.5,
-        trustEntry.version
+        trustEntry.version,
       );
     }
   } catch (error) {
@@ -155,7 +186,12 @@ export async function reviewAll(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -175,7 +211,12 @@ export async function reviewAll(
   if (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to mark emails as reviewed', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to mark emails as reviewed',
+        'system',
+      ),
     };
   }
 
@@ -187,7 +228,9 @@ export async function reviewAll(
   };
 }
 
-export async function getWeeklyAuditCount(): Promise<ActionResult<{ count: number }>> {
+export async function getWeeklyAuditCount(): Promise<
+  ActionResult<{ count: number }>
+> {
   const supabase = await getServerSupabase();
   const { workspaceId } = await requireTenantContext(supabase);
 
@@ -200,7 +243,12 @@ export async function getWeeklyAuditCount(): Promise<ActionResult<{ count: numbe
   } catch (error) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to fetch weekly audit count', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to fetch weekly audit count',
+        'system',
+      ),
     };
   }
 }

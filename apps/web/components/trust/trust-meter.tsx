@@ -1,6 +1,9 @@
 'use client';
 
-import { CONFIRM_THRESHOLD_SCORE as CONFIRM_THRESHOLD, AUTO_THRESHOLD_SCORE as AUTO_THRESHOLD } from '@flow/trust';
+import {
+  CONFIRM_THRESHOLD_SCORE as CONFIRM_THRESHOLD,
+  AUTO_THRESHOLD_SCORE as AUTO_THRESHOLD,
+} from '@flow/trust';
 
 interface TrustMeterProps {
   score: number;
@@ -24,8 +27,12 @@ export function TrustMeter({ score }: TrustMeterProps) {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-[var(--flow-text-secondary)]">Trust Score</span>
-        <span className="text-xs font-mono text-[var(--flow-text-primary)]">{clamped}</span>
+        <span className="text-xs font-medium text-[var(--flow-text-secondary)]">
+          Trust Score
+        </span>
+        <span className="text-xs font-mono text-[var(--flow-text-primary)]">
+          {clamped}
+        </span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--flow-bg-surface-raised)]">
         <div

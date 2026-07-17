@@ -14,14 +14,13 @@ export async function issueCreditNoteViaRpc(
   reason: string,
   createdBy: string,
 ): Promise<IssueCreditNoteResult | null> {
-  const { data, error } = await client
-    .rpc('issue_credit_note', {
-      p_invoice_id: invoiceId,
-      p_workspace_id: workspaceId,
-      p_amount_cents: amountCents,
-      p_reason: reason,
-      p_created_by: createdBy,
-    });
+  const { data, error } = await client.rpc('issue_credit_note', {
+    p_invoice_id: invoiceId,
+    p_workspace_id: workspaceId,
+    p_amount_cents: amountCents,
+    p_reason: reason,
+    p_created_by: createdBy,
+  });
 
   if (error) throw error;
   if (!data) return null;

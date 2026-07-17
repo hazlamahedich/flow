@@ -11,32 +11,76 @@ describe('HistoryFilters', () => {
   afterEach(() => cleanup());
 
   it('renders agent filter dropdown', () => {
-    render(<HistoryFilters currentAgent={undefined} currentDirection={undefined} currentDateFrom={undefined} currentDateTo={undefined} />);
+    render(
+      <HistoryFilters
+        currentAgent={undefined}
+        currentDirection={undefined}
+        currentDateFrom={undefined}
+        currentDateTo={undefined}
+      />,
+    );
     expect(screen.getByLabelText(/agent/i)).toBeDefined();
   });
 
   it('renders direction filter dropdown', () => {
-    render(<HistoryFilters currentAgent={undefined} currentDirection={undefined} currentDateFrom={undefined} currentDateTo={undefined} />);
+    render(
+      <HistoryFilters
+        currentAgent={undefined}
+        currentDirection={undefined}
+        currentDateFrom={undefined}
+        currentDateTo={undefined}
+      />,
+    );
     expect(screen.getByLabelText(/direction/i)).toBeDefined();
   });
 
   it('renders date from input', () => {
-    render(<HistoryFilters currentAgent={undefined} currentDirection={undefined} currentDateFrom={undefined} currentDateTo={undefined} />);
+    render(
+      <HistoryFilters
+        currentAgent={undefined}
+        currentDirection={undefined}
+        currentDateFrom={undefined}
+        currentDateTo={undefined}
+      />,
+    );
     expect(screen.getByLabelText(/from/i)).toBeDefined();
   });
 
   it('renders date to input', () => {
-    render(<HistoryFilters currentAgent={undefined} currentDirection={undefined} currentDateFrom={undefined} currentDateTo={undefined} />);
+    render(
+      <HistoryFilters
+        currentAgent={undefined}
+        currentDirection={undefined}
+        currentDateFrom={undefined}
+        currentDateTo={undefined}
+      />,
+    );
     expect(document.getElementById('filter-to')).toBeDefined();
   });
 
   it('renders clear button', () => {
-    render(<HistoryFilters currentAgent={undefined} currentDirection={undefined} currentDateFrom={undefined} currentDateTo={undefined} />);
+    render(
+      <HistoryFilters
+        currentAgent={undefined}
+        currentDirection={undefined}
+        currentDateFrom={undefined}
+        currentDateTo={undefined}
+      />,
+    );
     expect(screen.getByTestId('history-filters')).toBeDefined();
   });
 
   it('has toolbar role', () => {
-    render(<HistoryFilters currentAgent={undefined} currentDirection={undefined} currentDateFrom={undefined} currentDateTo={undefined} />);
-    expect(screen.getByRole('toolbar', { name: /filter trust history/i })).toBeDefined();
+    render(
+      <HistoryFilters
+        currentAgent={undefined}
+        currentDirection={undefined}
+        currentDateFrom={undefined}
+        currentDateTo={undefined}
+      />,
+    );
+    expect(
+      screen.getByRole('toolbar', { name: /filter trust history/i }),
+    ).toBeDefined();
   });
 });

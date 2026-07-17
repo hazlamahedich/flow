@@ -1,6 +1,9 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { StripePaymentProvider, StripeApiError } from '../stripe-payment-provider';
+import {
+  StripePaymentProvider,
+  StripeApiError,
+} from '../stripe-payment-provider';
 import crypto from 'node:crypto';
 
 describe('StripePaymentProvider.constructWebhookEvent', () => {
@@ -9,16 +12,27 @@ describe('StripePaymentProvider.constructWebhookEvent', () => {
     webhookSecret: 'whsec_test_webhook_secret',
   });
 
-  function buildSignature(secret: string, payload: string, timestamp: number): string {
+  function buildSignature(
+    secret: string,
+    payload: string,
+    timestamp: number,
+  ): string {
     const signedPayload = `${timestamp}.${payload}`;
-    const hmac = crypto.createHmac('sha256', secret).update(signedPayload).digest('hex');
+    const hmac = crypto
+      .createHmac('sha256', secret)
+      .update(signedPayload)
+      .digest('hex');
     return `t=${timestamp},v1=${hmac}`;
   }
 
   it('accepts valid signature', () => {
     const secret = 'whsec_valid';
     const timestamp = Math.floor(Date.now() / 1000);
-    const payload = JSON.stringify({ id: 'evt_123', type: 'payment_intent.payment_failed', created: timestamp });
+    const payload = JSON.stringify({
+      id: 'evt_123',
+      type: 'payment_intent.payment_failed',
+      created: timestamp,
+    });
     const signature = buildSignature(secret, payload, timestamp);
 
     const event = provider.constructWebhookEvent(payload, signature, secret);
@@ -32,7 +46,9 @@ describe('StripePaymentProvider.constructWebhookEvent', () => {
     const payload = JSON.stringify({ id: 'evt_123', type: 'test.event' });
     const signature = buildSignature(secret, payload, oldTimestamp);
 
-    expect(() => provider.constructWebhookEvent(payload, signature, secret)).toThrow(StripeApiError);
+    expect(() =>
+      provider.constructWebhookEvent(payload, signature, secret),
+    ).toThrow(StripeApiError);
   });
 
   it('rejects invalid signature', () => {
@@ -41,12 +57,16 @@ describe('StripePaymentProvider.constructWebhookEvent', () => {
     const payload = JSON.stringify({ id: 'evt_123', type: 'test.event' });
     const signature = `t=${timestamp},v1=invalidsignature`;
 
-    expect(() => provider.constructWebhookEvent(payload, signature, secret)).toThrow(StripeApiError);
+    expect(() =>
+      provider.constructWebhookEvent(payload, signature, secret),
+    ).toThrow(StripeApiError);
   });
 
   it('rejects malformed signature header', () => {
     const payload = JSON.stringify({ id: 'evt_123' });
-    expect(() => provider.constructWebhookEvent(payload, 'bad-header', 'whsec_x')).toThrow(StripeApiError);
+    expect(() =>
+      provider.constructWebhookEvent(payload, 'bad-header', 'whsec_x'),
+    ).toThrow(StripeApiError);
   });
 
   it('rejects invalid JSON payload', () => {
@@ -55,7 +75,9 @@ describe('StripePaymentProvider.constructWebhookEvent', () => {
     const payload = 'not-json{';
     const signature = buildSignature(secret, payload, timestamp);
 
-    expect(() => provider.constructWebhookEvent(payload, signature, secret)).toThrow(StripeApiError);
+    expect(() =>
+      provider.constructWebhookEvent(payload, signature, secret),
+    ).toThrow(StripeApiError);
   });
 
   it('guards against length mismatch in timingSafeEqual (no RangeError)', () => {
@@ -65,13 +87,19 @@ describe('StripePaymentProvider.constructWebhookEvent', () => {
     // Signature with mismatched length hex string
     const signature = `t=${timestamp},v1=abc`;
 
-    expect(() => provider.constructWebhookEvent(payload, signature, secret)).toThrow(StripeApiError);
+    expect(() =>
+      provider.constructWebhookEvent(payload, signature, secret),
+    ).toThrow(StripeApiError);
   });
 
   it('returns event with id and type from payload', () => {
     const secret = 'whsec_valid';
     const timestamp = Math.floor(Date.now() / 1000);
-    const payload = JSON.stringify({ id: 'evt_custom', type: 'checkout.session.completed', created: timestamp });
+    const payload = JSON.stringify({
+      id: 'evt_custom',
+      type: 'checkout.session.completed',
+      created: timestamp,
+    });
     const signature = buildSignature(secret, payload, timestamp);
 
     const event = provider.constructWebhookEvent(payload, signature, secret);

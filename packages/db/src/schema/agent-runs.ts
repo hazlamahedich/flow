@@ -1,4 +1,15 @@
-import { pgTable, pgEnum, uuid, text, jsonb, timestamp, smallint, boolean, uniqueIndex, index } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  pgEnum,
+  uuid,
+  text,
+  jsonb,
+  timestamp,
+  smallint,
+  boolean,
+  uniqueIndex,
+  index,
+} from 'drizzle-orm/pg-core';
 import { workspaces } from './workspaces';
 import { agentSignals, agentIdTypeEnum } from './agent-signals';
 
@@ -43,15 +54,28 @@ export const agentRuns = pgTable(
     correctionDepth: smallint('correction_depth').notNull().default(0),
     correctionIssued: boolean('correction_issued').notNull().default(false),
     source: agentRunSourceEnum('source').notNull().default('agent'),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
-    index('idx_agent_runs_workspace_status').on(table.workspaceId, table.status),
-    index('idx_agent_runs_workspace_created').on(table.workspaceId, table.createdAt),
+    index('idx_agent_runs_workspace_status').on(
+      table.workspaceId,
+      table.status,
+    ),
+    index('idx_agent_runs_workspace_created').on(
+      table.workspaceId,
+      table.createdAt,
+    ),
     uniqueIndex('idx_agent_runs_job_id').on(table.jobId),
     index('idx_agent_runs_correlation_id').on(table.correlationId),
-    index('idx_agent_runs_agent_workspace').on(table.agentId, table.workspaceId),
+    index('idx_agent_runs_agent_workspace').on(
+      table.agentId,
+      table.workspaceId,
+    ),
     index('idx_agent_runs_corrected').on(table.correctedRunId),
   ],
 );

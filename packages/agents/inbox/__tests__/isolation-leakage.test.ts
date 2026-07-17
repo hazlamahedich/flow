@@ -61,13 +61,18 @@ describe('isolation-leakage', () => {
 
     // 1. Process Client A
     mockSupabase.single.mockResolvedValueOnce({
-      data: { id: emailAId, client_id: clientA, subject: 'Sub A', body_clean: 'Body A' },
+      data: {
+        id: emailAId,
+        client_id: clientA,
+        subject: 'Sub A',
+        body_clean: 'Body A',
+      },
       error: null,
     });
 
     await extractionWorker(
       { data: { emailId: emailAId, workspaceId, clientInboxId: 'iA' } } as any,
-      {} as any
+      {} as any,
     );
 
     const callA = mockLlmRouter.complete.mock.calls[0][0][1].content;
@@ -77,13 +82,18 @@ describe('isolation-leakage', () => {
 
     // 2. Process Client B
     mockSupabase.single.mockResolvedValueOnce({
-      data: { id: emailBId, client_id: clientB, subject: 'Sub B', body_clean: 'Body B' },
+      data: {
+        id: emailBId,
+        client_id: clientB,
+        subject: 'Sub B',
+        body_clean: 'Body B',
+      },
       error: null,
     });
 
     await extractionWorker(
       { data: { emailId: emailBId, workspaceId, clientInboxId: 'iB' } } as any,
-      {} as any
+      {} as any,
     );
 
     const callB = mockLlmRouter.complete.mock.calls[1][0][1].content;
@@ -98,21 +108,24 @@ describe('isolation-leakage', () => {
     const emailId = 'e1';
 
     mockSupabase.single.mockResolvedValue({
-      data: { id: emailId, client_id: 'c1', subject: 'Sub', body_clean: 'Body' },
+      data: {
+        id: emailId,
+        client_id: 'c1',
+        subject: 'Sub',
+        body_clean: 'Body',
+      },
       error: null,
     });
 
     mockLlmRouter.complete.mockResolvedValue({
       text: JSON.stringify({
-        actions: [
-          { actionType: 'task', description: 'Test', confidence: 0.9 }
-        ]
-      })
+        actions: [{ actionType: 'task', description: 'Test', confidence: 0.9 }],
+      }),
     });
 
     await extractionWorker(
       { data: { emailId, workspaceId, clientInboxId } } as any,
-      {} as any
+      {} as any,
     );
 
     expect(mockSupabase.insert).toHaveBeenCalledWith(
@@ -120,8 +133,8 @@ describe('isolation-leakage', () => {
         expect.objectContaining({
           workspace_id: workspaceId,
           client_inbox_id: clientInboxId,
-        })
-      ])
+        }),
+      ]),
     );
   });
 });

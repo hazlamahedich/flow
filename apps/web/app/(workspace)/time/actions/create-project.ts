@@ -1,20 +1,17 @@
 'use server';
 
-import { z } from 'zod';
 import type { ActionResult } from '@flow/types';
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, createProject, ProjectNameDuplicateError } from '@flow/db';
-
-const createProjectSchema = z.object({
-  clientId: z.string().uuid(),
-  name: z.string().min(1).max(100),
-});
-
-export interface CreatedProject {
-  id: string;
-  name: string;
-  clientId: string;
-}
+import {
+  requireTenantContext,
+  createFlowError,
+  createProject,
+  ProjectNameDuplicateError,
+} from '@flow/db';
+// Schema and return type live in a sibling non-'use server' module because
+// Next.js 15 forbids exporting non-function values from 'use server' files.
+import { createProjectSchema } from './schemas';
+import type { CreatedProject } from './schemas';
 
 export async function createProjectAction(
   input: unknown,
@@ -23,7 +20,12 @@ export async function createProjectAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
@@ -45,12 +47,22 @@ export async function createProjectAction(
     if (err instanceof ProjectNameDuplicateError) {
       return {
         success: false,
-        error: createFlowError(409, 'CONFLICT', 'A project with this name already exists', 'validation'),
+        error: createFlowError(
+          409,
+          'CONFLICT',
+          'A project with this name already exists',
+          'validation',
+        ),
       };
     }
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to create project', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to create project',
+        'system',
+      ),
     };
   }
 }

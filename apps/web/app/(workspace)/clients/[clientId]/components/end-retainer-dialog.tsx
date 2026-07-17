@@ -24,12 +24,18 @@ export function EndRetainerDialog({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const { ref: focusTrapRef } = useFocusTrap({ enabled: true, restoreFocus: true });
+  const { ref: focusTrapRef } = useFocusTrap({
+    enabled: true,
+    restoreFocus: true,
+  });
 
-  const setBothRefs = useCallback((node: HTMLDivElement | null) => {
-    dialogRef.current = node;
-    focusTrapRef(node);
-  }, [focusTrapRef]);
+  const setBothRefs = useCallback(
+    (node: HTMLDivElement | null) => {
+      dialogRef.current = node;
+      focusTrapRef(node);
+    },
+    [focusTrapRef],
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -65,7 +71,10 @@ export function EndRetainerDialog({
   const trackedHours = (trackedMinutes / 60).toFixed(1);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onClose}
+    >
       <div
         ref={setBothRefs}
         role="alertdialog"
@@ -74,16 +83,28 @@ export function EndRetainerDialog({
         className="w-full max-w-md rounded-lg border border-[var(--flow-color-border-default)] bg-[var(--flow-bg-surface)] p-6 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold text-[var(--flow-color-text-primary)]">End Retainer Agreement</h2>
+        <h2 className="text-lg font-semibold text-[var(--flow-color-text-primary)]">
+          End Retainer Agreement
+        </h2>
 
         <div className="mt-4 space-y-2 text-sm text-[var(--flow-color-text-secondary)]">
-          <p>You&apos;ve tracked <strong>{trackedHours} hours</strong> this billing period — this data is preserved.</p>
-          <p>{activeScopeAlerts} active scope alert{activeScopeAlerts !== 1 ? 's' : ''} will be dismissed.</p>
-          <p>Historical retainer data will be archived in the client timeline.</p>
+          <p>
+            You&apos;ve tracked <strong>{trackedHours} hours</strong> this
+            billing period — this data is preserved.
+          </p>
+          <p>
+            {activeScopeAlerts} active scope alert
+            {activeScopeAlerts !== 1 ? 's' : ''} will be dismissed.
+          </p>
+          <p>
+            Historical retainer data will be archived in the client timeline.
+          </p>
         </div>
 
         <label className="mt-4 block text-sm">
-          <span className="text-[var(--flow-color-text-secondary)]">Reason (optional)</span>
+          <span className="text-[var(--flow-color-text-secondary)]">
+            Reason (optional)
+          </span>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
@@ -93,7 +114,11 @@ export function EndRetainerDialog({
           />
         </label>
 
-        {error && <p className="mt-2 text-sm text-[var(--flow-status-error)]">{error}</p>}
+        {error && (
+          <p className="mt-2 text-sm text-[var(--flow-status-error)]">
+            {error}
+          </p>
+        )}
 
         <div className="mt-6 flex justify-end gap-3">
           <button

@@ -95,20 +95,25 @@ export async function POST(request: Request): Promise<Response> {
 
   const supabase = createServiceClient();
 
-  const metadata = (verifiedEvent.data.object.metadata ?? {}) as Record<string, string>;
+  const metadata = (verifiedEvent.data.object.metadata ?? {}) as Record<
+    string,
+    string
+  >;
   const invoiceId = metadata.invoice_id;
   const workspaceId = metadata.workspace_id;
 
   // Atomic dedup insert
-  const { error: dedupError } = await supabase.from('stripe_webhook_events').insert({
-    stripe_event_id: verifiedEvent.id,
-    event_type: verifiedEvent.type,
-    status: 'pending',
-    workspace_id: workspaceId ?? null,
-    invoice_id: invoiceId ?? null,
-    payload_json: scrubPayload(verifiedEvent) as Record<string, unknown>,
-    expires_at: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
-  });
+  const { error: dedupError } = await supabase
+    .from('stripe_webhook_events')
+    .insert({
+      stripe_event_id: verifiedEvent.id,
+      event_type: verifiedEvent.type,
+      status: 'pending',
+      workspace_id: workspaceId ?? null,
+      invoice_id: invoiceId ?? null,
+      payload_json: scrubPayload(verifiedEvent) as Record<string, unknown>,
+      expires_at: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
+    });
 
   if (dedupError) {
     if (dedupError.code === '23505') {

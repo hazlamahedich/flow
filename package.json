@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:rls": "supabase test db",
+    "seed:e2e": "psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -f tests/support/seed-e2e.sql",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
@@ -26,6 +27,7 @@
     "eslint-plugin-import": "^2.31.0",
     "prettier": "^3.5.3",
     "tsup": "^8.4.0",
+    "tsx": "^4.19.0",
     "turbo": "^2.5.0",
     "typescript": "^5.8.0",
     "typescript-eslint": "^8.33.0"

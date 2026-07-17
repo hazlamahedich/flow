@@ -1,7 +1,8 @@
 import { createFlowError } from '@flow/db';
 import { createServiceClient } from '@flow/db/client';
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function invalidateUserSessions(userId: string): Promise<void> {
   if (!UUID_REGEX.test(userId)) {

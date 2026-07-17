@@ -122,8 +122,10 @@ export async function updateAgentConfig(
     lifecycle_version: expectedVersion + 1,
   };
   if (config.schedule !== undefined) updates.schedule = config.schedule;
-  if (config.triggerConfig !== undefined) updates.trigger_config = config.triggerConfig;
-  if (config.llmPreferences !== undefined) updates.llm_preferences = config.llmPreferences;
+  if (config.triggerConfig !== undefined)
+    updates.trigger_config = config.triggerConfig;
+  if (config.llmPreferences !== undefined)
+    updates.llm_preferences = config.llmPreferences;
 
   const { data, error } = await client
     .from('agent_configurations')
@@ -194,7 +196,10 @@ export async function upsertAgentConfiguration(
   const client = createServiceClient();
   const { data, error } = await client
     .from('agent_configurations')
-    .upsert(row, { onConflict: 'workspace_id,agent_id', ignoreDuplicates: true })
+    .upsert(row, {
+      onConflict: 'workspace_id,agent_id',
+      ignoreDuplicates: true,
+    })
     .select()
     .single();
   if (error) throw error;

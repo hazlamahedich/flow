@@ -14,7 +14,9 @@ describe('defaultInvoiceEditGuard', () => {
   });
 
   it('returns false for UUID format', async () => {
-    const result = await defaultInvoiceEditGuard.isInvoiced('00000000-0000-0000-0000-000000000001');
+    const result = await defaultInvoiceEditGuard.isInvoiced(
+      '00000000-0000-0000-0000-000000000001',
+    );
     expect(result).toBe(false);
   });
 });

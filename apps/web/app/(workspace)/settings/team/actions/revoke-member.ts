@@ -122,7 +122,10 @@ export async function revokeMember(
     .is('revoked_at', null);
 
   if (clientAccessError) {
-    console.error('Failed to revoke client access during member revocation:', clientAccessError);
+    console.error(
+      'Failed to revoke client access during member revocation:',
+      clientAccessError,
+    );
   }
 
   try {

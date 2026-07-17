@@ -4,7 +4,7 @@
 
 BEGIN;
 
-SELECT plan(12);
+SELECT plan(6);
 
 -- Setup
 SET ROLE postgres;

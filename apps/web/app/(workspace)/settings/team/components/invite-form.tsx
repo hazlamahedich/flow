@@ -69,8 +69,13 @@ export function InviteForm({ actorRole, currentEmail }: InviteFormProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 md:relative md:inset-auto md:bg-transparent"
-         onClick={() => { setOpen(false); setError(null); }}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 md:relative md:inset-auto md:bg-transparent"
+      onClick={() => {
+        setOpen(false);
+        setError(null);
+      }}
+    >
       <div
         className="w-full max-w-md rounded-lg bg-[var(--flow-color-bg-primary)] p-6 shadow-lg md:border md:border-[var(--flow-color-border-default)]"
         role="dialog"
@@ -82,14 +87,20 @@ export function InviteForm({ actorRole, currentEmail }: InviteFormProps) {
         </h2>
 
         {error && (
-          <div role="alert" className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+          <div
+            role="alert"
+            className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700"
+          >
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="invite-email" className="block text-sm font-medium text-[var(--flow-color-text-secondary)] mb-1">
+            <label
+              htmlFor="invite-email"
+              className="block text-sm font-medium text-[var(--flow-color-text-secondary)] mb-1"
+            >
               Email
             </label>
             <input
@@ -104,7 +115,10 @@ export function InviteForm({ actorRole, currentEmail }: InviteFormProps) {
           </div>
 
           <div>
-            <label htmlFor="invite-role" className="block text-sm font-medium text-[var(--flow-color-text-secondary)] mb-1">
+            <label
+              htmlFor="invite-role"
+              className="block text-sm font-medium text-[var(--flow-color-text-secondary)] mb-1"
+            >
               Role
             </label>
             <select
@@ -124,7 +138,10 @@ export function InviteForm({ actorRole, currentEmail }: InviteFormProps) {
           <div className="flex gap-3 justify-end">
             <button
               type="button"
-              onClick={() => { setOpen(false); setError(null); }}
+              onClick={() => {
+                setOpen(false);
+                setError(null);
+              }}
               className="rounded-md border border-[var(--flow-color-border-default)] px-4 py-2 text-sm font-medium text-[var(--flow-color-text-primary)]"
             >
               Cancel

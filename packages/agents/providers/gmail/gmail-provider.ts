@@ -36,7 +36,10 @@ export class GmailProvider implements EmailProvider {
     return gmailOAuth.getUserEmail(accessToken);
   }
 
-  async getHistorySince(accessToken: string, startHistoryId: string): Promise<EmailHistoryItem[]> {
+  async getHistorySince(
+    accessToken: string,
+    startHistoryId: string,
+  ): Promise<EmailHistoryItem[]> {
     return gmailApi.getHistorySince(accessToken, startHistoryId);
   }
 
@@ -48,11 +51,17 @@ export class GmailProvider implements EmailProvider {
     return gmailApi.listMessages(accessToken, query, maxResults);
   }
 
-  async getMessageMetadata(accessToken: string, messageId: string): Promise<EmailMetadata> {
+  async getMessageMetadata(
+    accessToken: string,
+    messageId: string,
+  ): Promise<EmailMetadata> {
     return gmailApi.getMessageMetadata(accessToken, messageId);
   }
 
-  async getMessage(accessToken: string, messageId: string): Promise<EmailMessage> {
+  async getMessage(
+    accessToken: string,
+    messageId: string,
+  ): Promise<EmailMessage> {
     return gmailApi.getMessage(accessToken, messageId);
   }
 
@@ -62,7 +71,10 @@ export class GmailProvider implements EmailProvider {
     return gmailApi.getProfile(accessToken);
   }
 
-  async watchInbox(accessToken: string, topicName: string): Promise<WatchInboxResult> {
+  async watchInbox(
+    accessToken: string,
+    topicName: string,
+  ): Promise<WatchInboxResult> {
     return gmailApi.watchInbox(accessToken, topicName);
   }
 
@@ -70,7 +82,10 @@ export class GmailProvider implements EmailProvider {
     return gmailApi.stopWatch(accessToken);
   }
 
-  async verifyDelegation(delegatedEmail: string, accessToken: string): Promise<boolean> {
+  async verifyDelegation(
+    delegatedEmail: string,
+    accessToken: string,
+  ): Promise<boolean> {
     return gmailApi.verifyDelegation(delegatedEmail, accessToken);
   }
 }

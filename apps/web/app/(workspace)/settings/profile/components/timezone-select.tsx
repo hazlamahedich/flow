@@ -46,7 +46,13 @@ export function TimezoneSelect({ value, onChange }: TimezoneSelectProps) {
   const filtered = useMemo(() => {
     if (!search.trim()) return timezones.slice(0, 50);
     const q = search.toLowerCase();
-    return timezones.filter((tz) => tz.value.toLowerCase().includes(q) || tz.label.toLowerCase().includes(q)).slice(0, 50);
+    return timezones
+      .filter(
+        (tz) =>
+          tz.value.toLowerCase().includes(q) ||
+          tz.label.toLowerCase().includes(q),
+      )
+      .slice(0, 50);
   }, [timezones, search]);
 
   return (

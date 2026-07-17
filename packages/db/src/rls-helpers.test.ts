@@ -1,8 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import {
-  requireTenantContext,
-  createFlowError,
-} from './rls-helpers';
+import { requireTenantContext, createFlowError } from './rls-helpers';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 function mockClient(userResponse: {
@@ -61,7 +58,10 @@ describe('requireTenantContext', () => {
   it('throws FlowError 403 when workspace_id is malformed', async () => {
     const client = mockClient({
       data: {
-        user: { id: crypto.randomUUID(), app_metadata: { workspace_id: 'not-a-uuid' } },
+        user: {
+          id: crypto.randomUUID(),
+          app_metadata: { workspace_id: 'not-a-uuid' },
+        },
       },
       error: null,
     });

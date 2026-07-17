@@ -12,7 +12,10 @@ describe('TrustTransitionError', () => {
 
   it('is retryable only for QUERY_FAILED', () => {
     const retryable = new TrustTransitionError('QUERY_FAILED', 'q');
-    const notRetryable = new TrustTransitionError('CONCURRENT_MODIFICATION', 'c');
+    const notRetryable = new TrustTransitionError(
+      'CONCURRENT_MODIFICATION',
+      'c',
+    );
     expect(retryable.retryable).toBe(true);
     expect(notRetryable.retryable).toBe(false);
   });

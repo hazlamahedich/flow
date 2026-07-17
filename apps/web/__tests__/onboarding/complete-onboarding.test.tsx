@@ -18,12 +18,9 @@ vi.mock(
   }),
 );
 
-vi.mock(
-  '../../app/(onboarding)/onboarding/_lib/storage',
-  () => ({
-    clearOnboardingProgress: vi.fn(),
-  }),
-);
+vi.mock('../../app/(onboarding)/onboarding/_lib/storage', () => ({
+  clearOnboardingProgress: vi.fn(),
+}));
 
 import { CompletionStep } from '../../app/(onboarding)/onboarding/_components/steps/completion-step';
 
@@ -36,7 +33,9 @@ describe('CompletionStep', () => {
 
   it('renders "Workspace ready" heading', () => {
     render(<CompletionStep />);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Workspace ready');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Workspace ready',
+    );
   });
 
   it('renders single CTA "Go to Workspace"', () => {
@@ -47,7 +46,10 @@ describe('CompletionStep', () => {
   });
 
   it('calls completeOnboarding action on click', async () => {
-    mockCompleteOnboarding.mockResolvedValue({ success: true, data: undefined });
+    mockCompleteOnboarding.mockResolvedValue({
+      success: true,
+      data: undefined,
+    });
 
     render(<CompletionStep />);
     await userEvent.click(screen.getByRole('button'));
@@ -72,7 +74,9 @@ describe('CompletionStep', () => {
     await userEvent.click(screen.getByRole('button'));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Failed to complete onboarding');
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Failed to complete onboarding',
+      );
     });
   });
 

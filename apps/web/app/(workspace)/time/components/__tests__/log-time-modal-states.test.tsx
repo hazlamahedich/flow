@@ -1,18 +1,32 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, act, cleanup } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+  cleanup,
+} from '@testing-library/react';
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
-    matches: false, media: query, onchange: null,
-    addListener: vi.fn(), removeListener: vi.fn(),
-    addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn(),
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
   })),
 });
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
-vi.mock('../../../time/actions/create-time-entry', () => ({ createTimeEntryAction: vi.fn() }));
+vi.mock('../../../time/actions/create-time-entry', () => ({
+  createTimeEntryAction: vi.fn(),
+}));
 vi.mock('../../../time/actions/list-projects', () => ({
   listProjectsAction: vi.fn().mockResolvedValue({ success: true, data: [] }),
 }));
@@ -27,14 +41,20 @@ const clients = [
 const onClose = vi.fn();
 const onCreated = vi.fn();
 
-afterEach(() => { cleanup(); });
-beforeEach(() => { vi.clearAllMocks(); });
+afterEach(() => {
+  cleanup();
+});
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 async function renderModal() {
   const result = render(
     <LogTimeModal clients={clients} onClose={onClose} onCreated={onCreated} />,
   );
-  await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 0));
+  });
   return result;
 }
 
@@ -49,16 +69,25 @@ describe('LogTimeModal — UI State Coverage', () => {
   describe('[P1] Loading state', () => {
     it('disables submit during pending submission', async () => {
       vi.mocked(createTimeEntryAction).mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({
-          success: true,
-          data: { id: 'te-1', clientId: 'c-1', projectId: null, date: '2026-05-10', durationMinutes: 60, notes: null },
-        }), 2000)),
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  success: true,
+                  data: { id: 'te-1' },
+                }),
+              2000,
+            ),
+          ),
       );
 
       await renderModal();
       await fillValidForm();
       const submitBtn = screen.getByRole('button', { name: 'Log Time' });
-      await act(async () => { fireEvent.click(submitBtn); });
+      await act(async () => {
+        fireEvent.click(submitBtn);
+      });
 
       await waitFor(() => {
         expect(submitBtn).toBeDisabled();
@@ -84,7 +113,9 @@ describe('LogTimeModal — UI State Coverage', () => {
       const durationInput = screen.getByPlaceholderText('e.g. 90 for 1h 30m');
       fireEvent.change(durationInput, { target: { value: '0' } });
       const submitBtn = screen.getByRole('button', { name: 'Log Time' });
-      await act(async () => { fireEvent.click(submitBtn); });
+      await act(async () => {
+        fireEvent.click(submitBtn);
+      });
 
       await waitFor(() => {
         expect(screen.getByText('Minimum 1 minute')).toBeInTheDocument();
@@ -92,11 +123,13 @@ describe('LogTimeModal — UI State Coverage', () => {
 
       vi.mocked(createTimeEntryAction).mockResolvedValue({
         success: true,
-        data: { id: 'te-1', clientId: 'c-1', projectId: null, date: '2026-05-10', durationMinutes: 60, notes: null },
+        data: { id: 'te-1' },
       });
 
       fireEvent.change(durationInput, { target: { value: '60' } });
-      await act(async () => { fireEvent.click(submitBtn); });
+      await act(async () => {
+        fireEvent.click(submitBtn);
+      });
 
       await waitFor(() => {
         expect(screen.queryByText('Minimum 1 minute')).not.toBeInTheDocument();
@@ -108,13 +141,20 @@ describe('LogTimeModal — UI State Coverage', () => {
     it('shows error on failed submit', async () => {
       vi.mocked(createTimeEntryAction).mockResolvedValue({
         success: false,
-        error: { status: 500, code: 'INTERNAL_ERROR', message: 'fail', category: 'system' },
+        error: {
+          status: 500,
+          code: 'INTERNAL_ERROR',
+          message: 'fail',
+          category: 'system',
+        },
       });
 
       await renderModal();
       await fillValidForm();
       const submitBtn = screen.getByRole('button', { name: 'Log Time' });
-      await act(async () => { fireEvent.click(submitBtn); });
+      await act(async () => {
+        fireEvent.click(submitBtn);
+      });
 
       await waitFor(() => {
         expect(screen.getByText('fail')).toBeInTheDocument();
@@ -124,13 +164,20 @@ describe('LogTimeModal — UI State Coverage', () => {
     it('re-enables submit button after server error', async () => {
       vi.mocked(createTimeEntryAction).mockResolvedValue({
         success: false,
-        error: { status: 500, code: 'INTERNAL_ERROR', message: 'fail', category: 'system' },
+        error: {
+          status: 500,
+          code: 'INTERNAL_ERROR',
+          message: 'fail',
+          category: 'system',
+        },
       });
 
       await renderModal();
       await fillValidForm();
       const submitBtn = screen.getByRole('button', { name: 'Log Time' });
-      await act(async () => { fireEvent.click(submitBtn); });
+      await act(async () => {
+        fireEvent.click(submitBtn);
+      });
 
       await waitFor(() => {
         expect(submitBtn).toBeEnabled();
@@ -142,13 +189,20 @@ describe('LogTimeModal — UI State Coverage', () => {
     it('shows error when server returns FORBIDDEN', async () => {
       vi.mocked(createTimeEntryAction).mockResolvedValue({
         success: false,
-        error: { status: 403, code: 'FORBIDDEN', message: 'Not authorized', category: 'auth' },
+        error: {
+          status: 403,
+          code: 'FORBIDDEN',
+          message: 'Not authorized',
+          category: 'auth',
+        },
       });
 
       await renderModal();
       await fillValidForm();
       const submitBtn = screen.getByRole('button', { name: 'Log Time' });
-      await act(async () => { fireEvent.click(submitBtn); });
+      await act(async () => {
+        fireEvent.click(submitBtn);
+      });
 
       await waitFor(() => {
         expect(screen.getByText('Not authorized')).toBeInTheDocument();

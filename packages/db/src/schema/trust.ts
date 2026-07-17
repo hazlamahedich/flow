@@ -31,21 +31,33 @@ export const trustMatrix = pgTable(
       .references(() => workspaces.id, { onDelete: 'cascade' }),
     agentId: agentIdTypeEnum('agent_id').notNull(),
     actionType: text('action_type').notNull(),
-    currentLevel: trustLevelEnum('current_level').notNull().default('supervised'),
+    currentLevel: trustLevelEnum('current_level')
+      .notNull()
+      .default('supervised'),
     score: smallint('score').notNull().default(0),
     totalExecutions: integer('total_executions').notNull().default(0),
     successfulExecutions: integer('successful_executions').notNull().default(0),
     consecutiveSuccesses: integer('consecutive_successes').notNull().default(0),
     violationCount: integer('violation_count').notNull().default(0),
-    lastTransitionAt: timestamp('last_transition_at', { withTimezone: true }).notNull().defaultNow(),
+    lastTransitionAt: timestamp('last_transition_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     lastViolationAt: timestamp('last_violation_at', { withTimezone: true }),
     cooldownUntil: timestamp('cooldown_until', { withTimezone: true }),
     version: integer('version').notNull().default(1),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
-    uniqueIndex('idx_trust_matrix_cell').on(table.workspaceId, table.agentId, table.actionType),
+    uniqueIndex('idx_trust_matrix_cell').on(
+      table.workspaceId,
+      table.agentId,
+      table.actionType,
+    ),
     index('idx_trust_matrix_workspace').on(table.workspaceId, table.agentId),
     index('idx_trust_matrix_workspace_text').on(sql`(workspace_id::text)`),
     index('idx_trust_matrix_cooldown').on(table.cooldownUntil),
@@ -69,11 +81,19 @@ export const trustTransitions = pgTable(
     isContextShift: boolean('is_context_shift').notNull().default(false),
     snapshot: jsonb('snapshot').notNull(),
     actor: text('actor').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
-    index('idx_trust_transitions_entry').on(table.matrixEntryId, table.createdAt),
-    index('idx_trust_transitions_workspace').on(table.workspaceId, table.createdAt),
+    index('idx_trust_transitions_entry').on(
+      table.matrixEntryId,
+      table.createdAt,
+    ),
+    index('idx_trust_transitions_workspace').on(
+      table.workspaceId,
+      table.createdAt,
+    ),
     index('idx_trust_transitions_workspace_text').on(sql`(workspace_id::text)`),
   ],
 );
@@ -94,11 +114,16 @@ export const trustSnapshots = pgTable(
     level: trustLevelEnum('level').notNull(),
     score: smallint('score').notNull(),
     snapshotHash: text('snapshot_hash').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     index('idx_trust_snapshots_execution').on(table.executionId),
-    index('idx_trust_snapshots_workspace').on(table.workspaceId, table.createdAt),
+    index('idx_trust_snapshots_workspace').on(
+      table.workspaceId,
+      table.createdAt,
+    ),
     index('idx_trust_snapshots_workspace_text').on(sql`(workspace_id::text)`),
   ],
 );
@@ -115,11 +140,18 @@ export const trustPreconditions = pgTable(
     conditionKey: text('condition_key').notNull(),
     conditionExpr: text('condition_expr').notNull(),
     isActive: boolean('is_active').notNull().default(true),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
-    index('idx_trust_preconditions_workspace').on(table.workspaceId, table.agentId),
-    index('idx_trust_preconditions_workspace_text').on(sql`(workspace_id::text)`),
+    index('idx_trust_preconditions_workspace').on(
+      table.workspaceId,
+      table.agentId,
+    ),
+    index('idx_trust_preconditions_workspace_text').on(
+      sql`(workspace_id::text)`,
+    ),
   ],
 );
 
@@ -131,16 +163,25 @@ export const trustAudits = pgTable(
       .notNull()
       .references(() => workspaces.id, { onDelete: 'cascade' }),
     agentId: agentIdTypeEnum('agent_id').notNull(),
-    lastReviewedAt: timestamp('last_reviewed_at', { withTimezone: true }).notNull().defaultNow(),
+    lastReviewedAt: timestamp('last_reviewed_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     reviewCount: integer('review_count').notNull().default(0),
     deferredCount: integer('deferred_count').notNull().default(0),
     lastDeferredAt: timestamp('last_deferred_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
     uniqueIndex('idx_trust_audits_unique').on(table.workspaceId, table.agentId),
-    index('idx_trust_audits_workspace_reviewed').on(table.workspaceId, table.lastReviewedAt),
+    index('idx_trust_audits_workspace_reviewed').on(
+      table.workspaceId,
+      table.lastReviewedAt,
+    ),
     index('idx_trust_audits_workspace_text').on(sql`(workspace_id::text)`),
   ],
 );
@@ -155,13 +196,24 @@ export const trustMilestones = pgTable(
     agentId: agentIdTypeEnum('agent_id').notNull(),
     milestoneType: text('milestone_type').notNull(),
     threshold: integer('threshold').notNull(),
-    achievedAt: timestamp('achieved_at', { withTimezone: true }).notNull().defaultNow(),
+    achievedAt: timestamp('achieved_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     acknowledgedAt: timestamp('acknowledged_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
-    uniqueIndex('idx_trust_milestones_unique').on(table.workspaceId, table.agentId, table.milestoneType),
-    index('idx_trust_milestones_workspace_agent').on(table.workspaceId, table.agentId),
+    uniqueIndex('idx_trust_milestones_unique').on(
+      table.workspaceId,
+      table.agentId,
+      table.milestoneType,
+    ),
+    index('idx_trust_milestones_workspace_agent').on(
+      table.workspaceId,
+      table.agentId,
+    ),
     index('idx_trust_milestones_workspace_text').on(sql`(workspace_id::text)`),
   ],
 );

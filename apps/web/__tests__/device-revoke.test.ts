@@ -1,8 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('@flow/db', () => ({
-  createFlowError: (status: number, code: string, message: string, category: string) => ({
-    status, code, message, category,
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({
+    status,
+    code,
+    message,
+    category,
   }),
 }));
 
@@ -26,7 +34,7 @@ describe('device revoke operations', () => {
       const ABSOLUTE_SESSION_MS = 24 * 60 * 60 * 1000;
       const issuedAt = Date.now() - 25 * 60 * 60 * 1000;
 
-      const expired = !isTrusted && (Date.now() - issuedAt > ABSOLUTE_SESSION_MS);
+      const expired = !isTrusted && Date.now() - issuedAt > ABSOLUTE_SESSION_MS;
       expect(expired).toBe(true);
     });
   });
@@ -39,7 +47,9 @@ describe('device revoke operations', () => {
         { id: 'dev-3', isRevoked: false },
       ];
 
-      devices.forEach((d) => { d.isRevoked = true; });
+      devices.forEach((d) => {
+        d.isRevoked = true;
+      });
 
       expect(devices.every((d) => d.isRevoked)).toBe(true);
     });

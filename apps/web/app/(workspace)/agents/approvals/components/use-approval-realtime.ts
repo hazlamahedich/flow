@@ -10,7 +10,10 @@ interface UseApprovalRealtimeOptions {
   onNewItem: (item: ApprovalQueueItem) => void;
 }
 
-export function useApprovalRealtime({ workspaceId, onNewItem }: UseApprovalRealtimeOptions) {
+export function useApprovalRealtime({
+  workspaceId,
+  onNewItem,
+}: UseApprovalRealtimeOptions) {
   useEffect(() => {
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
@@ -20,7 +23,11 @@ export function useApprovalRealtime({ workspaceId, onNewItem }: UseApprovalRealt
     const channel = supabase
       .channel('approval-queue')
       .on(
-        'postgres_changes' as Parameters<typeof supabase.channel>[0] extends string ? 'postgres_changes' : never,
+        'postgres_changes' as Parameters<
+          typeof supabase.channel
+        >[0] extends string
+          ? 'postgres_changes'
+          : never,
         {
           event: 'INSERT',
           schema: 'public',

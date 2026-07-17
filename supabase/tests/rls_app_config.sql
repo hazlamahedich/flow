@@ -18,8 +18,8 @@ SET ROLE authenticated;
 SELECT set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111"}', false);
 SELECT is(
   (SELECT count(*) FROM app_config),
-  4::bigint,
-  'Authenticated user sees all 4 config rows'
+  8::bigint,
+  'Authenticated user sees all 8 config rows'
 );
 SELECT reset_role();
 
@@ -46,7 +46,7 @@ SET ROLE authenticated;
 SELECT set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111"}', false);
 SELECT is(
   (SELECT count(*) FROM app_config),
-  4::bigint,
+  8::bigint,
   'app_config data unchanged after UPDATE attempt'
 );
 SELECT reset_role();

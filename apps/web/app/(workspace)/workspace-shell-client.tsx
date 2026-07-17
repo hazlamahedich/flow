@@ -3,12 +3,21 @@
 import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import type { WorkspaceShellProps } from '@flow/ui';
-import { WorkspaceShell, UndoWorkspaceProvider, UndoProvider, UndoFab } from '@flow/ui';
+import {
+  WorkspaceShell,
+  UndoWorkspaceProvider,
+  UndoProvider,
+  UndoFab,
+} from '@flow/ui';
 import { searchEntitiesAction } from './actions/search-entities';
 import { undoAction } from '@/lib/actions/undo';
 import { OverlayHost } from './components/overlay-host';
 import { TrustAnnouncerRegion } from '@/lib/hooks/use-trust-announcer';
-import { startTimerAction, stopTimerAction, getTimerStateAction } from './time/actions/timer-actions';
+import {
+  startTimerAction,
+  stopTimerAction,
+  getTimerStateAction,
+} from './time/actions/timer-actions';
 import { listClientsForTimerAction } from './time/actions/list-clients-for-timer';
 import { listProjectsAction } from './time/actions/list-projects';
 import type { TimerStateWithNames } from '@flow/ui';
@@ -36,18 +45,24 @@ export function WorkspaceShellClient({
     }
   }, []);
 
-  const handleNavigate = useCallback((href: string) => {
-    router.push(href);
-  }, [router]);
+  const handleNavigate = useCallback(
+    (href: string) => {
+      router.push(href);
+    },
+    [router],
+  );
 
-  const timerProps = useMemo(() => ({
-    initialTimerState,
-    onStart: startTimerAction,
-    onStop: (timerId: string) => stopTimerAction({ timerId }),
-    onGetTimerState: getTimerStateAction,
-    onListClients: listClientsForTimerAction,
-    onListProjects: (clientId: string) => listProjectsAction({ clientId }),
-  }), [initialTimerState]);
+  const timerProps = useMemo(
+    () => ({
+      initialTimerState,
+      onStart: startTimerAction,
+      onStop: (timerId: string) => stopTimerAction({ timerId }),
+      onGetTimerState: getTimerStateAction,
+      onListClients: listClientsForTimerAction,
+      onListProjects: (clientId: string) => listProjectsAction({ clientId }),
+    }),
+    [initialTimerState],
+  );
 
   if (!activeWorkspaceId) {
     return (

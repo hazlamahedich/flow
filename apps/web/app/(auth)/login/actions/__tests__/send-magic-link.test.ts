@@ -26,7 +26,12 @@ describe('ActionResult type contract', () => {
   it('error result has success=false and error', () => {
     const result = {
       success: false as const,
-      error: { status: 429, code: 'RATE_LIMITED', message: 'Too many requests', category: 'auth' as const },
+      error: {
+        status: 429,
+        code: 'RATE_LIMITED',
+        message: 'Too many requests',
+        category: 'auth' as const,
+      },
     };
     expect(result.success).toBe(false);
     expect(result.error.status).toBe(429);

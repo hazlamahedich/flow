@@ -20,7 +20,12 @@ import { PORTAL_SESSION_MAX_AGE_SECONDS } from './constants';
 import { isRateLimited, createRateLimitError, getAppUrl } from './helpers';
 import type { PortalContext } from './helpers';
 
-const PAYABLE_STATUSES = new Set(['sent', 'viewed', 'partially_paid', 'overdue']);
+const PAYABLE_STATUSES = new Set([
+  'sent',
+  'viewed',
+  'partially_paid',
+  'overdue',
+]);
 
 const payInvoiceInputSchema = z.object({
   invoiceId: z.string().uuid(),
@@ -37,7 +42,12 @@ export async function payInvoicePortalAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
@@ -45,10 +55,16 @@ export async function payInvoicePortalAction(
 
   const rlResult = await checkPayRateLimit(supabase, portalCtx.portalTokenId);
   if (rlResult.limited) {
-    return { success: false, error: createRateLimitError(rlResult.retryAfterMs) };
+    return {
+      success: false,
+      error: createRateLimitError(rlResult.retryAfterMs),
+    };
   }
 
-  const portalClient = await createPortalClient(portalCtx, PORTAL_SESSION_MAX_AGE_SECONDS);
+  const portalClient = await createPortalClient(
+    portalCtx,
+    PORTAL_SESSION_MAX_AGE_SECONDS,
+  );
   const { data: invoice, error } = await portalClient
     .from('invoices')
     .select(
@@ -60,7 +76,12 @@ export async function payInvoicePortalAction(
   if (error || !invoice) {
     return {
       success: false,
-      error: createFlowError(404, 'NOT_FOUND', 'Invoice not found.', 'validation'),
+      error: createFlowError(
+        404,
+        'NOT_FOUND',
+        'Invoice not found.',
+        'validation',
+      ),
     };
   }
 
@@ -86,7 +107,9 @@ export async function payInvoicePortalAction(
   const existingUrl = inv.payment_url as string | null;
   const existingExpiry = inv.payment_url_expires_at as string | null;
   const isPartial = status === 'partially_paid';
-  const urlStillValid = existingExpiry ? new Date(existingExpiry) > new Date() : false;
+  const urlStillValid = existingExpiry
+    ? new Date(existingExpiry) > new Date()
+    : false;
 
   if (existingUrl && urlStillValid && !isPartial) {
     return { success: true, data: { checkoutUrl: existingUrl } };
@@ -123,23 +146,38 @@ export async function payInvoicePortalAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(502, 'PROVIDER_ERROR', 'Payment provider error. Try again later.', 'financial'),
+      error: createFlowError(
+        502,
+        'PROVIDER_ERROR',
+        'Payment provider error. Try again later.',
+        'financial',
+      ),
     };
   }
 
-  const expiresAt = new Date(Date.now() + HOURS_PER_SESSION_EXPIRY * 60 * 60 * 1000).toISOString();
-  const { data: rpcResult, error: rpcError } = await portalClient.rpc('refresh_portal_checkout_url', {
-    p_invoice_id: invoiceId,
-    p_client_id: portalCtx.clientId,
-    p_checkout_url: checkoutUrl,
-    p_session_id: sessionId,
-    p_expires_at: expiresAt,
-  });
+  const expiresAt = new Date(
+    Date.now() + HOURS_PER_SESSION_EXPIRY * 60 * 60 * 1000,
+  ).toISOString();
+  const { data: rpcResult, error: rpcError } = await portalClient.rpc(
+    'refresh_portal_checkout_url',
+    {
+      p_invoice_id: invoiceId,
+      p_client_id: portalCtx.clientId,
+      p_checkout_url: checkoutUrl,
+      p_session_id: sessionId,
+      p_expires_at: expiresAt,
+    },
+  );
 
   if (rpcError) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to persist payment session.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to persist payment session.',
+        'system',
+      ),
     };
   }
 
@@ -149,13 +187,21 @@ export async function payInvoicePortalAction(
       success: false,
       error: createFlowError(
         rpcStatus === 'FORBIDDEN' ? 403 : rpcStatus === 'NOT_FOUND' ? 404 : 422,
-        rpcStatus === 'FORBIDDEN' ? 'FORBIDDEN' : rpcStatus === 'NOT_FOUND' ? 'NOT_FOUND' : 'FINANCIAL_INVALID_STATE',
+        rpcStatus === 'FORBIDDEN'
+          ? 'FORBIDDEN'
+          : rpcStatus === 'NOT_FOUND'
+            ? 'NOT_FOUND'
+            : 'FINANCIAL_INVALID_STATE',
         rpcStatus === 'FORBIDDEN'
           ? 'You do not have access to this invoice.'
           : rpcStatus === 'NOT_FOUND'
             ? 'Invoice not found.'
             : 'Payment session could not be created. Please try again.',
-        rpcStatus === 'FORBIDDEN' ? 'auth' : rpcStatus === 'NOT_FOUND' ? 'validation' : 'financial',
+        rpcStatus === 'FORBIDDEN'
+          ? 'auth'
+          : rpcStatus === 'NOT_FOUND'
+            ? 'validation'
+            : 'financial',
       ),
     };
   }

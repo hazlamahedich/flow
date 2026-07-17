@@ -14,7 +14,9 @@ vi.mock('@flow/agents/providers', () => ({
 }));
 
 vi.mock('@flow/shared', () => ({
-  mapStripeDeclineCode: vi.fn().mockReturnValue({ message: 'Card declined', retryable: false }),
+  mapStripeDeclineCode: vi
+    .fn()
+    .mockReturnValue({ message: 'Card declined', retryable: false }),
 }));
 
 import { createServiceClient } from '@flow/db';
@@ -35,7 +37,9 @@ function mockSupabase(options: {
   });
 
   // SELECT chain: from(...).select(...).eq().eq().maybeSingle()
-  const maybeSingleMock = vi.fn().mockResolvedValue({ data: options.invoiceData ?? null });
+  const maybeSingleMock = vi
+    .fn()
+    .mockResolvedValue({ data: options.invoiceData ?? null });
   const eqMock2 = vi.fn().mockReturnValue({ maybeSingle: maybeSingleMock });
   const eqMock1 = vi.fn().mockReturnValue({ eq: eqMock2 });
   const selectMock = vi.fn().mockReturnValue({ eq: eqMock1 });
@@ -96,7 +100,9 @@ describe('/api/webhooks/stripe POST', () => {
         throw new Error('Invalid signature');
       }),
     };
-    (StripePaymentProvider as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => providerMock);
+    (
+      StripePaymentProvider as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => providerMock);
 
     const request = new Request('http://localhost/api/webhooks/stripe', {
       method: 'POST',
@@ -119,11 +125,16 @@ describe('/api/webhooks/stripe POST', () => {
         createdAt: new Date().toISOString(),
       }),
     };
-    (StripePaymentProvider as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => providerMock);
+    (
+      StripePaymentProvider as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => providerMock);
 
     const request = new Request('http://localhost/api/webhooks/stripe', {
       method: 'POST',
-      headers: { 'stripe-signature': 't=123,v1=d20efd4f60a3b3852bcd133de6be0f49d4b7ebea5fdd09e892abb9540ff8640b' },
+      headers: {
+        'stripe-signature':
+          't=123,v1=d20efd4f60a3b3852bcd133de6be0f49d4b7ebea5fdd09e892abb9540ff8640b',
+      },
       body: '{}',
     });
     const response = await POST(request);
@@ -151,11 +162,16 @@ describe('/api/webhooks/stripe POST', () => {
         createdAt: new Date().toISOString(),
       }),
     };
-    (StripePaymentProvider as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => providerMock);
+    (
+      StripePaymentProvider as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => providerMock);
 
     const request = new Request('http://localhost/api/webhooks/stripe', {
       method: 'POST',
-      headers: { 'stripe-signature': 't=123,v1=d20efd4f60a3b3852bcd133de6be0f49d4b7ebea5fdd09e892abb9540ff8640b' },
+      headers: {
+        'stripe-signature':
+          't=123,v1=d20efd4f60a3b3852bcd133de6be0f49d4b7ebea5fdd09e892abb9540ff8640b',
+      },
       body: '{}',
     });
     const response = await POST(request);
@@ -182,11 +198,16 @@ describe('/api/webhooks/stripe POST', () => {
         createdAt: new Date().toISOString(),
       }),
     };
-    (StripePaymentProvider as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => providerMock);
+    (
+      StripePaymentProvider as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => providerMock);
 
     const request = new Request('http://localhost/api/webhooks/stripe', {
       method: 'POST',
-      headers: { 'stripe-signature': 't=123,v1=d20efd4f60a3b3852bcd133de6be0f49d4b7ebea5fdd09e892abb9540ff8640b' },
+      headers: {
+        'stripe-signature':
+          't=123,v1=d20efd4f60a3b3852bcd133de6be0f49d4b7ebea5fdd09e892abb9540ff8640b',
+      },
       body: '{}',
     });
     const response = await POST(request);

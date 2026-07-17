@@ -39,7 +39,11 @@ export async function GET(request: NextRequest) {
       .eq('token', token)
       .maybeSingle();
 
-    if (existing && (existing.status === 'expired' || new Date(existing.expires_at) < new Date())) {
+    if (
+      existing &&
+      (existing.status === 'expired' ||
+        new Date(existing.expires_at) < new Date())
+    ) {
       return NextResponse.redirect(
         new URL('/settings/profile?email_error=expired', request.url),
       );
@@ -63,6 +67,9 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(
-    new URL(`/login?message=email-changed&email=${encodeURIComponent(claimed.new_email)}`, request.url),
+    new URL(
+      `/login?message=email-changed&email=${encodeURIComponent(claimed.new_email)}`,
+      request.url,
+    ),
   );
 }

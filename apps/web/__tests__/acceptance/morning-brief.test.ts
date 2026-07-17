@@ -54,11 +54,13 @@ describe('[P0] Morning Brief Generation (ATDD)', () => {
 
     mockGetMorningBriefContext.mockResolvedValue({
       emails,
-      clientBreakdown: [{
-        clientId: emails[0]?.client_id ?? 'client-1',
-        clientName: 'Acme Corp',
-        emailCount: 3,
-      }],
+      clientBreakdown: [
+        {
+          clientId: emails[0]?.client_id ?? 'client-1',
+          clientName: 'Acme Corp',
+          emailCount: 3,
+        },
+      ],
     });
 
     const context = await mockGetMorningBriefContext(FAKE_WORKSPACE_ID);
@@ -80,7 +82,9 @@ describe('[P0] Morning Brief Generation (ATDD)', () => {
   it('AC4: should handle generation failure gracefully', async () => {
     mockGenerateMorningBrief.mockRejectedValue(new Error('LLM timeout'));
 
-    await expect(mockGenerateMorningBrief(FAKE_WORKSPACE_ID)).rejects.toThrow('LLM timeout');
+    await expect(mockGenerateMorningBrief(FAKE_WORKSPACE_ID)).rejects.toThrow(
+      'LLM timeout',
+    );
   });
 
   it('AC5: should include reassurance message when inbox is quiet', async () => {

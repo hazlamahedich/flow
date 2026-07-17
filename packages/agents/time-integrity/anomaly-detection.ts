@@ -6,10 +6,10 @@ import { GAP_THRESHOLD_MINUTES, LOW_HOURS_TARGET } from './schemas';
 /** Minimal entry shape needed for anomaly detection. */
 export interface TimeEntryForDetection {
   id: string;
-  date: string;           // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   durationMinutes: number;
-  startMinutes?: number;  // minutes from midnight (optional — requires schema with start_time)
-  endMinutes?: number;    // minutes from midnight (optional — requires schema with end_time)
+  startMinutes?: number; // minutes from midnight (optional — requires schema with start_time)
+  endMinutes?: number; // minutes from midnight (optional — requires schema with end_time)
 }
 
 /** Stable idempotency key: [anomalyType, ...sortedIds].join(':') */
@@ -17,7 +17,9 @@ function buildSignalKey(anomalyType: AnomalyType, entryIds: string[]): string {
   return [anomalyType, ...[...entryIds].sort()].join(':');
 }
 
-function groupByDate(entries: TimeEntryForDetection[]): Map<string, TimeEntryForDetection[]> {
+function groupByDate(
+  entries: TimeEntryForDetection[],
+): Map<string, TimeEntryForDetection[]> {
   const map = new Map<string, TimeEntryForDetection[]>();
   for (const entry of entries) {
     const group = map.get(entry.date) ?? [];
@@ -40,12 +42,18 @@ export function detectGaps(
 
   for (const [date, dayEntries] of byDay) {
     const withTimes = dayEntries.filter(
-      (e): e is TimeEntryForDetection & { startMinutes: number; endMinutes: number } =>
-        e.startMinutes !== undefined && e.endMinutes !== undefined,
+      (
+        e,
+      ): e is TimeEntryForDetection & {
+        startMinutes: number;
+        endMinutes: number;
+      } => e.startMinutes !== undefined && e.endMinutes !== undefined,
     );
     if (withTimes.length < 2) continue;
 
-    const sorted = [...withTimes].sort((a, b) => a.startMinutes - b.startMinutes);
+    const sorted = [...withTimes].sort(
+      (a, b) => a.startMinutes - b.startMinutes,
+    );
     for (let i = 0; i < sorted.length - 1; i++) {
       const gapMinutes = sorted[i + 1]!.startMinutes - sorted[i]!.endMinutes;
       if (gapMinutes > thresholdMinutes) {
@@ -66,7 +74,9 @@ export function detectGaps(
  * Detects temporal overlaps between entries on the same day.
  * Requires entries to have startMinutes/endMinutes; returns [] when those are absent.
  */
-export function detectOverlaps(entries: TimeEntryForDetection[]): AnomalySignal[] {
+export function detectOverlaps(
+  entries: TimeEntryForDetection[],
+): AnomalySignal[] {
   const byDay = groupByDate(entries);
   const signals: AnomalySignal[] = [];
   // Track pairs already emitted to avoid duplicates when multiple pairs overlap
@@ -74,15 +84,20 @@ export function detectOverlaps(entries: TimeEntryForDetection[]): AnomalySignal[
 
   for (const [date, dayEntries] of byDay) {
     const withTimes = dayEntries.filter(
-      (e): e is TimeEntryForDetection & { startMinutes: number; endMinutes: number } =>
-        e.startMinutes !== undefined && e.endMinutes !== undefined,
+      (
+        e,
+      ): e is TimeEntryForDetection & {
+        startMinutes: number;
+        endMinutes: number;
+      } => e.startMinutes !== undefined && e.endMinutes !== undefined,
     );
 
     for (let i = 0; i < withTimes.length; i++) {
       for (let j = i + 1; j < withTimes.length; j++) {
         const a = withTimes[i]!;
         const b = withTimes[j]!;
-        const overlaps = a.endMinutes > b.startMinutes && b.endMinutes > a.startMinutes;
+        const overlaps =
+          a.endMinutes > b.startMinutes && b.endMinutes > a.startMinutes;
         if (!overlaps) continue;
 
         const ids = [a.id, b.id];
@@ -114,7 +129,10 @@ export function detectLowHours(
   const targetMinutes = targetHours * 60;
 
   for (const [date, dayEntries] of byDay) {
-    const totalMinutes = dayEntries.reduce((sum, e) => sum + e.durationMinutes, 0);
+    const totalMinutes = dayEntries.reduce(
+      (sum, e) => sum + e.durationMinutes,
+      0,
+    );
     if (totalMinutes < targetMinutes) {
       const ids = dayEntries.map((e) => e.id);
       signals.push({

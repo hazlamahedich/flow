@@ -23,14 +23,30 @@ describe('ActivityTimelineClient', () => {
   afterEach(() => cleanup());
 
   it('renders filters, inhaler, and list', () => {
-    render(<ActivityTimelineClient initialData={[]} totalCount={0} filters={{}} workspaceId="ws-1" userId="u-1" />);
+    render(
+      <ActivityTimelineClient
+        initialData={[]}
+        totalCount={0}
+        filters={{}}
+        workspaceId="ws-1"
+        userId="u-1"
+      />,
+    );
     expect(screen.getByTestId('activity-filters')).toBeDefined();
     expect(screen.getByTestId('timeline-inhaler')).toBeDefined();
     expect(screen.getByTestId('timeline-list')).toBeDefined();
   });
 
   it('has aria-keyshortcuts on container', () => {
-    render(<ActivityTimelineClient initialData={[]} totalCount={0} filters={{}} workspaceId="ws-1" userId="u-1" />);
+    render(
+      <ActivityTimelineClient
+        initialData={[]}
+        totalCount={0}
+        filters={{}}
+        workspaceId="ws-1"
+        userId="u-1"
+      />,
+    );
     const container = screen.getByTestId('activity-filters').parentElement;
     expect(container?.getAttribute('aria-keyshortcuts')).toBe('f g');
   });

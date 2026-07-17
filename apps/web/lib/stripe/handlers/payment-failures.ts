@@ -38,16 +38,18 @@ export async function handlePaymentFailure(
 
   const mapped = mapStripeDeclineCode(declineCode);
 
-  const { error: insertErr } = await supabase.from('invoice_payment_attempts').insert({
-    invoice_id: invoiceId,
-    workspace_id: workspaceId,
-    stripe_event_id: event.id,
-    attempt_type: 'stripe_checkout',
-    status: 'failed',
-    error_code: declineCode ?? null,
-    error_message: mapped?.message ?? 'Unknown decline',
-    amount_cents: amountCents,
-  });
+  const { error: insertErr } = await supabase
+    .from('invoice_payment_attempts')
+    .insert({
+      invoice_id: invoiceId,
+      workspace_id: workspaceId,
+      stripe_event_id: event.id,
+      attempt_type: 'stripe_checkout',
+      status: 'failed',
+      error_code: declineCode ?? null,
+      error_message: mapped?.message ?? 'Unknown decline',
+      amount_cents: amountCents,
+    });
 
   if (insertErr) {
     return { processed: false, reason: insertErr.message };

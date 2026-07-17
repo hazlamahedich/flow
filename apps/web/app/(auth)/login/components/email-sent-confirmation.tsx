@@ -59,7 +59,10 @@ export function EmailSentConfirmation({
           Check your email
         </h2>
         <p className="mb-4 text-sm text-[var(--flow-color-text-secondary)]">
-          We sent a magic link to <strong className="text-[var(--flow-color-text-primary)]">{email}</strong>
+          We sent a magic link to{' '}
+          <strong className="text-[var(--flow-color-text-primary)]">
+            {email}
+          </strong>
         </p>
 
         <button
@@ -67,7 +70,11 @@ export function EmailSentConfirmation({
           disabled={cooldownActive || resending}
           className="mb-3 w-full rounded-md border border-[var(--flow-color-border-default)] px-4 py-2 text-sm font-medium text-[var(--flow-color-text-secondary)] transition-colors hover:bg-[var(--flow-color-bg-tertiary)] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {resending ? 'Sending...' : cooldownActive ? `Resend in ${cooldown}s` : 'Resend magic link'}
+          {resending
+            ? 'Sending...'
+            : cooldownActive
+              ? `Resend in ${cooldown}s`
+              : 'Resend magic link'}
         </button>
 
         <button

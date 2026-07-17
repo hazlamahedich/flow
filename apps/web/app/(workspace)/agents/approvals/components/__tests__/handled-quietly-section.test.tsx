@@ -39,8 +39,22 @@ describe('HandledQuietlySection', () => {
 
   it('renders items when data is available', async () => {
     const items = [
-      { id: 'e-1', subject: 'Test 1', sender: 'a@b.com', category: 'info', received_at: new Date().toISOString(), confidence: 0.9 },
-      { id: 'e-2', subject: 'Test 2', sender: 'c@d.com', category: 'noise', received_at: new Date().toISOString(), confidence: 0.7 },
+      {
+        id: 'e-1',
+        subject: 'Test 1',
+        sender: 'a@b.com',
+        category: 'info',
+        received_at: new Date().toISOString(),
+        confidence: 0.9,
+      },
+      {
+        id: 'e-2',
+        subject: 'Test 2',
+        sender: 'c@d.com',
+        category: 'noise',
+        received_at: new Date().toISOString(),
+        confidence: 0.7,
+      },
     ];
     (getHandledEmails as any).mockResolvedValue({
       success: true,
@@ -83,7 +97,14 @@ describe('HandledQuietlySection', () => {
   describe('UX-DR27: gold accent divider with collapsed green items', () => {
     it('renders gold accent divider border', async () => {
       const items = [
-        { id: 'e-1', subject: 'Auto-replied', sender: 'a@b.com', category: 'info', received_at: new Date().toISOString(), confidence: 0.95 },
+        {
+          id: 'e-1',
+          subject: 'Auto-replied',
+          sender: 'a@b.com',
+          category: 'info',
+          received_at: new Date().toISOString(),
+          confidence: 0.95,
+        },
       ];
       (getHandledEmails as any).mockResolvedValue({
         success: true,
@@ -101,7 +122,14 @@ describe('HandledQuietlySection', () => {
 
     it('renders handled items with confidence indicators', async () => {
       const items = [
-        { id: 'e-1', subject: 'Handled', sender: 'x@y.com', category: 'info', received_at: new Date().toISOString(), confidence: 0.85 },
+        {
+          id: 'e-1',
+          subject: 'Handled',
+          sender: 'x@y.com',
+          category: 'info',
+          received_at: new Date().toISOString(),
+          confidence: 0.85,
+        },
       ];
       (getHandledEmails as any).mockResolvedValue({
         success: true,

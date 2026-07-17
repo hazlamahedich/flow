@@ -60,9 +60,12 @@ export function SidebarProvider({
     if (prev < 2 && agentCount >= 2) {
       const revealed = safeGetSessionItem(REVEAL_KEY);
       if (!revealed) {
-        toast.info('Your sidebar is ready — you have multiple agents active now.', {
-          duration: 5000,
-        });
+        toast.info(
+          'Your sidebar is ready — you have multiple agents active now.',
+          {
+            duration: 5000,
+          },
+        );
         safeSetSessionItem(REVEAL_KEY, 'true');
       }
     }

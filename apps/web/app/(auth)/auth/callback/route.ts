@@ -1,7 +1,10 @@
 import { getServerSupabase } from '@/lib/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 import { logAuthEvent } from '@/lib/auth-audit';
-import { checkRateLimit, MAGIC_LINK_VERIFICATION_CONFIG } from '@/lib/rate-limit';
+import {
+  checkRateLimit,
+  MAGIC_LINK_VERIFICATION_CONFIG,
+} from '@/lib/rate-limit';
 import { headers } from 'next/headers';
 import { trustDevice } from '@flow/auth/device-trust';
 import {
@@ -17,7 +20,10 @@ export async function GET(request: NextRequest) {
   const errorCode = searchParams.get('error_code');
 
   const headerStore = await headers();
-  const ip = headerStore.get('x-forwarded-for') ?? headerStore.get('x-real-ip') ?? 'unknown';
+  const ip =
+    headerStore.get('x-forwarded-for') ??
+    headerStore.get('x-real-ip') ??
+    'unknown';
 
   if (error === 'access_denied' || errorCode === 'otp_expired') {
     const email = searchParams.get('email') ?? '';
@@ -35,35 +41,52 @@ export async function GET(request: NextRequest) {
   }
 
   if (!code) {
-    return NextResponse.redirect(new URL('/login?error=invalid_request', request.url));
+    return NextResponse.redirect(
+      new URL('/login?error=invalid_request', request.url),
+    );
   }
 
   try {
     const supabase = await getServerSupabase();
 
-    const verificationRateResult = await checkRateLimit(ip, MAGIC_LINK_VERIFICATION_CONFIG);
+    const verificationRateResult = await checkRateLimit(
+      ip,
+      MAGIC_LINK_VERIFICATION_CONFIG,
+    );
     if (!verificationRateResult.allowed) {
       return NextResponse.redirect(
-        new URL(`/login?error=rate_limited&retry=${Math.ceil(verificationRateResult.retryAfterMs / 1000)}`, request.url),
+        new URL(
+          `/login?error=rate_limited&retry=${Math.ceil(verificationRateResult.retryAfterMs / 1000)}`,
+          request.url,
+        ),
       );
     }
 
-    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error: exchangeError } =
+      await supabase.auth.exchangeCodeForSession(code);
 
     if (exchangeError) {
-      if (exchangeError.message?.toLowerCase().includes('already been used') ||
-          exchangeError.message?.toLowerCase().includes('exchange')) {
-        const { data: { session } } = await supabase.auth.getSession();
+      if (
+        exchangeError.message?.toLowerCase().includes('already been used') ||
+        exchangeError.message?.toLowerCase().includes('exchange')
+      ) {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (session) {
           return NextResponse.redirect(new URL('/', request.url));
         }
       }
 
-      return NextResponse.redirect(new URL('/login?error=invalid_request', request.url));
+      return NextResponse.redirect(
+        new URL('/login?error=invalid_request', request.url),
+      );
     }
 
     if (!data.user) {
-      return NextResponse.redirect(new URL('/login?error=invalid_request', request.url));
+      return NextResponse.redirect(
+        new URL('/login?error=invalid_request', request.url),
+      );
     }
 
     const email = data.user.email ?? '';
@@ -89,7 +112,9 @@ export async function GET(request: NextRequest) {
     let deviceCookieToSet: string | null = null;
 
     try {
-      const pendingToken = request.cookies.get(DEVICE_PENDING_COOKIE_NAME)?.value;
+      const pendingToken = request.cookies.get(
+        DEVICE_PENDING_COOKIE_NAME,
+      )?.value;
 
       if (pendingToken && data.user.id) {
         const trustResult = await trustDevice({
@@ -126,7 +151,10 @@ export async function GET(request: NextRequest) {
         }
       }
     } catch (deviceTrustError) {
-      console.error('[auth/callback] Device trust failed (non-blocking):', deviceTrustError);
+      console.error(
+        '[auth/callback] Device trust failed (non-blocking):',
+        deviceTrustError,
+      );
     }
 
     const isFirstLogin = data.user.user_metadata?.is_first_login !== false;

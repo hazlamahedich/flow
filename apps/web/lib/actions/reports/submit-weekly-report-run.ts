@@ -19,7 +19,12 @@ export async function submitWeeklyReportRunAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     };
   }
 
@@ -30,14 +35,24 @@ export async function submitWeeklyReportRunAction(
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
   if (!['owner', 'admin'].includes(ctx.role)) {
     return {
       success: false,
-      error: createFlowError(403, 'FORBIDDEN', 'Only workspace owners and admins can trigger agent runs.', 'auth'),
+      error: createFlowError(
+        403,
+        'FORBIDDEN',
+        'Only workspace owners and admins can trigger agent runs.',
+        'auth',
+      ),
     };
   }
 
@@ -54,7 +69,12 @@ export async function submitWeeklyReportRunAction(
   if (clientErr || !clientRow) {
     return {
       success: false,
-      error: createFlowError(404, 'CLIENT_NOT_FOUND', 'Client not found in workspace.', 'validation'),
+      error: createFlowError(
+        404,
+        'CLIENT_NOT_FOUND',
+        'Client not found in workspace.',
+        'validation',
+      ),
     };
   }
 
@@ -65,7 +85,12 @@ export async function submitWeeklyReportRunAction(
   if (!connectionString) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'DATABASE_URL is not set', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'DATABASE_URL is not set',
+        'system',
+      ),
     };
   }
 
@@ -105,7 +130,12 @@ export async function submitWeeklyReportRunAction(
   } catch (err: any) {
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', `Failed to enqueue agent run: ${err.message}`, 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        `Failed to enqueue agent run: ${err.message}`,
+        'system',
+      ),
     };
   }
 }

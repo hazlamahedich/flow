@@ -32,7 +32,10 @@ describe('workspace-creation', () => {
     });
 
     it('strips unknown properties', () => {
-      const result = createWorkspaceSchema.safeParse({ name: 'Test', extra: 'field' });
+      const result = createWorkspaceSchema.safeParse({
+        name: 'Test',
+        extra: 'field',
+      });
       expect(result.success).toBe(true);
       if (result.success) {
         expect('extra' in result.data).toBe(false);
@@ -42,13 +45,15 @@ describe('workspace-creation', () => {
 
   describe('slug generation logic', () => {
     function slugify(name: string): string {
-      return name
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .slice(0, 60) || 'workspace';
+      return (
+        name
+          .toLowerCase()
+          .trim()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/[\s_]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 60) || 'workspace'
+      );
     }
 
     it('generates slug from workspace name', () => {

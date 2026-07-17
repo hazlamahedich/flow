@@ -9,12 +9,14 @@ import type {
   FeedbackRow,
 } from './history-types';
 
-const feedbackRowSchema = z.object({
-  id: z.string(),
-  sentiment: z.enum(['positive', 'negative']),
-  note: z.string().nullable().optional(),
-  created_at: z.string(),
-}).passthrough();
+const feedbackRowSchema = z
+  .object({
+    id: z.string(),
+    sentiment: z.enum(['positive', 'negative']),
+    note: z.string().nullable().optional(),
+    created_at: z.string(),
+  })
+  .passthrough();
 
 function mapFeedback(raw: Record<string, unknown> | null): FeedbackRow | null {
   if (!raw) return null;
@@ -42,7 +44,10 @@ export async function getActionHistory(
 
   let query = client
     .from('agent_runs')
-    .select('*, feedback:agent_feedback!left(id, sentiment, note, created_at, user_id)', { count: 'exact' })
+    .select(
+      '*, feedback:agent_feedback!left(id, sentiment, note, created_at, user_id)',
+      { count: 'exact' },
+    )
     .eq('workspace_id', workspaceId)
     .order('created_at', { ascending: false });
 
@@ -50,7 +55,9 @@ export async function getActionHistory(
   if (filters.status) query = query.eq('status', filters.status);
   if (filters.dateFrom) query = query.gte('created_at', filters.dateFrom);
   if (filters.dateTo) {
-    const inclusive = filters.dateTo.includes('T') ? filters.dateTo : filters.dateTo + 'T23:59:59.999Z';
+    const inclusive = filters.dateTo.includes('T')
+      ? filters.dateTo
+      : filters.dateTo + 'T23:59:59.999Z';
     query = query.lte('created_at', inclusive);
   }
   if (filters.clientId) query = query.eq('client_id', filters.clientId);
@@ -60,13 +67,19 @@ export async function getActionHistory(
 
   const rows: ActionHistoryRow[] = (data ?? []).map((row) => {
     const raw = row as Record<string, unknown>;
-    const rawFeedback = raw.feedback as Array<Record<string, unknown>> | Record<string, unknown> | null;
+    const rawFeedback = raw.feedback as
+      | Array<Record<string, unknown>>
+      | Record<string, unknown>
+      | null;
     let userFeedback: FeedbackRow | null = null;
     if (Array.isArray(rawFeedback)) {
       const match = rawFeedback.find((f) => f.user_id === userId);
       userFeedback = match ? mapFeedback(match) : null;
     } else if (rawFeedback && !Array.isArray(rawFeedback)) {
-      userFeedback = (rawFeedback as Record<string, unknown>).user_id === userId ? mapFeedback(rawFeedback) : null;
+      userFeedback =
+        (rawFeedback as Record<string, unknown>).user_id === userId
+          ? mapFeedback(rawFeedback)
+          : null;
     }
     return {
       ...mapRun(raw),
@@ -117,8 +130,9 @@ export async function getCoordinationGroups(
     if (eligibleCids.length >= limit) break;
     eligibleCids.push(correlationId);
 
-    const sorted = groupRuns.sort((a, b) =>
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    const sorted = groupRuns.sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     );
     eligibleRuns.set(correlationId, sorted);
   }
@@ -139,7 +153,9 @@ export async function getCoordinationGroups(
   for (const correlationId of eligibleCids) {
     const sorted = eligibleRuns.get(correlationId)!;
     const agents = [...new Set(sorted.map((r: ActionHistoryRow) => r.agentId))];
-    const lastCompleted = [...sorted].reverse().find((r: ActionHistoryRow) => r.completedAt != null);
+    const lastCompleted = [...sorted]
+      .reverse()
+      .find((r: ActionHistoryRow) => r.completedAt != null);
 
     groups.push({
       correlationId,

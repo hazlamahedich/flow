@@ -1,4 +1,10 @@
-export function SummaryCard({ label, value }: { label: string; value: string }) {
+export function SummaryCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <div className="rounded-md border p-4 space-y-1">
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -30,20 +36,29 @@ export function StatusBadge({
   };
 
   const base = styles[status] ?? 'bg-gray-100 text-gray-600';
-  const paidDollars = amountPaidCents != null ? (amountPaidCents / 100).toFixed(2) : null;
+  const paidDollars =
+    amountPaidCents != null ? (amountPaidCents / 100).toFixed(2) : null;
 
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${base}`}
       aria-label={`Status: ${label}`}
-      title={status === 'voided' && voidReason ? `Void reason: ${voidReason}` : undefined}
+      title={
+        status === 'voided' && voidReason
+          ? `Void reason: ${voidReason}`
+          : undefined
+      }
     >
-      {status === 'voided' && paidDollars !== null ? `Voided \u00B7 $${paidDollars} paid` : label}
-      {creditBalanceCents != null && creditBalanceCents > 0 && status !== 'paid' && (
-        <span className="ml-1 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] text-blue-700">
-          Credit Applied \u00B7 ${(creditBalanceCents / 100).toFixed(2)}
-        </span>
-      )}
+      {status === 'voided' && paidDollars !== null
+        ? `Voided \u00B7 $${paidDollars} paid`
+        : label}
+      {creditBalanceCents != null &&
+        creditBalanceCents > 0 &&
+        status !== 'paid' && (
+          <span className="ml-1 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] text-blue-700">
+            Credit Applied \u00B7 ${(creditBalanceCents / 100).toFixed(2)}
+          </span>
+        )}
     </span>
   );
 }

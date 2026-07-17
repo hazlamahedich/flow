@@ -9,12 +9,17 @@
  * variables to CSS custom properties. Global `--flow-*` vars are never mutated.
  */
 import { type ReactNode } from 'react';
-import { resolveBrandingPreset, type PortalBrandingConfig } from '@/lib/portal-branding/resolve';
+import {
+  resolveBrandingPreset,
+  type PortalBrandingConfig,
+} from '@/lib/portal-branding/resolve';
 import type { ResolvedBranding } from '@/lib/portal-branding/resolve';
 import { resolveFontStack } from '../font-stacks';
 
 /** CSS var names for the 8 visual variables (portal-scoped). */
-const VISUAL_CSS_VARS: ReadonlyArray<[string, keyof ResolvedBranding['visual']]> = [
+const VISUAL_CSS_VARS: ReadonlyArray<
+  [string, keyof ResolvedBranding['visual']]
+> = [
   ['--portal-accent', 'accent'],
   ['--portal-surface', 'surface'],
   ['--portal-border', 'border'],
@@ -52,7 +57,10 @@ interface PortalBrandingStyleProps {
  * Server Component — resolves branding config and injects CSS custom properties
  * scoped under `[data-portal-branding]`. Defaults to `warm-host` when no config.
  */
-export function PortalBrandingStyle({ config, children }: PortalBrandingStyleProps) {
+export function PortalBrandingStyle({
+  config,
+  children,
+}: PortalBrandingStyleProps) {
   const resolved = resolveBrandingPreset(config?.preset, {
     ...(config?.visual && { visual: config.visual }),
     ...(config?.content && { content: config.content }),

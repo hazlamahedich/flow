@@ -9,7 +9,11 @@ interface TimelineLoadMoreProps {
   hasMore: boolean;
 }
 
-export function TimelineLoadMore({ onLoadMore, isLoading, hasMore }: TimelineLoadMoreProps) {
+export function TimelineLoadMore({
+  onLoadMore,
+  isLoading,
+  hasMore,
+}: TimelineLoadMoreProps) {
   if (!hasMore) return null;
 
   return (

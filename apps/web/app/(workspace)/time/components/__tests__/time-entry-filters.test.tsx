@@ -36,8 +36,12 @@ const defaultProps = {
   onClear: vi.fn(),
 };
 
-afterEach(() => { cleanup(); });
-beforeEach(() => { vi.clearAllMocks(); });
+afterEach(() => {
+  cleanup();
+});
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe('TimeEntryFilters', () => {
   it('[P1] renders all filter controls', () => {
@@ -71,10 +75,14 @@ describe('TimeEntryFilters', () => {
 
   it('[P1] shows Clear filters only when filters active', () => {
     const { rerender } = render(<TimeEntryFilters {...defaultProps} />);
-    expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Clear filters' }),
+    ).not.toBeInTheDocument();
 
     rerender(<TimeEntryFilters {...defaultProps} filterClient="c-1" />);
-    expect(screen.getByRole('button', { name: 'Clear filters' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Clear filters' }),
+    ).toBeInTheDocument();
   });
 
   it('[P1] calls onClear when Clear filters clicked', () => {
@@ -98,7 +106,10 @@ describe('TimeEntryFilters', () => {
   it('[P1] calls date handlers on date input change', () => {
     render(<TimeEntryFilters {...defaultProps} />);
     const dateInputs = screen.getAllByDisplayValue('');
-    const dateFrom = dateInputs.find((el) => el.getAttribute('type') === 'date' && el.getAttribute('value') === '');
+    const dateFrom = dateInputs.find(
+      (el) =>
+        el.getAttribute('type') === 'date' && el.getAttribute('value') === '',
+    );
     const allDateInputs = document.querySelectorAll('input[type="date"]');
     fireEvent.change(allDateInputs[0]!, { target: { value: '2026-05-01' } });
     expect(defaultProps.onDateFromChange).toHaveBeenCalledWith('2026-05-01');

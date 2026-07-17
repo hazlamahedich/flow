@@ -1,7 +1,11 @@
 'use server';
 
 import { getServerSupabase } from '@/lib/supabase-server';
-import { requireTenantContext, createFlowError, getActiveWednesdayAffirmation } from '@flow/db';
+import {
+  requireTenantContext,
+  createFlowError,
+  getActiveWednesdayAffirmation,
+} from '@flow/db';
 import type { ActionResult } from '@flow/types';
 
 export interface WednesdayAffirmationData {
@@ -13,7 +17,9 @@ export interface WednesdayAffirmationData {
   dismissedAt: string | null;
 }
 
-export async function getWednesdayAffirmationAction(): Promise<ActionResult<WednesdayAffirmationData | null>> {
+export async function getWednesdayAffirmationAction(): Promise<
+  ActionResult<WednesdayAffirmationData | null>
+> {
   const supabase = await getServerSupabase();
   let ctx;
   try {
@@ -21,14 +27,24 @@ export async function getWednesdayAffirmationAction(): Promise<ActionResult<Wedn
   } catch {
     return {
       success: false,
-      error: createFlowError(401, 'AUTH_REQUIRED', 'Authentication required', 'auth'),
+      error: createFlowError(
+        401,
+        'AUTH_REQUIRED',
+        'Authentication required',
+        'auth',
+      ),
     };
   }
 
   if (ctx.role !== 'owner') {
     return {
       success: false,
-      error: createFlowError(403, 'FORBIDDEN', 'Only owners can view Wednesday affirmations.', 'auth'),
+      error: createFlowError(
+        403,
+        'FORBIDDEN',
+        'Only owners can view Wednesday affirmations.',
+        'auth',
+      ),
     };
   }
 

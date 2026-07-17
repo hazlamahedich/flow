@@ -3,7 +3,8 @@ import { tokenizePII, detokenizePII } from '../pii-tokenizer';
 
 describe('pii-tokenizer', () => {
   it('tokenizes emails, phone numbers and currency', () => {
-    const text = 'Contact me at john.doe@example.com or call +1-555-0199. The cost is $150.00.';
+    const text =
+      'Contact me at john.doe@example.com or call +1-555-0199. The cost is $150.00.';
     const { text: tokenized, tokens } = tokenizePII(text, 'ws-1');
 
     expect(tokenized).not.toContain('john.doe@example.com');
@@ -12,7 +13,7 @@ describe('pii-tokenizer', () => {
     expect(tokenized).toContain('[EMAIL_');
     expect(tokenized).toContain('[PHONE_');
     expect(tokenized).toContain('[FINANCIAL_');
-    
+
     expect(tokens.length).toBe(3);
   });
 

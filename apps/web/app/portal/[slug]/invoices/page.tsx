@@ -1,4 +1,7 @@
-import { validatePortalSlug, getPortalInvoices } from '@/lib/actions/portal';
+import {
+  validatePortalSlug,
+  getPortalInvoices,
+} from '@/lib/actions/portal/actions';
 import { formatCents } from '@/lib/money';
 
 /**
@@ -31,9 +34,13 @@ export default async function PortalInvoicesPage({
 
   return (
     <div className="px-4 py-6 max-w-4xl mx-auto space-y-4">
-      <h1 className="text-2xl font-semibold text-[var(--flow-text-primary)]">Invoices</h1>
+      <h1 className="text-2xl font-semibold text-[var(--flow-text-primary)]">
+        Invoices
+      </h1>
       {invoices.length === 0 ? (
-        <p className="text-sm text-[var(--flow-text-muted)]">No invoices yet.</p>
+        <p className="text-sm text-[var(--flow-text-muted)]">
+          No invoices yet.
+        </p>
       ) : (
         <ul className="space-y-2">
           {invoices.map((inv) => (

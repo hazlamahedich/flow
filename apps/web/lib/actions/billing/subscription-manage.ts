@@ -29,10 +29,14 @@ import {
  * `active` but `stripe_subscription_id` is null is also rejected — flag drift,
  * reconciliation job (9-7) reconciles.
  */
-function rejectNoSubscription(
-  workspace: { subscription_status: string; stripe_subscription_id: string | null },
-): ActionResult<{ cancelAtPeriodEnd: true }> | null {
-  if (workspace.subscription_status === 'free' || !workspace.stripe_subscription_id) {
+function rejectNoSubscription(workspace: {
+  subscription_status: string;
+  stripe_subscription_id: string | null;
+}): ActionResult<{ cancelAtPeriodEnd: true }> | null {
+  if (
+    workspace.subscription_status === 'free' ||
+    !workspace.stripe_subscription_id
+  ) {
     return toFailure(
       createFlowError(
         409,
@@ -51,39 +55,63 @@ export async function cancelSubscriptionAction(
   const parsed = manageSubscriptionSchema.safeParse(input);
   if (!parsed.success) {
     return toFailure(
-      createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     );
   }
 
   const supabase = await getServerSupabase();
-  return withTenantContext<{ cancelAtPeriodEnd: true }>(supabase, async (ctx) => {
-    const forbidden = requireOwner(ctx);
-    if (forbidden) return toFailure(forbidden);
+  return withTenantContext<{ cancelAtPeriodEnd: true }>(
+    supabase,
+    async (ctx) => {
+      const forbidden = requireOwner(ctx);
+      if (forbidden) return toFailure(forbidden);
 
-    const workspace = await fetchWorkspaceForBilling(supabase, ctx.workspaceId);
-    if (!workspace) {
-      return toFailure(
-        createFlowError(404, 'WORKSPACE_NOT_FOUND', 'Workspace not found.', 'validation'),
+      const workspace = await fetchWorkspaceForBilling(
+        supabase,
+        ctx.workspaceId,
       );
-    }
+      if (!workspace) {
+        return toFailure(
+          createFlowError(
+            404,
+            'WORKSPACE_NOT_FOUND',
+            'Workspace not found.',
+            'validation',
+          ),
+        );
+      }
 
-    const rejected = rejectNoSubscription(workspace);
-    if (rejected) return rejected;
+      const rejected = rejectNoSubscription(workspace);
+      if (rejected) return rejected;
 
-    const provider = getPaymentProvider('stripe');
-    try {
-      // false = cancel at period end (EC6: idempotent — Stripe no-ops if already
-      // scheduled). The webhook sets `subscription_cancel_at_period_end=true`.
-      await provider.cancelSubscription(workspace.stripe_subscription_id!, false);
-    } catch {
-      return toFailure(
-        createFlowError(502, 'STRIPE_ERROR', 'Failed to schedule cancellation.', 'financial'),
-      );
-    }
+      const provider = getPaymentProvider('stripe');
+      try {
+        // false = cancel at period end (EC6: idempotent — Stripe no-ops if already
+        // scheduled). The webhook sets `subscription_cancel_at_period_end=true`.
+        await provider.cancelSubscription(
+          workspace.stripe_subscription_id!,
+          false,
+        );
+      } catch {
+        return toFailure(
+          createFlowError(
+            502,
+            'STRIPE_ERROR',
+            'Failed to schedule cancellation.',
+            'financial',
+          ),
+        );
+      }
 
-    revalidateTag(cacheTag('workspace', ctx.workspaceId));
-    return { success: true, data: { cancelAtPeriodEnd: true } };
-  });
+      revalidateTag(cacheTag('workspace', ctx.workspaceId));
+      return { success: true, data: { cancelAtPeriodEnd: true } };
+    },
+  );
 }
 
 export async function reactivateSubscriptionAction(
@@ -92,7 +120,12 @@ export async function reactivateSubscriptionAction(
   const parsed = manageSubscriptionSchema.safeParse(input);
   if (!parsed.success) {
     return toFailure(
-      createFlowError(400, 'VALIDATION_ERROR', parsed.error.message, 'validation'),
+      createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.message,
+        'validation',
+      ),
     );
   }
 
@@ -104,7 +137,12 @@ export async function reactivateSubscriptionAction(
     const workspace = await fetchWorkspaceForBilling(supabase, ctx.workspaceId);
     if (!workspace) {
       return toFailure(
-        createFlowError(404, 'WORKSPACE_NOT_FOUND', 'Workspace not found.', 'validation'),
+        createFlowError(
+          404,
+          'WORKSPACE_NOT_FOUND',
+          'Workspace not found.',
+          'validation',
+        ),
       );
     }
 
@@ -121,7 +159,12 @@ export async function reactivateSubscriptionAction(
       await provider.resumeSubscription(workspace.stripe_subscription_id!);
     } catch {
       return toFailure(
-        createFlowError(502, 'STRIPE_ERROR', 'Failed to reactivate subscription.', 'financial'),
+        createFlowError(
+          502,
+          'STRIPE_ERROR',
+          'Failed to reactivate subscription.',
+          'financial',
+        ),
       );
     }
 

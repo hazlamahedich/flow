@@ -32,7 +32,14 @@ function makeEntry(overrides: Partial<TrustMatrixEntry>): TrustMatrixEntry {
 
 describe('Story 2.6: Agent Badge System & Trust Progression UI', () => {
   describe('Agent Badge Rendering', () => {
-    const badgeStates: TrustBadgeState[] = ['supervised', 'confirm', 'auto', 'promoting', 'regressing', 'stick_time'];
+    const badgeStates: TrustBadgeState[] = [
+      'supervised',
+      'confirm',
+      'auto',
+      'promoting',
+      'regressing',
+      'stick_time',
+    ];
 
     test('[P0] should define display properties for all badge states', () => {
       for (const state of badgeStates) {
@@ -44,7 +51,9 @@ describe('Story 2.6: Agent Badge System & Trust Progression UI', () => {
     });
 
     test('[P0] should render trust level dot: building, established, or auto (UX-DR4)', () => {
-      expect(TRUST_BADGE_DISPLAY.supervised.colorToken).toContain('trust-building');
+      expect(TRUST_BADGE_DISPLAY.supervised.colorToken).toContain(
+        'trust-building',
+      );
       expect(TRUST_BADGE_DISPLAY.confirm.colorToken).toContain('trust-confirm');
       expect(TRUST_BADGE_DISPLAY.auto.colorToken).toContain('trust-auto');
     });
@@ -58,33 +67,55 @@ describe('Story 2.6: Agent Badge System & Trust Progression UI', () => {
 
   describe('Trust Progression UI Evolution', () => {
     test('[P0] should show promoting state when supervised meets thresholds (UX-DR5)', () => {
-      const entry = makeEntry({ currentLevel: 'supervised', score: 75, consecutiveSuccesses: 8 });
+      const entry = makeEntry({
+        currentLevel: 'supervised',
+        score: 75,
+        consecutiveSuccesses: 8,
+      });
       const state = deriveBadgeState(entry, new Date());
       expect(state).toBe('promoting');
     });
 
     test('[P0] should show supervised state when thresholds not met (UX-DR5)', () => {
-      const entry = makeEntry({ currentLevel: 'supervised', score: 30, consecutiveSuccesses: 2 });
+      const entry = makeEntry({
+        currentLevel: 'supervised',
+        score: 30,
+        consecutiveSuccesses: 2,
+      });
       const state = deriveBadgeState(entry, new Date());
       expect(state).toBe('supervised');
     });
 
     test('[P0] should show confirm state for established trust (UX-DR5)', () => {
-      const entry = makeEntry({ currentLevel: 'confirm', score: 100, consecutiveSuccesses: 5 });
+      const entry = makeEntry({
+        currentLevel: 'confirm',
+        score: 100,
+        consecutiveSuccesses: 5,
+      });
       const state = deriveBadgeState(entry, new Date());
       expect(state).toBe('confirm');
     });
 
     test('[P0] should show auto state for fully autonomous trust (UX-DR5)', () => {
       const recentTransition = new Date();
-      const entry = makeEntry({ currentLevel: 'auto', score: 150, consecutiveSuccesses: 20, lastTransitionAt: recentTransition });
+      const entry = makeEntry({
+        currentLevel: 'auto',
+        score: 150,
+        consecutiveSuccesses: 20,
+        lastTransitionAt: recentTransition,
+      });
       const state = deriveBadgeState(entry, new Date());
       expect(state).toBe('auto');
     });
 
     test('[P0] should show stick_time when auto for 30+ days', () => {
       const oldTransition = new Date(Date.now() - 31 * 86_400_000);
-      const entry = makeEntry({ currentLevel: 'auto', score: 150, consecutiveSuccesses: 20, lastTransitionAt: oldTransition });
+      const entry = makeEntry({
+        currentLevel: 'auto',
+        score: 150,
+        consecutiveSuccesses: 20,
+        lastTransitionAt: oldTransition,
+      });
       const state = deriveBadgeState(entry, new Date());
       expect(state).toBe('stick_time');
     });
@@ -104,14 +135,24 @@ describe('Story 2.6: Agent Badge System & Trust Progression UI', () => {
 
   describe('Badge Transition Validation', () => {
     test('[P0] should allow valid badge transitions', () => {
-      expect(() => assertValidBadgeTransition('supervised', 'promoting')).not.toThrow();
-      expect(() => assertValidBadgeTransition('confirm', 'regressing')).not.toThrow();
-      expect(() => assertValidBadgeTransition('auto', 'stick_time')).not.toThrow();
+      expect(() =>
+        assertValidBadgeTransition('supervised', 'promoting'),
+      ).not.toThrow();
+      expect(() =>
+        assertValidBadgeTransition('confirm', 'regressing'),
+      ).not.toThrow();
+      expect(() =>
+        assertValidBadgeTransition('auto', 'stick_time'),
+      ).not.toThrow();
     });
 
     test('[P0] should reject invalid badge transitions', () => {
-      expect(() => assertValidBadgeTransition('supervised', 'auto')).toThrow(InvalidTransitionError);
-      expect(() => assertValidBadgeTransition('auto', 'supervised')).toThrow(InvalidTransitionError);
+      expect(() => assertValidBadgeTransition('supervised', 'auto')).toThrow(
+        InvalidTransitionError,
+      );
+      expect(() => assertValidBadgeTransition('auto', 'supervised')).toThrow(
+        InvalidTransitionError,
+      );
     });
 
     test('[P1] should define valid transitions from regressing state', () => {
@@ -121,7 +162,9 @@ describe('Story 2.6: Agent Badge System & Trust Progression UI', () => {
 
   describe('Trust Recovery & Dignified Rollback', () => {
     test('[P0] should use dignified rollback language during trust regression (UX-DR14)', () => {
-      expect(TRUST_BADGE_DISPLAY.regressing.label).toMatch(/something changed/i);
+      expect(TRUST_BADGE_DISPLAY.regressing.label).toMatch(
+        /something changed/i,
+      );
     });
 
     test('[P0] should define regressing→confirm as the recovery path', () => {

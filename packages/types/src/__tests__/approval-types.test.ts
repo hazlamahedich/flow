@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { parseApprovalOutput, parseApprovalOutputWithRun } from '../approval-types';
+import {
+  parseApprovalOutput,
+  parseApprovalOutputWithRun,
+} from '../approval-types';
 
 const mockRun = {
   id: 'r1',

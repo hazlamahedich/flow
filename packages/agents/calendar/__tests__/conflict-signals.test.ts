@@ -45,7 +45,9 @@ function makeConflict(
   };
 }
 
-function makeParams(overrides?: Partial<WriteConflictSignalsParams>): WriteConflictSignalsParams {
+function makeParams(
+  overrides?: Partial<WriteConflictSignalsParams>,
+): WriteConflictSignalsParams {
   return {
     supabase: createMockSupabase(),
     workspaceId: 'ws-1',
@@ -102,12 +104,18 @@ describe('writeConflictSignals', () => {
     await writeConflictSignals(params);
 
     // Access the from().insert() call args
-    const fromCall = (params.supabase.from as ReturnType<typeof vi.fn>).mock.calls;
+    const fromCall = (params.supabase.from as ReturnType<typeof vi.fn>).mock
+      .calls;
     expect(fromCall[0]![0]).toBe('agent_signals');
 
-    const insertCall = ((params.supabase as unknown as Record<string, unknown>).from as ReturnType<typeof vi.fn>)
-      .mock.results[0]!.value as { insert: ReturnType<typeof vi.fn> };
-    const insertedRows = insertCall.insert.mock.calls[0]![0] as Record<string, unknown>[];
+    const insertCall = (
+      (params.supabase as unknown as Record<string, unknown>)
+        .from as ReturnType<typeof vi.fn>
+    ).mock.results[0]!.value as { insert: ReturnType<typeof vi.fn> };
+    const insertedRows = insertCall.insert.mock.calls[0]![0] as Record<
+      string,
+      unknown
+    >[];
     const payload = insertedRows[0]!.payload as Record<string, unknown>;
 
     expect(payload).toHaveProperty('event1Id');

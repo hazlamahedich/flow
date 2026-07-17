@@ -4,16 +4,21 @@ import userEvent from '@testing-library/user-event';
 import { CorrectionButton } from '../correction-button';
 
 vi.mock('../../actions/correction-actions', () => ({
-  issueCorrection: vi.fn().mockResolvedValue({ success: true, data: { correctedRunId: 'run-corrected' } }),
+  issueCorrection: vi.fn().mockResolvedValue({
+    success: true,
+    data: { correctedRunId: 'run-corrected' },
+  }),
 }));
 
-function buildEntry(overrides: Partial<{
-  id: string;
-  correctionIssued: boolean;
-  correctionDepth: number;
-  output: Record<string, unknown>;
-  error: Record<string, unknown> | null;
-}> = {}) {
+function buildEntry(
+  overrides: Partial<{
+    id: string;
+    correctionIssued: boolean;
+    correctionDepth: number;
+    output: Record<string, unknown>;
+    error: Record<string, unknown> | null;
+  }> = {},
+) {
   return {
     id: overrides.id ?? 'run-1',
     workspaceId: 'ws-1',
@@ -43,15 +48,22 @@ function buildEntry(overrides: Partial<{
 }
 
 describe('CorrectionButton', () => {
-  afterEach(() => { cleanup(); vi.clearAllMocks(); });
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
 
   it('returns null when correction already issued', () => {
-    const { container } = render(<CorrectionButton entry={buildEntry({ correctionIssued: true })} />);
+    const { container } = render(
+      <CorrectionButton entry={buildEntry({ correctionIssued: true })} />,
+    );
     expect(container.innerHTML).toBe('');
   });
 
   it('returns null when correction depth >= 5', () => {
-    const { container } = render(<CorrectionButton entry={buildEntry({ correctionDepth: 5 })} />);
+    const { container } = render(
+      <CorrectionButton entry={buildEntry({ correctionDepth: 5 })} />,
+    );
     expect(container.innerHTML).toBe('');
   });
 

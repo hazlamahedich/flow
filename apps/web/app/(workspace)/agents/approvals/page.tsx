@@ -13,7 +13,9 @@ export default async function ApprovalsPage() {
   const supabase = await getServerSupabase();
   const { workspaceId } = await requireTenantContext(supabase);
 
-  const result = await getPendingApprovals(supabase, workspaceId, { limit: 50 });
+  const result = await getPendingApprovals(supabase, workspaceId, {
+    limit: 50,
+  });
 
   const agentParts = Object.entries(result.agentBreakdown)
     .filter(([, count]) => count > 0)
@@ -23,13 +25,17 @@ export default async function ApprovalsPage() {
       return `${label}: ${count} ${count === 1 ? action.replace(/s$/, '') : action}`;
     });
 
-  const summaryText = agentParts.length > 0
-    ? `${agentParts.join(', ')}. ${result.totalCount} item${result.totalCount === 1 ? '' : 's'} need${result.totalCount === 1 ? 's' : ''} your attention.`
-    : 'All clear \u2014 your agents handled everything.';
+  const summaryText =
+    agentParts.length > 0
+      ? `${agentParts.join(', ')}. ${result.totalCount} item${result.totalCount === 1 ? '' : 's'} need${result.totalCount === 1 ? 's' : ''} your attention.`
+      : 'All clear \u2014 your agents handled everything.';
 
   return (
     <div className="space-y-6">
-      <a href="#approval-queue-start" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-[var(--flow-accent-primary)] focus:px-4 focus:py-2 focus:text-sm focus:text-[var(--flow-accent-primary-text)]">
+      <a
+        href="#approval-queue-start"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-[var(--flow-accent-primary)] focus:px-4 focus:py-2 focus:text-sm focus:text-[var(--flow-accent-primary-text)]"
+      >
         Skip to approval queue
       </a>
       <div className="flex items-center justify-between">
@@ -43,9 +49,7 @@ export default async function ApprovalsPage() {
         )}
       </div>
 
-      <p className="text-sm text-[var(--flow-text-secondary)]">
-        {summaryText}
-      </p>
+      <p className="text-sm text-[var(--flow-text-secondary)]">{summaryText}</p>
 
       <ApprovalQueue
         initialItems={result.items}
@@ -59,4 +63,3 @@ export default async function ApprovalsPage() {
     </div>
   );
 }
-

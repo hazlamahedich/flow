@@ -8,8 +8,16 @@ interface TemplateCardProps {
   onDelete?: (id: string) => void;
 }
 
-export function TemplateCard({ template, isDefault, onEdit, onDelete }: TemplateCardProps) {
-  const sectionsConfig = (template.sectionsConfig ?? {}) as Record<string, { enabled?: boolean; sort_order?: number }>;
+export function TemplateCard({
+  template,
+  isDefault,
+  onEdit,
+  onDelete,
+}: TemplateCardProps) {
+  const sectionsConfig = (template.sectionsConfig ?? {}) as Record<
+    string,
+    { enabled?: boolean; sort_order?: number }
+  >;
   const enabledSections = Object.entries(sectionsConfig)
     .filter(([, cfg]) => cfg?.enabled)
     .sort(([, a], [, b]) => (a?.sort_order ?? 0) - (b?.sort_order ?? 0))
@@ -24,22 +32,18 @@ export function TemplateCard({ template, isDefault, onEdit, onDelete }: Template
       className="rounded-lg border bg-card p-4 shadow-sm transition-colors hover:border-muted-foreground/20"
       style={{ borderColor: accent }}
     >
-      <div className="flex items-start justify-between"
-      >
-        <div className="space-y-1"
-        >
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
           <h3 data-testid="template-name" className="text-base font-semibold">
             {template.name}
           </h3>
           {isDefault && (
-            <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium"
-            >
+            <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
               Workspace Default
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2"
-        >
+        <div className="flex items-center gap-2">
           {onEdit && (
             <button
               type="button"
@@ -63,8 +67,7 @@ export function TemplateCard({ template, isDefault, onEdit, onDelete }: Template
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2"
-      >
+      <div className="mt-3 flex flex-wrap gap-2">
         {enabledSections.map((s) => (
           <span
             key={s}
@@ -77,13 +80,18 @@ export function TemplateCard({ template, isDefault, onEdit, onDelete }: Template
           </span>
         ))}
         {enabledSections.length === 0 && (
-          <span className="text-xs text-muted-foreground">No sections enabled</span>
+          <span className="text-xs text-muted-foreground">
+            No sections enabled
+          </span>
         )}
       </div>
 
-      <p className="mt-3 text-xs text-muted-foreground"
-      >
-        Last updated {(() => { const d = new Date(template.updatedAt); return Number.isNaN(d.getTime()) ? 'unknown' : d.toLocaleDateString(); })()}
+      <p className="mt-3 text-xs text-muted-foreground">
+        Last updated{' '}
+        {(() => {
+          const d = new Date(template.updatedAt);
+          return Number.isNaN(d.getTime()) ? 'unknown' : d.toLocaleDateString();
+        })()}
       </p>
     </div>
   );

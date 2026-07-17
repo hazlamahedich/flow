@@ -6,8 +6,16 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({
-    status, code, message, category,
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({
+    status,
+    code,
+    message,
+    category,
   }),
 }));
 
@@ -15,13 +23,18 @@ import { approveRun } from '../approve-run';
 import { getServerSupabase } from '@/lib/supabase-server';
 import { requireTenantContext } from '@flow/db';
 
-function setupSupabaseMock(selectResult: { data: Record<string, unknown> | null; error: null | { message: string } }) {
+function setupSupabaseMock(selectResult: {
+  data: Record<string, unknown> | null;
+  error: null | { message: string };
+}) {
   const chain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue(selectResult),
     maybeSingle: vi.fn().mockResolvedValue({
-      data: selectResult.data ? { id: selectResult.data.id, status: 'completed' } : null,
+      data: selectResult.data
+        ? { id: selectResult.data.id, status: 'completed' }
+        : null,
       error: null,
     }),
     update: vi.fn().mockReturnValue({
@@ -29,7 +42,9 @@ function setupSupabaseMock(selectResult: { data: Record<string, unknown> | null;
         eq: vi.fn().mockReturnValue({
           select: vi.fn().mockReturnValue({
             maybeSingle: vi.fn().mockResolvedValue({
-              data: selectResult.data ? { id: selectResult.data.id, status: 'completed' } : null,
+              data: selectResult.data
+                ? { id: selectResult.data.id, status: 'completed' }
+                : null,
               error: null,
             }),
           }),
@@ -54,14 +69,21 @@ function setupSupabaseMock(selectResult: { data: Record<string, unknown> | null;
 
 describe('approveRun', () => {
   const VALID_UUID = '00000000-0000-0000-0000-000000000001';
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('approves an agent proposal → completed', async () => {
     setupSupabaseMock({
       data: {
         id: VALID_UUID,
         status: 'waiting_approval',
-        output: { title: 'Test', confidence: 0.9, riskLevel: 'low', reasoning: 'Reason' },
+        output: {
+          title: 'Test',
+          confidence: 0.9,
+          riskLevel: 'low',
+          reasoning: 'Reason',
+        },
         workspace_id: 'ws-1',
       },
       error: null,
@@ -94,7 +116,12 @@ describe('approveRun', () => {
 
   it('returns idempotent success for already-completed run', async () => {
     setupSupabaseMock({
-      data: { id: VALID_UUID, status: 'completed', output: null, workspace_id: 'ws-1' },
+      data: {
+        id: VALID_UUID,
+        status: 'completed',
+        output: null,
+        workspace_id: 'ws-1',
+      },
       error: null,
     });
 

@@ -58,9 +58,11 @@ function makeAdminClient(options: {
     from: vi.fn().mockReturnValue(fromChain),
     auth: {
       admin: {
-        signOut: vi.fn().mockResolvedValue(
-          options.signOutResult ?? { data: {}, error: null },
-        ),
+        signOut: vi
+          .fn()
+          .mockResolvedValue(
+            options.signOutResult ?? { data: {}, error: null },
+          ),
       },
     },
   } as never;
@@ -87,7 +89,9 @@ describe('GET /email-change/verify', () => {
     );
     mockSyncUserEmail.mockResolvedValue(undefined);
 
-    const req = createMockRequest('http://localhost/email-change/verify?token=abc-123');
+    const req = createMockRequest(
+      'http://localhost/email-change/verify?token=abc-123',
+    );
     const response = await GET(req);
     const url = new URL(response.headers.get('location') ?? '');
     expect(url.pathname).toBe('/login');
@@ -107,7 +111,9 @@ describe('GET /email-change/verify', () => {
       }),
     );
 
-    const req = createMockRequest('http://localhost/email-change/verify?token=expired-token');
+    const req = createMockRequest(
+      'http://localhost/email-change/verify?token=expired-token',
+    );
     const response = await GET(req);
     const url = new URL(response.headers.get('location') ?? '');
     expect(url.pathname).toBe('/settings/profile');
@@ -125,7 +131,9 @@ describe('GET /email-change/verify', () => {
       }),
     );
 
-    const req = createMockRequest('http://localhost/email-change/verify?token=claimed-token');
+    const req = createMockRequest(
+      'http://localhost/email-change/verify?token=claimed-token',
+    );
     const response = await GET(req);
     const url = new URL(response.headers.get('location') ?? '');
     expect(url.pathname).toBe('/login');
@@ -134,10 +142,14 @@ describe('GET /email-change/verify', () => {
 
   it('redirects to sync-failed when claim throws DB error', async () => {
     mockCreateServiceClient.mockReturnValue(
-      makeAdminClient({ claimResult: { data: null, error: { message: 'DB error' } } }),
+      makeAdminClient({
+        claimResult: { data: null, error: { message: 'DB error' } },
+      }),
     );
 
-    const req = createMockRequest('http://localhost/email-change/verify?token=abc-123');
+    const req = createMockRequest(
+      'http://localhost/email-change/verify?token=abc-123',
+    );
     const response = await GET(req);
     const url = new URL(response.headers.get('location') ?? '');
     expect(url.searchParams.get('email_error')).toBe('sync-failed');
@@ -151,7 +163,9 @@ describe('GET /email-change/verify', () => {
     );
     mockSyncUserEmail.mockRejectedValue(new Error('sync failed'));
 
-    const req = createMockRequest('http://localhost/email-change/verify?token=abc-123');
+    const req = createMockRequest(
+      'http://localhost/email-change/verify?token=abc-123',
+    );
     const response = await GET(req);
     const url = new URL(response.headers.get('location') ?? '');
     expect(url.searchParams.get('email_error')).toBe('sync-failed');

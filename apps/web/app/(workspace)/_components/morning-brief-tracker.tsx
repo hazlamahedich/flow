@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import { markBriefViewed } from "../actions/morning-brief";
+import { useEffect, useRef } from 'react';
+import { markBriefViewed } from '../actions/morning-brief';
 
 interface MorningBriefTrackerProps {
   briefId: string;
@@ -15,7 +15,7 @@ export function MorningBriefTracker({ briefId }: MorningBriefTrackerProps) {
     hasFired.current = true;
 
     markBriefViewed(briefId).catch((err) => {
-      console.error("Failed to mark brief as viewed:", err);
+      console.error('Failed to mark brief as viewed:', err);
     });
   }, [briefId]);
 

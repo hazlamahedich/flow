@@ -1,4 +1,8 @@
-import type { AgentBackendStatus, AgentUIStatus, AgentContext } from '@flow/types';
+import type {
+  AgentBackendStatus,
+  AgentUIStatus,
+  AgentContext,
+} from '@flow/types';
 
 export function deriveUIStatus(
   backend: AgentBackendStatus,
@@ -7,7 +11,8 @@ export function deriveUIStatus(
   if (ctx.fetchError) return 'error-loading';
   if (ctx.isInitializing) return 'loading';
   if (backend === 'inactive' && !ctx.setupCompleted) return 'draft';
-  if (backend === 'active' && ctx.integrationHealth === 'degraded') return 'degraded';
+  if (backend === 'active' && ctx.integrationHealth === 'degraded')
+    return 'degraded';
   if (backend === 'draining') return 'deactivating';
   return backend;
 }

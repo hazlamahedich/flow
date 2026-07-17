@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { executeConflictDetection } from '../detect-conflict-action';
-import type { ConflictDetectionInput, ConflictDetectionDeps } from '../detect-conflict-action';
+import type {
+  ConflictDetectionInput,
+  ConflictDetectionDeps,
+} from '../detect-conflict-action';
 
 vi.mock('../conflict-detection', () => ({
   detectConflictsForEvent: vi.fn(),
@@ -43,9 +46,14 @@ function createMockSupabase(
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(CalendarTokenManager).mockImplementation(() => ({
-    getValidTokens: vi.fn().mockResolvedValue({ tokens: { accessToken: 'valid-token' } }),
-  }) as unknown as CalendarTokenManager);
+  vi.mocked(CalendarTokenManager).mockImplementation(
+    () =>
+      ({
+        getValidTokens: vi
+          .fn()
+          .mockResolvedValue({ tokens: { accessToken: 'valid-token' } }),
+      }) as unknown as CalendarTokenManager,
+  );
 });
 
 const baseInput: ConflictDetectionInput = {
@@ -81,7 +89,17 @@ describe('executeConflictDetection', () => {
 
   it('throws CALENDAR_NOT_FOUND when calendar missing', async () => {
     const supabase = createMockSupabase(
-      { data: { id: 'evt-1', client_calendar_id: 'cal-1', provider_event_id: 'p-1', title: 'Test', start_at: '2026-06-01T10:00:00Z', end_at: '2026-06-01T11:00:00Z' }, error: null },
+      {
+        data: {
+          id: 'evt-1',
+          client_calendar_id: 'cal-1',
+          provider_event_id: 'p-1',
+          title: 'Test',
+          start_at: '2026-06-01T10:00:00Z',
+          end_at: '2026-06-01T11:00:00Z',
+        },
+        error: null,
+      },
       { data: null, error: null },
     );
     const deps: ConflictDetectionDeps = { supabase };
@@ -93,8 +111,28 @@ describe('executeConflictDetection', () => {
 
   it('returns zero conflicts when none detected', async () => {
     const supabase = createMockSupabase(
-      { data: { id: 'evt-1', client_calendar_id: 'cal-1', provider_event_id: 'p-1', title: 'Test', start_at: '2026-06-01T10:00:00Z', end_at: '2026-06-01T11:00:00Z' }, error: null },
-      { data: { id: 'cal-1', client_id: 'client-1', calendar_id: 'gcal-1', provider: 'google_calendar', oauth_state: {}, sync_status: 'connected' }, error: null },
+      {
+        data: {
+          id: 'evt-1',
+          client_calendar_id: 'cal-1',
+          provider_event_id: 'p-1',
+          title: 'Test',
+          start_at: '2026-06-01T10:00:00Z',
+          end_at: '2026-06-01T11:00:00Z',
+        },
+        error: null,
+      },
+      {
+        data: {
+          id: 'cal-1',
+          client_id: 'client-1',
+          calendar_id: 'gcal-1',
+          provider: 'google_calendar',
+          oauth_state: {},
+          sync_status: 'connected',
+        },
+        error: null,
+      },
     );
     mockDetectConflicts.mockResolvedValue([]);
     const deps: ConflictDetectionDeps = { supabase };
@@ -108,11 +146,49 @@ describe('executeConflictDetection', () => {
 
   it('writes signals and returns conflict summary', async () => {
     const supabase = createMockSupabase(
-      { data: { id: 'evt-1', client_calendar_id: 'cal-1', provider_event_id: 'p-1', title: 'Test', start_at: '2026-06-01T10:00:00Z', end_at: '2026-06-01T11:00:00Z' }, error: null },
-      { data: { id: 'cal-1', client_id: 'client-1', calendar_id: 'gcal-1', provider: 'google_calendar', oauth_state: {}, sync_status: 'connected' }, error: null },
+      {
+        data: {
+          id: 'evt-1',
+          client_calendar_id: 'cal-1',
+          provider_event_id: 'p-1',
+          title: 'Test',
+          start_at: '2026-06-01T10:00:00Z',
+          end_at: '2026-06-01T11:00:00Z',
+        },
+        error: null,
+      },
+      {
+        data: {
+          id: 'cal-1',
+          client_id: 'client-1',
+          calendar_id: 'gcal-1',
+          provider: 'google_calendar',
+          oauth_state: {},
+          sync_status: 'connected',
+        },
+        error: null,
+      },
     );
     mockDetectConflicts.mockResolvedValue([
-      { event1: { eventId: 'evt-1' }, event2: { eventId: 'evt-2', title: 'Conflict' }, overlapSeconds: 1800 },
+      {
+        event1: {
+          eventId: 'evt-1',
+          providerEventId: 'prov-1',
+          title: 'Event 1',
+          calendarId: 'cal-1',
+          startAt: new Date('2026-06-01T10:00:00Z'),
+          endAt: new Date('2026-06-01T11:00:00Z'),
+        },
+        event2: {
+          eventId: 'evt-2',
+          providerEventId: 'prov-2',
+          title: 'Conflict',
+          calendarId: 'cal-1',
+          startAt: new Date('2026-06-01T10:15:00Z'),
+          endAt: new Date('2026-06-01T11:15:00Z'),
+        },
+        overlapSeconds: 1800,
+      },
     ]);
     const deps: ConflictDetectionDeps = { supabase };
 

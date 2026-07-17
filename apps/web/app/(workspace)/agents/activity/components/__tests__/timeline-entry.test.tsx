@@ -4,7 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { TimelineEntry } from '../timeline-entry';
 
 vi.mock('./action-detail-panel', () => ({
-  ActionDetailPanel: ({ entry, onClose }: { entry: Record<string, unknown>; onClose: () => void }) => (
+  ActionDetailPanel: ({
+    entry,
+    onClose,
+  }: {
+    entry: Record<string, unknown>;
+    onClose: () => void;
+  }) => (
     <div data-testid="detail-panel">
       <span>{String(entry.actionType)}</span>
       <button onClick={onClose}>Close</button>
@@ -44,7 +50,10 @@ function buildEntry(overrides: Record<string, unknown> = {}) {
 
 describe('TimelineEntry', () => {
   beforeEach(() => vi.useFakeTimers({ now: new Date('2026-01-15T12:00:00Z') }));
-  afterEach(() => { cleanup(); vi.useRealTimers(); });
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
 
   it('renders agent label', () => {
     render(<TimelineEntry entry={buildEntry()} workspaceId="ws-1" />);
@@ -52,32 +61,62 @@ describe('TimelineEntry', () => {
   });
 
   it('renders action type', () => {
-    render(<TimelineEntry entry={buildEntry({ actionType: 'categorize-email' })} workspaceId="ws-1" />);
+    render(
+      <TimelineEntry
+        entry={buildEntry({ actionType: 'categorize-email' })}
+        workspaceId="ws-1"
+      />,
+    );
     expect(screen.getByText('categorize-email')).toBeDefined();
   });
 
   it('renders completed status badge', () => {
-    render(<TimelineEntry entry={buildEntry({ status: 'completed' })} workspaceId="ws-1" />);
+    render(
+      <TimelineEntry
+        entry={buildEntry({ status: 'completed' })}
+        workspaceId="ws-1"
+      />,
+    );
     expect(screen.getByText('Completed')).toBeDefined();
   });
 
   it('renders failed status badge', () => {
-    render(<TimelineEntry entry={buildEntry({ status: 'failed' })} workspaceId="ws-1" />);
+    render(
+      <TimelineEntry
+        entry={buildEntry({ status: 'failed' })}
+        workspaceId="ws-1"
+      />,
+    );
     expect(screen.getByText('Failed')).toBeDefined();
   });
 
   it('renders timed_out status badge', () => {
-    render(<TimelineEntry entry={buildEntry({ status: 'timed_out' })} workspaceId="ws-1" />);
+    render(
+      <TimelineEntry
+        entry={buildEntry({ status: 'timed_out' })}
+        workspaceId="ws-1"
+      />,
+    );
     expect(screen.getByText('Timed out')).toBeDefined();
   });
 
   it('renders corrected badge when correction issued', () => {
-    render(<TimelineEntry entry={buildEntry({ correctionIssued: true })} workspaceId="ws-1" />);
+    render(
+      <TimelineEntry
+        entry={buildEntry({ correctionIssued: true })}
+        workspaceId="ws-1"
+      />,
+    );
     expect(screen.getByText('Corrected')).toBeDefined();
   });
 
   it('does not render corrected badge when no correction', () => {
-    render(<TimelineEntry entry={buildEntry({ correctionIssued: false })} workspaceId="ws-1" />);
+    render(
+      <TimelineEntry
+        entry={buildEntry({ correctionIssued: false })}
+        workspaceId="ws-1"
+      />,
+    );
     expect(screen.queryByText('Corrected')).toBeNull();
   });
 

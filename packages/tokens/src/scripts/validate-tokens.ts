@@ -21,7 +21,10 @@ for (const key of lightKeys) {
 }
 
 const cssVarPattern = /^--[a-z][a-z0-9-]*$/;
-for (const key of [...Object.keys(darkSemanticColors), ...Object.keys(lightSemanticColors)]) {
+for (const key of [
+  ...Object.keys(darkSemanticColors),
+  ...Object.keys(lightSemanticColors),
+]) {
   if (!cssVarPattern.test(key)) {
     errors.push(`Invalid CSS variable name: ${key}`);
   }
@@ -32,22 +35,47 @@ const rgbaPattern = /^rgba?\(/;
 const hslPattern = /^hsl\(/;
 const varPattern = /^var\(/;
 for (const [key, value] of Object.entries(darkSemanticColors)) {
-  if (!hexPattern.test(value) && !rgbaPattern.test(value) && !hslPattern.test(value) && !varPattern.test(value)) {
+  if (
+    !hexPattern.test(value) &&
+    !rgbaPattern.test(value) &&
+    !hslPattern.test(value) &&
+    !varPattern.test(value)
+  ) {
     errors.push(`Non-parseable color value in dark theme: ${key} = ${value}`);
   }
 }
 for (const [key, value] of Object.entries(lightSemanticColors)) {
-  if (!hexPattern.test(value) && !rgbaPattern.test(value) && !hslPattern.test(value) && !varPattern.test(value)) {
+  if (
+    !hexPattern.test(value) &&
+    !rgbaPattern.test(value) &&
+    !hslPattern.test(value) &&
+    !varPattern.test(value)
+  ) {
     errors.push(`Non-parseable color value in light theme: ${key} = ${value}`);
   }
 }
 
 const requiredShadcnVars = [
-  '--background', '--foreground', '--card', '--card-foreground',
-  '--popover', '--popover-foreground', '--primary', '--primary-foreground',
-  '--secondary', '--secondary-foreground', '--muted', '--muted-foreground',
-  '--accent', '--accent-foreground', '--destructive', '--destructive-foreground',
-  '--border', '--input', '--ring', '--radius',
+  '--background',
+  '--foreground',
+  '--card',
+  '--card-foreground',
+  '--popover',
+  '--popover-foreground',
+  '--primary',
+  '--primary-foreground',
+  '--secondary',
+  '--secondary-foreground',
+  '--muted',
+  '--muted-foreground',
+  '--accent',
+  '--accent-foreground',
+  '--destructive',
+  '--destructive-foreground',
+  '--border',
+  '--input',
+  '--ring',
+  '--radius',
 ];
 
 import { readFileSync } from 'node:fs';
@@ -70,13 +98,19 @@ for (const v of requiredShadcnVars) {
 }
 
 if (Object.keys(agentColors).length !== 6) {
-  errors.push(`Expected 6 agent colors, found ${Object.keys(agentColors).length}`);
+  errors.push(
+    `Expected 6 agent colors, found ${Object.keys(agentColors).length}`,
+  );
 }
 if (Object.keys(typography.fontSize).length !== 9) {
-  errors.push(`Expected 9 font sizes, found ${Object.keys(typography.fontSize).length}`);
+  errors.push(
+    `Expected 9 font sizes, found ${Object.keys(typography.fontSize).length}`,
+  );
 }
 if (Object.keys(duration).length !== 5) {
-  errors.push(`Expected 5 duration tokens, found ${Object.keys(duration).length}`);
+  errors.push(
+    `Expected 5 duration tokens, found ${Object.keys(duration).length}`,
+  );
 }
 
 if (errors.length > 0) {
@@ -89,6 +123,8 @@ if (errors.length > 0) {
 
 console.log('Token validation passed ✓');
 console.log(`  ${darkKeys.size} semantic tokens verified in both themes`);
-console.log(`  ${Object.keys(agentColors).length} agent identity colors verified`);
+console.log(
+  `  ${Object.keys(agentColors).length} agent identity colors verified`,
+);
 console.log(`  ${requiredShadcnVars.length} shadcn bridge mappings verified`);
 process.exit(0);

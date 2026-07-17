@@ -1,12 +1,22 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { BookingProposal } from '@flow/agents/calendar/types';
-import { SchedulingRequestSchema, BookingProposalInputSchema, CreateEventInputSchema } from '@flow/agents/calendar/schemas';
+import {
+  SchedulingRequestSchema,
+  BookingProposalInputSchema,
+  CreateEventInputSchema,
+} from '@flow/agents/calendar/schemas';
 import { consumeSchedulingSignal } from '@flow/agents/calendar/signal-consumer';
 import { executeProposeBooking } from '@flow/agents/calendar/propose-booking-action';
 import { executeCreateEvent } from '@flow/agents/calendar/create-event-action';
 import { registerCalendarWorkers } from '@flow/agents/orchestrator/calendar-worker';
 
-const { mockCreateEvent, mockGetCalendarProvider, mockCalendarTokenManager, mockFindAvailableSlots, mockGetFreeBusy } = vi.hoisted(() => ({
+const {
+  mockCreateEvent,
+  mockGetCalendarProvider,
+  mockCalendarTokenManager,
+  mockFindAvailableSlots,
+  mockGetFreeBusy,
+} = vi.hoisted(() => ({
   mockCreateEvent: vi.fn().mockResolvedValue({
     providerEventId: 'evt-provider-1',
     title: 'Meeting with Client',
@@ -27,10 +37,18 @@ const { mockCreateEvent, mockGetCalendarProvider, mockCalendarTokenManager, mock
     getCalendarId: vi.fn().mockReturnValue('cal-1'),
   }),
   mockCalendarTokenManager: vi.fn().mockImplementation(() => ({
-    getValidTokens: vi.fn().mockResolvedValue({ tokens: { accessToken: 'test-token' } }),
+    getValidTokens: vi
+      .fn()
+      .mockResolvedValue({ tokens: { accessToken: 'test-token' } }),
   })),
   mockFindAvailableSlots: vi.fn().mockResolvedValue([
-    { startAt: '2026-06-10T10:00:00Z', endAt: '2026-06-10T10:30:00Z', conflicts: 0, reasoning: 'Good slot', calendarId: 'cal-1' },
+    {
+      startAt: '2026-06-10T10:00:00Z',
+      endAt: '2026-06-10T10:30:00Z',
+      conflicts: 0,
+      reasoning: 'Good slot',
+      calendarId: 'cal-1',
+    },
   ]),
   mockGetFreeBusy: vi.fn().mockResolvedValue([]),
 }));
@@ -53,21 +71,31 @@ vi.mock('@flow/db', () => ({
   createServiceClient: (...args: unknown[]) => mockCreateServiceClient(...args),
   updateRunStatus: (...args: unknown[]) => mockUpdateRunStatus(...args),
   requireTenantContext: vi.fn(),
-  createFlowError: vi.fn((code: number, type: string, msg: string) => ({ code, type, message: msg })),
+  createFlowError: vi.fn((code: number, type: string, msg: string) => ({
+    code,
+    type,
+    message: msg,
+  })),
 }));
 
 vi.mock('@flow/agents/calendar/slot-finder', async (importOriginal) => {
-  const original = await importOriginal() as Record<string, unknown>;
-  return { ...original, findAvailableSlots: (...args: unknown[]) => mockFindAvailableSlots(...args) };
+  const original = (await importOriginal()) as Record<string, unknown>;
+  return {
+    ...original,
+    findAvailableSlots: (...args: unknown[]) => mockFindAvailableSlots(...args),
+  };
 });
 
 vi.mock('../../../../../packages/agents/providers/registry', () => ({
   getCalendarProvider: (...args: unknown[]) => mockGetCalendarProvider(...args),
 }));
 
-vi.mock('../../../../../packages/agents/providers/google-calendar/token-manager', () => ({
-  CalendarTokenManager: mockCalendarTokenManager,
-}));
+vi.mock(
+  '../../../../../packages/agents/providers/google-calendar/token-manager',
+  () => ({
+    CalendarTokenManager: mockCalendarTokenManager,
+  }),
+);
 
 vi.mock('@flow/agents/calendar/event-relations', () => ({
   writeRescheduledFromRelation: vi.fn().mockResolvedValue(undefined),
@@ -99,7 +127,15 @@ vi.mock('@flow/agents/orchestrator/calendar-bypass-worker', () => ({
   registerCalendarScheduledJobs: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { WORKSPACE_ID, CLIENT_ID, REQ_ID, EMAIL_ID, CAL_DB_ID, SIGNAL_ID, createBookingMockSupabase } from './_helpers/booking-test-setup';
+import {
+  WORKSPACE_ID,
+  CLIENT_ID,
+  REQ_ID,
+  EMAIL_ID,
+  CAL_DB_ID,
+  SIGNAL_ID,
+  createBookingMockSupabase,
+} from './_helpers/booking-test-setup';
 
 describe('Story 6-3: Booking Proposals & Event Creation', () => {
   beforeEach(() => {
@@ -113,9 +149,27 @@ describe('Story 6-3: Booking Proposals & Event Creation', () => {
       attendees: [],
     });
     mockFindAvailableSlots.mockResolvedValue([
-      { startAt: '2026-06-10T10:00:00Z', endAt: '2026-06-10T10:30:00Z', conflicts: 0, reasoning: 'Good slot', calendarId: 'cal-1' },
-      { startAt: '2026-06-10T11:00:00Z', endAt: '2026-06-10T11:30:00Z', conflicts: 0, reasoning: 'Good slot', calendarId: 'cal-1' },
-      { startAt: '2026-06-10T14:00:00Z', endAt: '2026-06-10T14:30:00Z', conflicts: 0, reasoning: 'Good slot', calendarId: 'cal-1' },
+      {
+        startAt: '2026-06-10T10:00:00Z',
+        endAt: '2026-06-10T10:30:00Z',
+        conflicts: 0,
+        reasoning: 'Good slot',
+        calendarId: 'cal-1',
+      },
+      {
+        startAt: '2026-06-10T11:00:00Z',
+        endAt: '2026-06-10T11:30:00Z',
+        conflicts: 0,
+        reasoning: 'Good slot',
+        calendarId: 'cal-1',
+      },
+      {
+        startAt: '2026-06-10T14:00:00Z',
+        endAt: '2026-06-10T14:30:00Z',
+        conflicts: 0,
+        reasoning: 'Good slot',
+        calendarId: 'cal-1',
+      },
     ]);
     mockUpdateRunStatus.mockResolvedValue(undefined);
     mockGetCalendarProvider.mockReturnValue({
@@ -123,7 +177,9 @@ describe('Story 6-3: Booking Proposals & Event Creation', () => {
       getCalendarId: vi.fn().mockReturnValue('cal-1'),
     });
     mockCalendarTokenManager.mockImplementation(() => ({
-      getValidTokens: vi.fn().mockResolvedValue({ tokens: { accessToken: 'test-token' } }),
+      getValidTokens: vi
+        .fn()
+        .mockResolvedValue({ tokens: { accessToken: 'test-token' } }),
     }));
   });
 
@@ -133,22 +189,34 @@ describe('Story 6-3: Booking Proposals & Event Creation', () => {
       mockCreateServiceClient.mockReturnValue(supabase);
 
       const mockBoss = {
-        work: vi.fn().mockImplementation(async (_queue: string, handler: (job: unknown) => Promise<void>) => {
-          await handler({
-            data: {
-              runId: '00000000-0000-4000-8000-000000000050',
-              workspaceId: WORKSPACE_ID,
-              agentId: 'calendar',
-              actionType: 'proposeBooking',
-              input: { schedulingRequestId: REQ_ID, workspace_id: WORKSPACE_ID },
-              clientId: null,
-              correlationId: '00000000-0000-4000-8000-000000000060',
+        work: vi
+          .fn()
+          .mockImplementation(
+            async (
+              _queue: string,
+              handler: (job: unknown) => Promise<void>,
+            ) => {
+              await handler({
+                data: {
+                  runId: '00000000-0000-4000-8000-000000000050',
+                  workspaceId: WORKSPACE_ID,
+                  agentId: 'calendar',
+                  actionType: 'proposeBooking',
+                  input: {
+                    schedulingRequestId: REQ_ID,
+                    workspace_id: WORKSPACE_ID,
+                  },
+                  clientId: null,
+                  correlationId: '00000000-0000-4000-8000-000000000060',
+                },
+              });
             },
-          });
-        }),
+          ),
       };
 
-      await registerCalendarWorkers(mockBoss as unknown as import('pg-boss').PgBoss);
+      await registerCalendarWorkers(
+        mockBoss as unknown as import('pg-boss').PgBoss,
+      );
 
       const runningCall = mockUpdateRunStatus.mock.calls.find(
         (call) => call[1] === 'running',
@@ -157,14 +225,20 @@ describe('Story 6-3: Booking Proposals & Event Creation', () => {
       expect(runningCall![0]).toBe('00000000-0000-4000-8000-000000000050');
       expect(runningCall![2]).toMatchObject({ startedAt: expect.any(String) });
       const isoPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
-      expect((runningCall![2] as Record<string, unknown>).startedAt).toMatch(isoPattern);
+      expect((runningCall![2] as Record<string, unknown>).startedAt).toMatch(
+        isoPattern,
+      );
 
       const completedCall = mockUpdateRunStatus.mock.calls.find(
         (call) => call[1] === 'completed',
       );
       expect(completedCall).toBeDefined();
-      expect(completedCall![2]).toMatchObject({ completedAt: expect.any(String) });
-      expect((completedCall![2] as Record<string, unknown>).completedAt).toMatch(isoPattern);
+      expect(completedCall![2]).toMatchObject({
+        completedAt: expect.any(String),
+      });
+      expect(
+        (completedCall![2] as Record<string, unknown>).completedAt,
+      ).toMatch(isoPattern);
     });
   });
 
@@ -184,12 +258,15 @@ describe('Story 6-3: Booking Proposals & Event Creation', () => {
       const supabase = createBookingMockSupabase();
       await consumeSchedulingSignal(signal, { supabase });
 
-      const tablesAccessed = vi.mocked(supabase.from).mock.calls.map((call) => call[0]);
+      const tablesAccessed = vi
+        .mocked(supabase.from)
+        .mock.calls.map((call) => call[0]);
 
       expect(tablesAccessed).toContain('clients');
       expect(tablesAccessed).toContain('scheduling_requests');
 
-      const hasInboxImport = tablesAccessed.includes('inbox') || tablesAccessed.includes('emails');
+      const hasInboxImport =
+        tablesAccessed.includes('inbox') || tablesAccessed.includes('emails');
       expect(hasInboxImport).toBe(false);
     });
   });
@@ -208,7 +285,9 @@ describe('Story 6-3: Booking Proposals & Event Creation', () => {
       };
 
       const supabaseNoMatch = createBookingMockSupabase({ noClients: true });
-      const resultNoMatch = await consumeSchedulingSignal(signal, { supabase: supabaseNoMatch });
+      const resultNoMatch = await consumeSchedulingSignal(signal, {
+        supabase: supabaseNoMatch,
+      });
 
       expect(resultNoMatch.status).toBe('no_client_match');
       expect(resultNoMatch.schedulingRequest).toBeNull();
@@ -225,7 +304,9 @@ describe('Story 6-3: Booking Proposals & Event Creation', () => {
       });
 
       const supabaseMatch = createBookingMockSupabase();
-      const resultMatch = await consumeSchedulingSignal(signal, { supabase: supabaseMatch });
+      const resultMatch = await consumeSchedulingSignal(signal, {
+        supabase: supabaseMatch,
+      });
       expect(resultMatch.status).toBe('created');
       expect(resultMatch.schedulingRequest).not.toBeNull();
       expect(resultMatch.schedulingRequest!.clientId).toBe(CLIENT_ID);
@@ -247,7 +328,8 @@ describe('Story 6-3: Booking Proposals & Event Creation', () => {
       });
       expect(createParsed.success).toBe(true);
 
-      const proposeResult = await executeProposeBooking('run-1',
+      const proposeResult = await executeProposeBooking(
+        'run-1',
         { workspaceId: WORKSPACE_ID, schedulingRequestId: REQ_ID },
         { supabase: createBookingMockSupabase() },
       );
@@ -256,36 +338,47 @@ describe('Story 6-3: Booking Proposals & Event Creation', () => {
 
       const proposedOptions: BookingProposal[] = proposeResult.proposedOptions!;
 
-      const createResult = await executeCreateEvent('run-1', {
-        workspaceId: WORKSPACE_ID,
-        schedulingRequestId: REQ_ID,
-        selectedOptionIndex: 0,
-      }, {
-        supabase: createBookingMockSupabase({
-          requestData: {
-            id: REQ_ID, workspace_id: WORKSPACE_ID, client_id: CLIENT_ID,
-            status: 'option_selected',
-            proposed_options: proposedOptions,
-            selected_option: 0, duration_minutes: 30,
-            requested_by: { email: 'client@test.com', name: 'Test' },
-            source_email_id: null, booked_event_id: null, request_type: 'book_new',
-          },
-        }),
-      });
+      const createResult = await executeCreateEvent(
+        'run-1',
+        {
+          workspaceId: WORKSPACE_ID,
+          schedulingRequestId: REQ_ID,
+          selectedOptionIndex: 0,
+        },
+        {
+          supabase: createBookingMockSupabase({
+            requestData: {
+              id: REQ_ID,
+              workspace_id: WORKSPACE_ID,
+              client_id: CLIENT_ID,
+              status: 'option_selected',
+              proposed_options: proposedOptions,
+              selected_option: 0,
+              duration_minutes: 30,
+              requested_by: { email: 'client@test.com', name: 'Test' },
+              source_email_id: null,
+              booked_event_id: null,
+              request_type: 'book_new',
+            },
+          }),
+        },
+      );
 
       expect(createResult.status).toBe('booked');
       expect(createResult.eventId).toBe('event-1');
 
-      expect(SchedulingRequestSchema.safeParse({
-        workspaceId: WORKSPACE_ID,
-        clientId: CLIENT_ID,
-        sourceEmailId: EMAIL_ID,
-        sourceType: 'email_extraction',
-        requestType: 'book_new',
-        requestedBy: { email: 'client@example.com', name: 'Test' },
-        durationMinutes: 30,
-        preferences: {},
-      }).success).toBe(true);
+      expect(
+        SchedulingRequestSchema.safeParse({
+          workspaceId: WORKSPACE_ID,
+          clientId: CLIENT_ID,
+          sourceEmailId: EMAIL_ID,
+          sourceType: 'email_extraction',
+          requestType: 'book_new',
+          requestedBy: { email: 'client@example.com', name: 'Test' },
+          durationMinutes: 30,
+          preferences: {},
+        }).success,
+      ).toBe(true);
     });
   });
 });

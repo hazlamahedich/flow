@@ -1,9 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { 
-  aggregateReportData, 
-  checkBudgetThreshold, 
-  insertCostLog, 
-  insertCostEstimate
+import {
+  aggregateReportData,
+  checkBudgetThreshold,
+  insertCostLog,
+  insertCostEstimate,
 } from '@flow/db';
 import { createLLMRouter } from '../shared/llm-router';
 import type { WeeklyReportInput, WeeklyReportProposal } from './schemas';
@@ -17,7 +17,10 @@ interface ProcessClientReportOptions {
   persist?: boolean;
 }
 
-async function getWorkspaceBudgetStart(supabase: SupabaseClient, workspaceId: string): Promise<Date> {
+async function getWorkspaceBudgetStart(
+  supabase: SupabaseClient,
+  workspaceId: string,
+): Promise<Date> {
   const { data: member } = await supabase
     .from('workspace_members')
     .select('users!inner(timezone)')
@@ -56,7 +59,9 @@ export async function processClientReport(
 
   if (cooldownError) throw cooldownError;
   if (rejectedProposals && rejectedProposals.length > 0) {
-    throw new Error(`24-hour cooldown active: proposal rejected recently for client ${clientId}`);
+    throw new Error(
+      `24-hour cooldown active: proposal rejected recently for client ${clientId}`,
+    );
   }
 
   const { data: client, error: clientErr } = await supabase
@@ -66,7 +71,9 @@ export async function processClientReport(
     .eq('workspace_id', workspaceId)
     .single();
   if (clientErr || !client) {
-    throw new Error(`Client not found or tenant boundary violation: ${clientId}`);
+    throw new Error(
+      `Client not found or tenant boundary violation: ${clientId}`,
+    );
   }
 
   let { data: template } = await supabase
@@ -86,7 +93,11 @@ export async function processClientReport(
     template = defaultTemplate;
   }
 
-  const sectionsConfig = (template?.sections_config as Record<string, { enabled: boolean; sort_order: number }>) ?? {};
+  const sectionsConfig =
+    (template?.sections_config as Record<
+      string,
+      { enabled: boolean; sort_order: number }
+    >) ?? {};
   const hasConfig = Object.keys(sectionsConfig).length > 0;
   const enabledSections = Object.entries(sectionsConfig)
     .filter(([_, cfg]) => cfg.enabled)
@@ -95,7 +106,13 @@ export async function processClientReport(
 
   const activeSections = hasConfig
     ? enabledSections
-    : ['time_summary', 'task_log', 'stalled_items', 'agent_activity', 'highlights'];
+    : [
+        'time_summary',
+        'task_log',
+        'stalled_items',
+        'agent_activity',
+        'highlights',
+      ];
 
   const budgetStart = await getWorkspaceBudgetStart(supabase, workspaceId);
   const budgetCheck = await checkBudgetThreshold(workspaceId, 500, budgetStart);
@@ -153,7 +170,7 @@ ${JSON.stringify(aggregatedData, null, 2)}`;
       { role: 'user', content: userPrompt },
     ],
     { workspaceId, agentId: 'weekly-report', runId: agentRunId },
-    { taskTier: 'quality', maxTokens: 2000, temperature: 0.3 }
+    { taskTier: 'quality', maxTokens: 2000, temperature: 0.3 },
   );
 
   let narratives: Record<string, string>;
@@ -165,22 +182,31 @@ ${JSON.stringify(aggregatedData, null, 2)}`;
     narratives = llmOutputSchema.parse(JSON.parse(cleanText));
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    throw new Error(`POST_CHECK_VIOLATION: LLM returned malformed JSON: ${msg}`);
+    throw new Error(
+      `POST_CHECK_VIOLATION: LLM returned malformed JSON: ${msg}`,
+    );
   }
 
   const mismatches = verifyHallucinations(narratives, aggregatedData);
   if (mismatches.length > 0) {
-    throw new Error(`HALLUCINATION_DETECTED: LLM invented values not present in aggregate: ${mismatches.join(', ')}`);
+    throw new Error(
+      `HALLUCINATION_DETECTED: LLM invented values not present in aggregate: ${mismatches.join(', ')}`,
+    );
   }
 
-  const sectionsPayload = buildSectionsPayload(activeSections, narratives, aggregatedData);
+  const sectionsPayload = buildSectionsPayload(
+    activeSections,
+    narratives,
+    aggregatedData,
+  );
   const preview = buildPreview(activeSections, narratives);
 
   if (!shouldPersist) {
     return {
       title: `Weekly Report Draft for ${client.name}`,
       confidence: 0.95,
-      reasoning: 'Draft compiled accurately using pre-aggregated narrative prose.',
+      reasoning:
+        'Draft compiled accurately using pre-aggregated narrative prose.',
       riskLevel: 'low',
       preview,
       sectionsPayload,
@@ -208,18 +234,21 @@ ${JSON.stringify(aggregatedData, null, 2)}`;
       p_generated_by: creatorUserId,
       p_template_snapshot: template ?? {},
       p_sections: sectionsPayload,
-    }
+    },
   );
 
   if (rpcError || !reportId) {
-    throw new Error(`Failed to persist report via database RPC: ${rpcError?.message}`);
+    throw new Error(
+      `Failed to persist report via database RPC: ${rpcError?.message}`,
+    );
   }
 
   return {
     reportId,
     title: `Weekly Report Draft for ${client.name}`,
     confidence: 0.95,
-    reasoning: 'Draft compiled accurately using pre-aggregated narrative prose.',
+    reasoning:
+      'Draft compiled accurately using pre-aggregated narrative prose.',
     riskLevel: 'low',
     preview,
   };

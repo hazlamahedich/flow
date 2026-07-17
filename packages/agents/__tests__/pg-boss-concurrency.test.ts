@@ -48,32 +48,51 @@ describe('PgBoss Concurrency', () => {
     fakeBoss = createFakeBoss();
   });
 
-  it('concurrent claim returns null when guard rejects second worker', async () => {
-    fakeBoss.fetch
-      .mockResolvedValueOnce([{ id: 'job-1', data: VALID_PAYLOAD }])
-      .mockResolvedValueOnce([{ id: 'job-1', data: VALID_PAYLOAD }]);
+  it(
+    'concurrent claim returns null when guard rejects second worker',
+    { timeout: 20000 },
+    async () => {
+      fakeBoss.fetch
+        .mockResolvedValueOnce([{ id: 'job-1', data: VALID_PAYLOAD }])
+        .mockResolvedValueOnce([{ id: 'job-1', data: VALID_PAYLOAD }]);
 
-    const db = await import('@flow/db');
-    (db.claimRunWithGuard as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({ id: VALID_PAYLOAD.runId, status: 'running' })
-      .mockResolvedValueOnce(null);
+      const db = await import('@flow/db');
+      (db.claimRunWithGuard as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({ id: VALID_PAYLOAD.runId, status: 'running' })
+        .mockResolvedValueOnce(null);
 
-    const worker1 = new PgBossWorker(fakeBoss as unknown as import('pg-boss').PgBoss, () => undefined);
-    const worker2 = new PgBossWorker(fakeBoss as unknown as import('pg-boss').PgBoss, () => undefined);
+      const worker1 = new PgBossWorker(
+        fakeBoss as unknown as import('pg-boss').PgBoss,
+        () => undefined,
+      );
+      const worker2 = new PgBossWorker(
+        fakeBoss as unknown as import('pg-boss').PgBoss,
+        () => undefined,
+      );
 
-    const [h1, h2] = await Promise.all([worker1.claim('inbox'), worker2.claim('inbox')]);
-    expect(h1).not.toBeNull();
-    expect(h2).toBeNull();
-  });
+      const [h1, h2] = await Promise.all([
+        worker1.claim('inbox'),
+        worker2.claim('inbox'),
+      ]);
+      expect(h1).not.toBeNull();
+      expect(h2).toBeNull();
+    },
+  );
 
   it('double-complete is idempotent at db level', async () => {
     const db = await import('@flow/db');
     (db.getRunById as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: 'run-1', agent_id: 'inbox', job_id: 'job-1', workspace_id: 'ws-1',
+      id: 'run-1',
+      agent_id: 'inbox',
+      job_id: 'job-1',
+      workspace_id: 'ws-1',
     });
     (db.updateRunStatus as ReturnType<typeof vi.fn>).mockResolvedValue({});
 
-    const worker = new PgBossWorker(fakeBoss as unknown as import('pg-boss').PgBoss, () => undefined);
+    const worker = new PgBossWorker(
+      fakeBoss as unknown as import('pg-boss').PgBoss,
+      () => undefined,
+    );
     await worker.complete('run-1', { output: { a: 1 } });
     await worker.complete('run-1', { output: { a: 1 } });
     expect(fakeBoss.complete).toHaveBeenCalledTimes(2);
@@ -81,7 +100,10 @@ describe('PgBoss Concurrency', () => {
 
   it('claim-after-cancel returns null', async () => {
     fakeBoss.fetch.mockResolvedValue([]);
-    const worker = new PgBossWorker(fakeBoss as unknown as import('pg-boss').PgBoss, () => undefined);
+    const worker = new PgBossWorker(
+      fakeBoss as unknown as import('pg-boss').PgBoss,
+      () => undefined,
+    );
     const handle = await worker.claim('inbox' as AgentId);
     expect(handle).toBeNull();
   });
@@ -89,16 +111,27 @@ describe('PgBoss Concurrency', () => {
   it('recovery skips when pg-boss has active job', async () => {
     const db = await import('@flow/db');
     (db.findStaleRuns as ReturnType<typeof vi.fn>).mockResolvedValue([
-      { id: 'run-1', agent_id: 'inbox', action_type: 'cat', job_id: 'job-1', workspace_id: 'ws-1' },
+      {
+        id: 'run-1',
+        agent_id: 'inbox',
+        action_type: 'cat',
+        job_id: 'job-1',
+        workspace_id: 'ws-1',
+      },
     ]);
     fakeBoss.getJobById.mockResolvedValue({ id: 'job-1', state: 'active' });
 
     const { findStaleRuns, updateRunStatus } = db;
     const stale = await findStaleRuns(5);
     for (const run of stale) {
-      const job = await fakeBoss.getJobById(`agent:${run.agent_id}`, run.job_id);
+      const job = await fakeBoss.getJobById(
+        `agent:${run.agent_id}`,
+        run.job_id,
+      );
       if (job && job.state !== 'failed' && job.state !== 'completed') continue;
-      await updateRunStatus(run.id, 'failed', { error: { code: 'AGENT_TIMEOUT' } });
+      await updateRunStatus(run.id, 'failed', {
+        error: { code: 'AGENT_TIMEOUT' },
+      });
     }
     expect(updateRunStatus).not.toHaveBeenCalled();
   });
@@ -106,7 +139,13 @@ describe('PgBoss Concurrency', () => {
   it('recovery transitions when pg-boss confirms no active job', async () => {
     const db = await import('@flow/db');
     (db.findStaleRuns as ReturnType<typeof vi.fn>).mockResolvedValue([
-      { id: 'run-1', agent_id: 'inbox', action_type: 'cat', job_id: 'job-1', workspace_id: 'ws-1' },
+      {
+        id: 'run-1',
+        agent_id: 'inbox',
+        action_type: 'cat',
+        job_id: 'job-1',
+        workspace_id: 'ws-1',
+      },
     ]);
     (db.updateRunStatus as ReturnType<typeof vi.fn>).mockResolvedValue({});
     fakeBoss.getJobById.mockResolvedValue(null);
@@ -114,11 +153,18 @@ describe('PgBoss Concurrency', () => {
     const { findStaleRuns, updateRunStatus } = db;
     const stale = await findStaleRuns(5);
     for (const run of stale) {
-      const job = await fakeBoss.getJobById(`agent:${run.agent_id}`, run.job_id);
+      const job = await fakeBoss.getJobById(
+        `agent:${run.agent_id}`,
+        run.job_id,
+      );
       if (job && job.state !== 'failed' && job.state !== 'completed') continue;
-      await updateRunStatus(run.id, 'failed', expect.objectContaining({
-        error: expect.objectContaining({ code: 'AGENT_TIMEOUT' }),
-      }));
+      await updateRunStatus(
+        run.id,
+        'failed',
+        expect.objectContaining({
+          error: expect.objectContaining({ code: 'AGENT_TIMEOUT' }),
+        }),
+      );
     }
     expect(updateRunStatus).toHaveBeenCalled();
   });

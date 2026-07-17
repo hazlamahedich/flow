@@ -70,7 +70,9 @@ describe('GoogleCalendarProvider', () => {
     });
 
     it('includes include_granted_scopes when includeGrantedScopes=true', () => {
-      mockGenerateAuthUrl.mockReturnValue('https://accounts.google.com/o/oauth2/v2/auth?');
+      mockGenerateAuthUrl.mockReturnValue(
+        'https://accounts.google.com/o/oauth2/v2/auth?',
+      );
 
       provider.getOAuthUrl({
         redirectUri: 'http://localhost:3000/api/auth/calendar/callback',
@@ -87,7 +89,9 @@ describe('GoogleCalendarProvider', () => {
     });
 
     it('does not include include_granted_scopes by default', () => {
-      mockGenerateAuthUrl.mockReturnValue('https://accounts.google.com/o/oauth2/v2/auth?');
+      mockGenerateAuthUrl.mockReturnValue(
+        'https://accounts.google.com/o/oauth2/v2/auth?',
+      );
 
       provider.getOAuthUrl({
         redirectUri: 'http://localhost:3000/api/auth/calendar/callback',
@@ -103,7 +107,9 @@ describe('GoogleCalendarProvider', () => {
     });
 
     it('merges additionalScopes and deduplicates', () => {
-      mockGenerateAuthUrl.mockReturnValue('https://accounts.google.com/o/oauth2/v2/auth?');
+      mockGenerateAuthUrl.mockReturnValue(
+        'https://accounts.google.com/o/oauth2/v2/auth?',
+      );
 
       provider.getOAuthUrl({
         redirectUri: 'http://localhost:3000/api/auth/calendar/callback',
@@ -115,11 +121,16 @@ describe('GoogleCalendarProvider', () => {
         ],
       });
 
-      const callArg = mockGenerateAuthUrl.mock.calls[0][0] as { scope: string[] };
+      const callArg = mockGenerateAuthUrl.mock.calls[0][0] as {
+        scope: string[];
+      };
       const scopes = callArg.scope as string[];
-      expect(scopes).toContain('https://www.googleapis.com/auth/gmail.readonly');
+      expect(scopes).toContain(
+        'https://www.googleapis.com/auth/gmail.readonly',
+      );
       const calendarReadonlyCount = scopes.filter(
-        (s: string) => s === 'https://www.googleapis.com/auth/calendar.readonly',
+        (s: string) =>
+          s === 'https://www.googleapis.com/auth/calendar.readonly',
       ).length;
       expect(calendarReadonlyCount).toBe(1);
     });
@@ -159,7 +170,11 @@ describe('GoogleCalendarProvider', () => {
       });
 
       await expect(
-        provider.exchangeCode('code', 'http://localhost:3000/callback', 'verifier'),
+        provider.exchangeCode(
+          'code',
+          'http://localhost:3000/callback',
+          'verifier',
+        ),
       ).rejects.toThrow();
     });
   });

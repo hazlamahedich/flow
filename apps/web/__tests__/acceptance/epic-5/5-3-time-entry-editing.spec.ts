@@ -1,11 +1,26 @@
 import { describe, test, expect, vi } from 'vitest';
-import { formatCentsToDollar, parseDollarToCents, isScopeCreep, calculateThresholdMinutes } from '@flow/shared';
-import { detectGaps, detectOverlaps, type TimeEntryForDetection } from '@flow/agents/time-integrity/anomaly-detection';
+import {
+  formatCentsToDollar,
+  parseDollarToCents,
+  isScopeCreep,
+  calculateThresholdMinutes,
+} from '@flow/shared';
+import {
+  detectGaps,
+  detectOverlaps,
+  type TimeEntryForDetection,
+} from '@flow/agents/time-integrity/anomaly-detection';
 import { GAP_THRESHOLD_MINUTES } from '@flow/agents/time-integrity/schemas';
-import { getBossInstance, setBossInstance, clearBossInstance } from '@flow/agents/orchestrator/boss-di';
+import {
+  getBossInstance,
+  setBossInstance,
+  clearBossInstance,
+} from '@flow/agents/orchestrator/boss-di';
 import { isSupabaseAvailable, setupRLSFixture } from '@flow/test-utils';
 
-function buildTimeEntry(overrides: Partial<TimeEntryForDetection> = {}): TimeEntryForDetection {
+function buildTimeEntry(
+  overrides: Partial<TimeEntryForDetection> = {},
+): TimeEntryForDetection {
   return {
     id: crypto.randomUUID(),
     date: '2026-05-09',
@@ -17,11 +32,20 @@ function buildTimeEntry(overrides: Partial<TimeEntryForDetection> = {}): TimeEnt
 describe('Story 5.3: Time Entry Editing & Invoice Impact Warnings', () => {
   describe('AC1: Edit time entry fields', () => {
     test('[P0] [5.3-AC1-001] should accept valid edit payload with changed fields', () => {
-      const current = { date: '2025-01-15', durationMinutes: 60, clientId: crypto.randomUUID() };
-      const proposed = { date: '2025-01-15', durationMinutes: 120, clientId: current.clientId };
+      const current = {
+        date: '2025-01-15',
+        durationMinutes: 60,
+        clientId: crypto.randomUUID(),
+      };
+      const proposed = {
+        date: '2025-01-15',
+        durationMinutes: 120,
+        clientId: current.clientId,
+      };
       const changedFields: Record<string, unknown> = {};
       if (proposed.date !== current.date) changedFields.date = current.date;
-      if (proposed.durationMinutes !== current.durationMinutes) changedFields.durationMinutes = current.durationMinutes;
+      if (proposed.durationMinutes !== current.durationMinutes)
+        changedFields.durationMinutes = current.durationMinutes;
       expect(changedFields).toEqual({ durationMinutes: 60 });
     });
 
@@ -30,7 +54,8 @@ describe('Story 5.3: Time Entry Editing & Invoice Impact Warnings', () => {
       const proposed = { date: '2025-01-15', durationMinutes: 120 };
       const changedFields: Record<string, unknown> = {};
       if (proposed.date !== current.date) changedFields.date = current.date;
-      if (proposed.durationMinutes !== current.durationMinutes) changedFields.durationMinutes = current.durationMinutes;
+      if (proposed.durationMinutes !== current.durationMinutes)
+        changedFields.durationMinutes = current.durationMinutes;
       expect(Object.keys(changedFields)).toHaveLength(0);
     });
   });
@@ -100,19 +125,22 @@ describe('Story 5.3: Time Entry Editing & Invoice Impact Warnings', () => {
       expect(isStale).toBe(false);
     });
 
-    test.skipIf(!supabaseAvailable)('[P0] [5.3-AC4-003] should prevent concurrent edit via RLS workspace scope', async () => {
-      const tenantId = crypto.randomUUID();
-      const fixture = await setupRLSFixture(tenantId, 'member');
-      try {
-        const { data } = await fixture.client
-          .from('time_entries')
-          .select('id')
-          .eq('workspace_id', fixture.otherTenantId)
-          .limit(1);
-        expect(data).toHaveLength(0);
-      } finally {
-        await fixture.cleanup();
-      }
-    });
+    test.skipIf(!supabaseAvailable)(
+      '[P0] [5.3-AC4-003] should prevent concurrent edit via RLS workspace scope',
+      async () => {
+        const tenantId = crypto.randomUUID();
+        const fixture = await setupRLSFixture(tenantId, 'member');
+        try {
+          const { data } = await fixture.client
+            .from('time_entries')
+            .select('id')
+            .eq('workspace_id', fixture.otherTenantId)
+            .limit(1);
+          expect(data).toHaveLength(0);
+        } finally {
+          await fixture.cleanup();
+        }
+      },
+    );
   });
 });

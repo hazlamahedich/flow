@@ -2,14 +2,14 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { execute } from '../executor';
 import type { WeeklyReportInput } from '../schemas';
 
-const { 
-  mockAggregateReportData, 
-  mockCheckBudgetThreshold, 
+const {
+  mockAggregateReportData,
+  mockCheckBudgetThreshold,
   mockInsertCostEstimate,
   mockInsertCostLog,
   mockFrom,
   mockRpc,
-  mockComplete
+  mockComplete,
 } = vi.hoisted(() => ({
   mockAggregateReportData: vi.fn(),
   mockCheckBudgetThreshold: vi.fn(),
@@ -64,7 +64,10 @@ describe('Weekly Report Agent — execute Integration Tests', () => {
         }
         if (mockFrom.mock.calls.length === 4) {
           // Agent configurations select
-          return { data: { llm_preferences: { trustLevel: 'supervised' } }, error: null };
+          return {
+            data: { llm_preferences: { trustLevel: 'supervised' } },
+            error: null,
+          };
         }
         if (mockFrom.mock.calls.length === 5) {
           // Workspace members role check select
@@ -78,7 +81,10 @@ describe('Weekly Report Agent — execute Integration Tests', () => {
     });
 
     // 2. Budget is allowed
-    mockCheckBudgetThreshold.mockResolvedValue({ allowed: true, percentUsed: 0.1 });
+    mockCheckBudgetThreshold.mockResolvedValue({
+      allowed: true,
+      percentUsed: 0.1,
+    });
 
     // 3. Pre-aggregated data exists
     mockAggregateReportData.mockResolvedValue({
@@ -86,7 +92,11 @@ describe('Weekly Report Agent — execute Integration Tests', () => {
       timeSummary: { totalMinutes: 1200, projectCount: 1 },
       taskLog: { projects: [] },
       agentActivity: { runs: [] },
-      invoiceSummary: { totalCents: 50000, amountPaidCents: 0, invoiceCount: 1 },
+      invoiceSummary: {
+        totalCents: 50000,
+        amountPaidCents: 0,
+        invoiceCount: 1,
+      },
       stalledItems: [],
     });
 
@@ -131,7 +141,10 @@ describe('Weekly Report Agent — execute Integration Tests', () => {
       limit: vi.fn().mockReturnThis(),
     });
 
-    mockCheckBudgetThreshold.mockResolvedValue({ allowed: false, percentUsed: 1.2 });
+    mockCheckBudgetThreshold.mockResolvedValue({
+      allowed: false,
+      percentUsed: 1.2,
+    });
 
     const input: WeeklyReportInput = {
       workspaceId: 'ba0e897a-391f-4739-b86a-e243cc05d4c8',

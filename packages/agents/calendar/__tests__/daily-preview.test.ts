@@ -82,7 +82,13 @@ describe('generateDailyPreview', () => {
 
   it('includes events with client names in preview', async () => {
     const eventRows = [
-      { title: 'Team Standup', start_at: '2026-05-24T09:00:00Z', end_at: '2026-05-24T09:30:00Z', source: 'va_created', client_id: 'c-1' },
+      {
+        title: 'Team Standup',
+        start_at: '2026-05-24T09:00:00Z',
+        end_at: '2026-05-24T09:30:00Z',
+        source: 'va_created',
+        client_id: 'c-1',
+      },
     ];
     const clientRows = [{ id: 'c-1', name: 'Acme Corp' }];
     const supabase = createMockSupabase(eventRows, clientRows);
@@ -96,8 +102,20 @@ describe('generateDailyPreview', () => {
 
   it('identifies gaps between events', async () => {
     const eventRows = [
-      { title: 'Morning', start_at: '2026-05-24T09:00:00Z', end_at: '2026-05-24T10:00:00Z', source: 'va_created', client_id: null },
-      { title: 'Afternoon', start_at: '2026-05-24T14:00:00Z', end_at: '2026-05-24T15:00:00Z', source: 'va_created', client_id: null },
+      {
+        title: 'Morning',
+        start_at: '2026-05-24T09:00:00Z',
+        end_at: '2026-05-24T10:00:00Z',
+        source: 'va_created',
+        client_id: null,
+      },
+      {
+        title: 'Afternoon',
+        start_at: '2026-05-24T14:00:00Z',
+        end_at: '2026-05-24T15:00:00Z',
+        source: 'va_created',
+        client_id: null,
+      },
     ];
     const supabase = createMockSupabase(eventRows);
 

@@ -20,9 +20,15 @@ vi.mock('@/lib/supabase-server', () => ({ getServerSupabase: vi.fn() }));
 const store = new Map<string, string>();
 vi.stubGlobal('localStorage', {
   getItem: vi.fn((key: string) => store.get(key) ?? null),
-  setItem: vi.fn((key: string, value: string) => { store.set(key, value); }),
-  removeItem: vi.fn((key: string) => { store.delete(key); }),
-  clear: vi.fn(() => { store.clear(); }),
+  setItem: vi.fn((key: string, value: string) => {
+    store.set(key, value);
+  }),
+  removeItem: vi.fn((key: string) => {
+    store.delete(key);
+  }),
+  clear: vi.fn(() => {
+    store.clear();
+  }),
   length: 0,
   key: vi.fn(),
 });
@@ -31,7 +37,7 @@ import { DowngradeBanner } from '../DowngradeBanner';
 
 const PROPS = {
   archivedCount: 3,
-  archivedAt: '2026-06-18T00:00:00.000Z',
+  archivedAt: '2026-06-18T00:00:00.000Z' as string | null,
   workspaceId: 'ws-test-1',
   onUpgrade: mockOnUpgrade,
 };
@@ -53,7 +59,16 @@ describe('DowngradeBanner — render conditions', () => {
   });
 
   test('does NOT render when archivedCount = 0', () => {
-    const { container } = render(<DowngradeBanner {...PROPS} archivedCount={0} />);
+    const { container } = render(
+      <DowngradeBanner {...PROPS} archivedCount={0} />,
+    );
+    expect(container.firstChild).toBeNull();
+  });
+
+  test('does NOT render when archivedAt is null', () => {
+    const { container } = render(
+      <DowngradeBanner {...PROPS} archivedAt={null} archivedCount={3} />,
+    );
     expect(container.firstChild).toBeNull();
   });
 
@@ -67,29 +82,47 @@ describe('DowngradeBanner — dismiss-until-new-event semantics', () => {
   test('dismiss writes archivedAt to localStorage (per-workspace key)', () => {
     render(<DowngradeBanner {...PROPS} />);
     fireEvent.click(screen.getByTestId('downgrade-banner-dismiss'));
-    expect(store.get('flow:downgrade-banner:dismissed:ws-test-1')).toBe(PROPS.archivedAt);
+    expect(store.get('flow:downgrade-banner:dismissed:ws-test-1')).toBe(
+      PROPS.archivedAt,
+    );
   });
 
   test('does NOT re-render after dismiss for the SAME archive event', () => {
-    store.set('flow:downgrade-banner:dismissed:ws-test-1', PROPS.archivedAt);
+    store.set(
+      'flow:downgrade-banner:dismissed:ws-test-1',
+      PROPS.archivedAt as string,
+    );
     const { container } = render(<DowngradeBanner {...PROPS} />);
     expect(container.firstChild).toBeNull();
   });
 
   test('re-renders when a NEW archive event arrives (later timestamp)', () => {
-    store.set('flow:downgrade-banner:dismissed:ws-test-1', '2026-06-17T00:00:00.000Z');
-    render(<DowngradeBanner {...PROPS} archivedAt="2026-06-18T12:00:00.000Z" />);
+    store.set(
+      'flow:downgrade-banner:dismissed:ws-test-1',
+      '2026-06-17T00:00:00.000Z',
+    );
+    render(
+      <DowngradeBanner {...PROPS} archivedAt="2026-06-18T12:00:00.000Z" />,
+    );
     expect(screen.getByTestId('downgrade-banner')).toBeDefined();
   });
 
   test('does NOT re-render for an OLDER event than the dismissed one', () => {
-    store.set('flow:downgrade-banner:dismissed:ws-test-1', '2026-06-18T00:00:00.000Z');
-    render(<DowngradeBanner {...PROPS} archivedAt="2026-06-17T00:00:00.000Z" />);
+    store.set(
+      'flow:downgrade-banner:dismissed:ws-test-1',
+      '2026-06-18T00:00:00.000Z',
+    );
+    render(
+      <DowngradeBanner {...PROPS} archivedAt="2026-06-17T00:00:00.000Z" />,
+    );
     expect(screen.queryByTestId('downgrade-banner')).toBeNull();
   });
 
   test('namespaces dismiss per workspace', () => {
-    store.set('flow:downgrade-banner:dismissed:ws-other', PROPS.archivedAt);
+    store.set(
+      'flow:downgrade-banner:dismissed:ws-other',
+      PROPS.archivedAt as string,
+    );
     render(<DowngradeBanner {...PROPS} workspaceId="ws-test-1" />);
     expect(screen.getByTestId('downgrade-banner')).toBeDefined();
   });
@@ -97,15 +130,27 @@ describe('DowngradeBanner — dismiss-until-new-event semantics', () => {
 
 describe('DowngradeBanner — CTA wiring', () => {
   test('Upgrade button calls onUpgrade with {tier: pro, interval: monthly}', () => {
-    mockOnUpgrade.mockResolvedValueOnce({ success: true, data: { checkoutUrl: 'https://checkout.example' } });
-    render(<DowngradeBanner {...PROPS} />);
+    mockOnUpgrade.mockResolvedValueOnce({
+      success: true,
+      data: { checkoutUrl: 'https://checkout.example' },
+    });
+    render(
+      <DowngradeBanner {...PROPS} archivedAt="2026-06-18T00:00:00.000Z" />,
+    );
     fireEvent.click(screen.getByTestId('downgrade-banner-upgrade'));
-    expect(mockOnUpgrade).toHaveBeenCalledWith({ tier: 'pro', interval: 'monthly' });
+    expect(mockOnUpgrade).toHaveBeenCalledWith({
+      tier: 'pro',
+      interval: 'monthly',
+    });
   });
 
   test('View archived clients link points to /clients?status=archived (existing param)', () => {
-    render(<DowngradeBanner {...PROPS} />);
-    const link = screen.getByTestId('downgrade-banner-view-archived') as HTMLAnchorElement;
+    render(
+      <DowngradeBanner {...PROPS} archivedAt="2026-06-18T00:00:00.000Z" />,
+    );
+    const link = screen.getByTestId(
+      'downgrade-banner-view-archived',
+    ) as HTMLAnchorElement;
     expect(link.getAttribute('href')).toBe('/clients?status=archived');
   });
 });

@@ -1,6 +1,9 @@
 import { GmailProvider } from '../providers/index.js';
 import type { OAuthTokens } from '@flow/types';
-import { decryptInboxTokens, encryptInboxTokens } from '@flow/db/vault/inbox-tokens';
+import {
+  decryptInboxTokens,
+  encryptInboxTokens,
+} from '@flow/db/vault/inbox-tokens';
 import { createServiceClient } from '@flow/db';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -37,7 +40,9 @@ async function getInboxWithState(
   return data as InboxWithState | null;
 }
 
-export async function executeInitialSync(input: InitialSyncInput): Promise<void> {
+export async function executeInitialSync(
+  input: InitialSyncInput,
+): Promise<void> {
   const supabase = createServiceClient();
   const provider = new GmailProvider();
 
@@ -54,11 +59,16 @@ export async function executeInitialSync(input: InitialSyncInput): Promise<void>
   try {
     let tokens: OAuthTokens;
     try {
-      tokens = decryptInboxTokens(inbox.oauth_state as { encrypted: string; iv: string; version: number });
+      tokens = decryptInboxTokens(
+        inbox.oauth_state as { encrypted: string; iv: string; version: number },
+      );
     } catch {
       await supabase
         .from('client_inboxes')
-        .update({ sync_status: 'error', error_message: 'Token decryption failed' })
+        .update({
+          sync_status: 'error',
+          error_message: 'Token decryption failed',
+        })
         .eq('id', inbox.id);
       return;
     }
@@ -70,13 +80,25 @@ export async function executeInitialSync(input: InitialSyncInput): Promise<void>
       const newEncrypted = encryptInboxTokens(refreshed);
       const { error: updateError } = await supabase
         .from('client_inboxes')
-        .update({ oauth_state: newEncrypted as unknown as Record<string, unknown> })
+        .update({
+          oauth_state: newEncrypted as unknown as Record<string, unknown>,
+        })
         .eq('id', inbox.id)
         .eq('updated_at', inbox.updated_at ?? '');
       if (updateError) {
         const refreshedInbox = await getInboxWithState(supabase, inbox.id);
-        if (refreshedInbox?.oauth_state && typeof refreshedInbox.oauth_state === 'object' && 'encrypted' in refreshedInbox.oauth_state) {
-          const currentTokens = decryptInboxTokens(refreshedInbox.oauth_state as { encrypted: string; iv: string; version: number });
+        if (
+          refreshedInbox?.oauth_state &&
+          typeof refreshedInbox.oauth_state === 'object' &&
+          'encrypted' in refreshedInbox.oauth_state
+        ) {
+          const currentTokens = decryptInboxTokens(
+            refreshedInbox.oauth_state as {
+              encrypted: string;
+              iv: string;
+              version: number;
+            },
+          );
           accessToken = currentTokens.accessToken;
         }
       }
@@ -91,7 +113,10 @@ export async function executeInitialSync(input: InitialSyncInput): Promise<void>
 
     for (const item of messageItems) {
       try {
-        const metadata = await provider.getMessageMetadata(accessToken, item.messageId);
+        const metadata = await provider.getMessageMetadata(
+          accessToken,
+          item.messageId,
+        );
         await insertEmailMetadata(supabase, {
           workspaceId: inbox.workspace_id,
           clientInboxId: inbox.id,
@@ -127,7 +152,8 @@ export async function executeInitialSync(input: InitialSyncInput): Promise<void>
       .from('client_inboxes')
       .update({
         sync_status: 'error',
-        error_message: err instanceof Error ? err.message : 'Initial sync failed',
+        error_message:
+          err instanceof Error ? err.message : 'Initial sync failed',
       })
       .eq('id', inbox.id);
   }

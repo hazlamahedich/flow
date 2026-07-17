@@ -6,8 +6,16 @@ vi.mock('@/lib/supabase-server', () => ({
 
 vi.mock('@flow/db', () => ({
   requireTenantContext: vi.fn(),
-  createFlowError: (status: number, code: string, message: string, category: string) => ({
-    status, code, message, category,
+  createFlowError: (
+    status: number,
+    code: string,
+    message: string,
+    category: string,
+  ) => ({
+    status,
+    code,
+    message,
+    category,
   }),
 }));
 
@@ -26,7 +34,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getServerSupabase).mockResolvedValue(mockSupabase as never);
   vi.mocked(requireTenantContext).mockResolvedValue({
-    workspaceId: 'ws-1', userId: 'u-1', role: 'owner',
+    workspaceId: 'ws-1',
+    userId: 'u-1',
+    role: 'owner',
   } as never);
   mockOrder.mockReturnValue([]);
 });

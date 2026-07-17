@@ -57,7 +57,10 @@ export function SessionsList({ devices, memberCount }: SessionsListProps) {
       </h1>
 
       {error && (
-        <div role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+        <div
+          role="alert"
+          className="rounded-md bg-red-50 p-3 text-sm text-red-700"
+        >
           {error}
         </div>
       )}
@@ -67,18 +70,31 @@ export function SessionsList({ devices, memberCount }: SessionsListProps) {
         <table className="w-full text-sm" aria-label="Active sessions table">
           <thead>
             <tr className="border-b border-[var(--flow-color-border-default)]">
-              <th className="pb-2 text-left font-medium text-[var(--flow-color-text-secondary)]">Device</th>
-              <th className="pb-2 text-left font-medium text-[var(--flow-color-text-secondary)]">Last Seen</th>
-              <th className="pb-2 text-right font-medium text-[var(--flow-color-text-secondary)]">Action</th>
+              <th className="pb-2 text-left font-medium text-[var(--flow-color-text-secondary)]">
+                Device
+              </th>
+              <th className="pb-2 text-left font-medium text-[var(--flow-color-text-secondary)]">
+                Last Seen
+              </th>
+              <th className="pb-2 text-right font-medium text-[var(--flow-color-text-secondary)]">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
             {devices.map((device) => (
-              <tr key={device.id} className="border-b border-[var(--flow-color-border-default)]">
+              <tr
+                key={device.id}
+                className="border-b border-[var(--flow-color-border-default)]"
+              >
                 <td className="py-3">
-                  <div className="font-medium text-[var(--flow-color-text-primary)]">{device.label}</div>
+                  <div className="font-medium text-[var(--flow-color-text-primary)]">
+                    {device.label}
+                  </div>
                   {device.userAgentHint && (
-                    <div className="text-xs text-[var(--flow-color-text-secondary)]">{device.userAgentHint}</div>
+                    <div className="text-xs text-[var(--flow-color-text-secondary)]">
+                      {device.userAgentHint}
+                    </div>
                   )}
                 </td>
                 <td className="py-3 text-[var(--flow-color-text-secondary)]">
@@ -110,9 +126,13 @@ export function SessionsList({ devices, memberCount }: SessionsListProps) {
           >
             <div className="flex items-center justify-between">
               <div>
-                <div className="font-medium text-[var(--flow-color-text-primary)]">{device.label}</div>
+                <div className="font-medium text-[var(--flow-color-text-primary)]">
+                  {device.label}
+                </div>
                 {device.userAgentHint && (
-                  <div className="text-xs text-[var(--flow-color-text-secondary)]">{device.userAgentHint}</div>
+                  <div className="text-xs text-[var(--flow-color-text-secondary)]">
+                    {device.userAgentHint}
+                  </div>
                 )}
               </div>
               <button

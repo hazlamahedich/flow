@@ -6,15 +6,30 @@ function isValidDate(dateStr: string): boolean {
 }
 
 const DESIGN_SYSTEM_PALETTE = [
-  '#6366f1', '#3b82f6', '#8b5cf6', '#ec4899',
-  '#f43f5e', '#f97316', '#eab308', '#22c55e',
-  '#14b8a6', '#06b6d4', '#64748b', '#18181b',
+  '#6366f1',
+  '#3b82f6',
+  '#8b5cf6',
+  '#ec4899',
+  '#f43f5e',
+  '#f97316',
+  '#eab308',
+  '#22c55e',
+  '#14b8a6',
+  '#06b6d4',
+  '#64748b',
+  '#18181b',
 ] as const;
 
-export const accentColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').refine(
-  (val) => DESIGN_SYSTEM_PALETTE.includes(val as typeof DESIGN_SYSTEM_PALETTE[number]),
-  { message: 'Accent color must be from the design system palette' },
-);
+export const accentColorSchema = z
+  .string()
+  .regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color')
+  .refine(
+    (val) =>
+      DESIGN_SYSTEM_PALETTE.includes(
+        val as (typeof DESIGN_SYSTEM_PALETTE)[number],
+      ),
+    { message: 'Accent color must be from the design system palette' },
+  );
 
 export const brandingSchema = z.object({
   accentColor: accentColorSchema,
@@ -47,25 +62,37 @@ const sectionConfigEntrySchema = z.object({
 });
 
 function buildSectionsConfigSchema() {
-  const keys = ['time_summary', 'task_log', 'agent_activity', 'invoice_summary', 'stalled_items', 'highlights'] as const;
+  const keys = [
+    'time_summary',
+    'task_log',
+    'agent_activity',
+    'invoice_summary',
+    'stalled_items',
+    'highlights',
+  ] as const;
   const shape: Record<string, z.ZodType<unknown>> = {};
   for (const k of keys) {
     shape[k] = sectionConfigEntrySchema;
   }
-  return z.object(shape as Record<string, typeof sectionConfigEntrySchema>).strict().superRefine((val, ctx) => {
-    const enabledCount = Object.values(val).filter((v) => v.enabled).length;
-    if (enabledCount < 1) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'At least one section must be enabled',
-        path: ['SECTION_COUNT_MIN'],
-      });
-    }
-  });
+  return z
+    .object(shape as Record<string, typeof sectionConfigEntrySchema>)
+    .strict()
+    .superRefine((val, ctx) => {
+      const enabledCount = Object.values(val).filter((v) => v.enabled).length;
+      if (enabledCount < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'At least one section must be enabled',
+          path: ['SECTION_COUNT_MIN'],
+        });
+      }
+    });
 }
 
 export const templateSectionsConfigSchema = buildSectionsConfigSchema();
-export type TemplateSectionsConfig = z.infer<typeof templateSectionsConfigSchema>;
+export type TemplateSectionsConfig = z.infer<
+  typeof templateSectionsConfigSchema
+>;
 
 export const saveReportTemplateSchema = z.object({
   id: z.string().uuid().optional(),
@@ -79,30 +106,41 @@ export const saveReportTemplateSchema = z.object({
 });
 export type SaveReportTemplateInput = z.infer<typeof saveReportTemplateSchema>;
 
-export const generateWeeklyReportSchema = z.object({
-  clientId: z.string().uuid(),
-  periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)').refine(
-    isValidDate,
-    { message: 'periodStart is not a valid calendar date' },
-  ),
-  periodEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)').refine(
-    isValidDate,
-    { message: 'periodEnd is not a valid calendar date' },
-  ),
-  templateId: z.string().uuid().optional(),
-}).refine(
-  (data) => data.periodStart <= data.periodEnd,
-  { message: 'periodStart must be <= periodEnd', path: ['periodStart'] },
-).refine(
-  (data) => {
-    const start = new Date(`${data.periodStart}T00:00:00Z`);
-    const end = new Date(`${data.periodEnd}T00:00:00Z`);
-    const diffDays = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    return diffDays <= 31;
-  },
-  { message: 'Date range must not exceed 31 days', path: ['periodEnd'] },
-);
-export type GenerateWeeklyReportInput = z.infer<typeof generateWeeklyReportSchema>;
+export const generateWeeklyReportSchema = z
+  .object({
+    clientId: z.string().uuid(),
+    periodStart: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
+      .refine(isValidDate, {
+        message: 'periodStart is not a valid calendar date',
+      }),
+    periodEnd: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)')
+      .refine(isValidDate, {
+        message: 'periodEnd is not a valid calendar date',
+      }),
+    templateId: z.string().uuid().optional(),
+  })
+  .refine((data) => data.periodStart <= data.periodEnd, {
+    message: 'periodStart must be <= periodEnd',
+    path: ['periodStart'],
+  })
+  .refine(
+    (data) => {
+      const start = new Date(`${data.periodStart}T00:00:00Z`);
+      const end = new Date(`${data.periodEnd}T00:00:00Z`);
+      const diffDays = Math.round(
+        (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+      );
+      return diffDays <= 31;
+    },
+    { message: 'Date range must not exceed 31 days', path: ['periodEnd'] },
+  );
+export type GenerateWeeklyReportInput = z.infer<
+  typeof generateWeeklyReportSchema
+>;
 
 export const weeklyReportSchema = z.object({
   id: z.string().uuid(),
@@ -162,7 +200,9 @@ export type ReportListItem = z.infer<typeof reportListItemSchema>;
 export const deleteReportTemplateSchema = z.object({
   id: z.string().uuid(),
 });
-export type DeleteReportTemplateInput = z.infer<typeof deleteReportTemplateSchema>;
+export type DeleteReportTemplateInput = z.infer<
+  typeof deleteReportTemplateSchema
+>;
 
 export const templateListItemSchema = z.object({
   id: z.string().uuid(),

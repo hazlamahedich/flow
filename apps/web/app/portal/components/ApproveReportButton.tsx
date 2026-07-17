@@ -14,7 +14,10 @@ interface ApproveReportButtonProps {
   reportId: string;
 }
 
-export function ApproveReportButton({ portalCtx, reportId }: ApproveReportButtonProps) {
+export function ApproveReportButton({
+  portalCtx,
+  reportId,
+}: ApproveReportButtonProps) {
   const [state, formAction, isPending] = useActionState(
     async () => approveReportAction(portalCtx, { reportId }),
     null,
@@ -35,9 +38,15 @@ export function ApproveReportButton({ portalCtx, reportId }: ApproveReportButton
         {isPending ? 'Approving...' : success ? 'Approved!' : 'Approve Report'}
       </button>
       {success && (
-        <p className="text-sm text-[var(--flow-text-muted)]">Thanks — your report is approved.</p>
+        <p className="text-sm text-[var(--flow-text-muted)]">
+          Thanks — your report is approved.
+        </p>
       )}
-      {errorMsg && <p className="mt-2 text-sm text-red-600" role="alert">{errorMsg}</p>}
+      {errorMsg && (
+        <p className="mt-2 text-sm text-red-600" role="alert">
+          {errorMsg}
+        </p>
+      )}
     </form>
   );
 }

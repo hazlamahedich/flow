@@ -22,7 +22,11 @@ function flushQueue(setAnnouncement: (v: TrustAnnouncement | null) => void) {
   setAnnouncement(next);
   setTimeout(() => {
     setAnnouncement(null);
-    requestAnimationFrame(() => flushQueue(setAnnouncement));
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => flushQueue(setAnnouncement));
+    } else {
+      flushQueue(setAnnouncement);
+    }
   }, 150);
 }
 
@@ -42,18 +46,10 @@ export function TrustAnnouncerRegion() {
 
   return (
     <>
-      <div
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
         {announcement?.priority === 'polite' ? announcement.message : ''}
       </div>
-      <div
-        aria-live="assertive"
-        aria-atomic="true"
-        className="sr-only"
-      >
+      <div aria-live="assertive" aria-atomic="true" className="sr-only">
         {announcement?.priority === 'assertive' ? announcement.message : ''}
       </div>
     </>

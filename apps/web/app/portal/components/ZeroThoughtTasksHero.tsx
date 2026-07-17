@@ -63,7 +63,11 @@ export function ZeroThoughtTasksHero({
       } else {
         if (previousWeekCount !== undefined && count > previousWeekCount) {
           setState('trending');
-        } else if (yesterdayCount !== undefined && count === yesterdayCount && count > 0) {
+        } else if (
+          yesterdayCount !== undefined &&
+          count === yesterdayCount &&
+          count > 0
+        ) {
           setState('stillness');
         } else {
           setState('static');
@@ -98,11 +102,16 @@ export function ZeroThoughtTasksHero({
     );
   }
 
-  const trendArrow = state === 'trending' && previousWeekCount !== undefined && count > previousWeekCount;
+  const trendArrow =
+    state === 'trending' &&
+    previousWeekCount !== undefined &&
+    count > previousWeekCount;
 
   return (
     <div className="p-6 rounded-xl border border-[var(--flow-border-default)]">
-      <p className="text-sm text-[var(--flow-text-muted)] mb-1">Zero-thought tasks this week</p>
+      <p className="text-sm text-[var(--flow-text-muted)] mb-1">
+        Zero-thought tasks this week
+      </p>
       <div className="flex items-baseline gap-2">
         <span
           className="text-4xl font-bold"

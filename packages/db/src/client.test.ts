@@ -24,16 +24,16 @@ describe('createServerClient', () => {
 
   it('throws when NEXT_PUBLIC_SUPABASE_URL is missing', () => {
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', '');
-    expect(() => createServerClient({ getAll: () => [], set: vi.fn() })).toThrow(
-      'NEXT_PUBLIC_SUPABASE_URL is not set',
-    );
+    expect(() =>
+      createServerClient({ getAll: () => [], set: vi.fn() }),
+    ).toThrow('NEXT_PUBLIC_SUPABASE_URL is not set');
   });
 
   it('throws when NEXT_PUBLIC_SUPABASE_ANON_KEY is missing', () => {
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', '');
-    expect(() => createServerClient({ getAll: () => [], set: vi.fn() })).toThrow(
-      'NEXT_PUBLIC_SUPABASE_ANON_KEY is not set',
-    );
+    expect(() =>
+      createServerClient({ getAll: () => [], set: vi.fn() }),
+    ).toThrow('NEXT_PUBLIC_SUPABASE_ANON_KEY is not set');
   });
 });
 

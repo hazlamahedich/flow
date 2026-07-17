@@ -39,7 +39,10 @@ describe('isFloodState', () => {
     const result = await isFloodState(workspaceId);
     expect(result).toBe(true);
     expect(mockSupabase.from).toHaveBeenCalledWith('emails');
-    expect(mockSupabase.in).toHaveBeenCalledWith('category', ['urgent', 'action']);
+    expect(mockSupabase.in).toHaveBeenCalledWith('category', [
+      'urgent',
+      'action',
+    ]);
   });
 
   it('returns true when email count is well above threshold', async () => {
@@ -57,7 +60,10 @@ describe('isFloodState', () => {
   });
 
   it('throws when supabase returns error', async () => {
-    mockSupabase.gte.mockResolvedValueOnce({ count: null, error: new Error('DB Error') });
+    mockSupabase.gte.mockResolvedValueOnce({
+      count: null,
+      error: new Error('DB Error'),
+    });
 
     await expect(isFloodState(workspaceId)).rejects.toThrow('DB Error');
   });

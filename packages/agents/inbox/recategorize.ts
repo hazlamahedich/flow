@@ -11,7 +11,7 @@ export async function handleRecategorization(
   oldCategory: EmailCategory,
   newCategory: EmailCategory,
   userId: string,
-  boss?: PgBoss
+  boss?: PgBoss,
 ) {
   const supabase = createServiceClient();
 
@@ -25,14 +25,16 @@ export async function handleRecategorization(
   if (!emailInfo) throw new Error(`Email not found: ${emailId}`);
 
   // 1. Log to recategorization_log
-  const { error: logError } = await supabase.from('recategorization_log').insert({
-    email_id: emailId,
-    workspace_id: workspaceId,
-    client_inbox_id: emailInfo.client_inbox_id,
-    old_category: oldCategory,
-    new_category: newCategory,
-    user_id: userId,
-  });
+  const { error: logError } = await supabase
+    .from('recategorization_log')
+    .insert({
+      email_id: emailId,
+      workspace_id: workspaceId,
+      client_inbox_id: emailInfo.client_inbox_id,
+      old_category: oldCategory,
+      new_category: newCategory,
+      user_id: userId,
+    });
 
   if (logError) throw logError;
 
@@ -75,8 +77,12 @@ export async function handleRecategorization(
 
       await transitionState(emailId, workspaceId, 'extraction_pending');
     } else {
-      console.error(`[inbox] PgBoss not available during recategorization — extraction job NOT enqueued for email ${emailId}.`);
-      throw new Error('PgBoss unavailable for recategorization pipeline activation');
+      console.error(
+        `[inbox] PgBoss not available during recategorization — extraction job NOT enqueued for email ${emailId}.`,
+      );
+      throw new Error(
+        'PgBoss unavailable for recategorization pipeline activation',
+      );
     }
   }
 

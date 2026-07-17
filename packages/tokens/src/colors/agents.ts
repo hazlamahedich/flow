@@ -7,7 +7,13 @@ export const agentColors = {
   '--flow-agent-time': 'hsl(192 80% 55%)',
 } as const;
 
-export type AgentName = 'inbox' | 'calendar' | 'ar' | 'report' | 'health' | 'time';
+export type AgentName =
+  | 'inbox'
+  | 'calendar'
+  | 'ar'
+  | 'report'
+  | 'health'
+  | 'time';
 
 export const agentNames: readonly AgentName[] = [
   'inbox',

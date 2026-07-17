@@ -38,8 +38,12 @@ const VALID_PAYLOAD = {
 
 function makeDecision(overrides: Partial<TrustDecision> = {}): TrustDecision {
   return {
-    allowed: true, level: 'auto', reason: 'Trust check passed',
-    snapshotId: 'snap-001', preconditionsPassed: true, ...overrides,
+    allowed: true,
+    level: 'auto',
+    reason: 'Trust check passed',
+    snapshotId: 'snap-001',
+    preconditionsPassed: true,
+    ...overrides,
   };
 }
 
@@ -56,30 +60,46 @@ function makeTrustClient(decision: TrustDecision): TrustClient {
 
 function createFakeBoss() {
   return {
-    fetch: vi.fn(), complete: vi.fn(async () => ({ status: 1 })),
-    fail: vi.fn(async () => ({ status: 1 })), cancel: vi.fn(),
-    getJobById: vi.fn(), start: vi.fn(async () => undefined),
-    stop: vi.fn(async () => undefined), on: vi.fn(),
+    fetch: vi.fn(),
+    complete: vi.fn(async () => ({ status: 1 })),
+    fail: vi.fn(async () => ({ status: 1 })),
+    cancel: vi.fn(),
+    getJobById: vi.fn(),
+    start: vi.fn(async () => undefined),
+    stop: vi.fn(async () => undefined),
+    on: vi.fn(),
   };
 }
 
 describe('Gate signal persistence', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('pre-check failure signal written via writeGateSignal', async () => {
-    const tc = makeTrustClient(makeDecision({
-      allowed: false, preconditionsPassed: false, failedPreconditionKey: 'email',
-    }));
+    const tc = makeTrustClient(
+      makeDecision({
+        allowed: false,
+        preconditionsPassed: false,
+        failedPreconditionKey: 'email',
+      }),
+    );
     const fakeBoss = createFakeBoss();
     const worker = new PgBossWorker(
-      fakeBoss as unknown as import('pg-boss').PgBoss, () => undefined, tc, undefined,
+      fakeBoss as unknown as import('pg-boss').PgBoss,
+      () => undefined,
+      tc,
+      undefined,
     );
     const db = await import('@flow/db');
     fakeBoss.fetch.mockResolvedValue([{ id: 'job-1', data: VALID_PAYLOAD }]);
     (db.claimRunWithGuard as ReturnType<typeof vi.fn>).mockResolvedValue(true);
     (db.getRunById as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: VALID_PAYLOAD.runId, agent_id: 'inbox', job_id: 'job-1',
-      workspace_id: VALID_PAYLOAD.workspaceId, action_type: 'execute',
+      id: VALID_PAYLOAD.runId,
+      agent_id: 'inbox',
+      job_id: 'job-1',
+      workspace_id: VALID_PAYLOAD.workspaceId,
+      action_type: 'execute',
     });
     (db.updateRunStatus as ReturnType<typeof vi.fn>).mockResolvedValue({});
 
@@ -98,14 +118,21 @@ describe('Gate signal persistence', () => {
     registry.register('inbox', 'execute', z.object({ result: z.string() }));
     const fakeBoss = createFakeBoss();
     const worker = new PgBossWorker(
-      fakeBoss as unknown as import('pg-boss').PgBoss, () => undefined, tc, registry,
+      fakeBoss as unknown as import('pg-boss').PgBoss,
+      () => undefined,
+      tc,
+      registry,
     );
     const db = await import('@flow/db');
     fakeBoss.fetch.mockResolvedValue([{ id: 'job-1', data: VALID_PAYLOAD }]);
     (db.claimRunWithGuard as ReturnType<typeof vi.fn>).mockResolvedValue(true);
     (db.getRunById as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: 'run-1', agent_id: 'inbox', job_id: 'job-1', workspace_id: 'ws-1',
-      action_type: 'execute', trust_snapshot_id: 'snap-001',
+      id: 'run-1',
+      agent_id: 'inbox',
+      job_id: 'job-1',
+      workspace_id: 'ws-1',
+      action_type: 'execute',
+      trust_snapshot_id: 'snap-001',
     });
     (db.updateRunStatus as ReturnType<typeof vi.fn>).mockResolvedValue({});
 
@@ -120,12 +147,19 @@ describe('Gate signal persistence', () => {
   });
 
   it('signal payload contains required fields', async () => {
-    const tc = makeTrustClient(makeDecision({
-      allowed: false, preconditionsPassed: false, failedPreconditionKey: 'test',
-    }));
+    const tc = makeTrustClient(
+      makeDecision({
+        allowed: false,
+        preconditionsPassed: false,
+        failedPreconditionKey: 'test',
+      }),
+    );
     const fakeBoss = createFakeBoss();
     const worker = new PgBossWorker(
-      fakeBoss as unknown as import('pg-boss').PgBoss, () => undefined, tc, undefined,
+      fakeBoss as unknown as import('pg-boss').PgBoss,
+      () => undefined,
+      tc,
+      undefined,
     );
     const db = await import('@flow/db');
     fakeBoss.fetch.mockResolvedValue([{ id: 'job-1', data: VALID_PAYLOAD }]);
@@ -134,7 +168,8 @@ describe('Gate signal persistence', () => {
 
     await worker.claim('inbox');
     const { writeGateSignal } = await import('../orchestrator/gate-events');
-    const event = (writeGateSignal as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
+    const event = (writeGateSignal as ReturnType<typeof vi.fn>).mock
+      .calls[0]?.[0];
     expect(event).toHaveProperty('agentId');
     expect(event).toHaveProperty('actionType');
     expect(event).toHaveProperty('runId');
@@ -145,7 +180,10 @@ describe('Gate signal persistence', () => {
     const tc = makeTrustClient(makeDecision({ snapshotId: 'snap-abc' }));
     const fakeBoss = createFakeBoss();
     const worker = new PgBossWorker(
-      fakeBoss as unknown as import('pg-boss').PgBoss, () => undefined, tc, undefined,
+      fakeBoss as unknown as import('pg-boss').PgBoss,
+      () => undefined,
+      tc,
+      undefined,
     );
     const db = await import('@flow/db');
     fakeBoss.fetch.mockResolvedValue([{ id: 'job-1', data: VALID_PAYLOAD }]);
@@ -166,14 +204,21 @@ describe('Gate signal persistence', () => {
     registry.register('inbox', 'execute', z.object({ result: z.string() }));
     const fakeBoss = createFakeBoss();
     const worker = new PgBossWorker(
-      fakeBoss as unknown as import('pg-boss').PgBoss, () => undefined, tc, registry,
+      fakeBoss as unknown as import('pg-boss').PgBoss,
+      () => undefined,
+      tc,
+      registry,
     );
     const db = await import('@flow/db');
     fakeBoss.fetch.mockResolvedValue([{ id: 'job-1', data: VALID_PAYLOAD }]);
     (db.claimRunWithGuard as ReturnType<typeof vi.fn>).mockResolvedValue(true);
     (db.getRunById as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: 'run-1', agent_id: 'inbox', job_id: 'job-1', workspace_id: 'ws-1',
-      action_type: 'execute', trust_snapshot_id: 'snap-from-db',
+      id: 'run-1',
+      agent_id: 'inbox',
+      job_id: 'job-1',
+      workspace_id: 'ws-1',
+      action_type: 'execute',
+      trust_snapshot_id: 'snap-from-db',
     });
     (db.updateRunStatus as ReturnType<typeof vi.fn>).mockResolvedValue({});
 

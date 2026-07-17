@@ -1,6 +1,10 @@
 'use server';
 
-import { requireTenantContext, createServiceClient, createFlowError } from '@flow/db';
+import {
+  requireTenantContext,
+  createServiceClient,
+  createFlowError,
+} from '@flow/db';
 import { revalidateTag } from 'next/cache';
 import type { ActionResult } from '@flow/types';
 import { z } from 'zod';
@@ -16,7 +20,11 @@ async function getTenantContext() {
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   const userClient = createServerClient({
-    getAll: () => cookieStore.getAll().map((c: { name: string; value: string }) => ({ name: c.name, value: c.value })),
+    getAll: () =>
+      cookieStore.getAll().map((c: { name: string; value: string }) => ({
+        name: c.name,
+        value: c.value,
+      })),
     set: () => {},
   });
   const ctx = await requireTenantContext(userClient);
@@ -35,7 +43,12 @@ export async function dismissIntegritySignal(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', parsed.error.issues[0]?.message ?? 'Invalid input', 'validation'),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        parsed.error.issues[0]?.message ?? 'Invalid input',
+        'validation',
+      ),
     };
   }
 
@@ -61,7 +74,12 @@ export async function dismissIntegritySignal(
   if (count === 0) {
     return {
       success: false,
-      error: createFlowError(404, 'NOT_FOUND', 'Signal not found, already dismissed, or not in your workspace', 'validation'),
+      error: createFlowError(
+        404,
+        'NOT_FOUND',
+        'Signal not found, already dismissed, or not in your workspace',
+        'validation',
+      ),
     };
   }
 
@@ -80,7 +98,10 @@ export async function dismissIntegritySignal(
 
     if (runError) {
       // Non-fatal: signal is dismissed; run cancellation failure leaves run in waiting_approval
-      console.error('[dismissIntegritySignal] failed to cancel agent_run:', runError.message);
+      console.error(
+        '[dismissIntegritySignal] failed to cancel agent_run:',
+        runError.message,
+      );
     }
   }
 
@@ -101,12 +122,16 @@ export interface IntegritySignalRow {
 
 // P3: use authenticated user client for reads — goes through RLS SELECT policy
 // P9: return ActionResult instead of throwing raw Supabase errors
-export async function getPendingIntegritySignals(): Promise<ActionResult<IntegritySignalRow[]>> {
+export async function getPendingIntegritySignals(): Promise<
+  ActionResult<IntegritySignalRow[]>
+> {
   const { workspaceId, userClient } = await getTenantContext();
 
   const { data, error } = await userClient
     .from('time_integrity_signals')
-    .select('id, sweep_date, anomaly_type, affected_entry_ids, payload, resolved_at, dismissed_at, created_at')
+    .select(
+      'id, sweep_date, anomaly_type, affected_entry_ids, payload, resolved_at, dismissed_at, created_at',
+    )
     .eq('workspace_id', workspaceId)
     .is('dismissed_at', null)
     .is('resolved_at', null)
@@ -114,7 +139,10 @@ export async function getPendingIntegritySignals(): Promise<ActionResult<Integri
     .limit(50);
 
   if (error) {
-    return { success: false, error: createFlowError(500, 'INTERNAL_ERROR', error.message, 'system') };
+    return {
+      success: false,
+      error: createFlowError(500, 'INTERNAL_ERROR', error.message, 'system'),
+    };
   }
 
   return {

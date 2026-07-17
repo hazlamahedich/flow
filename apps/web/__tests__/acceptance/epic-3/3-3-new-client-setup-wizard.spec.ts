@@ -29,7 +29,11 @@ describe('Story 3.3: New Client Setup Wizard', () => {
 
     test('[P0] [3.3-UNIT-003] should include billing and notes fields', () => {
       // Given: expected billing fields
-      const billingFields = ['billing_email', 'hourly_rate_cents', 'address'] as const;
+      const billingFields = [
+        'billing_email',
+        'hourly_rate_cents',
+        'address',
+      ] as const;
       // Then: billing email and rate are present
       expect(billingFields).toContain('billing_email');
       expect(billingFields).toContain('hourly_rate_cents');
@@ -37,25 +41,29 @@ describe('Story 3.3: New Client Setup Wizard', () => {
 
     test('[P0] [3.3-UNIT-004] should validate contact step fields against createClientSchema', () => {
       // Given: contact-only data via factory
-      const contactOnly = createClientSchema.safeParse(createTestClient({
-        name: 'Acme Corp',
-        email: 'contact@acme.com',
-        phone: '+1-555-0100',
-        companyName: 'Acme Inc',
-      }));
+      const contactOnly = createClientSchema.safeParse(
+        createTestClient({
+          name: 'Acme Corp',
+          email: 'contact@acme.com',
+          phone: '+1-555-0100',
+          companyName: 'Acme Inc',
+        }),
+      );
       // Then: schema accepts it
       expect(contactOnly.success).toBe(true);
     });
 
     test('[P0] [3.3-UNIT-005] should validate billing step fields against createClientSchema', () => {
       // Given: billing-only data via factory
-      const billingOnly = createClientSchema.safeParse(createTestClient({
-        name: 'Acme Corp',
-        billingEmail: 'billing@acme.com',
-        hourlyRateCents: 7500,
-        address: '123 Main St',
-        notes: 'VIP client',
-      }));
+      const billingOnly = createClientSchema.safeParse(
+        createTestClient({
+          name: 'Acme Corp',
+          billingEmail: 'billing@acme.com',
+          hourlyRateCents: 7500,
+          address: '123 Main St',
+          notes: 'VIP client',
+        }),
+      );
       // Then: schema accepts it
       expect(billingOnly.success).toBe(true);
     });
@@ -151,16 +159,18 @@ describe('Story 3.3: New Client Setup Wizard', () => {
     });
     test('[P0] [3.3-UNIT-014] should validate full wizard payload against createClientSchema', () => {
       // Given: a complete wizard payload via factory
-      const fullPayload = createClientSchema.safeParse(createTestClient({
-        name: 'Wizard Client',
-        email: 'wiz@test.com',
-        phone: '+1-555-0199',
-        companyName: 'Wizard Corp',
-        billingEmail: 'billing@wizard.com',
-        hourlyRateCents: 10000,
-        address: '456 Wizard Lane',
-        notes: 'Created via wizard',
-      }));
+      const fullPayload = createClientSchema.safeParse(
+        createTestClient({
+          name: 'Wizard Client',
+          email: 'wiz@test.com',
+          phone: '+1-555-0199',
+          companyName: 'Wizard Corp',
+          billingEmail: 'billing@wizard.com',
+          hourlyRateCents: 10000,
+          address: '456 Wizard Lane',
+          notes: 'Created via wizard',
+        }),
+      );
       // Then: schema accepts it
       expect(fullPayload.success).toBe(true);
       if (fullPayload.success) {
@@ -182,26 +192,32 @@ describe('Story 3.3: New Client Setup Wizard', () => {
     });
     test('[P0] [3.3-UNIT-016] should reject wizard payload with empty name via Zod', () => {
       // Given: a payload with empty name
-      const result = createClientSchema.safeParse(createTestClient({
-        name: '',
-        email: 'test@test.com',
-      }));
+      const result = createClientSchema.safeParse(
+        createTestClient({
+          name: '',
+          email: 'test@test.com',
+        }),
+      );
       expect(result.success).toBe(false);
     });
     test('[P0] [3.3-UNIT-017] should reject wizard payload with invalid email via Zod', () => {
       // Given: a payload with invalid email
-      const result = createClientSchema.safeParse(createTestClient({
-        name: 'Test Client',
-        email: 'not-an-email',
-      }));
+      const result = createClientSchema.safeParse(
+        createTestClient({
+          name: 'Test Client',
+          email: 'not-an-email',
+        }),
+      );
       expect(result.success).toBe(false);
     });
     test('[P0] [3.3-UNIT-018] should reject wizard payload with negative hourly rate via Zod', () => {
       // Given: a payload with negative hourly rate
-      const result = createClientSchema.safeParse(createTestClient({
-        name: 'Test Client',
-        hourlyRateCents: -500,
-      }));
+      const result = createClientSchema.safeParse(
+        createTestClient({
+          name: 'Test Client',
+          hourlyRateCents: -500,
+        }),
+      );
       expect(result.success).toBe(false);
     });
     test.skip('[P0] [3.3-INT-001] should create client with all wizard data on final submission', () => {
@@ -226,7 +242,8 @@ describe('Story 3.3: New Client Setup Wizard', () => {
       // Given: a contact step validator
       const validateContactStep = (data: { name: string }) => {
         const errors: string[] = [];
-        if (!data.name || data.name.trim().length === 0) errors.push('name_required');
+        if (!data.name || data.name.trim().length === 0)
+          errors.push('name_required');
         return { valid: errors.length === 0, errors };
       };
 
@@ -239,11 +256,15 @@ describe('Story 3.3: New Client Setup Wizard', () => {
 
     test('[P0] [3.3-UNIT-020] should validate contact step against createClientSchema', () => {
       // Given: valid and invalid contact data
-      const validContact = createClientSchema.safeParse(createTestClient({ name: 'Valid Name' }));
+      const validContact = createClientSchema.safeParse(
+        createTestClient({ name: 'Valid Name' }),
+      );
       expect(validContact.success).toBe(true);
 
       // When: name is empty
-      const invalidContact = createClientSchema.safeParse(createTestClient({ name: '' }));
+      const invalidContact = createClientSchema.safeParse(
+        createTestClient({ name: '' }),
+      );
       expect(invalidContact.success).toBe(false);
     });
 

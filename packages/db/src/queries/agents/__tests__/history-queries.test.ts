@@ -1,9 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockRange = vi.fn(() => Promise.resolve({ data: [], count: 0, error: null }));
+const mockRange = vi.fn(() =>
+  Promise.resolve({ data: [], count: 0, error: null }),
+);
 const mockLimit = vi.fn(() => Promise.resolve({ data: [], error: null }));
-const mockSingle = vi.fn(() => Promise.resolve({ data: null, error: { code: 'PGRST116' } }));
-const mockMaybeSingle = vi.fn(() => Promise.resolve({ data: null, error: null }));
+const mockSingle = vi.fn(() =>
+  Promise.resolve({ data: null, error: { code: 'PGRST116' } }),
+);
+const mockMaybeSingle = vi.fn(() =>
+  Promise.resolve({ data: null, error: null }),
+);
 const mockRpc = vi.fn(() => Promise.resolve({ data: [], error: null }));
 
 const chain = {
@@ -29,7 +35,13 @@ vi.mock('../../../client', () => ({
   })),
 }));
 
-import { getActionHistory, getCoordinationGroups, getRunDetail, getRecentActivity, getCorrectionChain } from '../history-queries';
+import {
+  getActionHistory,
+  getCoordinationGroups,
+  getRunDetail,
+  getRecentActivity,
+  getCorrectionChain,
+} from '../history-queries';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -57,7 +69,10 @@ describe('getActionHistory', () => {
   });
 
   it('passes date range filters', async () => {
-    await getActionHistory('ws1', 'u1', { dateFrom: '2025-01-01', dateTo: '2025-12-31' });
+    await getActionHistory('ws1', 'u1', {
+      dateFrom: '2025-01-01',
+      dateTo: '2025-12-31',
+    });
     expect(mockFrom).toHaveBeenCalled();
   });
 
@@ -136,7 +151,10 @@ describe('getCorrectionChain', () => {
   });
 
   it('falls back on RPC error', async () => {
-    mockRpc.mockResolvedValueOnce({ data: null as unknown as never[], error: { message: 'not found' } as unknown as null });
+    mockRpc.mockResolvedValueOnce({
+      data: null as unknown as never[],
+      error: { message: 'not found' } as unknown as null,
+    });
     const result = await getCorrectionChain('r1', 'ws1');
     expect(result).toBeDefined();
   });

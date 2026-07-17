@@ -19,9 +19,15 @@ export async function updateRetainerAction(
   if (!parsed.success) {
     return {
       success: false,
-      error: createFlowError(400, 'VALIDATION_ERROR', 'Invalid update data.', 'validation', {
-        issues: parsed.error.issues,
-      }),
+      error: createFlowError(
+        400,
+        'VALIDATION_ERROR',
+        'Invalid update data.',
+        'validation',
+        {
+          issues: parsed.error.issues,
+        },
+      ),
     };
   }
 
@@ -31,7 +37,12 @@ export async function updateRetainerAction(
   if (ctx.role !== 'owner' && ctx.role !== 'admin') {
     return {
       success: false,
-      error: createFlowError(403, 'INSUFFICIENT_ROLE', 'Only owners and admins can update retainers.', 'auth'),
+      error: createFlowError(
+        403,
+        'INSUFFICIENT_ROLE',
+        'Only owners and admins can update retainers.',
+        'auth',
+      ),
     };
   }
 
@@ -43,11 +54,27 @@ export async function updateRetainerAction(
   });
 
   if (!existing) {
-    return { success: false, error: createFlowError(404, 'RETAINER_NOT_FOUND', 'Retainer not found.', 'validation') };
+    return {
+      success: false,
+      error: createFlowError(
+        404,
+        'RETAINER_NOT_FOUND',
+        'Retainer not found.',
+        'validation',
+      ),
+    };
   }
 
   if (existing.status !== 'active') {
-    return { success: false, error: createFlowError(400, 'RETAINER_NOT_ACTIVE', 'Only active retainers can be edited.', 'validation') };
+    return {
+      success: false,
+      error: createFlowError(
+        400,
+        'RETAINER_NOT_ACTIVE',
+        'Only active retainers can be edited.',
+        'validation',
+      ),
+    };
   }
 
   try {
@@ -66,12 +93,25 @@ export async function updateRetainerAction(
     if (typeof err === 'object' && err !== null && 'code' in err) {
       const pgErr = err as { code?: string; message?: string };
       if (pgErr.code === 'PGRQ116') {
-        return { success: false, error: createFlowError(409, 'RETAINER_NOT_ACTIVE', 'Retainer is no longer active — it may have been cancelled or expired.', 'validation') };
+        return {
+          success: false,
+          error: createFlowError(
+            409,
+            'RETAINER_NOT_ACTIVE',
+            'Retainer is no longer active — it may have been cancelled or expired.',
+            'validation',
+          ),
+        };
       }
     }
     return {
       success: false,
-      error: createFlowError(500, 'INTERNAL_ERROR', 'Failed to update retainer.', 'system'),
+      error: createFlowError(
+        500,
+        'INTERNAL_ERROR',
+        'Failed to update retainer.',
+        'system',
+      ),
     };
   }
 }

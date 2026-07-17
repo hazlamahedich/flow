@@ -1,7 +1,11 @@
 import { formatCentsToDollar } from '@flow/shared';
 
 function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 export interface EmailPayloadArgs {
@@ -32,8 +36,13 @@ export function buildSendInvoiceEmailPayload(args: EmailPayloadArgs) {
   };
 }
 
-export function plainLanguageError(stripeError?: boolean, resendError?: boolean): string {
-  if (stripeError) return "We couldn't connect to the payment processor — please try again.";
-  if (resendError) return "We couldn't send the email — check the client's email address.";
+export function plainLanguageError(
+  stripeError?: boolean,
+  resendError?: boolean,
+): string {
+  if (stripeError)
+    return "We couldn't connect to the payment processor — please try again.";
+  if (resendError)
+    return "We couldn't send the email — check the client's email address.";
   return 'Something went wrong — please copy the payment link and send it manually.';
 }

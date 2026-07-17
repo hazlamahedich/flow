@@ -63,9 +63,14 @@ export function EmailChangePendingBanner({
     >
       <p className="text-sm text-[var(--flow-color-text-primary)]">
         {expired ? (
-          <>Email change to <strong>{newEmail}</strong> has expired.</>
+          <>
+            Email change to <strong>{newEmail}</strong> has expired.
+          </>
         ) : (
-          <>Pending change to <strong>{newEmail}</strong> — check your inbox to verify.</>
+          <>
+            Pending change to <strong>{newEmail}</strong> — check your inbox to
+            verify.
+          </>
         )}
       </p>
       {!expired && (

@@ -5,7 +5,12 @@ export {
   clientHealthProposalSchema,
   overallHealthValues,
 } from './src/schemas';
-export type { ClientHealthInput, ClientHealthProposal, OverallHealth, HealthIndicators } from './src/schemas';
+export type {
+  ClientHealthInput,
+  ClientHealthProposal,
+  OverallHealth,
+  HealthIndicators,
+} from './src/schemas';
 export {
   computeEngagementScore,
   computePaymentScore,

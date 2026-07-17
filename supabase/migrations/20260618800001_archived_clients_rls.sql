@@ -35,7 +35,7 @@ CREATE POLICY rls_clients_owner_admin_update ON clients
   )
   WITH CHECK (
     workspace_id::text = auth.jwt()->>'workspace_id'
-    AND status = 'active'
+    AND status IN ('active', 'archived')
     AND EXISTS (
       SELECT 1 FROM workspace_members wm
       WHERE wm.workspace_id = clients.workspace_id
@@ -59,6 +59,7 @@ CREATE POLICY rls_clients_owner_admin_update ON clients
 --     FOR UPDATE TO authenticated
 --     USING (
 --       workspace_id::text = auth.jwt()->>'workspace_id'
+--       AND status = 'active'
 --       AND EXISTS (
 --         SELECT 1 FROM workspace_members wm
 --         WHERE wm.workspace_id = clients.workspace_id
