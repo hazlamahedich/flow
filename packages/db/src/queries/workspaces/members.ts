@@ -100,3 +100,31 @@ export async function countActiveTeamMembers(
   if (error) throw error;
   return count ?? 0;
 }
+
+/**
+ * Count **suspended** workspace_members for a workspace (Story 9.5c AC4 —
+ * FR57a). Used by the dual-placement `SuspendedMembersBanner` to decide
+ * whether to render.
+ *
+ * RLS note: the owner_all + admin_select policies gate SELECT on
+ * `status='active'` (migration `20260425080000`), so a user JWT querying
+ * suspended rows gets 0 even for owners. Callers that need the true count
+ * (the banner render path) must pass a `service_role` client
+ * (`createServiceClient`) — the banner is owner-facing compliance info, and
+ * service_role is the same pattern used by `getTierConfig` for app_config
+ * reads. User-JWT callers get 0 by construction; that's correct for
+ * member-facing paths (a suspended member shouldn't see other suspended
+ * members).
+ */
+export async function countSuspendedMembers(
+  client: SupabaseClient,
+  workspaceId: string,
+): Promise<number> {
+  const { count, error } = await client
+    .from('workspace_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('workspace_id', workspaceId)
+    .eq('status', 'suspended');
+  if (error) throw error;
+  return count ?? 0;
+}

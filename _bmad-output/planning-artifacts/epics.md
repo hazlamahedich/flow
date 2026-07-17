@@ -114,6 +114,7 @@ This document provides the complete epic and story breakdown for Flow OS, decomp
 - FR55: Workspace owner can view and change subscription tier at any time
 - FR56: System enforces tier limits with proactive notifications and one-click upgrade
 - FR57: Downgrade preserves excess data in read-only form
+- FR57a: Team-member suspension on Agency→Pro downgrade (suspend excess, owner confirms/overrides, reactivates on upgrade-back)
 - FR58: Workspace owner can manage payment methods and view billing history
 - FR59: Subscription lifecycle: Active → Past Due → Suspended → Deleted with reactivation
 - FR60: Agent jobs paused in Past Due/Suspended states, resume on reactivation
@@ -392,6 +393,7 @@ FR54: Epic 9 — Client portal strict data isolation
 FR55: Epic 9 — Subscription tier viewing and changing (Free/Pro/Agency)
 FR56: Epic 9 — Tier limit enforcement with proactive notifications
 FR57: Epic 9 — Downgrade data preservation (read-only for exceeding clients)
+FR57a: Epic 9 — Team-member suspension on Agency→Pro downgrade (suspend excess, owner confirms/overrides, reactivates on upgrade-back) — story 9-5c
 FR58: Epic 9 — Payment method management and billing history
 FR59: Epic 9 — Subscription lifecycle management (Active→Past Due→Suspended→Deleted)
 FR60: Epic 9 — Agent job pause on subscription suspension, resume on reactivation
@@ -493,7 +495,7 @@ Weekly client reports (time + tasks + agent activity), Weekly Report agent auto-
 
 ### Epic 9: Client Portal, Subscriptions & Billing
 Client portal (light theme, portal branding presets), invoice viewing + payment, report approval, strict data isolation, Stripe payment integration, subscription tiers (Free/Pro/Agency), tier limit enforcement, downgrade data preservation, billing history, subscription lifecycle (Active→Past Due→Suspended→Deleted), agent job pause on suspension, proration, recurring invoices (moved from Epic 7), idempotent webhook processing, 5% free-tier transaction fee notice, CSV client import (v1.1 placeholder), duplicate invoice dedup, client email notifications.
-**FRs covered:** FR8, FR15, FR37, FR39, FR42, FR44, FR51, FR52, FR53, FR54, FR55, FR56, FR57, FR58, FR59, FR60, FR61, FR62, FR82
+**FRs covered:** FR8, FR15, FR37, FR39, FR42, FR44, FR51, FR52, FR53, FR54, FR55, FR56, FR57, FR57a, FR58, FR59, FR60, FR61, FR62, FR82
 **UX-DRs covered:** UX-DR12, UX-DR26
 
 ### Epic 10: Onboarding, Polish & Launch Readiness

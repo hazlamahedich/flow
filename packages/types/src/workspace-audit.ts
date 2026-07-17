@@ -38,6 +38,20 @@ export type WorkspaceAuditEvent =
       timestamp: string;
     }
   | {
+      // Added 2026-07-17 (Story 9.5c AC2 — FR57a). Emitted when a member is
+      // suspended (status='suspended') by the Agency→Pro downgrade webhook.
+      type: 'member_suspended';
+      workspaceId: string;
+      memberId: string;
+      reason: string;
+      triggeredBy: string;
+      // Observable partial-failure contract (Murat P0-1): how many session
+      // invalidations were attempted vs confirmed.
+      sessionsAttempted: number;
+      sessionsConfirmed: number;
+      timestamp: string;
+    }
+  | {
       type: 'member_expired';
       workspaceId: string;
       memberId: string;

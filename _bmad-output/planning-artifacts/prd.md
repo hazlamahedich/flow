@@ -811,6 +811,10 @@ Cancelled → Deleted (30 days passed, hard delete with tiered GDPR schema)
 - **Member:** Client-scoped via junction table. Can create clients (assigned to them automatically), track time, use agent inbox, share portal — all within their assigned client set. Cannot configure agent settings, view team dashboard, or access billing.
 - **ClientUser (replaces "Guest"):** Portal-only role. Not a workspace member. Authenticated via magic-link scoped to `(workspace_id, client_id)`. Can view project status, approve/reject deliverables, view and pay invoices. No access to time entries, agent proposals, workspace settings, or other clients. Fundamentally different permission axis from workspace roles.
 
+**Role-priority policy (codified 2026-07-17, story 9-5c PD3):** When the system must select which members to preserve during a tier-driven downgrade (e.g. Agency→Pro, FR57a), the default suggestion preserves roles in this order: **owner > admin > member > client_user**, then `joined_at ASC` (longest-tenured first), final tiebreaker `user_id ASC` (deterministic). The owner may override any selection in-app; this order is the default suggestion only, never an auto-executioner.
+
+**Counting semantics (codified 2026-07-17, story 9-5c PD3):** The team-member limit counts all active `workspace_members` rows regardless of role, **including owners** (owners are never suspended — guaranteed by the role-priority order above). `client_user` rows are counted today for implementation simplicity but are semantically *not* workspace members (per the ClientUser definition above); excluding them from the count is tracked as tech debt (ticket TD-9-5c-01). The role-priority sort suspends `client_user` last, so they are protected by the algorithm regardless.
+
 **Client scoping — junction table:**
 
 ```sql
@@ -839,7 +843,7 @@ member_client_access(
 | Feature | Free | Pro ($29) | Agency ($59) |
 |---|---|---|---|
 | **Clients** | 2 | 15 | Unlimited |
-| **Team members** | Solo only | Solo only | Unlimited seats |
+| **Team members** | Solo only (1) | Up to 5 | Unlimited seats |
 | **Agents** | 1 (AR Collection, 3 proposals/week) | All 6, full | All 6, full |
 | **Time tracking** | Full | Full | Full |
 | **Invoicing** | Create/send + Stripe (5% transaction fee) | Create/send + Stripe (included) | Create/send + Stripe Connect marketplace |
@@ -852,7 +856,8 @@ member_client_access(
 
 **Pricing model:**
 - **Free tier includes Stripe with 5% transaction fee** — not a paywall on getting paid. VAs on Free tier can invoice and receive payments. The fee incentivizes upgrade without blocking revenue.
-- **Pro tier is "professional solo VA"** — 15 clients, all 6 agents, no transaction fees, portal included. Value prop is agent autonomy, not client count.
+- **Pro tier is "professional solo/small-team VA"** — 15 clients, up to 5 team members, all 6 agents, no transaction fees, portal included. Value prop is agent autonomy, not client count.
+  - *(Amended 2026-07-17, story 9-5c PD1: original "solo VA" wording predated migration `20260618000003`, which set `pro.maxTeamMembers = 5` per FR55 tier-progression — at 1, Pro == Free for team seats, forcing an instant Pro→Agency upgrade on any 2nd member invite. The runtime limit is sourced from `getTierConfig().tierLimits.pro.maxTeamMembers`.)*
 - **Agency at $59 is the revenue engine** — unlimited clients, unlimited team, full features, Stripe Connect. Margin target: 75%+ gross at this tier.
 - **Agency+ ($79) deferred to Phase 2** — white-label, custom domain, read-write API, Stripe Connect marketplace.
 - **Tier boundaries are client-count and team-size driven, not feature-gated** for core workflows (time tracking, invoicing, agents). Every tier can do the core job. Higher tiers remove friction and add scale.
@@ -861,9 +866,9 @@ member_client_access(
 - Free → Pro: instant unlock on payment. All data preserved. Agents introduce themselves.
 - Pro → Agency: instant on team member invite. Prorated billing.
 - Agency+ activation: deferred to Phase 2. Instant on feature activation.
-- Downgrade: prorated credit. If downgrading below current usage, user must remove excess resources or confirm data archival:
-   - Pro→Free: clients beyond 2 become read-only (not deleted). User selects which 2 remain active.
-   - Agency→Pro: team members beyond Solo limit must be removed first. No data loss.
+- Downgrade: prorated credit. If downgrading below current usage, the system preserves excess resources read-only (never deleted); the owner chooses what to keep active:
+   - Pro→Free: clients beyond 2 become read-only (not deleted). User selects which 2 remain active (FR57).
+   - Agency→Pro: team members beyond the Pro limit (5) are **suspended** (not removed) — read-only, no seat consumption — and the owner is notified and must confirm or override the suggested selection in-app. No data is lost; suspended members can be reactivated on upgrade-back (FR57a).
 - Payment failure: Active → Past Due (7 days) → Suspended (read-only) → Deleted (30 days). Export available at any point before deletion.
 
 ### Integration List
@@ -1052,7 +1057,7 @@ audit_log(
 **Plan transitions:**
 - Free → Pro: instant unlock, data preserved, agents introduce themselves
 - Pro → Agency: instant on team member invite, prorated billing
-- Downgrade: prorated credit. Pro→Free: clients beyond 2 become read-only (not deleted). Agency→Pro: remove excess team members first.
+- Downgrade: prorated credit. Pro→Free: clients beyond 2 become read-only (not deleted). Agency→Pro: excess team members are suspended (not removed), owner notified and confirms/overrides selection in-app (FR57a).
 - Payment failure: Active → Past Due (7 days) → Suspended (read-only) → Deleted (30 days)
 
 ### Post-MVP Features
@@ -1269,6 +1274,7 @@ audit_log(
 - FR55: Workspace owner can view and change their subscription tier (Free, Pro, Agency) at any time
 - FR56: The system enforces tier limits (client count, agent count) and proactively notifies the user as they approach limits, with a one-click upgrade path — existing data is always preserved and accessible, but new resource creation is blocked until the user upgrades or frees capacity
 - FR57: When a user downgrades to a lower tier, the system preserves all existing data in read-only form for clients exceeding the new tier limit, and the user chooses which clients to keep active within the new limit
+- FR57a: When a workspace downgrades from Agency to Pro and exceeds the team-member limit, the system **suspends** excess members — they lose API/session access but consume no seat and no data is deleted — and notifies the owner, who must confirm or override the suggested selection in-app before any member is removed. Suspended members are reactivated automatically when the workspace upgrades back. No member is ever silently removed.
 - FR58: Workspace owner can manage payment methods and view billing history
 - FR59: The system manages subscription state transitions through a defined lifecycle: Active → Past Due (7-day grace) → Suspended (read-only, 30 days) → Deleted, with reactivation available at any point before deletion
 - FR60: When a subscription enters Past Due or Suspended state, scheduled agent jobs are paused and the user is notified — agents resume automatically upon reactivation

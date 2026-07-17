@@ -20,10 +20,12 @@ import { getServerSupabase } from '@/lib/supabase-server';
 import {
   requireTenantContext,
   createFlowError,
+  createServiceClient,
   countActiveClients,
   countArchivedClients,
   getLatestArchivedAt,
   countActiveTeamMembers,
+  countSuspendedMembers,
   countActiveAgents,
 } from '@flow/db';
 import type { ActionResult, SubscriptionTier } from '@flow/types';
@@ -47,6 +49,8 @@ import { BillingHistory } from './components/BillingHistory';
 import { SyncBanner } from './components/SyncBanner';
 import { UsageMeter } from './components/UsageMeter';
 import { DowngradeBanner } from './components/DowngradeBanner';
+import { AgencyDowngradeHeadsup } from './components/AgencyDowngradeHeadsup';
+import { SuspendedMembersBanner } from './components/SuspendedMembersBanner';
 
 export const metadata: Metadata = {
   title: 'Billing',
@@ -82,6 +86,10 @@ interface PageData {
   usage: { clients: number; teamMembers: number; agents: number };
   archived: { count: number; latestArchivedAt: string | null };
   tierLimits: TierLimit;
+  /** Pro plan team-member limit, for the Agency→Pro downgrade heads-up (9-5c). */
+  proTeamMemberLimit: number;
+  /** Count of suspended team members (status='suspended') — for the AC4 banner. Read via service_role. */
+  suspendedMembersCount: number;
 }
 
 async function loadPageData(
@@ -108,18 +116,23 @@ async function loadPageData(
 
   let planDisplayPrices: PageData['planDisplayPrices'];
   let tierLimits: TierLimit;
+  let proTeamMemberLimit: number;
   try {
     const tierConfig = await getTierConfig();
     planDisplayPrices = tierConfig.planDisplayPrices;
     tierLimits = await getTierLimits(
       workspace.subscription_tier as SubscriptionTier,
     );
+    // 9-5c AC1: Pro team-member limit for the downgrade heads-up. Sourced from
+    // config (PD1 = 5), never hardcoded. Defensive fallback to 5 if null.
+    proTeamMemberLimit = tierConfig.tierLimits.pro.maxTeamMembers ?? 5;
   } catch {
     planDisplayPrices = {
       pro: { label: '$29 / month', interval: 'month' },
       agency: { label: '$99 / month', interval: 'month' },
     };
     tierLimits = { maxClients: 5, maxTeamMembers: 1, maxAgents: 2 };
+    proTeamMemberLimit = 5;
   }
 
   // Usage counts use the same RLS-safe helpers consumed by enforceTierLimit
@@ -134,6 +147,15 @@ async function loadPageData(
       countActiveAgents(supabase, workspaceId).catch(() => 0),
     ]);
 
+  // 9-5c AC4 — suspended-member count for the dual-placement banner. Read via
+  // service_role because the owner_all + admin_select RLS policies gate SELECT
+  // on status='active' (a user JWT returns 0 even for owners). service_role is
+  // the same pattern used by getTierConfig for app_config reads.
+  const suspendedMembersCount = await countSuspendedMembers(
+    createServiceClient(),
+    workspaceId,
+  ).catch(() => 0);
+
   return {
     workspace: workspace as PageData['workspace'],
     recentInvoices: (invoiceRows ?? []) as unknown as BillingHistoryItem[],
@@ -141,6 +163,8 @@ async function loadPageData(
     usage: { clients, teamMembers, agents },
     archived: { count: archivedCount, latestArchivedAt },
     tierLimits,
+    proTeamMemberLimit,
+    suspendedMembersCount,
   };
 }
 
@@ -253,6 +277,24 @@ export default async function BillingPage({
         archivedAt={data.archived.latestArchivedAt}
         workspaceId={ctx.workspaceId}
         onUpgrade={handleUpgrade}
+      />
+
+      {/* Story 9.5c AC1 (Option B) — proactive heads-up for Agency owners
+          over the Pro team-member limit, before they downgrade via the
+          Stripe Customer Portal. FR57a. */}
+      <AgencyDowngradeHeadsup
+        currentTier={data.workspace.subscription_tier}
+        activeTeamMemberCount={data.usage.teamMembers}
+        proTeamMemberLimit={data.proTeamMemberLimit}
+      />
+
+      {/* Story 9.5c AC4 — owner-facing banner when suspended members exist
+          (prior Agency→Pro downgrade). Dual placement: here on billing, and
+          on the team settings page. FR57a. */}
+      <SuspendedMembersBanner
+        suspendedCount={data.suspendedMembersCount}
+        proTeamMemberLimit={data.proTeamMemberLimit}
+        placement="billing"
       />
 
       <section className="rounded-[var(--flow-radius-lg)] border border-[var(--flow-color-border-default)] p-5">

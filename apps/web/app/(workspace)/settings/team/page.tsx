@@ -1,9 +1,15 @@
-import { requireTenantContext } from '@flow/db';
+import {
+  requireTenantContext,
+  createServiceClient,
+  countSuspendedMembers,
+} from '@flow/db';
 import { getServerSupabase } from '@/lib/supabase-server';
+import { getTierConfig } from '@/lib/config/tier-config';
 import type { Metadata } from 'next';
 import { TeamMemberList } from './components/team-member-list';
 import { InviteForm } from './components/invite-form';
 import { PendingInvitationsList } from './components/pending-invitations-list';
+import { SuspendedMembersBanner } from '../billing/components/SuspendedMembersBanner';
 
 export const metadata: Metadata = {
   title: 'Team Management',
@@ -42,6 +48,18 @@ export default async function TeamPage() {
     .select('name')
     .eq('id', ctx.workspaceId)
     .single();
+
+  // 9-5c AC4 — suspended-member count + Pro limit for the dual-placement
+  // banner. service_role for the count (owner RLS gates on status='active').
+  // Best-effort: if config/count fail, the banner renders nothing (count 0).
+  const [suspendedMembersCount, proTeamMemberLimit] = await Promise.all([
+    countSuspendedMembers(createServiceClient(), ctx.workspaceId).catch(
+      () => 0,
+    ),
+    getTierConfig()
+      .then((c) => c.tierLimits.pro.maxTeamMembers ?? 5)
+      .catch(() => 5),
+  ]);
 
   if (membersError || invitationsError || workspaceError) {
     return (
@@ -117,6 +135,15 @@ export default async function TeamPage() {
           <InviteForm actorRole={ctx.role} currentEmail={currentUserEmail} />
         )}
       </div>
+
+      {/* Story 9.5c AC4 — owner-facing banner when suspended members exist
+          (prior Agency→Pro downgrade). Dual placement: here on team settings,
+          and on the billing page. FR57a. */}
+      <SuspendedMembersBanner
+        suspendedCount={suspendedMembersCount}
+        proTeamMemberLimit={proTeamMemberLimit}
+        placement="team-settings"
+      />
 
       {activeMembers.length === 1 && (
         <div className="rounded-lg border border-[var(--flow-color-border-default)] p-6 text-center">

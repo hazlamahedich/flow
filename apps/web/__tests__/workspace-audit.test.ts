@@ -202,6 +202,10 @@ describe('workspace audit events', () => {
             return `${event.oldRole}->${event.newRole}`;
           case 'member_revoked':
             return event.memberId;
+          case 'member_suspended':
+            // Story 9.5c AC2 — FR57a. Returns memberId (may be a
+            // comma-joined list when multiple members suspend at once).
+            return event.memberId;
           case 'member_expired':
             return event.memberId;
           case 'ownership_transferred':

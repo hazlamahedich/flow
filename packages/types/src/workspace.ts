@@ -3,7 +3,17 @@ import { z } from 'zod';
 export const RoleEnum = z.enum(['owner', 'admin', 'member', 'client_user']);
 export type Role = z.infer<typeof RoleEnum>;
 
-export const MemberStatusEnum = z.enum(['active', 'expired', 'revoked']);
+// `suspended` added 2026-07-17 (Story 9.5c AC6 — FR57a). A suspended member
+// loses API/session access (getActiveMembership filters status='active') and
+// consumes no seat (countActiveTeamMembers filters status='active'), but no
+// data is deleted — reactivation is a status flip back to 'active'.
+// service_role (webhook) is the only mutator of this state.
+export const MemberStatusEnum = z.enum([
+  'active',
+  'expired',
+  'revoked',
+  'suspended',
+]);
 export type MemberStatus = z.infer<typeof MemberStatusEnum>;
 
 export const TransferStatusEnum = z.enum([
