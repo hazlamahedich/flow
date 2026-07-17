@@ -183,7 +183,9 @@ beforeEach(() => {
         // For per-id lookups (.eq('id', X)), return the matching row so the
         // handler can resolve user_id per suspended member. Falls back to the
         // first row for non-id-qualified queries.
-        data: lastEqId ? (activeMemberRows.find((r) => r.id === lastEqId) ?? null) : (activeMemberRows[0] ?? null),
+        data: lastEqId
+          ? (activeMemberRows.find((r) => r.id === lastEqId) ?? null)
+          : (activeMemberRows[0] ?? null),
         error: null,
       }));
       return chain;
@@ -227,7 +229,9 @@ describe('[AC0] schema/contract assertions (pre-dev gates)', () => {
     const { invalidateUserSessions } = await import('@flow/auth/server-admin');
     expect(typeof invalidateUserSessions).toBe('function');
     expect(mockInvalidateSessions).not.toHaveBeenCalled();
-    const result = invalidateUserSessions('00000000-0000-0000-0000-000000000000');
+    const result = invalidateUserSessions(
+      '00000000-0000-0000-0000-000000000000',
+    );
     expect(result).toBeInstanceOf(Promise);
     await result;
     expect(mockInvalidateSessions).toHaveBeenCalledTimes(1);
@@ -248,9 +252,8 @@ describe('[AC0] schema/contract assertions (pre-dev gates)', () => {
 
   test('downgradeSchema.toTier rejects pro/agency (9-5b EC4 lock stays intact)', async () => {
     // Split-don't-invariant: the 9-5b schema must NOT be widened.
-    const { downgradeSchema } = await import(
-      '@/lib/actions/billing/downgrade-internal'
-    );
+    const { downgradeSchema } =
+      await import('@/lib/actions/billing/downgrade-internal');
     const parsed = downgradeSchema.safeParse({
       fromTier: 'agency',
       toTier: 'pro',
@@ -603,7 +606,7 @@ describe('[AC2] applyAgencyToProDowngrade handler', () => {
 // ───────────────────────────────────────────────────────────────
 // Split-don't-invert: 9-5b applyDowngradeOnTierChange stays untouched
 // ───────────────────────────────────────────────────────────────
-describe('split-don\'t-invert — 9-5b Free path stays green', () => {
+describe("split-don't-invert — 9-5b Free path stays green", () => {
   test('applyDowngradeOnTierChange still exists and is a function', async () => {
     const mod = await import('@/lib/actions/billing/downgrade-internal');
     expect(typeof mod.applyDowngradeOnTierChange).toBe('function');

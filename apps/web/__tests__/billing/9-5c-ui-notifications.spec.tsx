@@ -42,7 +42,9 @@ describe('[AC1] AgencyDowngradeHeadsup', () => {
         proTeamMemberLimit={5}
       />,
     );
-    expect(container.querySelector('[data-testid="agency-downgrade-headsup"]')).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="agency-downgrade-headsup"]'),
+    ).not.toBeNull();
     expect(container.textContent).toContain('8 team members');
     expect(container.textContent).toContain('Pro supports 5');
     expect(container.textContent).toContain('3 members'); // excess
@@ -56,7 +58,9 @@ describe('[AC1] AgencyDowngradeHeadsup', () => {
         proTeamMemberLimit={5}
       />,
     );
-    expect(container.querySelector('[data-testid="agency-downgrade-headsup"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="agency-downgrade-headsup"]'),
+    ).toBeNull();
   });
 
   test('does NOT render when within Pro limit (no excess)', () => {
@@ -67,7 +71,9 @@ describe('[AC1] AgencyDowngradeHeadsup', () => {
         proTeamMemberLimit={5}
       />,
     );
-    expect(container.querySelector('[data-testid="agency-downgrade-headsup"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="agency-downgrade-headsup"]'),
+    ).toBeNull();
   });
 
   test('uses the proLimit from props (never hardcoded — PD1)', () => {
@@ -113,7 +119,9 @@ describe('[AC4] SuspendedMembersBanner', () => {
         placement="billing"
       />,
     );
-    const banner = container.querySelector('[data-testid="suspended-members-banner"]');
+    const banner = container.querySelector(
+      '[data-testid="suspended-members-banner"]',
+    );
     expect(banner).not.toBeNull();
     expect(banner?.getAttribute('data-placement')).toBe('billing');
     expect(container.textContent).toContain('paused 3 team members');
@@ -128,7 +136,9 @@ describe('[AC4] SuspendedMembersBanner', () => {
         placement="billing"
       />,
     );
-    const cta = container.querySelector('[data-testid="suspended-members-banner-upgrade"]');
+    const cta = container.querySelector(
+      '[data-testid="suspended-members-banner-upgrade"]',
+    );
     expect(cta?.textContent).toBe('Upgrade to Agency');
     expect(cta?.getAttribute('href')).toBe('/settings/billing');
   });
@@ -141,7 +151,9 @@ describe('[AC4] SuspendedMembersBanner', () => {
         placement="billing"
       />,
     );
-    const manage = container.querySelector('[data-testid="suspended-members-banner-manage"]');
+    const manage = container.querySelector(
+      '[data-testid="suspended-members-banner-manage"]',
+    );
     expect(manage?.textContent).toBe('Manage team');
     expect(manage?.getAttribute('href')).toBe('/settings/team');
   });
@@ -154,7 +166,9 @@ describe('[AC4] SuspendedMembersBanner', () => {
         placement="team-settings"
       />,
     );
-    const manage = container.querySelector('[data-testid="suspended-members-banner-manage"]');
+    const manage = container.querySelector(
+      '[data-testid="suspended-members-banner-manage"]',
+    );
     expect(manage?.getAttribute('href')).toBe('/settings/billing');
   });
 
@@ -166,7 +180,9 @@ describe('[AC4] SuspendedMembersBanner', () => {
         placement="billing"
       />,
     );
-    expect(container.querySelector('[data-testid="suspended-members-banner"]')).toBeNull();
+    expect(
+      container.querySelector('[data-testid="suspended-members-banner"]'),
+    ).toBeNull();
   });
 });
 
@@ -181,7 +197,9 @@ describe('[AC5/EC10] SuspendedMemberBanner', () => {
         workspaceName="Acme VA"
       />,
     );
-    const banner = container.querySelector('[data-testid="suspended-member-banner"]');
+    const banner = container.querySelector(
+      '[data-testid="suspended-member-banner"]',
+    );
     expect(banner).not.toBeNull();
     expect(banner?.getAttribute('role')).toBe('alert');
     expect(container.textContent).toContain('Acme VA');

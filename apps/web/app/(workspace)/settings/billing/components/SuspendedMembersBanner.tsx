@@ -71,9 +71,9 @@ export function SuspendedMembersBanner({
         </svg>
         <div className="flex-1">
           <p className="text-sm font-medium text-amber-900">
-            When you downgraded to Pro, we paused {suspendedCount} team
-            member{suspendedCount === 1 ? '' : 's'} to fit the Pro limit
-            ({proTeamMemberLimit}). They can&apos;t log in but their work is
+            When you downgraded to Pro, we paused {suspendedCount} team member
+            {suspendedCount === 1 ? '' : 's'} to fit the Pro limit (
+            {proTeamMemberLimit}). They can&apos;t log in but their work is
             preserved.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">

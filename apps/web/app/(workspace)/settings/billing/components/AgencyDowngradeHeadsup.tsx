@@ -69,8 +69,8 @@ export function AgencyDowngradeHeadsup({
           <p className="mt-1 text-xs text-amber-800">
             If you switch to Pro, {excess} member
             {excess === 1 ? '' : 's'} will be paused (not removed — their work
-            is preserved). You can adjust who stays after the switch, or
-            upgrade back any time to restore everyone.
+            is preserved). You can adjust who stays after the switch, or upgrade
+            back any time to restore everyone.
           </p>
         </div>
       </div>

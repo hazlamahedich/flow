@@ -174,9 +174,8 @@ export async function dispatchSuspensionNotifications(args: {
       send: (p: TransactionalEmailPayload) => Promise<{ messageId: string }>;
     } | null = null;
     try {
-      const { getTransactionalEmailProvider } = await import(
-        '@flow/agents/providers'
-      );
+      const { getTransactionalEmailProvider } =
+        await import('@flow/agents/providers');
       const resolved = getTransactionalEmailProvider('resend');
       provider = { send: (p) => resolved.send(p) };
     } catch {

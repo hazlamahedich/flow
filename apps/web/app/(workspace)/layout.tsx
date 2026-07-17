@@ -111,18 +111,13 @@ export default async function WorkspaceLayout({
         .eq('workspace_id', workspaceId)
         .eq('user_id', session.user.id)
         .maybeSingle();
-      if (
-        (memberRow as { status?: string } | null)?.status === 'suspended'
-      ) {
+      if ((memberRow as { status?: string } | null)?.status === 'suspended') {
         memberSuspendedAt =
           (memberRow as { suspended_at?: string | null } | null)
             ?.suspended_at ?? null;
         workspaceNameForMember =
-          (
-            memberRow as
-              | { workspaces?: { name?: string } | null }
-              | null
-          )?.workspaces?.name ?? '';
+          (memberRow as { workspaces?: { name?: string } | null } | null)
+            ?.workspaces?.name ?? '';
       }
     } catch {
       memberSuspendedAt = null;

@@ -142,7 +142,13 @@ export async function applyAgencyToProDowngrade(input: {
       const email = user?.email ?? '';
       const name = user?.name ?? null;
       if (email) {
-        suspendedForNotify.push({ userId, memberId, email, name, suspendedAt: suspendedAtIso });
+        suspendedForNotify.push({
+          userId,
+          memberId,
+          email,
+          name,
+          suspendedAt: suspendedAtIso,
+        });
       }
       try {
         await invalidateUserSessions(userId);

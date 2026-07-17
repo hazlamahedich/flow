@@ -31,7 +31,10 @@ export {
 export { getDashboardSummary, getDashboardCacheTag } from './queries/dashboard';
 export type { DashboardSummary } from './queries/dashboard';
 export { listUserWorkspaces, listAllWorkspaces } from './queries/workspaces';
-export { countActiveTeamMembers, countSuspendedMembers } from './queries/workspaces';
+export {
+  countActiveTeamMembers,
+  countSuspendedMembers,
+} from './queries/workspaces';
 export { getWorkspaceSubscriptionStatus } from './queries/workspaces';
 // Story 9.5c AC2/AC3 — FR57a team-member suspension (webhook-only bulk mutator).
 export {
