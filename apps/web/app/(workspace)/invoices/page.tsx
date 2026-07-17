@@ -51,16 +51,19 @@ export default async function InvoicesPage({
       </div>
 
       {invoices.length === 0 && filter === 'active' ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            No invoices yet. Create your first invoice.
-          </p>
-          <Link
-            href="/invoices/new"
-            className="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            Create Invoice
-          </Link>
+        <div className="space-y-6">
+          <InvoiceFilterPills activeFilter={filter} />
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              No invoices yet. Create your first invoice.
+            </p>
+            <Link
+              href="/invoices/new"
+              className="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Create Invoice
+            </Link>
+          </div>
         </div>
       ) : (
         <>

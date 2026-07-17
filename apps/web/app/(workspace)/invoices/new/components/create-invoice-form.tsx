@@ -43,7 +43,7 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
       sourceType: 'time_entry' | 'fixed_service' | 'retainer';
       description: string;
       quantity: number;
-      amountCents: number;
+      unitPriceCents: number;
       timeEntryId?: string;
       retainerId?: string;
     }>
@@ -59,7 +59,7 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
         sourceType: 'fixed_service',
         description: '',
         quantity: 1,
-        amountCents: 0,
+        unitPriceCents: 0,
       },
     ]);
   };
@@ -113,11 +113,16 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
 
     setSubmitting(true);
 
+    const submissionLineItems = lineItems.map((item) => ({
+      ...item,
+      amountCents: Math.round(item.quantity * item.unitPriceCents),
+    }));
+
     try {
       const dedupResult = await checkInvoiceDuplicatesAction({
         clientId,
         issueDate,
-        lineItems,
+        lineItems: submissionLineItems,
       });
 
       if (dedupResult.success && dedupResult.data.length > 0) {
@@ -126,7 +131,7 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
 
       const result = await createInvoiceAction({
         clientId,
-        lineItems,
+        lineItems: submissionLineItems,
         issueDate,
         dueDate,
         notes: notes || undefined,
@@ -251,11 +256,11 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
             <input
               type="number"
               placeholder="Amount ($)"
-              value={item.amountCents ? item.amountCents / 100 : ''}
+              value={item.unitPriceCents ? item.unitPriceCents / 100 : ''}
               onChange={(e) =>
                 updateLineItem(
                   index,
-                  'amountCents',
+                  'unitPriceCents',
                   Math.round((parseFloat(e.target.value) || 0) * 100),
                 )
               }
@@ -288,9 +293,12 @@ export function CreateInvoiceForm({ clients }: CreateInvoicePageProps) {
       <div className="flex items-center justify-between border-t pt-4">
         <div className="text-sm text-muted-foreground">
           Total: $
-          {(lineItems.reduce((s, li) => s + li.amountCents, 0) / 100).toFixed(
-            2,
-          )}
+          {(
+            lineItems.reduce(
+              (s, li) => s + li.quantity * li.unitPriceCents,
+              0,
+            ) / 100
+          ).toFixed(2)}
         </div>
         <div className="flex gap-3">
           <button
