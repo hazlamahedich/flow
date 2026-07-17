@@ -229,7 +229,9 @@ test.describe('[P0] Client Wizard — Create Client', () => {
     await expect(dialog.getByText('Review Test Client')).toBeVisible();
     await expect(dialog.getByText('Contact Details')).toBeVisible();
     await expect(dialog.getByText('Billing & Notes')).toBeVisible();
-    await expect(dialog.getByRole('heading', { name: 'Retainer' })).toBeVisible();
+    await expect(
+      dialog.getByRole('heading', { name: 'Retainer' }),
+    ).toBeVisible();
   });
 });
 
