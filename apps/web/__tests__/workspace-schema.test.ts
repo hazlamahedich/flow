@@ -185,10 +185,12 @@ describe('workspace-schema', () => {
     });
 
     it('MemberStatusEnum has correct values', () => {
+      // `suspended` added 2026-07-17 (Story 9.5c AC6 — FR57a).
       expect(MemberStatusEnum.Values).toEqual({
         active: 'active',
         expired: 'expired',
         revoked: 'revoked',
+        suspended: 'suspended',
       });
     });
   });
