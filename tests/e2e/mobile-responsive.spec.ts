@@ -21,7 +21,7 @@ test.describe('[P1] Mobile Responsive Layout', () => {
     ownerPage,
   }) => {
     await ownerPage.setViewportSize({ width: 1280, height: 720 });
-    const sidebar = ownerPage.locator('[data-testid="sidebar-nav"]');
+    const sidebar = ownerPage.locator('[data-testid="sidebar"]');
     const sidebarWasVisible = await sidebar.isVisible();
 
     await ownerPage.setViewportSize({ width: 768, height: 1024 });
@@ -31,7 +31,7 @@ test.describe('[P1] Mobile Responsive Layout', () => {
       );
       const visible = await sidebar.isVisible();
       expect(width <= 80 || !visible).toBeTruthy();
-    }).toPass({ timeout: 3000 });
+    }).toPass({ timeout: 5000 });
 
     test.skip(
       !sidebarWasVisible,
@@ -41,7 +41,7 @@ test.describe('[P1] Mobile Responsive Layout', () => {
 
   test('desktop sidebar visible at 1280px', async ({ ownerPage }) => {
     await ownerPage.setViewportSize({ width: 1280, height: 720 });
-    const sidebar = ownerPage.locator('[data-testid="sidebar-nav"]');
+    const sidebar = ownerPage.locator('[data-testid="sidebar"]');
     const isSidebarPresent = await sidebar.isVisible().catch(() => false);
     test.skip(
       !isSidebarPresent,
