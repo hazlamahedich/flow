@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, cleanup } from '@testing-library/react';
 import { Provider } from 'jotai';
 import { SidebarProvider } from './sidebar-provider';
 
@@ -10,6 +10,14 @@ vi.mock('next/navigation', () => ({
 vi.mock('sonner', () => ({
   toast: { info: vi.fn() },
 }));
+
+// Flush rendered components between tests so React scheduler microtasks
+// don't fire after the jsdom environment tears down (causes flaky
+// "window is not defined" unhandled-error failures). Matches the pattern
+// in apps/web/__tests__/billing/9-5c-ui-notifications.spec.tsx.
+afterEach(() => {
+  cleanup();
+});
 
 function mockLocalStorage() {
   const store: Record<string, string> = {};

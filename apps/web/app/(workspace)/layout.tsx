@@ -5,6 +5,7 @@ import { switchWorkspace } from './actions/switch-workspace';
 import { getTimerStateAction } from './time/actions/timer-actions';
 import { redirect } from 'next/navigation';
 import { SubscriptionStatusBanner } from './settings/billing/components/SubscriptionStatusBanner';
+import { SuspendedMemberBanner } from './settings/billing/components/SuspendedMemberBanner';
 import type { SubscriptionStatus } from '@flow/types';
 
 export default async function WorkspaceLayout({
@@ -91,6 +92,38 @@ export default async function WorkspaceLayout({
     }
   }
 
+  // Story 9.5c AC5 (EC10) — if the current user's membership in the active
+  // workspace is `suspended` (e.g. they were excess when the workspace
+  // downgraded Agency→Pro), surface the member-suspended banner. Distinct
+  // from subscriptionStatus above (FR60 workspace-suspended vs FR57a
+  // member-suspended). service_role read: the member_select RLS policy gates
+  // on status='active', so a suspended member cannot read their own row via
+  // user JWT to discover they're suspended.
+  let memberSuspendedAt: string | null = null;
+  let workspaceNameForMember = '';
+  if (workspaceId) {
+    try {
+      const { createServiceClient } = await import('@flow/db');
+      const serviceClient = createServiceClient();
+      const { data: memberRow } = await serviceClient
+        .from('workspace_members')
+        .select('status, suspended_at, workspaces(name)')
+        .eq('workspace_id', workspaceId)
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+      if ((memberRow as { status?: string } | null)?.status === 'suspended') {
+        memberSuspendedAt =
+          (memberRow as { suspended_at?: string | null } | null)
+            ?.suspended_at ?? null;
+        workspaceNameForMember =
+          (memberRow as { workspaces?: { name?: string } | null } | null)
+            ?.workspaces?.name ?? '';
+      }
+    } catch {
+      memberSuspendedAt = null;
+    }
+  }
+
   return (
     <WorkspaceShellClient
       agentCount={agentCount}
@@ -101,6 +134,12 @@ export default async function WorkspaceLayout({
     >
       {subscriptionStatus && (
         <SubscriptionStatusBanner subscriptionStatus={subscriptionStatus} />
+      )}
+      {memberSuspendedAt !== null && (
+        <SuspendedMemberBanner
+          suspendedAt={memberSuspendedAt}
+          workspaceName={workspaceNameForMember}
+        />
       )}
       {children}
     </WorkspaceShellClient>

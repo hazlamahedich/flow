@@ -259,7 +259,8 @@ describe('workspaceMemberSchema', () => {
 
 describe('MemberStatusEnum', () => {
   it('[P0] accepts all valid statuses', () => {
-    ['active', 'expired', 'revoked'].forEach((s) => {
+    // `suspended` added 2026-07-17 (Story 9.5c AC6 — FR57a).
+    ['active', 'expired', 'revoked', 'suspended'].forEach((s) => {
       expect(MemberStatusEnum.parse(s)).toBe(s);
     });
   });

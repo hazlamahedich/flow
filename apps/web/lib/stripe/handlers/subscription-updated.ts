@@ -4,6 +4,8 @@ import { mapStripeStatusToDb } from '@flow/shared';
 import { StripePaymentProvider } from '@flow/agents/providers';
 import { writeAuditLog } from '@flow/agents/shared/audit-writer';
 import { applyDowngradeOnTierChange } from '@/lib/actions/billing/downgrade-internal';
+import { applyAgencyToProDowngrade } from '@/lib/actions/billing/downgrade-agency-to-pro';
+import { reactivateSuspendedMembers } from '@flow/db';
 import type { WebhookEvent, WebhookProcessingResult } from '../webhook-types';
 
 function getMetadata(object: Record<string, unknown>): Record<string, string> {
@@ -186,6 +188,61 @@ async function syncSubscriptionFromEvent(
           previousTier,
           error: err instanceof Error ? err.message : String(err),
           reconcileFallback: true,
+        },
+      });
+    }
+  }
+
+  // (2b) Story 9.5c AC2 — if the tier-flip is Agency→Pro, suspend excess team
+  // members (FR57a). SIBLING of the Free path above (split, don't invert):
+  // this branch is deliberately separate so 9-5b's locked tests stay green.
+  // The webhook ctx is the only legitimate bulk mutator of non-active
+  // membership states (`service_role` bypasses RLS — 20260717000002). The
+  // handler is idempotent on replay (EC7) and best-effort on session
+  // invalidation (EC6 — partial failure carries `warnings`, no rollback).
+  if (effectiveTier === 'pro' && previousTier === 'agency') {
+    try {
+      await applyAgencyToProDowngrade({ workspaceId, supabase });
+    } catch (err) {
+      // Non-fatal — tier flip already committed. The tier_drift
+      // reconciliation is the safety net for missed/partial webhooks.
+      writeAuditLog({
+        workspaceId,
+        agentId: 'stripe-webhook',
+        action: 'subscription.agency_to_pro_suspend_failed',
+        entityType: 'workspace',
+        entityId: workspaceId,
+        details: {
+          previousTier,
+          error: err instanceof Error ? err.message : String(err),
+          reconcileFallback: true,
+        },
+      });
+    }
+  }
+
+  // (2c) Story 9.5c AC3 / Task 8 — if the tier-flip is Pro→Agency (upgrade-
+  // back), reactivate any members that were suspended by a prior Agency→Pro
+  // downgrade. FR57a reactivation clause. Minimal data-side hook: flips
+  // status back to 'active', clears suspended_at/suspension_reason. The
+  // bulk + per-member reactivation UX is owned by story 9-5f.
+  // Idempotent: no-op when no suspended members exist.
+  if (effectiveTier === 'agency' && previousTier === 'pro') {
+    try {
+      await reactivateSuspendedMembers(supabase, workspaceId);
+    } catch (err) {
+      // Non-fatal — tier flip already committed. Members remain suspended
+      // and can be reactivated manually (or on a later webhook replay).
+      writeAuditLog({
+        workspaceId,
+        agentId: 'stripe-webhook',
+        action: 'subscription.pro_to_agency_reactivate_failed',
+        entityType: 'workspace',
+        entityId: workspaceId,
+        details: {
+          previousTier,
+          error: err instanceof Error ? err.message : String(err),
+          manualRecovery: true,
         },
       });
     }
