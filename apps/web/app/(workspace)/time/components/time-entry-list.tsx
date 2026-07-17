@@ -277,28 +277,17 @@ export function TimeEntryList({
       {entries.length === 0 && !hasFilters && (
         <div className="py-12 text-center">
           <p className="mb-4 text-muted-foreground">
-            No time logged yet — log your first entry
+            No time logged yet — use the button above to record your first entry
           </p>
-          <button
-            className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground"
-            onClick={() => setShowModal(true)}
-          >
-            Log Time
-          </button>
         </div>
       )}
 
       {entries.length === 0 && hasFilters && (
         <div className="py-12 text-center">
           <p className="mb-2 text-muted-foreground">
-            No entries match your filters
+            No entries match your filters — use the Clear filters control above
+            to widen your search
           </p>
-          <button
-            className="text-sm text-primary underline"
-            onClick={clearFilters}
-          >
-            Clear filters
-          </button>
         </div>
       )}
 

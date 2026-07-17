@@ -224,6 +224,9 @@ export function LogTimeModal({
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Log time entry"
         className="bg-background w-full max-w-lg rounded-lg border p-6 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >

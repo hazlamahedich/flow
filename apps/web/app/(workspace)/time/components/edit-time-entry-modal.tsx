@@ -244,6 +244,9 @@ export function EditTimeEntryModal({
       onClick={handleBackdropClick}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Edit time entry"
         className="bg-background w-full max-w-lg rounded-lg border p-6 shadow-lg"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
